@@ -9,21 +9,18 @@ defmodule Aelita2.Router do
     plug :put_secure_browser_headers
   end
 
-  pipeline :browser_front do
-    plug :assign_current_user
-  end
-
   pipeline :browser_session do
     plug :force_current_user
   end
 
   scope "/", Aelita2 do
-    pipe_through :browser_front
+    pipe_through :browser
 
     get "/", PageController, :index
   end
 
   scope "/manage", Aelita2 do
+    pipe_through :browser
     pipe_through :browser_session
 
     resources "/", ProjectController
@@ -44,12 +41,8 @@ defmodule Aelita2.Router do
   # Fetch the current user from the session and add it to `conn.assigns`. This
   # will allow you to have access to the current user in your views with
   # `@current_user`.
-  defp assign_current_user(conn, _) do
-    user = get_session(conn, :current_user)
-    assign(conn, :current_user, user)
-  end
   defp force_current_user(conn, _) do
-    user = get_session(conn, :current_user)
+    user = Plug.Conn.get_session(conn, :current_user)
     if user == nil do
       conn
       |> Phoenix.Controller.redirect(to: "/auth/github")

@@ -15,12 +15,12 @@
     <header role="banner">
       <h1 class=wrapper>aelita</h1>
       <nav role="navigation" class="tabs">
-        <%= if controller_module @conn == Elixir.Aelita2.ProjectController do %>
+        <%= if controller_module(@conn) == Elixir.Aelita2.ProjectController do %>
         <span class="tab tab--active">Repositories</span>
         <% else %>
         <% link "Repositories", to: project_path(@conn, :index), class: "tab" %>
         <% end %>
-        <%= if controller_module @conn == Elixir.Aelita2.PageController do %>
+        <%= if controller_module(@conn) == Elixir.Aelita2.PageController do %>
         <span class="tab tab--active">About</span>
         <% else %>
         <% link "About", to: page_path(@conn, :index), class: "tab" %>
