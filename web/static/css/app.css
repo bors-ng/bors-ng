@@ -1,0 +1,129 @@
+/* Should be used inside of the header, main, and footer */
+.wrapper {
+	max-width: 1000px;
+	margin: 0 auto;
+	padding: 16px 20px;
+}
+header {
+	border-bottom: solid 1px #CCC;
+	background-color: #EEE;
+	margin-bottom: -1px;
+}
+footer {
+	border-top: solid 1px #CCC;
+	margin-top: -1px;
+}
+/* Use underline-on-hover for links.
+   This is used for consistency, since fill-link breaks outlines. */
+:link, :visited {
+	text-decoration: none;
+	color: #4d76ae;
+}
+:visited {
+	color: #ae764d;
+}
+:link:hover, :link:focus,
+:visited:hover, :visited:focus {
+	text-decoration: underline;
+	outline: none;
+}
+/* The tab bar. */
+.tabs {
+	margin: -1px auto;
+	max-width: 1000px;
+}
+.tabs::after {
+	content: ". . . . . . . . . . ";
+	visibility: hidden;
+	display: block;
+	width: 0; height: 0; overflow: hidden;
+	clear: both;
+}
+.tab {
+	/* The 1px border on the left and right adds it up to 10px */
+	/* The top and bottom are 8px, even with the border, because of the -1px margin on tabs */
+	padding: 8px 8px 8px 9px;
+	float: left;
+	border: solid 1px transparent;
+	margin-left: -1px;
+	transition: border-color 0.1s ease-in-out;
+}
+.tab--active, .tab:hover, .tab:focus {
+	border-color: #CCC;
+	border-bottom-color: transparent;
+	text-decoration: none;
+}
+.tab--active {
+	background: #FFF;
+}
+/* The fancy table. */
+.table {
+    width: 100%;
+    border: solid 1px #CCC;
+    border-radius: 8px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+}
+.table tr {
+    transition-duration: 0.1s;
+    transition-timing-function: ease;
+    transition-property: background;
+}
+.table tbody > tr:hover {
+    background: #EEE;
+}
+.table tr td {
+    border-top :solid 1px #CCC;
+}
+.table tr:first-child td {
+    border-top:none;
+}
+.table th {
+    border-bottom: solid 2px #CCC;
+    color: #666;
+    font-weight: bold;
+    text-align: left;
+}
+.table th, .table td {
+    padding: 8px 10px;
+    border-left: solid 1px #CCC;
+}
+.table th:first-child, .table td:first-child {
+    border-left:none;
+}
+.toolbar {
+	margin: 16px -10px;
+}
+.toolbar-item {
+	margin: -8px 10px;
+	padding: 8px 10px;
+	color: #FFF;
+	background-color: #4d76ae;
+	border-radius: 8px;
+	transition: box-shadow 0.1s ease-in-out;
+	box-shadow: 0 1px 2px #666;
+}
+.toolbar-item:hover, 
+.toolbar-item:focus {
+	text-decoration: none;
+	box-shadow: 0 1px 4px #666;
+}
+.toolbar-item:active {
+	box-shadow: 0 0 0 #666;
+}
+.fill-link {
+	overflow: hidden;
+}
+.fill-link > * {
+	display: block;
+	margin: -10em;
+	padding: 10em;
+}
+/* The page headers. */
+.header {
+	border-bottom: solid 1px #CCC;
+	margin: 0;
+	margin-bottom: 7px;
+	padding-bottom: 8px;
+}

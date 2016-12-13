@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>aelita</title>
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+  </head>
+
+  <body>
+    <header role="banner">
+      <h1 class=wrapper>aelita</h1>
+      <nav role="navigation" class="tabs">
+        <%= if controller_module @conn == Elixir.Aelita2.ProjectController do %>
+        <span class="tab tab--active">Repositories</span>
+        <% else %>
+        <% link "Repositories", to: project_path(@conn, :index), class: "tab" %>
+        <% end %>
+        <%= if controller_module @conn == Elixir.Aelita2.PageController do %>
+        <span class="tab tab--active">About</span>
+        <% else %>
+        <% link "About", to: page_path(@conn, :index), class: "tab" %>
+        <% end %>
+      </nav>
+    </header>
+
+    <main role="main"><div class=wrapper>
+      <!--<p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
+      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>-->
+      <%= render @view_module, @view_template, assigns %>
+    </div></main>
+
+    <footer role="note">
+      <p class=wrapper>This service is provided for free on a best-effort basis.</p>
+    </footer>
+
+    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+  </body>
+</html>

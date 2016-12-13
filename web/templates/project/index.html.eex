@@ -1,0 +1,20 @@
+<div class=toolbar role=toolbar>
+<%= link "Add repo", to: project_path(@conn, :new), class: "toolbar-item", role: "toolbar-item" %>
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Repo</th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for project <- @projects do %>
+    <tr>
+      <td class="fill-link">
+        <%= link project.name, to: project_path(@conn, :show, project) %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
