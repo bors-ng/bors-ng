@@ -34,21 +34,21 @@ defmodule Aelita2.AuthController do
     user = get_user! provider, client
 
     # Create (or reuse) the database record for this user
-    maybe_user_model = Repo.get_by User, type: provider, user_id: user["id"]
+    maybe_user_model = Repo.get_by User, type: provider, user_id: user.id
     current_user_model =
-      if maybe_user_model == nil do
+      if is_nil(maybe_user_model) do
         Repo.insert! %User{
           type: provider,
-          user_id: user["id"],
-          login: user["login"]}
+          user_id: user.id,
+          login: user.login}
       else
         maybe_user_model
       end
 
     # Make sure the login is up-to-date (GitHub users are allowed to change it)
     user_model =
-      if current_user_model.login != user["login"] do
-        cs = Ecto.Changeset.change current_user_model, login: user["login"]
+      if current_user_model.login != user.login do
+        cs = Ecto.Changeset.change current_user_model, login: user.login
         true = cs.valid?
         Repo.update! cs
       else
