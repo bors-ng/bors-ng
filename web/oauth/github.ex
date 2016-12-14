@@ -16,7 +16,7 @@ defmodule GitHub do
   # Public API
 
   def client do
-    Application.get_env(:oauth2_example, GitHub)
+    Application.get_env(:aelita2, GitHub)
     |> Keyword.merge(config())
     |> OAuth2.Client.new()
   end
