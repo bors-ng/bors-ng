@@ -32,6 +32,7 @@ defmodule Aelita2.AuthController do
 
     # Request the user's data with the access token
     user = get_user! provider, client
+    false = is_nil(user.id)
 
     # Create (or reuse) the database record for this user
     maybe_user_model = Repo.get_by User, type: provider, user_id: user.id
