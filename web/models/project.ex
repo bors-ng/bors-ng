@@ -5,9 +5,15 @@ defmodule Aelita2.Project do
     field :repo_id, :integer
     field :type, :string
     field :name, :string
-    belongs_to :users, Aelita2.User
+    belongs_to :owner, Aelita2.User
 
     timestamps()
+  end
+
+  def by_owner(owner) do
+    from p in "projects",
+      select: %{name: p.name, id: p.id, type: p.type},
+      where: p.owner == ^owner
   end
 
   @doc """

@@ -4,10 +4,7 @@ defmodule Aelita2.ProjectController do
   alias Aelita2.Project
 
   def index(conn, _params) do
-    projects = Repo.all(
-      from p in Project,
-        select: %{name: p.name, id: p.id},
-        where: p.user == ^get_session(conn, :current_user))
+    projects = Repo.all(Project.by_owner get_session(conn, :current_user))
     render conn, "index.html", projects: projects
   end
 
