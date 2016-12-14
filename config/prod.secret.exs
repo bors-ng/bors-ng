@@ -13,5 +13,5 @@ config :aelita2, Aelita2.Repo,
   ssl: true
 
 config :aelita2, GitHub,
-  client_id: {:system, "GITHUB_CLIENT_ID"},
-  client_secret: {:system, "GITHUB_CLIENT_SECRET"}
+  client_id: System.get_env("GITHUB_CLIENT_ID"),
+  client_secret: System.get_env("GITHUB_CLIENT_SECRET")
