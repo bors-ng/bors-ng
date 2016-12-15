@@ -62,7 +62,7 @@ defmodule Aelita2.AuthController do
     |> redirect(to: "/")
   end
 
-  defp authorize_url!("github"), do: GitHub.authorize_url!
+  defp authorize_url!("github"), do: GitHub.authorize_url! [{"scope", "user repo"}]
   defp authorize_url!(_), do: raise "No matching provider available"
 
   defp get_token!("github", code), do: GitHub.get_token! code: code

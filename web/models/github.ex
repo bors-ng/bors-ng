@@ -9,7 +9,7 @@ defmodule Aelita2.GitHub do
   end
 
   @doc """
-  List repoes that the oAuth-authenticated user is an owner of.
+  List repoes that the oAuth-authenticated user is a contributor to.
   """
   def get_my_repos!(github_access_token) when is_binary(github_access_token) do
     visibility = case config()[:require_visibility] do
