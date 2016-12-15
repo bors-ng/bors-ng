@@ -2,6 +2,7 @@ defmodule Aelita2.ProjectController do
   use Aelita2.Web, :controller
 
   alias Aelita2.Project
+  alias Aelita2.GitHub
 
   def index(conn, _params) do
     projects = Repo.all(Project.by_owner get_session(conn, :current_user))
@@ -9,8 +10,9 @@ defmodule Aelita2.ProjectController do
   end
 
   def new(conn, _params) do
-    changeset = Project.changeset %Project{}
-    render conn, "new.html", changeset: changeset
+    my_repos = GitHub.get_my_repos!(get_session(conn, :github_access_token))
+    |> Enum.filter(&(&1.permissions.admin))
+    render conn, "new.html", my_repos: my_repos
   end
 
   def create(conn, %{"project" => project_params}) do

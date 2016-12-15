@@ -19,7 +19,7 @@ defmodule Aelita2.Mixfile do
   def application do
     [mod: {Aelita2, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :oauth2]]
+                    :phoenix_ecto, :postgrex, :oauth2, :httpoison]]
   end
 
   # Specifies which paths to compile per environment.
@@ -37,9 +37,11 @@ defmodule Aelita2.Mixfile do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 2.6"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
+      {:poison, "~> 2.0"},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:oauth2, "~> 0.8"},
+      {:httpoison, "~> 0.10.0"}
     ]
   end
 

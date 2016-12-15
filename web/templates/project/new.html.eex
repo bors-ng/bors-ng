@@ -1,6 +1,18 @@
-<h2>New project</h2>
+<h2 class=header>Add a repo</h2>
 
-<%= render "form.html", changeset: @changeset,
-                        action: project_path(@conn, :create) %>
-
-<%= link "Back", to: project_path(@conn, :index) %>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Repo</th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for repo <- @my_repos do %>
+    <tr>
+      <td class="fill-link">
+        <%= link repo.name, to: project_path(@conn, :show, repo.id) %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>

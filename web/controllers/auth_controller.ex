@@ -58,7 +58,7 @@ defmodule Aelita2.AuthController do
 
     conn
     |> put_session(:current_user, user_model.id)
-    |> put_session(:access_token, client.token.access_token)
+    |> put_session(:github_access_token, client.token.access_token)
     |> redirect(to: "/")
   end
 
