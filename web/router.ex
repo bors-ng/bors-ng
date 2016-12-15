@@ -29,9 +29,9 @@ defmodule Aelita2.Router do
   scope "/auth", Aelita2 do
     pipe_through :browser
 
+    get "/logout", AuthController, :logout
     get "/:provider", AuthController, :index
     get "/:provider/callback", AuthController, :callback
-    get "/logout", AuthController, :logout
   end
 
   scope "/webhook", Aelita2 do
