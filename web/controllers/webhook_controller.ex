@@ -8,7 +8,8 @@ defmodule Aelita2.WebhookController do
   This action is reached via `/webhook/:provider`
   """
   def webhook(conn, %{"provider" => "github"}) do
-    do_webhook conn, "github", conn.req_headers["X-GitHub-Event"]
+    event = hd(get_req_header(conn, "x-github-event"))
+    do_webhook conn, "github", event
     conn
     |> send_resp(200, "")
   end
