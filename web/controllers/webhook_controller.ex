@@ -19,7 +19,7 @@ defmodule Aelita2.WebhookController do
   end
 
   def do_webhook(conn, "github", "integration_installation") do
-    payload = Poison.decode!(conn.body)
+    payload = conn.body_params
     installation_id = payload["installation"]["id"]
     case payload["action"] do
       "deleted" -> Repo.delete_all(from(
@@ -34,7 +34,7 @@ defmodule Aelita2.WebhookController do
   end
 
   def do_webhook(conn, "github", "integration_installation_repositories") do
-    payload = Poison.decode!(conn.body)
+    payload = conn.body_params
     installation_id = payload["installation"]["id"]
     installation = Repo.get_by!(Installation, installation_id: installation_id)
     :ok = case payload["action"] do

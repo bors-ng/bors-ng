@@ -13,6 +13,10 @@ defmodule Aelita2.Router do
     plug :force_current_user
   end
 
+  pipeline :webhook do
+    plug Plug.Parsers, parsers: [:json], json_decoder: Poison
+  end
+
   scope "/", Aelita2 do
     pipe_through :browser
 
@@ -35,6 +39,7 @@ defmodule Aelita2.Router do
   end
 
   scope "/webhook", Aelita2 do
+    pipe_through :webhook
     post "/:provider", WebhookController, :webhook
   end
 
