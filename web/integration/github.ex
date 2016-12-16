@@ -23,7 +23,7 @@ defmodule Aelita2.Integration.GitHub do
     |> token()
     |> sign(rs256(pem))
     |> get_compact()
-    %{body: raw, status_code: 200} = HTTPoison.post!(
+    %{body: raw, status_code: 201} = HTTPoison.post!(
       "#{cfg[:site]}/installations/#{installation_xref}/access_tokens",
       "",
       [{"Authorization", "Bearer #{jwt_token}"}, {"Accept", @content_type}])
