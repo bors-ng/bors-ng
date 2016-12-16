@@ -43,8 +43,8 @@ defmodule Aelita2.OAuth2.GitHub do
       "#{config()[:site]}/user/repos",
       [{"Authorization", "token #{github_access_token}"}],
       [params: [{"visibility", visibility}, {"sort", "full_name"}]])
-    Poison.decode!(raw) |>
-    Enum.map(&%{
+    Poison.decode!(raw)
+    |> Enum.map(&%{
       id: &1["id"],
       name: &1["full_name"],
       permissions: %{

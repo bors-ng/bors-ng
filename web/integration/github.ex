@@ -15,7 +15,7 @@ defmodule Aelita2.Integration.GitHub do
     |> Keyword.merge([site: "https://api.github.com"])
   end
 
-  def get_installation_token!() do
+  def get_installation_token!(installation_xref) do
     import Joken
     cfg = config()
     pem = JOSE.JWK.from_binary(cfg.pem)
@@ -24,9 +24,31 @@ defmodule Aelita2.Integration.GitHub do
     |> sign(rs256(pem))
     |> get_compact()
     %{body: raw} = HTTPoison.post!(
-      "#{cfg[:site]}/installations/#{cfg[:iss]}/access_tokens",
+      "#{cfg[:site]}/installations/#{installation_xref}/access_tokens",
       "",
       [{"Authorization", "Bearer #{jwt_token}"}, {"Accept", @content_type}])
     Poison.decode!(raw)["token"]
+  end
+
+  def get_my_repos!(installation_xref) do
+    cfg = config()
+    token = get_installation_token!(installation_xref)
+    %{body: raw} = HTTPoison.get!(
+      "#{cfg[:site]}/installation/repositories",
+      [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
+    Poison.decode!(raw)
+    |> Enum.map(&%{
+      id: &1["id"],
+      name: &1["full_name"],
+      permissions: %{
+        admin: &1["permissions"]["admin"],
+        push: &1["permissions"]["push"],
+        pull: &1["permissions"]["pull"]
+      },
+      owner: %{
+        id: &1["owner"]["id"],
+        login: &1["owner"]["login"],
+        avatar_url: &1["owner"]["avatar_url"],
+        type: &1["owner"]["type"]}})
   end
 end
