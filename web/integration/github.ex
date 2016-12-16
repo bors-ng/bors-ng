@@ -37,7 +37,7 @@ defmodule Aelita2.Integration.GitHub do
     %{body: raw, status_code: 200} = HTTPoison.get!(
       "#{cfg[:site]}/installation/repositories",
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
-    Poison.decode!(raw)
+    Poison.decode!(raw)["repositories"]
     |> Enum.map(&%{
       id: &1["id"],
       name: &1["full_name"],
