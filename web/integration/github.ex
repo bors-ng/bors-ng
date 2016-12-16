@@ -23,7 +23,7 @@ defmodule Aelita2.Integration.GitHub do
     |> with_iss(cfg[:iss])
     |> sign(rs256(pem))
     |> get_compact()
-    %{body: raw} = HTTPoison.post!(
+    %{body: raw, status_code: 200} = HTTPoison.post!(
       "#{cfg[:site]}/installations/#{installation_xref}/access_tokens",
       "",
       [{"Authorization", "Bearer #{jwt_token}"}, {"Accept", @content_type}])
@@ -33,7 +33,7 @@ defmodule Aelita2.Integration.GitHub do
   def get_my_repos!(installation_xref) do
     cfg = config()
     token = get_installation_token!(installation_xref)
-    %{body: raw} = HTTPoison.get!(
+    %{body: raw, status_code: 200} = HTTPoison.get!(
       "#{cfg[:site]}/installation/repositories",
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
     Poison.decode!(raw)

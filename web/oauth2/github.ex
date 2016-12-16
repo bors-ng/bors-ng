@@ -39,7 +39,7 @@ defmodule Aelita2.OAuth2.GitHub do
       :public -> "public"
       :all -> "all"
     end
-    %{body: raw} = HTTPoison.get!(
+    %{body: raw, status_code: 200} = HTTPoison.get!(
       "#{config()[:site]}/user/repos",
       [{"Authorization", "token #{github_access_token}"}],
       [params: [{"visibility", visibility}, {"sort", "full_name"}]])
