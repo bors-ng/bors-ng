@@ -35,7 +35,7 @@ defmodule Aelita2.Router do
   end
 
   scope "/webhook", Aelita2 do
-    post "/github", WebhookGithubController, :webhook
+    post "/:provider", WebhookController, :webhook
   end
 
   # Fetch the current user from the session and add it to `conn.assigns`. This

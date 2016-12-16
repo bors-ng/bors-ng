@@ -2,7 +2,7 @@ defmodule Aelita2.ProjectController do
   use Aelita2.Web, :controller
 
   alias Aelita2.Project
-  alias Aelita2.GitHub
+  alias Aelita2.OAuth2.GitHub
 
   def index(conn, _params) do
     projects = Repo.all(Project.by_owner get_session(conn, :current_user))

@@ -3,16 +3,15 @@ defmodule Aelita2.Project do
 
   schema "projects" do
     field :repo_id, :integer
-    field :type, :string
     field :name, :string
-    belongs_to :owner, Aelita2.User
+    belongs_to :installation, Aelita2.Installation
 
     timestamps()
   end
 
   def by_owner(owner) do
     from p in "projects",
-      select: %{name: p.name, id: p.id, type: p.type},
+      select: %{name: p.name, id: p.id},
       where: p.owner == ^owner
   end
 
@@ -21,7 +20,7 @@ defmodule Aelita2.Project do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:repo_id, :type, :name])
-    |> validate_required([:repo_id, :type, :name])
+    |> cast(params, [:repo_id, :name])
+    |> validate_required([:repo_id, :name])
   end
 end

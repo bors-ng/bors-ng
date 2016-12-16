@@ -12,6 +12,12 @@ config :aelita2, Aelita2.Repo,
   pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
   ssl: true
 
-config :aelita2, GitHub,
+config :aelita2, Aelita2.OAuth2.GitHub,
   client_id: System.get_env("GITHUB_CLIENT_ID"),
-  client_secret: System.get_env("GITHUB_CLIENT_SECRET")
+  client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
+  scope: "public_repo user",
+  require_visibility: :public
+
+config :aelita2, Aelita2.Integration.Github,
+  iss: String.to_integer(System.get_env("GITHUB_INTEGRATION_ID")),
+  pem: System.get_env("GITHUB_INTEGRATION_PEM")

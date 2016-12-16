@@ -9,9 +9,6 @@ use Mix.Config
 config :aelita2,
   ecto_repos: [Aelita2.Repo]
 
-config :aelita2, Aelita2.GitHub,
-  require_visibility: :public
-
 # Configures the endpoint
 config :aelita2, Aelita2.Endpoint,
   url: [host: "localhost"],

@@ -4,7 +4,7 @@ defmodule Aelita2.User do
   schema "users" do
     field :user_id, :integer
     field :login, :string
-    field :type, :string
+    many_to_many :projects, Aelita2.Project, join_through: "link_user_project"
 
     timestamps()
   end
@@ -14,7 +14,7 @@ defmodule Aelita2.User do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:user_id, :login, :type])
-    |> validate_required([:user_id, :login, :type])
+    |> cast(params, [:user_id, :login])
+    |> validate_required([:user_id, :login])
   end
 end

@@ -35,11 +35,10 @@ defmodule Aelita2.AuthController do
     false = is_nil(user.id)
 
     # Create (or reuse) the database record for this user
-    maybe_user_model = Repo.get_by User, type: provider, user_id: user.id
+    maybe_user_model = Repo.get_by User, user_id: user.id
     current_user_model =
       if is_nil(maybe_user_model) do
         Repo.insert! %User{
-          type: provider,
           user_id: user.id,
           login: user.login}
       else
@@ -62,14 +61,14 @@ defmodule Aelita2.AuthController do
     |> redirect(to: "/")
   end
 
-  defp authorize_url!("github"), do: GitHub.authorize_url! [{"scope", "user repo"}]
+  defp authorize_url!("github"), do: Aelita2.OAuth2.GitHub.authorize_url! [{"scope", Application.get_env(:aelita2, Aelita2.OAuth2.GitHub).scope}]
   defp authorize_url!(_), do: raise "No matching provider available"
 
-  defp get_token!("github", code), do: GitHub.get_token! code: code
+  defp get_token!("github", code), do: Aelita2.OAuth2.GitHub.get_token! code: code
   defp get_token!(_, _), do: raise "No matching provider available"
 
   defp get_user!("github", client) do
     %{body: user} = OAuth2.Client.get! client, "/user"
-    %{type: :github, id: user["id"], login: user["login"]}
+    %{id: user["id"], login: user["login"]}
   end
 end

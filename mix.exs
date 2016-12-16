@@ -41,7 +41,12 @@ defmodule Aelita2.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:oauth2, "~> 0.8"},
-      {:httpoison, "~> 0.10.0"}
+      {:httpoison, "~> 0.10.0"},
+      {:joken, "~> 1.1"},
+      {:jose, "~> 1.8"},
+      {:libsodium, "~> 0.0.3"},
+      {:keccakf1600, "~> 0.0.1"},
+      {:libdecaf, "~> 0.0.1"} 
     ]
   end
 
