@@ -9,6 +9,12 @@ defmodule Aelita2.WebhookController do
   """
   def webhook(conn, %{"provider" => "github"}) do
     do_webhook conn, "github", conn.req_headers["X-GitHub-Event"]
+    conn
+    |> send_resp(200, "")
+  end
+
+  def do_webhook(conn, "github", "ping") do
+    :ok
   end
 
   def do_webhook(conn, "github", "integration_installation") do
@@ -23,6 +29,7 @@ defmodule Aelita2.WebhookController do
         installation_id: installation_id
       })
     end
+    :ok
   end
 
   def do_webhook(conn, "github", "integration_installation_repositories") do
@@ -42,5 +49,6 @@ defmodule Aelita2.WebhookController do
       payload["repositories_added"],
       fn(r) -> Repo.insert! %Project{
         repo_id: r["id"], name: r["full_name"], installation: installation} end)
+    :ok
   end
 end
