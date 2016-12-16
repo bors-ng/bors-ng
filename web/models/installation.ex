@@ -2,7 +2,7 @@ defmodule Aelita2.Installation do
   use Aelita2.Web, :model
 
   schema "installations" do
-    field :installation_id, :integer
+    field :installation_xref, :integer
 
     timestamps()
   end
@@ -12,7 +12,7 @@ defmodule Aelita2.Installation do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:user_id, :login, :type])
-    |> validate_required([:user_id, :login, :type])
+    |> cast(params, [:installation_xref])
+    |> validate_required([:installation_xref])
   end
 end

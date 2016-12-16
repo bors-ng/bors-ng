@@ -35,11 +35,11 @@ defmodule Aelita2.AuthController do
     false = is_nil(user.id)
 
     # Create (or reuse) the database record for this user
-    maybe_user_model = Repo.get_by User, user_id: user.id
+    maybe_user_model = Repo.get_by User, user_xref: user.id
     current_user_model =
       if is_nil(maybe_user_model) do
         Repo.insert! %User{
-          user_id: user.id,
+          user_xref: user.id,
           login: user.login}
       else
         maybe_user_model

@@ -2,7 +2,7 @@ defmodule Aelita2.User do
   use Aelita2.Web, :model
 
   schema "users" do
-    field :user_id, :integer
+    field :user_xref, :integer
     field :login, :string
     many_to_many :projects, Aelita2.Project, join_through: "link_user_project"
 
@@ -14,7 +14,7 @@ defmodule Aelita2.User do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:user_id, :login])
-    |> validate_required([:user_id, :login])
+    |> cast(params, [:user_xref, :login])
+    |> validate_required([:user_xref, :login])
   end
 end

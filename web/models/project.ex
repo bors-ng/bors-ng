@@ -2,7 +2,7 @@ defmodule Aelita2.Project do
   use Aelita2.Web, :model
 
   schema "projects" do
-    field :repo_id, :integer
+    field :repo_xref, :integer
     field :name, :string
     belongs_to :installation, Aelita2.Installation
 
@@ -20,7 +20,7 @@ defmodule Aelita2.Project do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:repo_id, :name])
-    |> validate_required([:repo_id, :name])
+    |> cast(params, [:repo_xref, :name])
+    |> validate_required([:repo_xref, :name])
   end
 end
