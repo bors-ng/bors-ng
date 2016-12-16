@@ -19,8 +19,8 @@ defmodule Aelita2.Integration.GitHub do
     import Joken
     cfg = config()
     pem = JOSE.JWK.from_pem(cfg[:pem])
-    jwt_token = token()
-    |> with_iss(cfg[:iss])
+    jwt_token = %{iat: current_time, exp: current_time + 400, iss: cfg[:iss]}
+    |> token()
     |> sign(rs256(pem))
     |> get_compact()
     %{body: raw, status_code: 200} = HTTPoison.post!(
@@ -33,6 +33,7 @@ defmodule Aelita2.Integration.GitHub do
   def get_my_repos!(installation_xref) do
     cfg = config()
     token = get_installation_token!(installation_xref)
+    true = is_binary(token)
     %{body: raw, status_code: 200} = HTTPoison.get!(
       "#{cfg[:site]}/installation/repositories",
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
