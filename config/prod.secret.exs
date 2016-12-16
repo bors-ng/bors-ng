@@ -20,4 +20,5 @@ config :aelita2, Aelita2.OAuth2.GitHub,
 
 config :aelita2, Aelita2.Integration.Github,
   iss: String.to_integer(System.get_env("GITHUB_INTEGRATION_ID")),
-  pem: System.get_env("GITHUB_INTEGRATION_PEM")
+  pem: System.get_env("GITHUB_INTEGRATION_PEM"),
+  webhook_secret: System.get_env("GITHUB_WEBHOOK_SECRET")
