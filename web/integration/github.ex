@@ -18,7 +18,7 @@ defmodule Aelita2.Integration.GitHub do
   def get_installation_token!(installation_xref) do
     import Joken
     cfg = config()
-    pem = JOSE.JWK.from_binary(cfg[:pem])
+    pem = JOSE.JWK.from_pem(cfg[:pem])
     jwt_token = token()
     |> with_iss(cfg[:iss])
     |> sign(rs256(pem))
