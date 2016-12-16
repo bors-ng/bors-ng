@@ -14,7 +14,7 @@ defmodule Aelita2.WebhookController do
     |> send_resp(200, "")
   end
 
-  def do_webhook(conn, "github", "ping") do
+  def do_webhook(_conn, "github", "ping") do
     :ok
   end
 
