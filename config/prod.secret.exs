@@ -18,7 +18,7 @@ config :aelita2, Aelita2.OAuth2.GitHub,
   scope: "public_repo user",
   require_visibility: :public
 
-config :aelita2, Aelita2.Integration.Github,
+config :aelita2, Aelita2.Integration.GitHub,
   iss: String.to_integer(System.get_env("GITHUB_INTEGRATION_ID")),
   pem: Base.decode64!(System.get_env("GITHUB_INTEGRATION_PEM")),
   webhook_secret: System.get_env("GITHUB_WEBHOOK_SECRET")
