@@ -1,13 +1,15 @@
 <h2 class=header>Add a repo</h2>
 
+<%= form_for @conn, project_path(@conn, :add), [as: :search], fn f -> %>
 <table class="table">
   <tbody>
 <%= for repo <- @my_repos do %>
     <tr>
       <td class="fill-link">
-        <%= link repo.name, to: project_path(@conn, :show, repo.id) %>
+        <%= submit repo.name, name: "id", value: repo.id %>
       </td>
     </tr>
 <% end %>
   </tbody>
 </table>
+<% end %>

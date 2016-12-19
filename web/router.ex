@@ -30,7 +30,7 @@ defmodule Aelita2.Router do
     get "/", ProjectController, :index
     get "/available", ProjectController, :available
     get "/:id", ProjectController, :show
-    put "/:id", ProjectController, :add
+    post "/", ProjectController, :add
     delete "/:id", ProjectController, :remove
   end
 
