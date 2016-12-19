@@ -6,24 +6,29 @@ defmodule Aelita2.OAuth2.GitHub do
 
   alias OAuth2.Strategy.AuthCode
 
-  def config do
-    cfg = [
+  defp config do
+    [
       strategy: Aelita2.OAuth2.GitHub,
       site: "https://api.github.com",
       authorize_url: "https://github.com/login/oauth/authorize",
-      token_url: "https://github.com/login/oauth/access_token"]
-    Application.get_env(:aelita2, Aelita2.OAuth2.GitHub)
-    |> Keyword.merge(cfg)
+      token_url: "https://github.com/login/oauth/access_token"
+    ]
+  end
+
+  defp params do
+    cfg = Keyword.merge(Application.get_env(:aelita2, Aelita2.OAuth2.GitHub), config)
+    [scope: cfg[:scope]]
   end
 
   # Public API
 
   def client do
-    config()
+    Application.get_env(:aelita2, Aelita2.OAuth2.GitHub)
+    |> Keyword.merge(config)
     |> OAuth2.Client.new()
   end
 
-  def authorize_url!(params \\ []) do
+  def authorize_url!() do
     OAuth2.Client.authorize_url!(client(), params)
   end
 
