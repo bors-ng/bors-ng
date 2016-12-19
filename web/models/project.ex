@@ -13,10 +13,10 @@ defmodule Aelita2.Project do
     timestamps()
   end
 
-  def by_owner(owner) do
-    from p in "projects",
-      select: %{name: p.name, id: p.id},
-      where: p.owner == ^owner
+  def by_owner(owner_id) do
+    from p in LinkUserProject,
+      where: p.user_id == ^owner_id,
+      preload: :project
   end
 
   @doc """
