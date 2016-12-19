@@ -31,6 +31,7 @@ defmodule Aelita2.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:ex_link_header, "~> 0.0.5"},
       {:phoenix, "~> 1.2.1"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.0"},

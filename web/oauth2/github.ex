@@ -38,16 +38,20 @@ defmodule Aelita2.OAuth2.GitHub do
   @doc """
   List repoes that the oAuth-authenticated user is a contributor to.
   """
-  def get_my_repos!(github_access_token) when is_binary(github_access_token) do
+  def get_my_repos!(github_access_token, url \\ nil) when is_binary(github_access_token) do
     visibility = case config()[:require_visibility] do
       :public -> "public"
       :all -> "all"
     end
-    %{body: raw, status_code: 200} = HTTPoison.get!(
-      "#{config()[:site]}/user/repos",
+    {url, params} = case url do
+      nil -> {"#{config()[:site]}/user/repos", [params: [{"visibility", visibility}, {"sort", "full_name"}]]}
+      url -> {url, URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()}
+    end
+    %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
+      url,
       [{"Authorization", "token #{github_access_token}"}],
-      [params: [{"visibility", visibility}, {"sort", "full_name"}]])
-    Poison.decode!(raw)
+      params)
+    response = Poison.decode!(raw)
     |> Enum.map(&%{
       id: &1["id"],
       name: &1["full_name"],
@@ -62,6 +66,14 @@ defmodule Aelita2.OAuth2.GitHub do
         login: &1["owner"]["login"],
         avatar_url: &1["owner"]["avatar_url"],
         type: &1["owner"]["type"]}})
+    next_headers = Enum.filter(headers, fn h -> {n, _} = h; n == "Link" end)
+    |> Enum.map(fn h -> {_, v} = h; ExLinkHeader.parse!(v) end)
+    |> Enum.filter(&!is_nil(&1.next))
+    next = case next_headers do
+      [] -> nil
+      [next] -> next.next.url
+    end
+    {response, next}
   end
 
   def get_repo!(github_access_token, id) when is_binary(github_access_token) do

@@ -1,6 +1,6 @@
 <h2 class=header>Add a repo</h2>
 
-<%= form_for @conn, project_path(@conn, :add), [as: :repo], fn f -> %>
+<%= form_for @conn, project_path(@conn, :add), [as: :repo], fn _ -> %>
 <table class="table">
   <tbody>
 <%= for repo <- @my_repos do %>
@@ -9,6 +9,8 @@
       <td class="fill-link">
         <%= submit "+", name: "id", value: repo.project.id %>
       </td>
+<% else %>
+      <td>N/A</td>
 <% end %>
       <td class="fill-link">
         <a href="<%= repo.repository.html_url %>"><%= repo.repository.name %></a>
@@ -17,4 +19,10 @@
 <% end %>
   </tbody>
 </table>
+<% end %>
+
+<%= if !is_nil(@next) do %>
+<div class="toolbar">
+    <%= link "Next", to: project_path(@conn, :available, @next, []), class: "toolbar-item", rel: "next" %>
+</div>
 <% end %>

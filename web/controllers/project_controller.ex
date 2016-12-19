@@ -18,10 +18,20 @@ defmodule Aelita2.ProjectController do
     end
   end
 
-  def available(conn, _params) do
-    my_repos = GitHub.get_my_repos!(get_session(conn, :github_access_token))
-    |> Enum.map(&add_project_info/1)
-    render conn, "available.html", my_repos: my_repos
+  def available(conn, params) do
+    import Joken
+    key = Application.get_env(:aelita2, Aelita2.Endpoint)[:secret_key_base]
+    cur = case params["page"] do
+      nil -> nil
+      jwt -> (jwt |> token |> with_signer(hs256(key)) |> verify).claims["sub"]
+    end
+    {my_repos, next} = GitHub.get_my_repos!(get_session(conn, :github_access_token), cur)
+    my_repos = Enum.map(my_repos, &add_project_info/1)
+    next = case next do
+      nil -> nil
+      page -> token |> with_sub(page) |> with_signer(hs256(key)) |> sign |> get_compact
+    end
+    render conn, "available.html", my_repos: my_repos, next: next
   end
 
   def add(conn, %{"id" => id}) do
