@@ -59,6 +59,31 @@ defmodule Aelita2.OAuth2.GitHub do
         type: &1["owner"]["type"]}})
   end
 
+  def get_repo!(github_access_token, id) when is_binary(github_access_token) do
+    resp = HTTPoison.get!(
+      "#{config()[:site]}/repositories/#{id}",
+      [{"Authorization", "token #{github_access_token}"}])
+    case resp do
+      %{body: raw, status_code: 200} -> (
+        r = Poison.decode!(raw)
+        {:ok, %{
+          id: r["id"],
+          name: r["full_name"],
+          permissions: %{
+            admin: r["permissions"]["admin"],
+            push: r["permissions"]["push"],
+            pull: r["permissions"]["pull"]
+          },
+          owner: %{
+            id: r["owner"]["id"],
+            login: r["owner"]["login"],
+            avatar_url: r["owner"]["avatar_url"],
+            type: r["owner"]["type"]}}}
+      )
+      %{status_code: code} -> {:err, code}
+    end
+  end
+
   # Strategy Callbacks
 
   def authorize_url(client, params) do

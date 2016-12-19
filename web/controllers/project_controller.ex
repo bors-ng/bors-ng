@@ -1,6 +1,7 @@
 defmodule Aelita2.ProjectController do
   use Aelita2.Web, :controller
 
+  alias Aelita2.LinkUserProject
   alias Aelita2.Project
   alias Aelita2.OAuth2.GitHub
 
@@ -9,22 +10,30 @@ defmodule Aelita2.ProjectController do
     render conn, "index.html", projects: projects
   end
 
-  def new(conn, _params) do
+  def available(conn, _params) do
     my_repos = GitHub.get_my_repos!(get_session(conn, :github_access_token))
     |> Enum.filter(&(&1.permissions.admin))
-    render conn, "new.html", my_repos: my_repos
+    render conn, "available.html", my_repos: my_repos
   end
 
-  def create(conn, %{"project" => project_params}) do
-    changeset = Project.changeset %Project{}, project_params
+  def add(conn, %{"id" => id}) do
+    project = Repo.get! Project, id
+    token = get_session(conn, :github_access_token)
+    _ = GitHub.get_repo! token, project.repo_xref
+
+    changeset = LinkUserProject.changeset(%LinkUserProject{}, %{
+      user_id: get_session(conn, :user_id),
+      project_id: project.id})
 
     case Repo.insert changeset do
       {:ok, _project} ->
         conn
-        |> put_flash(:info, "Project created successfully.")
+        |> put_flash(:info, "Project added successfully.")
         |> redirect(to: (project_path conn, :index))
-      {:error, changeset} ->
-        render conn, "new.html", changeset: changeset
+      {:error, _changeset} ->
+        conn
+        |> put_flash(:error, "Failed to add project.")
+        |> redirect(to: (project_path conn, :available))
     end
   end
 
@@ -33,27 +42,7 @@ defmodule Aelita2.ProjectController do
     render conn, "show.html", project: project
   end
 
-  def edit(conn, %{"id" => id}) do
-    project = Repo.get! Project, id
-    changeset = Project.changeset project
-    render conn, "edit.html", project: project, changeset: changeset
-  end
-
-  def update(conn, %{"id" => id, "project" => project_params}) do
-    project = Repo.get! Project, id
-    changeset = Project.changeset project, project_params
-
-    case Repo.update changeset do
-      {:ok, project} ->
-        conn
-        |> put_flash(:info, "Project updated successfully.")
-        |> redirect(to: (project_path conn, :show, project))
-      {:error, changeset} ->
-        render conn, "edit.html", project: project, changeset: changeset
-    end
-  end
-
-  def delete(conn, %{"id" => id}) do
+  def remove(conn, %{"id" => id}) do
     project = Repo.get! Project, id
 
     # Here we use delete! (with a bang) because we expect

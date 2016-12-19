@@ -23,11 +23,15 @@ defmodule Aelita2.Router do
     get "/", PageController, :index
   end
 
-  scope "/manage", Aelita2 do
+  scope "/repositories", Aelita2 do
     pipe_through :browser
     pipe_through :browser_session
 
-    resources "/", ProjectController
+    get "/", ProjectController, :index
+    get "/available", ProjectController, :available
+    get "/:id", ProjectController, :show
+    put "/:id", ProjectController, :add
+    delete "/:id", ProjectController, :remove
   end
 
   scope "/auth", Aelita2 do

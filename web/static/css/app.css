@@ -59,11 +59,13 @@ footer {
 /* The fancy table. */
 .table {
     width: 100%;
-    border: solid 1px #CCC;
-    border-radius: 8px;
     border-collapse: separate;
     border-spacing: 0;
     overflow: hidden;
+}
+.table--border {
+    border: solid 1px #CCC;
+    border-radius: 8px;
 }
 .table tr {
     transition-duration: 0.1s;

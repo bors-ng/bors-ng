@@ -1,11 +1,6 @@
 <h2 class=header>Add a repo</h2>
 
 <table class="table">
-  <thead>
-    <tr>
-      <th>Repo</th>
-    </tr>
-  </thead>
   <tbody>
 <%= for repo <- @my_repos do %>
     <tr>

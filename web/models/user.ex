@@ -1,10 +1,13 @@
 defmodule Aelita2.User do
   use Aelita2.Web, :model
 
+  alias Aelita2.Project
+  alias Aelita2.LinkUserProject
+
   schema "users" do
     field :user_xref, :integer
     field :login, :string
-    many_to_many :projects, Aelita2.Project, join_through: "link_user_project"
+    many_to_many :projects, Project, join_through: LinkUserProject
 
     timestamps()
   end
