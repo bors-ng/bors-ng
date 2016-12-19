@@ -1,5 +1,5 @@
 <div class=toolbar role=toolbar>
-<%= link "Add repo", to: project_path(@conn, :new), class: "toolbar-item", role: "toolbar-item" %>
+<%= link "Add repo", to: project_path(@conn, :available), class: "toolbar-item", role: "toolbar-item" %>
 </div>
 
 <table class="table">
