@@ -3,11 +3,6 @@
 </div>
 
 <table class="table">
-  <thead>
-    <tr>
-      <th>Repo</th>
-    </tr>
-  </thead>
   <tbody>
 <%= for project <- @projects do %>
     <tr>

@@ -51,6 +51,7 @@ defmodule Aelita2.OAuth2.GitHub do
     |> Enum.map(&%{
       id: &1["id"],
       name: &1["full_name"],
+      html_url: &1["html_url"],
       permissions: %{
         admin: &1["permissions"]["admin"],
         push: &1["permissions"]["push"],

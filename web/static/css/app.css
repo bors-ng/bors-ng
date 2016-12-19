@@ -63,10 +63,6 @@ footer {
     border-spacing: 0;
     overflow: hidden;
 }
-.table--border {
-    border: solid 1px #CCC;
-    border-radius: 8px;
-}
 .table tr {
     transition-duration: 0.1s;
     transition-timing-function: ease;
@@ -75,23 +71,18 @@ footer {
 .table tbody > tr:hover {
     background: #EEE;
 }
-.table tr td {
-    border-top :solid 1px #CCC;
-}
-.table tr:first-child td {
-    border-top:none;
-}
 .table th {
-    border-bottom: solid 2px #CCC;
     color: #666;
     font-weight: bold;
     text-align: left;
 }
-.table th, .table td {
-    padding: 8px 10px;
+.table--border th, .table--border td {
     border-left: solid 1px #CCC;
 }
-.table th:first-child, .table td:first-child {
+.table th, .table td {
+    padding: 8px 10px;
+}
+.table--border th:first-child, .table--border td:first-child {
     border-left:none;
 }
 .toolbar {

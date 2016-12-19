@@ -1,12 +1,17 @@
 <h2 class=header>Add a repo</h2>
 
-<%= form_for @conn, project_path(@conn, :add), [as: :search], fn f -> %>
+<%= form_for @conn, project_path(@conn, :add), [as: :repo], fn f -> %>
 <table class="table">
   <tbody>
 <%= for repo <- @my_repos do %>
     <tr>
+<%= if Map.has_key?(repo, :project) do %>
       <td class="fill-link">
-        <%= submit repo.name, name: "id", value: repo.id %>
+        <%= submit "+", name: "id", value: repo.project.id %>
+      </td>
+<% end %>
+      <td class="fill-link">
+        <a href="<%= repo.repository.html_url %>"><%= repo.repository.name %></a>
       </td>
     </tr>
 <% end %>

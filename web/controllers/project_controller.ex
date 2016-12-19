@@ -10,9 +10,17 @@ defmodule Aelita2.ProjectController do
     render conn, "index.html", projects: projects
   end
 
+  defp add_project_info(repository) do
+    project = Repo.get_by Project, repo_xref: repository.id
+    case project do
+      nil -> %{repository: repository}
+      project -> %{repository: repository, project: project}
+    end
+  end
+
   def available(conn, _params) do
     my_repos = GitHub.get_my_repos!(get_session(conn, :github_access_token))
-    |> Enum.filter(&(&1.permissions.admin))
+    |> Enum.map(&add_project_info/1)
     render conn, "available.html", my_repos: my_repos
   end
 

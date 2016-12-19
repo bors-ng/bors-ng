@@ -28,9 +28,9 @@ defmodule Aelita2.Router do
     pipe_through :browser_session
 
     get "/", ProjectController, :index
+    post "/", ProjectController, :add
     get "/available", ProjectController, :available
     get "/:id", ProjectController, :show
-    post "/", ProjectController, :add
     delete "/:id", ProjectController, :remove
   end
 
