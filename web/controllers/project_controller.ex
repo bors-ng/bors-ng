@@ -39,20 +39,13 @@ defmodule Aelita2.ProjectController do
     token = get_session(conn, :github_access_token)
     _ = GitHub.get_repo! token, project.repo_xref
 
-    changeset = LinkUserProject.changeset(%LinkUserProject{}, %{
-      user_id: get_session(conn, :user_id),
+    Repo.insert! LinkUserProject.changeset(%LinkUserProject{}, %{
+      user_id: get_session(conn, :current_user),
       project_id: project.id})
 
-    case Repo.insert changeset do
-      {:ok, _project} ->
-        conn
-        |> put_flash(:info, "Project added successfully.")
-        |> redirect(to: (project_path conn, :index))
-      {:error, _changeset} ->
-        conn
-        |> put_flash(:error, "Failed to add project.")
-        |> redirect(to: (project_path conn, :available))
-    end
+    conn
+    |> put_flash(:info, "Project added successfully.")
+    |> redirect(to: (project_path conn, :index))
   end
 
   def show(conn, %{"id" => id}) do
