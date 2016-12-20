@@ -14,9 +14,10 @@ defmodule Aelita2.Project do
   end
 
   def by_owner(owner_id) do
-    from p in LinkUserProject,
-      where: p.user_id == ^owner_id,
-      preload: :project
+    Aelita2.Repo.all(from l in LinkUserProject,
+      where: l.user_id == ^owner_id,
+      preload: :project)
+    |> Enum.map(&(&1.project))
   end
 
   @doc """

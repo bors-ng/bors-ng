@@ -6,7 +6,7 @@ defmodule Aelita2.ProjectController do
   alias Aelita2.OAuth2.GitHub
 
   def index(conn, _params) do
-    projects = Repo.all(Project.by_owner get_session(conn, :current_user))
+    projects = Project.by_owner get_session(conn, :current_user)
     render conn, "index.html", projects: projects
   end
 
