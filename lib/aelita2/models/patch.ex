@@ -19,8 +19,7 @@ defmodule Aelita2.Patch do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:pr_xref, :title, :body, :commit, :author, :project_id, :batch_id, :author_id])
-    |> validate_required([:pr_xref, :title, :body, :commit, :project_id])
+    |> cast(params, [:pr_xref, :title, :body, :commit, :author_id, :project_id, :batch_id, :author_id])
   end
 
   def all_for_batch(batch_id) do
