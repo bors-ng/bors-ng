@@ -1,5 +1,8 @@
 use Mix.Config
 
+config :aelita2, Aelita2,
+  activation_phrase: "@aelita-mergebot r+"
+
 config :aelita2, Aelita2.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [host: "sheltered-savannah-39730.herokuapp.com", port: 80],

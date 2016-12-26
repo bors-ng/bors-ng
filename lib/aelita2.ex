@@ -14,6 +14,7 @@ defmodule Aelita2 do
       supervisor(Aelita2.Endpoint, []),
       # Start your own worker by calling: Aelita2.Worker.start_link(arg1, arg2, arg3)
       # worker(Aelita2.Worker, [arg1, arg2, arg3]),
+      worker(Aelita2.Batcher, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

@@ -1,0 +1,34 @@
+defmodule Aelita2.Batch do
+  use Aelita2.Web, :model
+
+  schema "batches" do
+    belongs_to :project, Aelita2.Project
+    field :commit, :string
+    field :state, :integer
+    field :last_polled, :integer
+    timestamps()
+  end
+
+  def atomize_state(state) do
+    case state do
+      0 -> :waiting
+      1 -> :running
+    end
+  end
+
+  def numberize_state(st) do
+    case st do
+      :waiting -> 0
+      :running -> 1
+    end
+  end
+
+  @doc """
+  Builds a changeset based on the `struct` and `params`.
+  """
+  def changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:project_id, :commit, :state, :last_polled])
+    |> validate_required([:project_id, :commit, :state, :last_polled])
+  end
+end

@@ -5,10 +5,15 @@ defmodule Aelita2.Project do
   alias Aelita2.User
 
   schema "projects" do
+    belongs_to :installation, Aelita2.Installation
     field :repo_xref, :integer
     field :name, :string
-    belongs_to :installation, Aelita2.Installation
     many_to_many :users, User, join_through: LinkUserProject
+    field :master_branch, :string, default: "master"
+    field :staging_branch, :string, default: "staging"
+    field :batch_poll_period_sec, :integer, default: (60 * 30)
+    field :batch_delay_sec, :integer, default: 10
+    field :batch_timeout_sec, :integer, default: (60 * 60 * 2)
 
     timestamps()
   end
