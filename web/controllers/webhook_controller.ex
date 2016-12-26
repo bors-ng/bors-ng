@@ -62,7 +62,7 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "issue_comment") do
     if Map.has_key?(conn.body_params["issue"], "pull_request") do
       project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
-      patch = Repo.get_by!(Patch, project: project, pr_xref: conn.body_params["issue"]["number"])
+      patch = Repo.get_by!(Patch, project_id: project.id, pr_xref: conn.body_params["issue"]["number"])
       author = sync_user(conn.body_params["issue"]["user"])
       commenter = sync_user(conn.body_params["comment"]["user"])
       comment = conn.body_params["comment"]["body"]
@@ -72,7 +72,7 @@ defmodule Aelita2.WebhookController do
 
   def do_webhook(conn, "github", "pull_request_review_comment") do
     project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
-    patch = Repo.get_by!(Patch, project: project, pr_xref: conn.body_params["issue"]["number"])
+    patch = Repo.get_by!(Patch, project_id: project.id, pr_xref: conn.body_params["issue"]["number"])
     author = sync_user(conn.body_params["issue"]["user"])
     commenter = sync_user(conn.body_params["comment"]["user"])
     comment = conn.body_params["comment"]["body"]
@@ -81,7 +81,7 @@ defmodule Aelita2.WebhookController do
 
   def do_webhook(conn, "github", "pull_request_review") do
     project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
-    patch = Repo.get_by!(Patch, project: project, pr_xref: conn.body_params["issue"]["number"])
+    patch = Repo.get_by!(Patch, project_id: project.id, pr_xref: conn.body_params["issue"]["number"])
     author = sync_user(conn.body_params["issue"]["user"])
     commenter = sync_user(conn.body_params["comment"]["user"])
     comment = conn.body_params["comment"]["body"]
