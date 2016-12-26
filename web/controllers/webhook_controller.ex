@@ -140,7 +140,7 @@ defmodule Aelita2.WebhookController do
   end
 
   def do_webhook_comment(_conn, "github", _project, patch, _author, _commenter, comment) do
-    activation_phrase = Application.get_env(:aelita2, Aelita2).activation_phrase
+    activation_phrase = Application.get_env(:aelita2, Aelita2)[:activation_phrase]
     if :binary.match(comment, activation_phrase) != :nomatch do
       Batcher.reviewed(patch)
     end
