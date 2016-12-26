@@ -3,6 +3,8 @@ defmodule Aelita2.ProjectController do
 
   alias Aelita2.LinkUserProject
   alias Aelita2.Project
+  alias Aelita2.Batch
+  alias Aelita2.Patch
   alias Aelita2.OAuth2.GitHub
 
   def index(conn, _params) do
@@ -50,7 +52,10 @@ defmodule Aelita2.ProjectController do
 
   def show(conn, %{"id" => id}) do
     project = Repo.get! Project, id
-    render conn, "show.html", project: project
+    batches = Repo.all(Batch.all_for_project(id))
+    |> Enum.map(&%{commit: &1.commit, patches: Repo.all(Patch.all_for_batch(&1.id))})
+    unbatched_patches = Repo.all(Patch.unbatched())
+    render conn, "show.html", project: project, batches: batches, unbatched_patches: unbatched_patches
   end
 
   def remove(conn, %{"id" => id}) do

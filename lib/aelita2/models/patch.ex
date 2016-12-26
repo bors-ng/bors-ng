@@ -26,4 +26,8 @@ defmodule Aelita2.Patch do
   def all_for_batch(batch_id) do
     from(p in Patch, where: p.batch_id == ^batch_id)
   end
+
+  def unbatched() do
+    from(p in Patch, where: is_nil(p.batch_id))
+  end
 end

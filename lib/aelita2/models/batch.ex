@@ -1,6 +1,8 @@
 defmodule Aelita2.Batch do
   use Aelita2.Web, :model
 
+  alias Aelita2.Batch
+
   schema "batches" do
     belongs_to :project, Aelita2.Project
     field :commit, :string
@@ -21,6 +23,10 @@ defmodule Aelita2.Batch do
       :waiting -> 0
       :running -> 1
     end
+  end
+
+  def all_for_project(project_id) do
+    from(b in Batch, where: b.project_id == ^project_id)
   end
 
   @doc """
