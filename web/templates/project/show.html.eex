@@ -9,6 +9,7 @@
   </tbody>
 </table>
 <% end %>
+<%= if @unbatched_patches != [] do %>
 <h3>In review</h3>
 <table class="table">
   <tbody>
@@ -17,3 +18,4 @@
 <% end %>
   </tbody>
 </table>
+<% end %>
