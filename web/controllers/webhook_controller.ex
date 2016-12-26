@@ -55,10 +55,7 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "pull_request") do
     project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
     author = sync_user(conn.body_params["pull_request"]["user"])
-    patch = case Repo.get_by(Patch, project_id: project.id, pr_xref: conn.body_params["pull_request"]["number"]) do
-      {:err, _} -> nil
-      {:ok, patch} -> patch
-    end
+    patch = Repo.get_by(Patch, project_id: project.id, pr_xref: conn.body_params["pull_request"]["number"])
     do_webhook_pr(conn, conn.body_params["action"], project, patch, author)
   end
 
@@ -161,11 +158,11 @@ defmodule Aelita2.WebhookController do
 
   def sync_user(user_json) do
     user = case Repo.get_by(User, user_xref: user_json["id"]) do
-      {:err, _} -> %User{
+      nil -> %User{
         id: nil,
         user_xref: user_json["id"],
         login: user_json["login"]}
-      {:ok, user} -> user
+      user -> user
     end
     if is_nil(user.id) do
       Repo.insert!(user)

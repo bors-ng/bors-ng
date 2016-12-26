@@ -39,7 +39,7 @@ defmodule Aelita2.Batcher do
   end
 
   def handle_cast({:status, commit, identifier, state}, :ok) do
-    batch = Repo.get_by(Batch, commit: commit)
+    batch = Repo.get_by!(Batch, commit: commit)
     Status.get_for_project(batch.project_id, identifier)
     |> Repo.update_all([set: [state: Status.state_numberize(state)]])
     {:noreply, :ok}
@@ -139,16 +139,15 @@ defmodule Aelita2.Batcher do
   end
 
   def get_new_batch(project_id) do
-    delayed_batch = Repo.get_by(Batch, project_id: project_id, state: 0)
-    case delayed_batch do
-      {:ok, batch} -> batch
-      {:err, _} -> 
+    case Repo.get_by(Batch, project_id: project_id, state: 0) do
+      nil -> 
         Repo.insert!(%Batch{
           project_id: project_id,
           commit: nil,
           state: 0,
           last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
         })
+      batch -> batch
     end
   end
 
