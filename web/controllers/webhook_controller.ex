@@ -100,7 +100,7 @@ defmodule Aelita2.WebhookController do
     Repo.insert!(%Patch{
       project: project,
       batch: nil,
-      pr_xref: conn.body_params["pull_request"]["id"],
+      pr_xref: conn.body_params["pull_request"]["number"],
       title: conn.body_params["pull_request"]["title"],
       body: conn.body_params["pull_request"]["body"],
       commit: conn.body_params["pull_request"]["head"]["sha"],
