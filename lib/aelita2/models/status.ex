@@ -29,6 +29,11 @@ defmodule Aelita2.Status do
     from s in Status, where: s.project_id == ^project_id, where: s.state == 1 or s.state == 0
   end
 
+  def all_for_project(project_id, state) do
+    state = Status.state_numberize(state)
+    from s in Status, where: s.project_id == ^project_id, where: s.state == ^state
+  end
+
   def state_atomize(state) do
     case state do
       0 -> :waiting

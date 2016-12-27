@@ -36,6 +36,14 @@ defmodule Aelita2.Batch do
       preload: [project: {p, installation: i}]
   end
 
+  def get_assoc_by_commit(commit) do
+    from b in Batch,
+      join: p in assoc(b, :project),
+      join: i in assoc(p, :installation),
+      preload: [project: {p, installation: i}],
+      where: b.commit == ^commit
+  end
+
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """

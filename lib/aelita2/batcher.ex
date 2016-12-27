@@ -39,10 +39,13 @@ defmodule Aelita2.Batcher do
   end
 
   def handle_cast({:status, commit, identifier, state}, :ok) do
-    batch = Repo.get_by(Batch, commit: commit)
-    if not is_nil(batch) do
-      Status.get_for_project(batch.project_id, identifier)
-      |> Repo.update_all([set: [state: Status.state_numberize(state)]])
+    batch = Repo.all(Batch.get_assoc_by_commit(commit))
+    case batch do
+      [batch] -> 
+        Status.get_for_project(batch.project_id, identifier)
+        |> Repo.update_all([set: [state: Status.state_numberize(state)]])
+        maybe_complete_batch(batch)
+      [] -> :ok
     end
     {:noreply, :ok}
   end
@@ -134,7 +137,13 @@ defmodule Aelita2.Batcher do
     project = batch.project
     not_completed = Repo.all(Status.all_for_project(project.id, :incomplete))
     if not_completed == [] do
-      complete_batch(batch)
+      erred = Repo.all(Status.all_for_project(project.id, :err))
+      if erred == [] do
+        complete_batch(batch)
+      else
+        fail_batch(batch)
+      end
+      Repo.delete(batch)
     end
   end
 
@@ -142,6 +151,10 @@ defmodule Aelita2.Batcher do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
     GitHub.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
+  end
+
+  defp fail_batch(_batch) do
+    :ok
   end
 
   def get_new_batch(project_id) do
