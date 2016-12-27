@@ -95,8 +95,9 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "status") do
     identifier = conn.body_params["context"]
     commit = conn.body_params["sha"]
+    url = conn.body_params["url"]
     state = Aelita2.Integration.GitHub.map_state_to_status(conn.body_params["state"])
-    Aelita2.Batcher.status(commit, identifier, state)
+    Aelita2.Batcher.status(commit, identifier, state, url)
   end
 
   def do_webhook_pr(conn, "opened", project, patch, author) do

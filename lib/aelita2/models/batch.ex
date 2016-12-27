@@ -11,6 +11,15 @@ defmodule Aelita2.Batch do
     timestamps()
   end
 
+  def new(project_id) do
+    %Batch{
+      project_id: project_id,
+      commit: nil,
+      state: 0,
+      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
+    }
+  end
+
   def atomize_state(state) do
     case state do
       0 -> :waiting

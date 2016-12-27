@@ -20,8 +20,8 @@ defmodule Aelita2.Batcher do
     GenServer.cast(Aelita2.Batcher, {:reviewed, patch_id})
   end
 
-  def status(commit, identifier, state) do
-    GenServer.cast(Aelita2.Batcher, {:status, commit, identifier, state})
+  def status(commit, identifier, state, url) do
+    GenServer.cast(Aelita2.Batcher, {:status, commit, identifier, state, url})
   end
 
   # Server callbacks
@@ -40,12 +40,12 @@ defmodule Aelita2.Batcher do
     {:noreply, :ok}
   end
 
-  def handle_cast({:status, commit, identifier, state}, :ok) do
+  def handle_cast({:status, commit, identifier, state, url}, :ok) do
     batch = Repo.all(Batch.get_assoc_by_commit(commit))
     case batch do
       [batch] ->
         Status.get_for_batch(batch.id, identifier)
-        |> Repo.update_all([set: [state: Status.numberize_state(state)]])
+        |> Repo.update_all([set: [state: Status.numberize_state(state), url: url]])
         maybe_complete_batch(batch)
       [] -> :ok
     end
@@ -170,7 +170,8 @@ defmodule Aelita2.Batcher do
     if not_completed == [] do
       erred = Repo.all(Status.all_for_batch(batch.id, :err))
       state = if erred == [] do
-        complete_batch(batch)
+        succeeded = Repo.all(Status.all_for_batch(batch.id, :ok))
+        complete_batch(batch, succeeded)
         :ok
       else
         fail_batch(batch, erred)
@@ -181,25 +182,43 @@ defmodule Aelita2.Batcher do
     end
   end
 
-  defp complete_batch(batch) do
+  defp complete_batch(batch, succeeded) do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
     GitHub.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
+    patches = Patch.all_for_batch(batch.id)
+    body = Enum.reduce(succeeded, "# Build succeeded", &gen_status_link/2)
+    Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
   end
 
-  defp fail_batch(_batch, _erred) do
-    :ok
+  defp fail_batch(batch, erred) do
+    project = batch.project
+    token = GitHub.get_installation_token!(project.installation.installation_xref)
+    patches = Patch.all_for_batch(batch.id)
+    body = Enum.reduce(erred, "# Build failed", &gen_status_link/2)
+    Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
+    {patches_lo, patches_hi} = Enum.split(patches, div(Enum.count(patches), 2))
+    make_batch(patches_lo, project.id)
+    make_batch(patches_hi, project.id)
+  end
+
+  defp make_batch(patches, project_id) do
+    batch = Repo.insert!(Batch.new(project_id))
+    Enum.each(patches, &Repo.insert!(%LinkPatchBatch{batch_id: batch.id, patch_id: &1.id}))
+    batch
+  end
+
+  defp gen_status_link(status, acc) do
+    status_link = case status.url do
+      nil -> status.identifier
+      url -> "[#{status.identifier}](#{url})"
+    end
+    "#{acc}\n * #{status_link}"
   end
 
   def get_new_batch(project_id) do
     case Repo.get_by(Batch, project_id: project_id, state: 0) do
-      nil -> 
-        Repo.insert!(%Batch{
-          project_id: project_id,
-          commit: nil,
-          state: 0,
-          last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
-        })
+      nil -> Repo.insert!(Batch.new(project_id))
       batch -> batch
     end
   end
