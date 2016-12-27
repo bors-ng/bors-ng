@@ -79,7 +79,7 @@ defmodule Aelita2.Integration.GitHub do
 
   def synthesize_commit!(token, repository_id, branch, tree, parents, commit_message) when is_binary(token) do
     cfg = config()
-    %{body: raw, status_code: 200} = HTTPoison.post!(
+    %{body: raw, status_code: 201} = HTTPoison.post!(
       "#{cfg[:site]}/repositories/#{repository_id}/git/commits",
       Poison.encode!(%{
         "parents": parents,
