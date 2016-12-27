@@ -62,7 +62,7 @@ defmodule Aelita2.Integration.GitHub do
 
   def merge_branch!(token, repository_id, from, to, commit_message) when is_binary(token) do
     cfg = config()
-    %{body: raw, status_code: 200} = HTTPoison.patch!(
+    %{body: raw, status_code: 201} = HTTPoison.post!(
       "#{cfg[:site]}/repositories/#{repository_id}/merges",
       Poison.encode!(%{
         "base": to,
