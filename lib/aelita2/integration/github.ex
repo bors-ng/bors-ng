@@ -62,7 +62,7 @@ defmodule Aelita2.Integration.GitHub do
 
   def merge_branch!(token, repository_id, from, to, commit_message) when is_binary(token) do
     cfg = config()
-    raw = HTTPoison.patch!(
+    %{body: raw, status_code: 200} = HTTPoison.patch!(
       "#{cfg[:site]}/repositories/#{repository_id}/merges",
       Poison.encode!(%{
         "base": to,
@@ -79,7 +79,7 @@ defmodule Aelita2.Integration.GitHub do
 
   def synthesize_commit!(token, repository_id, branch, tree, parents, commit_message) when is_binary(token) do
     cfg = config()
-    raw = HTTPoison.post!(
+    %{body: raw, status_code: 200} = HTTPoison.post!(
       "#{cfg[:site]}/repositories/#{repository_id}/git/commits",
       Poison.encode!(%{
         "parents": parents,
@@ -96,7 +96,7 @@ defmodule Aelita2.Integration.GitHub do
     %{body: raw, status_code: status_code} = HTTPoison.get!(
       "#{cfg[:site]}/repositories/#{repository_id}/branches/#{to}",
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
-    cond do
+    %{body: _, status_code: 200} = cond do
       status_code == 404 ->
         HTTPoison.post!(
           "#{cfg[:site]}/repositories/#{repository_id}/refs",
@@ -113,7 +113,7 @@ defmodule Aelita2.Integration.GitHub do
             "sha": sha
             }),
           [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
-      true -> :ok
+      true -> %{body: "", status_code: 200}
     end
     sha
   end
