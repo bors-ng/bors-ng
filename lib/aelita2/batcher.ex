@@ -100,7 +100,10 @@ defmodule Aelita2.Batcher do
     stmp = "#{project.staging_branch}/tmp"
     patches = Repo.all(Patch.all_for_batch(batch.id))
     base = GitHub.copy_branch!(token, project.repo_xref, project.master_branch, stmp)
-    head = Enum.reduce(patches, &GitHub.merge_branch!(token, project.repo_xref, &1.commit, stmp, "tmp"))
+    do_merge_patch = fn patch, branch ->
+      GitHub.merge_branch!(token, project.repo_xref, patch.commit, stmp, "tmp")
+    end
+    head = Enum.reduce(patches, base, do_merge_patch)
     parents = [base | Enum.map(patches, &(&1.commit))]
     commit_title = Enum.reduce(patches, "Merge", &"#{&2} #{&1.pr_xref}")
     commit_body = Enum.reduce(patches, "", &"#{&2}#{&1.title}\n")
