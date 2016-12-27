@@ -6,6 +6,7 @@ defmodule Aelita2.WebhookController do
   alias Aelita2.Project
   alias Aelita2.User
   alias Aelita2.Batcher
+  alias Aelita2.LinkUserProject
 
   @doc """
   This action is reached via `/webhook/:provider`
@@ -102,7 +103,6 @@ defmodule Aelita2.WebhookController do
     nil = patch
     Repo.insert!(%Patch{
       project: project,
-      batch: nil,
       pr_xref: conn.body_params["pull_request"]["number"],
       title: conn.body_params["pull_request"]["title"],
       body: conn.body_params["pull_request"]["body"],

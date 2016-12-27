@@ -4,7 +4,7 @@ defmodule Aelita2.Status do
   alias Aelita2.Status
 
   schema "statuses" do
-    belongs_to :project, Aelita2.Project
+    belongs_to :batch, Aelita2.Batch
     field :identifier, :string
     field :url, :string
     field :state, :integer
@@ -13,28 +13,34 @@ defmodule Aelita2.Status do
 
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:project_id, :identifier, :url, :state])
-    |> validate_required([:project_id, :identifier, :url, :state])
+    |> cast(params, [:batch_id, :identifier, :url, :state])
+    |> validate_required([:batch_id, :identifier, :url, :state])
   end
 
-  def get_for_project(project_id, identifier) do
-    from s in Status, where: s.project_id == ^project_id, where: s.identifier == ^identifier
+  def get_for_batch(batch_id, identifier) do
+    from s in Status,
+      where: s.batch_id == ^batch_id,
+      where: s.identifier == ^identifier
   end
 
-  def all_for_project(project_id) do
-    from s in Status, where: s.project_id == ^project_id
+  def all_for_batch(batch_id) do
+    from s in Status, where: s.batch_id == ^batch_id
   end
 
-  def all_for_project(project_id, :incomplete) do
-    from s in Status, where: s.project_id == ^project_id, where: s.state == 1 or s.state == 0
+  def all_for_batch(batch_id, :incomplete) do
+    from s in Status,
+      where: s.batch_id == ^batch_id,
+      where: s.state == 1 or s.state == 0
   end
 
-  def all_for_project(project_id, state) do
-    state = Status.state_numberize(state)
-    from s in Status, where: s.project_id == ^project_id, where: s.state == ^state
+  def all_for_batch(batch_id, state) do
+    state = Status.numberize_state(state)
+    from s in Status,
+      where: s.batch_id == ^batch_id,
+      where: s.state == ^state
   end
 
-  def state_atomize(state) do
+  def atomize_state(state) do
     case state do
       0 -> :waiting
       1 -> :running
@@ -43,7 +49,7 @@ defmodule Aelita2.Status do
     end
   end
 
-  def state_numberize(state) do
+  def numberize_state(state) do
     case state do
       :waiting -> 0
       :running -> 1

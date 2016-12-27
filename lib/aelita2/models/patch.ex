@@ -2,10 +2,10 @@ defmodule Aelita2.Patch do
   use Aelita2.Web, :model
 
   alias Aelita2.Patch
+  alias Aelita2.LinkPatchBatch
 
   schema "patches" do
     belongs_to :project, Aelita2.Project
-    belongs_to :batch, Aelita2.Batch
     field :pr_xref, :integer
     field :title, :string
     field :body, :string
@@ -19,14 +19,19 @@ defmodule Aelita2.Patch do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:pr_xref, :title, :body, :commit, :author_id, :project_id, :batch_id, :author_id])
+    |> cast(params, [:pr_xref, :title, :body, :commit, :author_id, :project_id, :author_id])
   end
 
   def all_for_batch(batch_id) do
-    from(p in Patch, where: p.batch_id == ^batch_id)
+    from l in LinkPatchBatch,
+      join: p in assoc(l, :patch),
+      join: pr in assoc(p, :project),
+      preload: [patch: {p, project: pr}],
+      where: l.batch_id == ^batch_id,
+      select: [p.id, p.project, p.pr_xref, p.title, p.body, p.commit, p.author_id]
   end
 
   def unbatched() do
-    from(p in Patch, where: is_nil(p.batch_id))
+    from p in Patch, where: p.pr_xref != 0
   end
 end

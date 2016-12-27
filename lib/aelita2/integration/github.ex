@@ -4,6 +4,7 @@ defmodule Aelita2.Integration.GitHub do
   """
 
   @content_type "application/vnd.github.machine-man-preview+json"
+  @content_type_raw "application/vnd.github.VERSION.raw"
 
   # Get a repository by ID:
   # https://api.github.com/repositories/59789129
@@ -126,6 +127,26 @@ defmodule Aelita2.Integration.GitHub do
     Poison.decode!(raw)["statuses"]
     |> Enum.map(&{&1["context"], map_state_to_status(&1["state"])})
     |> Map.new()
+  end
+
+  def get_file(token, repository_id, branch, path) do
+    cfg = config()
+    %{body: raw, status_code: status_code} = HTTPoison.get!(
+      "#{cfg[:site]}/repositories/#{repository_id}/contents/#{path}",
+      [{"Authorization", "token #{token}"}, {"Accept", @content_type_raw}],
+      [params: [ref: branch]])
+    case status_code do
+      404 -> nil
+      200 -> raw
+    end
+  end
+
+  def post_comment!(token, repository_id, number, body) do
+    cfg = config()
+    %{status_code: 200} = HTTPoison.post!(
+      "#{cfg[:site]}/repositories/#{repository_id}/issues/#{number}/comments",
+      Poison.encode!(%{body: body}),
+      [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
   end
 
   def map_state_to_status(state) do

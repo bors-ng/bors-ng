@@ -19,7 +19,7 @@ defmodule Aelita2.Mixfile do
   def application do
     [mod: {Aelita2, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :oauth2, :httpoison]]
+                    :phoenix_ecto, :postgrex, :oauth2, :httpoison, :etoml]]
   end
 
   # Specifies which paths to compile per environment.
@@ -46,6 +46,7 @@ defmodule Aelita2.Mixfile do
       {:joken, "~> 1.1"},
       {:jose, "~> 1.8"},
       {:libsodium, "~> 0.0.3"},
+      {:etoml, [git: "git://github.com/kalta/etoml.git"]},
     ]
   end
 

@@ -52,7 +52,7 @@ defmodule Aelita2.ProjectController do
 
   def show(conn, %{"id" => id}) do
     project = Repo.get! Project, id
-    batches = Repo.all(Batch.all_for_project(id))
+    batches = Repo.all(Batch.all_for_project(id, :incomplete))
     |> Enum.map(&%{commit: &1.commit, patches: Repo.all(Patch.all_for_batch(&1.id)), state: &1.state})
     unbatched_patches = Repo.all(Patch.unbatched())
     render conn, "show.html", project: project, batches: batches, unbatched_patches: unbatched_patches

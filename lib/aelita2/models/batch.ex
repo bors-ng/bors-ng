@@ -15,6 +15,8 @@ defmodule Aelita2.Batch do
     case state do
       0 -> :waiting
       1 -> :running
+      2 -> :ok
+      3 -> :err
     end
   end
 
@@ -22,18 +24,23 @@ defmodule Aelita2.Batch do
     case st do
       :waiting -> 0
       :running -> 1
+      :ok -> 2
+      :err -> 3
     end
   end
 
-  def all_for_project(project_id) do
-    from(b in Batch, where: b.project_id == ^project_id)
+  def all_for_project(project_id, :incomplete) do
+    from b in Batch,
+      where: b.project_id == ^project_id,
+      where: (b.state == 2 or b.state == 3)
   end
 
-  def all_assoc() do
+  def all_assoc(:incomplete) do
     from b in Batch,
       join: p in assoc(b, :project),
       join: i in assoc(p, :installation),
-      preload: [project: {p, installation: i}]
+      preload: [project: {p, installation: i}],
+      where: (b.state == 2 or b.state == 3)
   end
 
   def get_assoc_by_commit(commit) do
