@@ -73,7 +73,7 @@ defmodule Aelita2.Integration.GitHub do
     data = Poison.decode!(raw)
     %{
       commit: data["sha"],
-      tree: data["tree"]["sha"]
+      tree: data["commit"]["tree"]["sha"]
     }
   end
 
