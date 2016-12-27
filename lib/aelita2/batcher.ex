@@ -41,7 +41,7 @@ defmodule Aelita2.Batcher do
   def handle_cast({:status, commit, identifier, state}, :ok) do
     batch = Repo.all(Batch.get_assoc_by_commit(commit))
     case batch do
-      [batch] -> 
+      [batch] ->
         Status.get_for_project(batch.project_id, identifier)
         |> Repo.update_all([set: [state: Status.state_numberize(state)]])
         maybe_complete_batch(batch)
@@ -143,6 +143,8 @@ defmodule Aelita2.Batcher do
       else
         fail_batch(batch)
       end
+      Status.all_for_project(project.id)
+      |> Repo.update_all([set: [state: 0]])
       Repo.delete(batch)
     end
   end
