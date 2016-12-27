@@ -164,6 +164,6 @@ defmodule Aelita2.Batcher do
     else
       batch.project.batch_poll_period_sec
     end
-    DateTime.to_unix(batch.last_polled, :seconds) + period
+    batch.last_polled + period
   end
 end
