@@ -24,12 +24,13 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "integration_installation") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
+    sender = sync_user(payload["sender"])
     case payload["action"] do
       "deleted" -> Repo.delete_all(from(
         i in Installation,
         where: i.installation_xref == ^installation_xref
       ))
-      "created" -> create_installation_by_xref installation_xref
+      "created" -> create_installation_by_xref(installation_xref, sender)
       _ -> nil
     end
     :ok
@@ -43,12 +44,14 @@ defmodule Aelita2.WebhookController do
       "removed" -> :ok
       "added" -> :ok
     end
+    sender = sync_user(payload["sender"])
     payload["repositories_removed"]
     |> Enum.map(&from(p in Project, where: p.repo_xref == ^&1["id"]))
     |> Enum.each(&Repo.delete_all/1)
     payload["repositories_added"]
     |> Enum.map(&%Project{repo_xref: &1["id"], name: &1["full_name"], installation: installation})
     |> Enum.each(&Repo.insert!/1)
+    |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))
     :ok
   end
 
@@ -146,7 +149,7 @@ defmodule Aelita2.WebhookController do
     end
   end
 
-  def create_installation_by_xref(installation_xref) do
+  def create_installation_by_xref(installation_xref, sender) do
     i = Repo.insert!(%Installation{
       installation_xref: installation_xref
     })
@@ -154,6 +157,7 @@ defmodule Aelita2.WebhookController do
     |> Aelita2.Integration.GitHub.get_my_repos!()
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
     |> Enum.each(&Repo.insert!/1)
+    |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))
   end
 
   def sync_user(user_json) do
