@@ -39,9 +39,11 @@ defmodule Aelita2.Batcher do
   end
 
   def handle_cast({:status, commit, identifier, state}, :ok) do
-    batch = Repo.get_by!(Batch, commit: commit)
-    Status.get_for_project(batch.project_id, identifier)
-    |> Repo.update_all([set: [state: Status.state_numberize(state)]])
+    batch = Repo.get_by(Batch, commit: commit)
+    if not is_nil(batch) do
+      Status.get_for_project(batch.project_id, identifier)
+      |> Repo.update_all([set: [state: Status.state_numberize(state)]])
+    end
     {:noreply, :ok}
   end
 
