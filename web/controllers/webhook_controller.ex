@@ -157,7 +157,7 @@ defmodule Aelita2.WebhookController do
     Aelita2.Integration.GitHub.get_installation_token!(installation_xref)
     |> Aelita2.Integration.GitHub.get_my_repos!()
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
-    |> Enum.each(&Repo.insert!/1)
+    |> Enum.map(&Repo.insert!/1)
     |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))
   end
 
