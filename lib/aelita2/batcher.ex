@@ -54,8 +54,7 @@ defmodule Aelita2.Batcher do
   # Private implementation details
 
   defp poll_all() do
-    batches = Repo.all(Batch, preload: :project, preload: :'project.installation')
-    batches
+    Repo.all(Batch.all_assoc())
     |> Enum.reduce(%{}, &add_batch_to_project_map/2)
     |> Enum.each(&poll_batches/1)
   end

@@ -29,6 +29,13 @@ defmodule Aelita2.Batch do
     from(b in Batch, where: b.project_id == ^project_id)
   end
 
+  def all_assoc() do
+    from b in Batch,
+      join: p in assoc(b, :project),
+      join: i in assoc(p, :installation),
+      preload: [project: {p, installation: i}]
+  end
+
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """
