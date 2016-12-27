@@ -99,7 +99,7 @@ defmodule Aelita2.Integration.GitHub do
     %{body: _, status_code: 200} = cond do
       status_code == 404 ->
         HTTPoison.post!(
-          "#{cfg[:site]}/repositories/#{repository_id}/refs",
+          "#{cfg[:site]}/repositories/#{repository_id}/git/refs",
           Poison.encode!(%{
             "ref": "refs/heads/#{to}",
             "sha": sha
@@ -107,7 +107,7 @@ defmodule Aelita2.Integration.GitHub do
           [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
       sha != Poison.decode!(raw)["commit"]["sha"] ->
         HTTPoison.patch!(
-          "#{cfg[:site]}/repositories/#{repository_id}/refs/heads/#{to}",
+          "#{cfg[:site]}/repositories/#{repository_id}/git/refs/heads/#{to}",
           Poison.encode!(%{
             "force": true,
             "sha": sha

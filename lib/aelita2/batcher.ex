@@ -97,7 +97,7 @@ defmodule Aelita2.Batcher do
   defp start_waiting_batch(batch) do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
-    stmp = "#{project.staging_branch}/tmp"
+    stmp = "#{project.staging_branch}.tmp"
     patches = Repo.all(Patch.all_for_batch(batch.id))
     base = GitHub.copy_branch!(token, project.repo_xref, project.master_branch, stmp)
     do_merge_patch = fn patch, branch ->
