@@ -25,10 +25,8 @@ defmodule Aelita2.Patch do
   def all_for_batch(batch_id) do
     from l in LinkPatchBatch,
       join: p in assoc(l, :patch),
-      join: pr in assoc(p, :project),
-      preload: [patch: {p, project: pr}],
       where: l.batch_id == ^batch_id,
-      select: [p.id, p.project, p.pr_xref, p.title, p.body, p.commit, p.author_id]
+      select: struct(p, [:project_id, :pr_xref, :title, :body, :commit, :author_id])
   end
 
   def unbatched() do

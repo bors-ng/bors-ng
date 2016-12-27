@@ -186,7 +186,7 @@ defmodule Aelita2.Batcher do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
     GitHub.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
-    patches = Patch.all_for_batch(batch.id)
+    patches = Repo.all Patch.all_for_batch(batch.id)
     body = Enum.reduce(succeeded, "# Build succeeded", &gen_status_link/2)
     Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
   end
@@ -194,7 +194,7 @@ defmodule Aelita2.Batcher do
   defp fail_batch(batch, erred) do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
-    patches = Patch.all_for_batch(batch.id)
+    patches = Repo.all Patch.all_for_batch(batch.id)
     body = Enum.reduce(erred, "# Build failed", &gen_status_link/2)
     Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
     {patches_lo, patches_hi} = Enum.split(patches, div(Enum.count(patches), 2))
