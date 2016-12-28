@@ -131,17 +131,17 @@ defmodule Aelita2.Batcher do
     case toml do
       nil -> setup_statuses_error(token, project, batch, patches, "bors.toml does not exist")
       toml ->
-        case :etoml.parse(toml) do
+        case Aelita2.Batcher.BorsToml.new(toml) do
           {:ok, toml} ->
             setup_statuses_ok(token, project, batch, patches, toml)
-          {:error, error} ->
-            setup_statuses_error(token, project, batch, patches, error)
+          {:err, :parse_failed} ->
+            setup_statuses_error(token, project, batch, patches, "bors.toml is invalid")
         end
     end
   end
 
   defp setup_statuses_ok(_token, _project, batch, _patches, toml) do
-    Enum.map(toml["status"], &%Status{
+    Enum.map(toml.status, &%Status{
       batch_id: batch.id,
       identifier: &1,
       url: nil,
