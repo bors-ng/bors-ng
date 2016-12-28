@@ -31,16 +31,20 @@ defmodule Aelita2.Batcher do
     {:ok, :ok}
   end
 
-  def handle_cast({:reviewed, patch}, :ok) do
+  def handle_cast(args, state) do
+    Repo.transaction(fn -> do_handle_cast(args) end)
+    {:noreply, state}
+  end
+
+  def do_handle_cast({:reviewed, patch}) do
     batch = get_new_batch(patch.project_id)
     project_id = batch.project_id
     ^project_id = patch.project_id
     LinkPatchBatch.changeset(%LinkPatchBatch{}, %{batch_id: batch.id, patch_id: patch.id})
     |> Repo.insert!()
-    {:noreply, :ok}
   end
 
-  def handle_cast({:status, commit, identifier, state, url}, :ok) do
+  def do_handle_cast({:status, commit, identifier, state, url}) do
     batch = Repo.all(Batch.get_assoc_by_commit(commit))
     case batch do
       [batch] ->
@@ -51,11 +55,10 @@ defmodule Aelita2.Batcher do
         end
       [] -> :ok
     end
-    {:noreply, :ok}
   end
 
   def handle_info(:poll, :ok) do
-    poll_all()
+    Repo.transaction(&poll_all/0)
     Process.send_after(self(), :poll, @poll_period)
     {:noreply, :ok}
   end
