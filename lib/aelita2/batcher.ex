@@ -182,7 +182,7 @@ defmodule Aelita2.Batcher do
         fail_batch(batch, erred)
         :err
       end
-      Batch.changeset(batch, %{status: Batch.numberize_state(state)})
+      Batch.changeset(batch, %{state: Batch.numberize_state(state)})
       |> Repo.update!()
     end
   end
