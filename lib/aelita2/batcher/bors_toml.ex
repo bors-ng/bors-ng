@@ -5,9 +5,9 @@ defmodule Aelita2.Batcher.BorsToml do
     case :etoml.parse(str) do
       {:ok, toml} ->
         toml = Map.new(toml)
-        %Aelita2.Batcher.BorsToml{
+        {:ok, %Aelita2.Batcher.BorsToml{
           status: toml["status"]
-        }
+        }}
       {:error, _error} -> {:err, :parse_failed}
     end
   end
