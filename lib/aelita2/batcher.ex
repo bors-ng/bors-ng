@@ -109,6 +109,8 @@ defmodule Aelita2.Batcher do
     token = GitHub.get_installation_token!(project.installation.installation_xref)
     stmp = "#{project.staging_branch}.tmp"
     patches = Repo.all(Patch.all_for_batch(batch.id))
+    |> Enum.sort_by(&(&1.pr_xref))
+    |> Enum.dedup_by(&(&1.pr_xref))
     base = GitHub.copy_branch!(token, project.repo_xref, project.master_branch, stmp)
     do_merge_patch = fn patch, _branch ->
       GitHub.merge_branch!(token, project.repo_xref, patch.commit, stmp, "tmp")
@@ -189,7 +191,9 @@ defmodule Aelita2.Batcher do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
     GitHub.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
-    patches = Repo.all Patch.all_for_batch(batch.id)
+    patches = Repo.all(Patch.all_for_batch(batch.id))
+    |> Enum.sort_by(&(&1.pr_xref))
+    |> Enum.dedup_by(&(&1.pr_xref))
     body = Enum.reduce(succeeded, "# Build succeeded", &gen_status_link/2)
     Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
   end
@@ -197,12 +201,22 @@ defmodule Aelita2.Batcher do
   defp fail_batch(batch, erred) do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
-    patches = Repo.all Patch.all_for_batch(batch.id)
+    patches = Repo.all(Patch.all_for_batch(batch.id))
+    |> Enum.sort_by(&(&1.pr_xref))
+    |> Enum.dedup_by(&(&1.pr_xref))
     body = Enum.reduce(erred, "# Build failed", &gen_status_link/2)
+    body = case patches do
+      [_patch] -> body
+      [] -> raise("Empty patches make no sense")
+      _ -> "#{body}\n\n*Retrying...*"
+    end
     Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
-    {patches_lo, patches_hi} = Enum.split(patches, div(Enum.count(patches), 2))
-    make_batch(patches_lo, project.id)
-    make_batch(patches_hi, project.id)
+    count = Enum.count(patches)
+    if count > 1 do
+      {patches_lo, patches_hi} = Enum.split(patches, div(count, 2))
+      make_batch(patches_lo, project.id)
+      make_batch(patches_hi, project.id)
+    end
   end
 
   defp make_batch(patches, project_id) do
@@ -220,7 +234,7 @@ defmodule Aelita2.Batcher do
   end
 
   def get_new_batch(project_id) do
-    case Repo.get_by(Batch, project_id: project_id, state: 0) do
+    case Repo.get_by(Batch, project_id: project_id, state: Batch.numberize_state(:waiting)) do
       nil -> Repo.insert!(Batch.new(project_id))
       batch -> batch
     end
