@@ -143,7 +143,7 @@ defmodule Aelita2.Integration.GitHub do
 
   def post_comment!(token, repository_id, number, body) do
     cfg = config()
-    %{status_code: 200} = HTTPoison.post!(
+    %{status_code: 201} = HTTPoison.post!(
       "#{cfg[:site]}/repositories/#{repository_id}/issues/#{number}/comments",
       Poison.encode!(%{body: body}),
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
