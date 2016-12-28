@@ -86,6 +86,7 @@ defmodule Aelita2.Batcher do
 
   defp poll_batches({_project_id, batches}) do
     batches = Enum.sort_by(batches, &{-&1.state, &1.last_polled})
+    |> Enum.dedup_by(&(&1.id))
     poll_batches(batches)
   end
 
