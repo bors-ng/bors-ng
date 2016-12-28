@@ -14,7 +14,6 @@ defmodule Aelita2.Status do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:batch_id, :identifier, :url, :state])
-    |> validate_required([:batch_id, :identifier, :url, :state])
   end
 
   def get_for_batch(batch_id, identifier) do

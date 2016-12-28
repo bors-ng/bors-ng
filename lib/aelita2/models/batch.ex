@@ -66,6 +66,5 @@ defmodule Aelita2.Batch do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:project_id, :commit, :state, :last_polled])
-    |> validate_required([:project_id, :commit, :state, :last_polled])
   end
 end
