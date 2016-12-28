@@ -46,7 +46,9 @@ defmodule Aelita2.Batcher do
       [batch] ->
         Status.get_for_batch(batch.id, identifier)
         |> Repo.update_all([set: [state: Status.numberize_state(state), url: url]])
-        maybe_complete_batch(batch)
+        if batch.state == Batch.numberize_state(:running) do
+          maybe_complete_batch(batch)
+        end
       [] -> :ok
     end
     {:noreply, :ok}
