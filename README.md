@@ -1,4 +1,4 @@
-# Aelita2
+# Installing and starting
 
 To start your Phoenix app:
 
@@ -32,7 +32,7 @@ Deployments: No access.
 
 Issues: Must be set to "Read-only", because pull requests are issues. "Issue comment" events must be enabled, to get the "@bors r+" comments.
 
-Pull requests: Must be set to "Read-only", to know when a pull request exists and what its current commit is. Also, must receive "Pull request" events to be able to keep the dashboard and cache, and must get "Pull request review" and "Pull request review comment" events to get those kinds of comments.
+Pull requests: Must be set to "Read & write", to know when a pull request exists and what its current commit is, and to be able to post pull request comments. Also, must receive "Pull request" events to be able to keep the dashboard and cache, and must get "Pull request review" and "Pull request review comment" events to get those kinds of comments.
 
 Repository contents: Must be set to "Read-write," to be able to create merge commits.
 
