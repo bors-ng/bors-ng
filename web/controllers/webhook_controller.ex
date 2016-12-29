@@ -59,7 +59,7 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "pull_request") do
     project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
     author = sync_user(conn.body_params["pull_request"]["user"])
-    patch = Repo.get_by(Patch, project_id: project.id, pr_xref: conn.body_params["pull_request"]["number"])
+    patch = sync_patch(project.id, author.id, conn.body_params["pull_request"])
     do_webhook_pr(conn, conn.body_params["action"], project, patch, author)
   end
 
@@ -100,20 +100,16 @@ defmodule Aelita2.WebhookController do
     Aelita2.Batcher.status(commit, identifier, state, url)
   end
 
-  def do_webhook_pr(conn, "opened", project, patch, author) do
-    nil = patch
-    Repo.insert!(%Patch{
-      project: project,
-      pr_xref: conn.body_params["pull_request"]["number"],
-      title: conn.body_params["pull_request"]["title"],
-      body: conn.body_params["pull_request"]["body"],
-      commit: conn.body_params["pull_request"]["head"]["sha"],
-      author: author
-    })
+  def do_webhook_pr(_conn, "opened", _project, _patch, _author) do
+    :ok
   end
 
-  def do_webhook_pr(_conn, "closed", _project, patch, _author) do
-    Repo.delete!(patch)
+  def do_webhook_pr(_conn, "closed", _project, _patch, _author) do
+    :ok
+  end
+
+  def do_webhook_pr(_conn, "reopened", _project, _patch, _author) do
+    :ok
   end
 
   def do_webhook_pr(conn, "synchronize", _project, patch, _author) do
@@ -159,6 +155,20 @@ defmodule Aelita2.WebhookController do
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
     |> Enum.map(&Repo.insert!/1)
     |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))
+  end
+
+  def sync_patch(project_id, author_id, patch_json) do
+    case Repo.get_by(Patch, project_id: project_id, pr_xref: patch_json["number"]) do
+      nil -> Repo.insert!(%Patch{
+        project_id: project_id,
+        pr_xref: patch_json["number"],
+        title: patch_json["title"],
+        body: patch_json["body"],
+        commit: patch_json["head"]["sha"],
+        author_id: author_id
+      })
+      patch -> patch
+    end
   end
 
   def sync_user(user_json) do

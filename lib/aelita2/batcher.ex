@@ -128,11 +128,11 @@ defmodule Aelita2.Batcher do
     head = Enum.reduce(patches, base, do_merge_patch)
     parents = [base | Enum.map(patches, &(&1.commit))]
     commit_title = Enum.reduce(patches, "Merge", &"#{&2} \##{&1.pr_xref}")
-    commit_body = Enum.reduce(patches, "", &"#{&2}#{&1.title}\n")
+    commit_body = Enum.reduce(patches, "", &"#{&2}#{&1.pr_xref}: #{&1.title}\n")
     commit_message = "#{commit_title}\n\n#{commit_body}"
     commit = GitHub.synthesize_commit!(token, project.repo_xref, project.staging_branch, head.tree, parents, commit_message)
     setup_statuses(token, project, batch, patches)
-    batch = Batch.changeset(batch, %{state: Batch.numberize_state(:running), commit: commit, last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)})
+    Batch.changeset(batch, %{state: Batch.numberize_state(:running), commit: commit, last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)})
     |> Repo.update!()
   end
 
