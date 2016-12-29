@@ -1,8 +1,9 @@
 defmodule Aelita2.Patch do
   use Aelita2.Web, :model
 
-  alias Aelita2.Patch
+  alias Aelita2.Batch
   alias Aelita2.LinkPatchBatch
+  alias Aelita2.Patch
 
   schema "patches" do
     belongs_to :project, Aelita2.Project
@@ -23,13 +24,17 @@ defmodule Aelita2.Patch do
   end
 
   def all_for_batch(batch_id) do
-    from l in LinkPatchBatch,
-      join: p in assoc(l, :patch),
-      where: l.batch_id == ^batch_id,
-      select: struct(p, [:id, :project_id, :pr_xref, :title, :body, :commit, :author_id])
+    from p in Patch,
+      join: l in LinkPatchBatch, on: l.patch_id == p.id,
+      where: l.batch_id == ^batch_id
   end
 
-  def unbatched() do
-    from p in Patch, where: p.pr_xref != 0
+  def all_for_project(project_id, :awaiting_review) do
+    err = Batch.numberize_state(:err)
+    from p in Patch,
+      left_join: l in LinkPatchBatch, on: l.patch_id == p.id,
+      left_join: b in Batch, on: l.batch_id == b.id,
+      where: p.project_id == ^project_id,
+      where: is_nil(b.state) or b.state == ^err
   end
 end

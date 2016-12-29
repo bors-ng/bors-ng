@@ -31,6 +31,5 @@ defmodule Aelita2.Project do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:repo_xref, :name])
-    |> validate_required([:repo_xref, :name])
   end
 end
