@@ -108,10 +108,17 @@ defmodule Aelita2.Batcher do
   end
 
   defp start_waiting_batch(batch) do
+    patches = Repo.all(Patch.all_for_batch(batch.id))
+    if patches != [] do
+      start_waiting_batch(batch, patches)
+    else
+      Repo.delete(batch)
+    end
+  end
+  defp start_waiting_batch(batch, patches) do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
     stmp = "#{project.staging_branch}.tmp"
-    patches = Repo.all(Patch.all_for_batch(batch.id))
     |> Enum.sort_by(&(&1.pr_xref))
     |> Enum.dedup_by(&(&1.pr_xref))
     base = GitHub.copy_branch!(token, project.repo_xref, project.master_branch, stmp)
