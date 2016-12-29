@@ -26,7 +26,7 @@ defmodule Aelita2.Patch do
     from l in LinkPatchBatch,
       join: p in assoc(l, :patch),
       where: l.batch_id == ^batch_id,
-      select: struct(p, [:project_id, :pr_xref, :title, :body, :commit, :author_id])
+      select: struct(p, [:id, :project_id, :pr_xref, :title, :body, :commit, :author_id])
   end
 
   def unbatched() do

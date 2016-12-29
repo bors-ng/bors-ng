@@ -109,6 +109,8 @@ defmodule Aelita2.Batcher do
 
   defp start_waiting_batch(batch) do
     patches = Repo.all(Patch.all_for_batch(batch.id))
+    |> Enum.sort_by(&(&1.pr_xref))
+    |> Enum.dedup_by(&(&1.pr_xref))
     if patches != [] do
       start_waiting_batch(batch, patches)
     else
@@ -119,8 +121,6 @@ defmodule Aelita2.Batcher do
     project = batch.project
     token = GitHub.get_installation_token!(project.installation.installation_xref)
     stmp = "#{project.staging_branch}.tmp"
-    |> Enum.sort_by(&(&1.pr_xref))
-    |> Enum.dedup_by(&(&1.pr_xref))
     base = GitHub.copy_branch!(token, project.repo_xref, project.master_branch, stmp)
     do_merge_patch = fn patch, _branch ->
       GitHub.merge_branch!(token, project.repo_xref, patch.commit, stmp, "tmp")
@@ -231,7 +231,8 @@ defmodule Aelita2.Batcher do
 
   defp make_batch(patches, project_id) do
     batch = Repo.insert!(Batch.new(project_id))
-    Enum.each(patches, &Repo.insert!(%LinkPatchBatch{batch_id: batch.id, patch_id: &1.id}))
+    Enum.map(patches, &LinkPatchBatch.changeset(%LinkPatchBatch{}, %{batch_id: batch.id, patch_id: &1.id}))
+    |> Enum.each(&Repo.insert!/1)
     batch
   end
 
