@@ -1,4 +1,4 @@
-defmodule Aelita2.OAuth2.GitHub do
+defmodule Aelita2.GitHub.OAuth2 do
   @moduledoc """
   An OAuth2 strategy for GitHub.
   """
@@ -13,7 +13,8 @@ defmodule Aelita2.OAuth2.GitHub do
       authorize_url: "https://github.com/login/oauth/authorize",
       token_url: "https://github.com/login/oauth/access_token"
     ]
-    Application.get_env(:aelita2, Aelita2.OAuth2.GitHub)
+    Application.get_env(:aelita2, Aelita2.GitHub)
+    |> Keyword.merge(Application.get_env(:aelita2, Aelita2.GitHub.OAuth2))
     |> Keyword.merge(cfg)
   end
 
@@ -76,29 +77,11 @@ defmodule Aelita2.OAuth2.GitHub do
     {response, next}
   end
 
-  def get_repo!(github_access_token, id) when is_binary(github_access_token) do
-    resp = HTTPoison.get!(
-      "#{config()[:site]}/repositories/#{id}",
-      [{"Authorization", "token #{github_access_token}"}])
-    case resp do
-      %{body: raw, status_code: 200} -> (
-        r = Poison.decode!(raw)
-        {:ok, %{
-          id: r["id"],
-          name: r["full_name"],
-          permissions: %{
-            admin: r["permissions"]["admin"],
-            push: r["permissions"]["push"],
-            pull: r["permissions"]["pull"]
-          },
-          owner: %{
-            id: r["owner"]["id"],
-            login: r["owner"]["login"],
-            avatar_url: r["owner"]["avatar_url"],
-            type: r["owner"]["type"]}}}
-      )
-      %{status_code: code} -> {:err, code}
-    end
+  @doc """
+  Get info about the user we are now logged in as
+  """
+  def get_user!(client) do
+    OAuth2.Client.get! client, "/user"
   end
 
   # Strategy Callbacks

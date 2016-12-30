@@ -41,3 +41,7 @@ config :aelita2, Aelita2.Repo,
   database: "aelita2_dev",
   hostname: "localhost",
   pool_size: 10
+
+
+config :aelita2, Aelita2.GitHub,
+  api: Aelita2.GitHub

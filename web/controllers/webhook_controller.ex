@@ -8,6 +8,8 @@ defmodule Aelita2.WebhookController do
   alias Aelita2.Batcher
   alias Aelita2.LinkUserProject
 
+  @github_api Application.get_env(:aelita2, Aelita2.GitHub)[:api]
+
   @doc """
   This action is reached via `/webhook/:provider`
   """
@@ -96,7 +98,7 @@ defmodule Aelita2.WebhookController do
     identifier = conn.body_params["context"]
     commit = conn.body_params["sha"]
     url = conn.body_params["url"]
-    state = Aelita2.Integration.GitHub.map_state_to_status(conn.body_params["state"])
+    state = @github_api.map_state_to_status(conn.body_params["state"])
     Aelita2.Batcher.status(commit, identifier, state, url)
   end
 
@@ -150,8 +152,8 @@ defmodule Aelita2.WebhookController do
     i = Repo.insert!(%Installation{
       installation_xref: installation_xref
     })
-    Aelita2.Integration.GitHub.get_installation_token!(installation_xref)
-    |> Aelita2.Integration.GitHub.get_my_repos!()
+    @github_api.Integration.get_installation_token!(installation_xref)
+    |> @github_api.Integration.get_my_repos!()
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
     |> Enum.map(&Repo.insert!/1)
     |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))

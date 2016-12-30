@@ -14,8 +14,14 @@ defmodule Aelita2 do
       supervisor(Aelita2.Endpoint, []),
       # Start your own worker by calling: Aelita2.Worker.start_link(arg1, arg2, arg3)
       # worker(Aelita2.Worker, [arg1, arg2, arg3]),
-      worker(Aelita2.Batcher, []),
     ]
+
+    run_batcher = Application.get_env(:aelita2, Aelita2.Batcher)[:run]
+    children = if run_batcher do
+      children ++ [worker(Aelita2.Batcher, [])]
+    else
+      children
+    end
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
