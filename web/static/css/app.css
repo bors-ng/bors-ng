@@ -3,15 +3,35 @@
 	max-width: 1000px;
 	margin: 0 auto;
 	padding: 16px 20px;
+	position: relative;
+}
+.wrapper--mini {
+	padding: 8px 10px;
+}
+header, nav {
+	border-bottom: solid 1px #CCC;
+}
+#repos-button {
+	position: absolute;
+	top: 50%; right: 10px;
+	height: 25px; line-height: 20px;
+	margin-top: -12px;
+}
+#repos-button > a {
+	padding: 10px 10px;
+	vertical-align: middle;
 }
 header {
-	border-bottom: solid 1px #CCC;
+	z-index: 2;
+}
+nav {
 	background-color: #EEE;
-	margin-bottom: -1px;
+}
+nav h1 {
+	margin: 0;
 }
 footer {
 	border-top: solid 1px #CCC;
-	margin-top: -1px;
 }
 /* Use underline-on-hover for links.
    This is used for consistency, since fill-link breaks outlines. */
@@ -105,6 +125,9 @@ footer {
 .toolbar-item:active {
 	box-shadow: 0 0 0 #666;
 }
+.toolbar-item--add {
+	background: #4dae76;
+}
 .fill-link {
 	overflow: hidden;
 }
@@ -119,4 +142,13 @@ footer {
 	margin: 0;
 	margin-bottom: 7px;
 	padding-bottom: 8px;
+}
+/* home page hero images */
+.hero {
+	margin: 32px auto;
+	text-align: center;
+	font-size: 2em;
+}
+.hero p {
+	margin: 32px 0;
 }

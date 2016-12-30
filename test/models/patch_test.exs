@@ -4,8 +4,10 @@ defmodule Aelita2.PatchTest do
   alias Aelita2.Batch
   alias Aelita2.Installation
   alias Aelita2.LinkPatchBatch
+  alias Aelita2.LinkUserProject
   alias Aelita2.Project
   alias Aelita2.Patch
+  alias Aelita2.User
 
   setup do
     installation = Repo.insert!(%Installation{
@@ -36,4 +38,16 @@ defmodule Aelita2.PatchTest do
     [got_patch] = Repo.all(Patch.all_for_batch(batch.id))
     assert got_patch.id == patch.id
   end
+
+  test "grab patches that a particular user has", %{installation: _installation, project: project} do
+    batch = Repo.insert!(%Batch{project: project, state: 0})
+    patch = Repo.insert!(%Patch{project: project, pr_xref: 9, title: "T", body: "B", commit: "C"})
+    patch2 = Repo.insert!(%Patch{project: project, pr_xref: 10, title: "T", body: "B", commit: "C"})
+    Repo.insert!(%LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id})
+    user = Repo.insert!(%User{})
+    Repo.insert!(%LinkUserProject{user_id: user.id, project_id: project.id})
+    [got_patch] = Repo.all(Patch.all_for_user(user.id, :awaiting_review))
+    assert got_patch.id == patch.id
+  end
+
 end

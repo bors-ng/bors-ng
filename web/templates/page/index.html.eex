@@ -1,1 +1,16 @@
-<h2 role="heading" class=h1>Welcome</h2>
+<main role=main><div class=wrapper>
+<div class=hero>
+	<p>If you use CI, this has happened before.</p>
+	<img src='<%= static_path(@conn, "/images/build-failed.svg") %>'>
+	<p>Maybe you've got Travis set to build every pull request.</p>
+	<img width=325 height=36 src='<%= static_path(@conn, "/images/slide1.svg") %>'>
+	<p>But it only checks each one in isolation. The merged build can still fail.</p>
+	<img width=474 height=277 src='<%= static_path(@conn, "/images/slide2.svg") %>'>
+	<p>You need to check the combination, before it goes to master.</p>
+	<img width=474 height=277 src='<%= static_path(@conn, "/images/slide3.svg") %>'>
+	<p>Bors makes that really easy.</p>
+	<img width=360 height=98 src='<%= static_path(@conn, "/images/a.svg") %>'>
+	<p>Instead of merging a PR, say <strong>bors r+</strong>. It does the rest.</p>
+	<div class="toolbar"><a class="toolbar-item" href="<%= project_url(@conn, :index) %>">Log in with GitHub</a></div>
+</div>
+</div></main>

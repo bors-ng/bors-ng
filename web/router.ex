@@ -55,6 +55,7 @@ defmodule Aelita2.Router do
     user = Plug.Conn.get_session(conn, :current_user)
     if user == nil do
       conn
+      |> Plug.Conn.put_session(:auth_redirect_to, conn.request_path)
       |> Phoenix.Controller.redirect(to: "/auth/github")
       |> halt
     else

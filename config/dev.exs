@@ -14,6 +14,14 @@ config :aelita2, Aelita2.Endpoint,
   watchers: [node: ["node_modules/brunch/bin/brunch", "watch", "--stdin",
                     cd: Path.expand("../", __DIR__)]]
 
+# On developer boxes, we do not actually talk to GitHub.
+# Use the mock instance, and do not run the batcher.
+# To test these, compile in prod mode.
+config :aelita2, Aelita2.GitHub,
+  api: Aelita2.GitHubMock
+
+config :aelita2, Aelita2.Batcher,
+  run: false
 
 # Watch static and templates for browser reloading.
 config :aelita2, Aelita2.Endpoint,
@@ -41,7 +49,3 @@ config :aelita2, Aelita2.Repo,
   database: "aelita2_dev",
   hostname: "localhost",
   pool_size: 10
-
-
-config :aelita2, Aelita2.GitHub,
-  api: Aelita2.GitHub
