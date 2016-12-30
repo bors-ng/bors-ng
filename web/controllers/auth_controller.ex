@@ -5,6 +5,8 @@ defmodule Aelita2.AuthController do
 
   alias Aelita2.User
 
+  @github_api Application.get_env(:aelita2, Aelita2.GitHub)[:api]
+
   @doc """
   This action is reached via `/auth/:provider` and redirects to the OAuth2 provider
   based on the chosen strategy.
@@ -61,14 +63,14 @@ defmodule Aelita2.AuthController do
     |> redirect(to: "/")
   end
 
-  defp authorize_url!("github"), do: Aelita2.OAuth2.GitHub.authorize_url!
+  defp authorize_url!("github"), do: @github_api.OAuth2.authorize_url!
   defp authorize_url!(_), do: raise "No matching provider available"
 
-  defp get_token!("github", code), do: Aelita2.OAuth2.GitHub.get_token! code: code
+  defp get_token!("github", code), do: @github_api.OAuth2.get_token! code: code
   defp get_token!(_, _), do: raise "No matching provider available"
 
   defp get_user!("github", client) do
-    %{body: user} = OAuth2.Client.get! client, "/user"
+    %{body: user} = @github_api.OAuth2.get_user! client
     %{id: user["id"], login: user["login"]}
   end
 end

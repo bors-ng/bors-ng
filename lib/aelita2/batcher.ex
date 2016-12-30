@@ -5,10 +5,10 @@ defmodule Aelita2.Batcher do
   alias Aelita2.Batch
   alias Aelita2.Patch
   alias Aelita2.Status
-  alias Aelita2.Integration.GitHub
   alias Aelita2.LinkPatchBatch
 
   @poll_period 1000
+  @github_api Application.get_env(:aelita2, Aelita2.GitHub)[:api]
 
   # Public API
 
@@ -119,25 +119,25 @@ defmodule Aelita2.Batcher do
   end
   defp start_waiting_batch(batch, patches) do
     project = batch.project
-    token = GitHub.get_installation_token!(project.installation.installation_xref)
+    token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
     stmp = "#{project.staging_branch}.tmp"
-    base = GitHub.copy_branch!(token, project.repo_xref, project.master_branch, stmp)
+    base = @github_api.copy_branch!(token, project.repo_xref, project.master_branch, stmp)
     do_merge_patch = fn patch, _branch ->
-      GitHub.merge_branch!(token, project.repo_xref, patch.commit, stmp, "tmp")
+      @github_api.merge_branch!(token, project.repo_xref, patch.commit, stmp, "tmp")
     end
     head = Enum.reduce(patches, base, do_merge_patch)
     parents = [base | Enum.map(patches, &(&1.commit))]
     commit_title = Enum.reduce(patches, "Merge", &"#{&2} \##{&1.pr_xref}")
     commit_body = Enum.reduce(patches, "", &"#{&2}#{&1.pr_xref}: #{&1.title}\n")
     commit_message = "#{commit_title}\n\n#{commit_body}"
-    commit = GitHub.synthesize_commit!(token, project.repo_xref, project.staging_branch, head.tree, parents, commit_message)
+    commit = @github_api.synthesize_commit!(token, project.repo_xref, project.staging_branch, head.tree, parents, commit_message)
     setup_statuses(token, project, batch, patches)
     Batch.changeset(batch, %{state: Batch.numberize_state(:running), commit: commit, last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)})
     |> Repo.update!()
   end
 
   defp setup_statuses(token, project, batch, patches) do
-    toml = GitHub.get_file(token, project.repo_xref, project.staging_branch, "bors.toml")
+    toml = @github_api.get_file(token, project.repo_xref, project.staging_branch, "bors.toml")
     case toml do
       nil -> setup_statuses_error(token, project, batch, patches, "bors.toml does not exist")
       toml ->
@@ -164,14 +164,14 @@ defmodule Aelita2.Batcher do
     Batch.changeset(batch, %{state: Batch.numberize_state(:err)})
     |> Repo.update!()
     body = "# Configuration problem\n\n#{message}"
-    Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
+    Enum.each(patches, &@github_api.post_comment!(token, project.repo_xref, &1.pr_xref, body))
   end
 
   defp poll_running_batch(batch) do
     project = batch.project
-    token = GitHub.get_installation_token!(project.installation.installation_xref)
+    token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
     my_statuses = Repo.all(Status.all_for_batch(batch.id))
-    gh_statuses = GitHub.get_commit_status!(token, project.repo_xref, batch.commit)
+    gh_statuses = @github_api.get_commit_status!(token, project.repo_xref, batch.commit)
     Enum.filter(my_statuses, &Map.has_key?(gh_statuses, &1.identifier))
     |> Enum.map(&Status.changeset(&1, %{state: Status.numberize_state(Map.fetch!(my_statuses, &1.identifier))}))
     |> Enum.each(&Repo.update!/1)
@@ -199,18 +199,18 @@ defmodule Aelita2.Batcher do
 
   defp complete_batch(batch, succeeded) do
     project = batch.project
-    token = GitHub.get_installation_token!(project.installation.installation_xref)
-    GitHub.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
+    token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
+    @github_api.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
     patches = Repo.all(Patch.all_for_batch(batch.id))
     |> Enum.sort_by(&(&1.pr_xref))
     |> Enum.dedup_by(&(&1.pr_xref))
     body = Enum.reduce(succeeded, "# Build succeeded", &gen_status_link/2)
-    Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
+    Enum.each(patches, &@github_api.post_comment!(token, project.repo_xref, &1.pr_xref, body))
   end
 
   defp fail_batch(batch, erred) do
     project = batch.project
-    token = GitHub.get_installation_token!(project.installation.installation_xref)
+    token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
     patches = Repo.all(Patch.all_for_batch(batch.id))
     |> Enum.sort_by(&(&1.pr_xref))
     |> Enum.dedup_by(&(&1.pr_xref))
@@ -220,7 +220,7 @@ defmodule Aelita2.Batcher do
       [] -> raise("Empty patches make no sense")
       _ -> "#{body}\n\n*Retrying...*"
     end
-    Enum.each(patches, &GitHub.post_comment!(token, project.repo_xref, &1.pr_xref, body))
+    Enum.each(patches, &@github_api.post_comment!(token, project.repo_xref, &1.pr_xref, body))
     count = Enum.count(patches)
     if count > 1 do
       {patches_lo, patches_hi} = Enum.split(patches, div(count, 2))

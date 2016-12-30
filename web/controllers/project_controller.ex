@@ -5,7 +5,8 @@ defmodule Aelita2.ProjectController do
   alias Aelita2.Project
   alias Aelita2.Batch
   alias Aelita2.Patch
-  alias Aelita2.OAuth2.GitHub
+
+  @github_api Application.get_env(:aelita2, Aelita2.GitHub)[:api]
 
   def index(conn, _params) do
     projects = Project.by_owner get_session(conn, :current_user)
@@ -27,7 +28,7 @@ defmodule Aelita2.ProjectController do
       nil -> nil
       jwt -> (jwt |> token |> with_signer(hs256(key)) |> verify).claims["sub"]
     end
-    {my_repos, next} = GitHub.get_my_repos!(get_session(conn, :github_access_token), cur)
+    {my_repos, next} = @github_api.OAuth2.get_my_repos!(get_session(conn, :github_access_token), cur)
     my_repos = Enum.map(my_repos, &add_project_info/1)
     next = case next do
       nil -> nil
@@ -39,7 +40,7 @@ defmodule Aelita2.ProjectController do
   def add(conn, %{"id" => id}) do
     project = Repo.get! Project, id
     token = get_session(conn, :github_access_token)
-    _ = GitHub.get_repo! token, project.repo_xref
+    @github_api.get_repo! token, project.repo_xref
 
     Repo.insert! LinkUserProject.changeset(%LinkUserProject{}, %{
       user_id: get_session(conn, :current_user),
@@ -54,7 +55,7 @@ defmodule Aelita2.ProjectController do
     project = Repo.get! Project, id
     batches = Repo.all(Batch.all_for_project(id, :incomplete))
     |> Enum.map(&%{commit: &1.commit, patches: Repo.all(Patch.all_for_batch(&1.id)), state: &1.state})
-    unbatched_patches = Repo.all(Patch.unbatched())
+    unbatched_patches = Repo.all(Patch.all_for_project(id, :awaiting_review))
     render conn, "show.html", project: project, batches: batches, unbatched_patches: unbatched_patches
   end
 

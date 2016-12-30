@@ -44,6 +44,12 @@ defmodule Aelita2.Batch do
       where: (b.state == 0 or b.state == 1)
   end
 
+  def all_for_project(project_id, :complete) do
+    from b in Batch,
+      where: b.project_id == ^project_id,
+      where: (b.state == 2 or b.state == 3)
+  end
+
   def all_assoc(:incomplete) do
     from b in Batch,
       join: p in assoc(b, :project),
