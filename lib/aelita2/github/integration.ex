@@ -11,7 +11,8 @@ defmodule Aelita2.GitHub.Integration do
   # Public API
 
   def config do
-    Application.get_env(:aelita2, Aelita2.Integration.GitHub)
+    Application.get_env(:aelita2, Aelita2.GitHub)
+    |> Keyword.merge(Application.get_env(:aelita2, Aelita2.GitHub.Integration))
     |> Keyword.merge([site: "https://api.github.com"])
   end
 
