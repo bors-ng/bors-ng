@@ -1,4 +1,8 @@
 defmodule Aelita2.GitHubMock do
+  @doc """
+  This is only used for development and testing.
+  """
+
   def copy_branch!(_, _, _, _) do
     raise("unimplemented")
   end
@@ -26,7 +30,7 @@ defmodule Aelita2.GitHubMock do
 end
 defmodule Aelita2.GitHubMock.OAuth2 do
   def authorize_url!() do
-    "MOCK_GITHUB_AUTHORIZE_URL"
+    "/auth/github/callback?code=MOCK_GITHUB_AUTHORIZE_CODE#MOCK_GITHUB_AUTHORIZE_URL"
   end
   def get_token!(args) do
     code = args[:code]

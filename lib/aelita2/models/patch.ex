@@ -3,6 +3,7 @@ defmodule Aelita2.Patch do
 
   alias Aelita2.Batch
   alias Aelita2.LinkPatchBatch
+  alias Aelita2.LinkUserProject
   alias Aelita2.Patch
 
   schema "patches" do
@@ -35,6 +36,17 @@ defmodule Aelita2.Patch do
       left_join: l in LinkPatchBatch, on: l.patch_id == p.id,
       left_join: b in Batch, on: l.batch_id == b.id,
       where: p.project_id == ^project_id,
+      where: is_nil(b.state) or b.state == ^err
+  end
+
+  def all_for_user(user_id, :awaiting_review) do
+    err = Batch.numberize_state(:err)
+    from p in Patch,
+      preload: :project,
+      left_join: l in LinkPatchBatch, on: l.patch_id == p.id,
+      left_join: b in Batch, on: l.batch_id == b.id,
+      join: lu in LinkUserProject, on: lu.project_id == p.project_id,
+      where: lu.user_id == ^user_id,
       where: is_nil(b.state) or b.state == ^err
   end
 end
