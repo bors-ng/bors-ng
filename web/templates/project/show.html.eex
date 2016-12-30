@@ -1,21 +1,70 @@
-<h2 class="header"><%= @project.name %></h2>
-<%= for batch <- @batches do %>
-<h3><%= stringify_state(batch.state) %></h3>
-<table class="table">
-  <tbody>
-<%= for patch <- batch.patches do %>
-    <tr><td><%= patch.commit %></td></tr>
-<% end %>
-  </tbody>
-</table>
-<% end %>
+<nav>
+
+<div class=wrapper>
+  <a href="<%= project_path(@conn, :index) %>">
+    Repositories
+  </a>
+  ›
+  <h1>
+    <a href="https://github.com/<%= @project.name %>/">
+      <%= @project.name %>
+    </a>
+  </h1>
+</div>
+
+<div class=tabs role=tabs>
+  <span class="tab tab--active">Pull requests</span>
+  <span class="tab">Settings (TODO)</span>
+</div>
+
+</nav>
+
+<main role=main><div class=wrapper>
+
 <%= if @unbatched_patches != [] do %>
-<h3>In review</h3>
+<h2 class=header>Awaiting review</h2>
 <table class="table">
+  <thead>
+    <tr><th>#</th><th>Title</th></tr>
+  </thead>
   <tbody>
 <%= for patch <- @unbatched_patches do %>
-    <tr><td><%= patch.commit %></td></tr>
+    <tr>
+      <td>
+        <%= patch.pr_xref %>
+      </td>
+      <td class="fill-link">
+        <a href="https://github.com/<%= @project.name %>/pull/<%= patch.pr_xref %>">
+          <%= patch.title %>
+        </a>
+      </td>
+    </tr>
 <% end %>
   </tbody>
 </table>
 <% end %>
+
+<%= for batch <- @batches do %>
+<h2 class=header><%= stringify_state(batch.state) %></h2>
+<table class="table">
+  <thead>
+    <tr><th>#</th><th>Title</th></tr>
+  </thead>
+  <tbody>
+<%= for patch <- batch.patches do %>
+    <tr>
+      <td>
+        <%= patch.pr_xref %>
+      </td>
+      <td class="fill-link">
+        <a href="https://github.com/<%= @project.name %>/pull/<%= patch.pr_xref %>">
+          <%= patch.title %>
+        </a>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+<% end %>
+
+</div></main>

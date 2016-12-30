@@ -1,0 +1,28 @@
+<main role=main><div class=wrapper>
+
+<h2 class=header>Awaiting review</h2>
+
+<table class="table">
+  <thead>
+    <tr><th>#</th><th>Title</th><th>Repository</th></tr>
+  </thead>
+  <tbody>
+<%= for patch <- @patches do %>
+    <tr>
+      <td>
+        <%= patch.pr_xref %>
+      </td>
+      <td class="fill-link">
+        <a href="https://github.com/<%= patch.project.name %>/pull/<%= patch.pr_xref %>">
+          <%= patch.title %>
+        </a>
+      </td>
+      <td class="fill-link">
+        <%= link patch.project.name, to: project_path(@conn, :show, patch.project) %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+</div></main>

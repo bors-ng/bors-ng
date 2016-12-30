@@ -1,4 +1,12 @@
-<h2 class=header>Add a repo</h2>
+<nav><div class=wrapper>
+  <a href="<%= project_path(@conn, :index) %>">
+    Repositories
+  </a>
+  › 
+  <h1>Add</h1>
+</div></nav>
+
+<main role=main><div class=wrapper>
 
 <%= form_for @conn, project_path(@conn, :add), [as: :repo], fn _ -> %>
 <table class="table">
@@ -26,3 +34,5 @@
     <%= link "Next", to: project_path(@conn, :available, @next, []), class: "toolbar-item", rel: "next" %>
 </div>
 <% end %>
+
+</div></main>
