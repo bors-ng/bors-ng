@@ -1,5 +1,11 @@
+<nav><div class=wrapper>
+<h1>Repositories</h1>
+</div></nav>
+
+<main role=main><div class=wrapper>
+
 <div class=toolbar role=toolbar>
-<%= link "Add repo", to: project_path(@conn, :available), class: "toolbar-item", role: "toolbar-item" %>
+<%= link "Add repository", to: project_path(@conn, :available), class: "toolbar-item toolbar-item--add", role: "toolbar-item" %>
 </div>
 
 <table class="table">
@@ -13,3 +19,5 @@
 <% end %>
   </tbody>
 </table>
+
+</div></main>

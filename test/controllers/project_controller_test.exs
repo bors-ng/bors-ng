@@ -53,7 +53,7 @@ defmodule Aelita2.ProjectControllerTest do
     Repo.insert! %Batch{project_id: project.id}
     Repo.insert! %Patch{project_id: project.id}
     conn = get conn, project_path(conn, :show, project)
-    assert html_response(conn, 200) =~ "In review"
+    assert html_response(conn, 200) =~ "Awaiting review"
     refute html_response(conn, 200) =~ "Waiting"
   end
 
@@ -63,7 +63,7 @@ defmodule Aelita2.ProjectControllerTest do
     patch = Repo.insert! %Patch{project_id: project.id, commit: "PC"}
     Repo.insert! %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
     conn = get conn, project_path(conn, :show, project)
-    refute html_response(conn, 200) =~ "In review"
+    refute html_response(conn, 200) =~ "Awaiting review"
     assert html_response(conn, 200) =~ "Waiting"
   end
 end

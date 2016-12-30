@@ -57,10 +57,17 @@ defmodule Aelita2.AuthController do
         current_user_model
       end
 
+    redirect_to = get_session(conn, :auth_redirect_to)
+    redirect_to = if is_nil(redirect_to) do
+      page_path(conn, :index)
+    else
+      redirect_to
+    end
+
     conn
     |> put_session(:current_user, user_model.id)
     |> put_session(:github_access_token, client.token.access_token)
-    |> redirect(to: "/")
+    |> redirect(to: redirect_to)
   end
 
   defp authorize_url!("github"), do: @github_api.OAuth2.authorize_url!

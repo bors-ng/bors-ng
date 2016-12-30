@@ -4,35 +4,26 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <title>aelita</title>
+    <title>bors</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
   </head>
 
   <body>
     <header role="banner">
-      <h1 class=wrapper>aelita</h1>
-      <nav role="navigation" class="tabs">
-        <%= if controller_module(@conn) == Elixir.Aelita2.ProjectController do %>
-        <span class="tab tab--active">Repositories</span>
-        <% else %>
-        <%= link "Repositories", to: project_path(@conn, :index), class: "tab" %>
-        <% end %>
-        <%= if controller_module(@conn) == Elixir.Aelita2.PageController do %>
-        <span class="tab tab--active">About</span>
-        <% else %>
-        <%= link "About", to: page_path(@conn, :index), class: "tab" %>
-        <% end %>
-      </nav>
+      <div class="wrapper wrapper--mini">
+        <a href="<%= page_url(@conn, :index) %>"><img alt="bors" src='<%= static_path(@conn, "/images/a.svg") %>' width="90" height="25"></a>
+        <span id=repos-button>
+<%= if is_nil(Plug.Conn.get_session(@conn, :current_user)) do %>
+          <a href='<%= auth_url(@conn, :index, "github") %>'>Log in</a>
+<% else %>
+          <a href="<%= project_url(@conn, :index) %>">Repositories</a><a href="<%= auth_url(@conn, :logout) %>">Log out</a>
+<% end %>
+        </a>
+        </span>
+      </div>
     </header>
 
-    <main role="main"><div class=wrapper>
-      <!--<p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>-->
-      <%= render @view_module, @view_template, assigns %>
-    </div></main>
+    <%= render @view_module, @view_template, assigns %>
 
     <footer role="note">
       <p class=wrapper>This service is provided for free on a best-effort basis.</p>
