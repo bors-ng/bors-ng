@@ -14,7 +14,7 @@
         <a href="<%= page_url(@conn, :index) %>"><img alt="bors" src='<%= static_path(@conn, "/images/a.svg") %>' width="90" height="25"></a>
         <span id=repos-button>
 <%= if is_nil(Plug.Conn.get_session(@conn, :current_user)) do %>
-          <a href="<%= project_url(@conn, :index) %>">Log in</a>
+          <a href='<%= auth_url(@conn, :index, "github") %>'>Log in</a>
 <% else %>
           <a href="<%= project_url(@conn, :index) %>">Repositories</a><a href="<%= auth_url(@conn, :logout) %>">Log out</a>
 <% end %>
