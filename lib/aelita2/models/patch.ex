@@ -36,21 +36,22 @@ defmodule Aelita2.Patch do
       join: b in Batch, on: (l.batch_id == b.id and b.state != ^err)
   end
 
-  def all_for_project(project_id, :awaiting_review) do
+  def all(:awaiting_review) do
     all = all_links_not_err()
     from p in Patch,
       left_join: l in subquery(all), on: l.patch_id == p.id,
-      where: p.project_id == ^project_id,
       where: is_nil(l.batch_id)
   end
 
+  def all_for_project(project_id, :awaiting_review) do
+    from p in Patch.all(:awaiting_review),
+      where: p.project_id == ^project_id
+  end
+
   def all_for_user(user_id, :awaiting_review) do
-    all = all_links_not_err()
-    from p in Patch,
+    from p in Patch.all(:awaiting_review),
       preload: :project,
-      left_join: l in subquery(all), on: l.patch_id == p.id,
       join: lu in LinkUserProject, on: lu.project_id == p.project_id,
-      where: lu.user_id == ^user_id,
-      where: is_nil(l.batch_id)
+      where: lu.user_id == ^user_id
   end
 end

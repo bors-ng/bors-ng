@@ -16,7 +16,7 @@ defmodule Aelita2.Batcher do
     GenServer.start_link(__MODULE__, :ok, name: Aelita2.Batcher)
   end
 
-  def reviewed(patch_id) do
+  def reviewed(patch_id) when is_integer(patch_id) do
     GenServer.cast(Aelita2.Batcher, {:reviewed, patch_id})
   end
 
@@ -36,7 +36,8 @@ defmodule Aelita2.Batcher do
     {:noreply, state}
   end
 
-  def do_handle_cast({:reviewed, patch}) do
+  def do_handle_cast({:reviewed, patch_id}) do
+    patch = Repo.get!(Patch.all(:awaiting_review), patch_id)
     batch = get_new_batch(patch.project_id)
     project_id = batch.project_id
     ^project_id = patch.project_id
