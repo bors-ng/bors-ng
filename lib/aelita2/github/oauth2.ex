@@ -8,7 +8,7 @@ defmodule Aelita2.GitHub.OAuth2 do
 
   defp config do
     cfg = [
-      strategy: Aelita2.OAuth2.GitHub,
+      strategy: Aelita2.GitHub.OAuth2,
       site: "https://api.github.com",
       authorize_url: "https://github.com/login/oauth/authorize",
       token_url: "https://github.com/login/oauth/access_token"
