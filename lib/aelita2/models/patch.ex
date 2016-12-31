@@ -30,23 +30,27 @@ defmodule Aelita2.Patch do
       where: l.batch_id == ^batch_id
   end
 
-  def all_for_project(project_id, :awaiting_review) do
+  defp all_links_not_err() do
     err = Batch.numberize_state(:err)
+    from l in LinkPatchBatch,
+      join: b in Batch, on: (l.batch_id == b.id and b.state != ^err)
+  end
+
+  def all_for_project(project_id, :awaiting_review) do
+    all = all_links_not_err()
     from p in Patch,
-      left_join: l in LinkPatchBatch, on: l.patch_id == p.id,
-      left_join: b in Batch, on: l.batch_id == b.id,
+      left_join: l in subquery(all), on: l.patch_id == p.id,
       where: p.project_id == ^project_id,
-      where: is_nil(b.state) or b.state == ^err
+      where: is_nil(l.batch_id)
   end
 
   def all_for_user(user_id, :awaiting_review) do
-    err = Batch.numberize_state(:err)
+    all = all_links_not_err()
     from p in Patch,
       preload: :project,
-      left_join: l in LinkPatchBatch, on: l.patch_id == p.id,
-      left_join: b in Batch, on: l.batch_id == b.id,
+      left_join: l in subquery(all), on: l.patch_id == p.id,
       join: lu in LinkUserProject, on: lu.project_id == p.project_id,
       where: lu.user_id == ^user_id,
-      where: is_nil(b.state) or b.state == ^err
+      where: is_nil(l.batch_id)
   end
 end

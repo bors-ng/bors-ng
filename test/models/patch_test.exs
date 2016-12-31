@@ -30,6 +30,39 @@ defmodule Aelita2.PatchTest do
     assert got_patch.id == patch.id
   end
 
+  test "grab a patch that is not batched", %{installation: _installation, project: project} do
+    _batch = Repo.insert!(%Batch{project: project, state: 3})
+    patch = Repo.insert!(%Patch{project: project, pr_xref: 9, title: "T", body: "B", commit: "C"})
+    [got_patch] = Repo.all(Patch.all_for_project(project.id, :awaiting_review))
+    assert got_patch.id == patch.id
+  end
+
+  test "error batches count as 'awaiting review'", %{installation: _installation, project: project} do
+    batch = Repo.insert!(%Batch{project: project, state: 3})
+    patch = Repo.insert!(%Patch{project: project, pr_xref: 9, title: "T", body: "B", commit: "C"})
+    Repo.insert!(%LinkPatchBatch{patch_id: patch.id, batch_id: batch.id})
+    [got_patch] = Repo.all(Patch.all_for_project(project.id, :awaiting_review))
+    assert got_patch.id == patch.id
+  end
+
+  test "error batches do not force it to be 'awaiting review'", %{installation: _installation, project: project} do
+    batch = Repo.insert!(%Batch{project: project, state: 3})
+    batch2 = Repo.insert!(%Batch{project: project, state: 0})
+    patch = Repo.insert!(%Patch{project: project, pr_xref: 9, title: "T", body: "B", commit: "C"})
+    Repo.insert!(%LinkPatchBatch{patch_id: patch.id, batch_id: batch.id})
+    Repo.insert!(%LinkPatchBatch{patch_id: patch.id, batch_id: batch2.id})
+    result = Repo.all(Patch.all_for_project(project.id, :awaiting_review))
+    assert result == []
+  end
+
+  test "batched patch is not 'awaiting review'", %{installation: _installation, project: project} do
+    batch = Repo.insert!(%Batch{project: project, state: 0})
+    patch = Repo.insert!(%Patch{project: project, pr_xref: 9, title: "T", body: "B", commit: "C"})
+    Repo.insert!(%LinkPatchBatch{patch_id: patch.id, batch_id: batch.id})
+    result = Repo.all(Patch.all_for_project(project.id, :awaiting_review))
+    assert result == []
+  end
+
   test "grab patch from batch", %{installation: _installation, project: project} do
     batch = Repo.insert!(%Batch{project: project, state: 0})
     patch = Repo.insert!(%Patch{project: project, pr_xref: 9, title: "T", body: "B", commit: "C"})
