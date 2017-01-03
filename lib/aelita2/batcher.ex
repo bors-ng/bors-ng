@@ -73,7 +73,7 @@ defmodule Aelita2.Batcher do
   end
 
   defp poll_batches({:waiting, batches}) do
-    case Enum.filter(batches, &next_poll_is_past/1) do
+    case Enum.filter(batches, &Batch.next_poll_is_past/1) do
       [] -> :ok
       [batch | _] -> start_waiting_batch(batch)
     end
@@ -81,23 +81,14 @@ defmodule Aelita2.Batcher do
 
   defp poll_batches({:running, batches}) do
     batch = hd(batches)
-    if next_poll_is_past(batch) do
+    if Batch.next_poll_is_past(batch) do
       poll_running_batch(batch)
     end
   end
 
   defp start_waiting_batch(batch) do
     patches = Repo.all(Patch.all_for_batch(batch.id))
-    |> Enum.sort_by(&(&1.pr_xref))
-    |> Enum.dedup_by(&(&1.pr_xref))
     |> Enum.map(&%Patch{&1 | project: batch.project})
-    if patches != [] do
-      start_waiting_batch(batch, patches)
-    else
-      Repo.delete(batch)
-    end
-  end
-  defp start_waiting_batch(batch, patches) do
     project = batch.project
     token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
     stmp = "#{project.staging_branch}.tmp"
@@ -181,8 +172,6 @@ defmodule Aelita2.Batcher do
     token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
     @github_api.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
     patches = Repo.all(Patch.all_for_batch(batch.id))
-    |> Enum.sort_by(&(&1.pr_xref))
-    |> Enum.dedup_by(&(&1.pr_xref))
     |> Enum.map(&%Patch{&1 | project: batch.project})
     Aelita2.Batcher.Message.send(token, patches, {:succeeded, succeeded})
   end
@@ -191,21 +180,17 @@ defmodule Aelita2.Batcher do
     project = batch.project
     token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
     patches = Repo.all(Patch.all_for_batch(batch.id))
-    |> Enum.sort_by(&(&1.pr_xref))
-    |> Enum.dedup_by(&(&1.pr_xref))
     |> Enum.map(&%Patch{&1 | project: batch.project})
-    state = case patches do
-      [_patch] -> :failed
-      [] -> raise("Empty patches makes no sense")
-      _ -> :retrying
-    end
-    Aelita2.Batcher.Message.send(token, patches, {state, erred})
     count = Enum.count(patches)
-    if count > 1 do
+    state = if count > 1 do
       {patches_lo, patches_hi} = Enum.split(patches, div(count, 2))
       make_batch(patches_lo, project.id)
       make_batch(patches_hi, project.id)
+      :retrying
+    else
+      :failed
     end
+    Aelita2.Batcher.Message.send(token, patches, {state, erred})
   end
 
   defp make_batch(patches, project_id) do
@@ -220,20 +205,5 @@ defmodule Aelita2.Batcher do
       nil -> Repo.insert!(Batch.new(project_id))
       batch -> batch
     end
-  end
-
-  defp next_poll_is_past(batch) do
-    next = get_next_poll_unix_sec(batch)
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-    next < now
-  end
-
-  defp get_next_poll_unix_sec(batch) do
-    period = if Batch.atomize_state(batch.state) == :waiting do
-      batch.project.batch_delay_sec
-    else
-      batch.project.batch_poll_period_sec
-    end
-    batch.last_polled + period
   end
 end
