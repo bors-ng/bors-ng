@@ -68,44 +68,22 @@ defmodule Aelita2.Batcher do
 
   defp poll_all() do
     Repo.all(Batch.all_assoc(:incomplete))
-    |> Enum.reduce(%{}, &add_batch_to_project_map/2)
+    |> Aelita2.Batcher.Queue.organize_batches_into_project_queues()
     |> Enum.each(&poll_batches/1)
   end
 
-  defp add_batch_to_project_map(batch, project_map) do
-    project_id = batch.project_id
-    {_, map} = Map.get_and_update(project_map, project_id, &prepend_or_new(&1, batch))
-    map
-  end
-
-  # This wouldn't be a bad idea for the standard library.
-  defp prepend_or_new(list, item) do
-    new = if is_nil(list) do
-      [item]
-    else
-      [item | list]
-    end
-    {item, new}
-  end
-
-  defp poll_batches({_project_id, batches}) do
-    batches = Enum.sort_by(batches, &{-&1.state, &1.last_polled})
-    |> Enum.dedup_by(&(&1.id))
-    poll_batches(batches)
-  end
-
-  defp poll_batches([%Batch{state: 0} | _] = batches) do
-    Enum.each(batches, fn batch -> 0 = batch.state end)
+  defp poll_batches({:waiting, batches}) do
     case Enum.filter(batches, &next_poll_is_past/1) do
       [] -> :ok
       [batch | _] -> start_waiting_batch(batch)
     end
   end
 
-  defp poll_batches([%Batch{state: 1} | _] = batches) do
-    Enum.filter(batches, &(&1.state == 1))
-    |> Enum.filter(&next_poll_is_past/1)
-    |> Enum.each(&poll_running_batch/1)
+  defp poll_batches({:running, batches}) do
+    batch = hd(batches)
+    if next_poll_is_past(batch) do
+      poll_running_batch(batch)
+    end
   end
 
   defp start_waiting_batch(batch) do
@@ -162,7 +140,7 @@ defmodule Aelita2.Batcher do
     |> Enum.each(&Repo.insert!/1)
   end
 
-  defp setup_statuses_error(token, project, batch, patches, message) do
+  defp setup_statuses_error(token, _project, batch, patches, message) do
     Batch.changeset(batch, %{state: Batch.numberize_state(:err)})
     |> Repo.update!()
     Aelita2.Batcher.Message.send(token, patches, {:config, message})
@@ -221,7 +199,7 @@ defmodule Aelita2.Batcher do
       [] -> raise("Empty patches makes no sense")
       _ -> :retrying
     end
-    Aelita2.Batcher.Message.send(token, patches, {state erred})
+    Aelita2.Batcher.Message.send(token, patches, {state, erred})
     count = Enum.count(patches)
     if count > 1 do
       {patches_lo, patches_hi} = Enum.split(patches, div(count, 2))
