@@ -134,7 +134,7 @@ defmodule Aelita2.Batcher do
   defp setup_statuses_error(token, _project, batch, patches, message) do
     Batch.changeset(batch, %{state: Batch.numberize_state(:err)})
     |> Repo.update!()
-    Aelita2.Batcher.Message.send(token, patches, {:config, message})
+    send_message(token, patches, {:config, message})
   end
 
   defp poll_running_batch(batch) do
@@ -173,7 +173,7 @@ defmodule Aelita2.Batcher do
     @github_api.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
     patches = Repo.all(Patch.all_for_batch(batch.id))
     |> Enum.map(&%Patch{&1 | project: batch.project})
-    Aelita2.Batcher.Message.send(token, patches, {:succeeded, succeeded})
+    send_message(token, patches, {:succeeded, succeeded})
   end
 
   defp fail_batch(batch, erred) do
@@ -190,7 +190,7 @@ defmodule Aelita2.Batcher do
     else
       :failed
     end
-    Aelita2.Batcher.Message.send(token, patches, {state, erred})
+    send_message(token, patches, {state, erred})
   end
 
   defp make_batch(patches, project_id) do
@@ -205,5 +205,10 @@ defmodule Aelita2.Batcher do
       nil -> Repo.insert!(Batch.new(project_id))
       batch -> batch
     end
+  end
+
+  def send_message(token, patches, message) do
+    body = Aelita2.Batcher.Message.generate_message(message)
+    Enum.each(patches, &@github_api.post_comment!(token, &1.project.repo_xref, &1.pr_xref, body))
   end
 end
