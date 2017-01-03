@@ -112,6 +112,7 @@ defmodule Aelita2.Batcher do
     patches = Repo.all(Patch.all_for_batch(batch.id))
     |> Enum.sort_by(&(&1.pr_xref))
     |> Enum.dedup_by(&(&1.pr_xref))
+    |> Enum.map(&%Patch{&1 | project: batch.project})
     if patches != [] do
       start_waiting_batch(batch, patches)
     else
@@ -164,8 +165,7 @@ defmodule Aelita2.Batcher do
   defp setup_statuses_error(token, project, batch, patches, message) do
     Batch.changeset(batch, %{state: Batch.numberize_state(:err)})
     |> Repo.update!()
-    body = "# Configuration problem\n\n#{message}"
-    Enum.each(patches, &@github_api.post_comment!(token, project.repo_xref, &1.pr_xref, body))
+    Aelita2.Batcher.Message.send(token, patches, {:config, message})
   end
 
   defp poll_running_batch(batch) do
@@ -205,8 +205,8 @@ defmodule Aelita2.Batcher do
     patches = Repo.all(Patch.all_for_batch(batch.id))
     |> Enum.sort_by(&(&1.pr_xref))
     |> Enum.dedup_by(&(&1.pr_xref))
-    body = Enum.reduce(succeeded, "# Build succeeded", &gen_status_link/2)
-    Enum.each(patches, &@github_api.post_comment!(token, project.repo_xref, &1.pr_xref, body))
+    |> Enum.map(&%Patch{&1 | project: batch.project})
+    Aelita2.Batcher.Message.send(token, patches, {:succeeded, succeeded})
   end
 
   defp fail_batch(batch, erred) do
@@ -215,13 +215,13 @@ defmodule Aelita2.Batcher do
     patches = Repo.all(Patch.all_for_batch(batch.id))
     |> Enum.sort_by(&(&1.pr_xref))
     |> Enum.dedup_by(&(&1.pr_xref))
-    body = Enum.reduce(erred, "# Build failed", &gen_status_link/2)
-    body = case patches do
-      [_patch] -> body
-      [] -> raise("Empty patches make no sense")
-      _ -> "#{body}\n\n*Retrying...*"
+    |> Enum.map(&%Patch{&1 | project: batch.project})
+    state = case patches do
+      [_patch] -> :failed
+      [] -> raise("Empty patches makes no sense")
+      _ -> :retrying
     end
-    Enum.each(patches, &@github_api.post_comment!(token, project.repo_xref, &1.pr_xref, body))
+    Aelita2.Batcher.Message.send(token, patches, {state erred})
     count = Enum.count(patches)
     if count > 1 do
       {patches_lo, patches_hi} = Enum.split(patches, div(count, 2))
@@ -235,14 +235,6 @@ defmodule Aelita2.Batcher do
     Enum.map(patches, &LinkPatchBatch.changeset(%LinkPatchBatch{}, %{batch_id: batch.id, patch_id: &1.id}))
     |> Enum.each(&Repo.insert!/1)
     batch
-  end
-
-  defp gen_status_link(status, acc) do
-    status_link = case status.url do
-      nil -> status.identifier
-      url -> "[#{status.identifier}](#{url})"
-    end
-    "#{acc}\n * #{status_link}"
   end
 
   def get_new_batch(project_id) do
