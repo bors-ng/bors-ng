@@ -144,7 +144,7 @@ defmodule Aelita2.GitHub do
 
   def map_state_to_status(state) do
     case state do
-      "pending" -> :waiting
+      "pending" -> :running
       "success" -> :ok
       "failure" -> :err
       "error" -> :err
