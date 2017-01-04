@@ -51,7 +51,7 @@ defmodule Aelita2.GitHub do
 
   def merge_branch!(token, repository_id, from, to, commit_message) when is_binary(token) do
     cfg = config()
-    %{body: raw, status_code: 201} = HTTPoison.post!(
+    %{body: raw, status_code: status_code} = HTTPoison.post!(
       "#{cfg[:site]}/repositories/#{repository_id}/merges",
       Poison.encode!(%{
         "base": to,
@@ -59,11 +59,16 @@ defmodule Aelita2.GitHub do
         "commit_message": commit_message
         }),
       [{"Authorization", "token #{token}"}])
-    data = Poison.decode!(raw)
-    %{
-      commit: data["sha"],
-      tree: data["commit"]["tree"]["sha"]
-    }
+    case status_code do
+      201 ->
+        data = Poison.decode!(raw)
+        %{
+          commit: data["sha"],
+          tree: data["commit"]["tree"]["sha"]
+        }
+      409 ->
+        :conflict
+    end
   end
 
   def synthesize_commit!(token, repository_id, branch, tree, parents, commit_message) when is_binary(token) do

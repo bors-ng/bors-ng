@@ -33,6 +33,15 @@ defmodule Aelita2.PatchTest do
   test "grab a patch that is not batched", %{installation: _installation, project: project} do
     _batch = Repo.insert!(%Batch{project: project, state: 3})
     patch = Repo.insert!(%Patch{project: project, pr_xref: 9, title: "T", body: "B", commit: "C"})
+    [got_patch] = Repo.all(Patch.all(:awaiting_review))
+    assert got_patch.id == patch.id
+  end
+
+  test "grab a patch that is not batched by project", %{installation: installation, project: project} do
+    _batch = Repo.insert!(%Batch{project: project, state: 3})
+    patch = Repo.insert!(%Patch{project: project, pr_xref: 9, title: "T", body: "B", commit: "C"})
+    project2 = Repo.insert!(%Project{installation: installation, repo_xref: 99})
+    _patch2 = Repo.insert!(%Patch{project: project2, pr_xref: 10, title: "T", body: "B", commit: "C2"})
     [got_patch] = Repo.all(Patch.all_for_project(project.id, :awaiting_review))
     assert got_patch.id == patch.id
   end

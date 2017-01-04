@@ -66,6 +66,25 @@ defmodule Aelita2.Batch do
       where: b.commit == ^commit
   end
 
+  def next_poll_is_past(batch) do
+    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    next_poll_is_past(batch, now)
+  end
+
+  def next_poll_is_past(batch, now_utc_sec) do
+    next = get_next_poll_unix_sec(batch)
+    next < now_utc_sec
+  end
+
+  def get_next_poll_unix_sec(batch) do
+    period = if Batch.atomize_state(batch.state) == :waiting do
+      batch.project.batch_delay_sec
+    else
+      batch.project.batch_poll_period_sec
+    end
+    batch.last_polled + period
+  end
+
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """

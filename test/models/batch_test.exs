@@ -38,4 +38,17 @@ defmodule Aelita2.BatchTest do
     assert Enum.any?(incomplete, fn batch -> batch.id == batch3.id end)
     assert Enum.count(incomplete) == 2
   end
+
+  test "compute next poll time" do
+    p = %Project{batch_delay_sec: 1, batch_poll_period_sec: 2}
+    b = %Batch{project: p, last_polled: 3, state: 0}
+    assert Batch.get_next_poll_unix_sec(b) == 4
+    assert !Batch.next_poll_is_past(b, 3)
+    assert Batch.next_poll_is_past(b, 5)
+    b = %Batch{b | state: 1}
+    assert Batch.get_next_poll_unix_sec(b) == 5
+    assert !Batch.next_poll_is_past(b, 3)
+    assert !Batch.next_poll_is_past(b, 5)
+    assert Batch.next_poll_is_past(b, 6)
+  end
 end
