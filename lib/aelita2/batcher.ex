@@ -109,8 +109,8 @@ defmodule Aelita2.Batcher do
         state = bisect(patches)
         send_message(token, patches, {:conflict, state})
       commit ->
-        setup_statuses(token, project, batch, patches)
-        Batch.changeset(batch, %{state: Batch.numberize_state(:running), commit: commit, last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)})
+        state = setup_statuses(token, project, batch, patches)
+        Batch.changeset(batch, %{state: Batch.numberize_state(state), commit: commit, last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)})
         |> Repo.update!()
     end
   end
@@ -118,28 +118,28 @@ defmodule Aelita2.Batcher do
   defp setup_statuses(token, project, batch, patches) do
     toml = @github_api.get_file(token, project.repo_xref, project.staging_branch, "bors.toml")
     case toml do
-      nil -> setup_statuses_error(token, project, batch, patches, "bors.toml does not exist")
+      nil ->
+        setup_statuses_error(token, batch, patches, "bors.toml does not exist")
+        :err
       toml ->
         case Aelita2.Batcher.BorsToml.new(toml) do
           {:ok, toml} ->
-            setup_statuses_ok(token, project, batch, patches, toml)
+            Enum.map(toml.status, &%Status{
+              batch_id: batch.id,
+              identifier: &1,
+              url: nil,
+              state: Status.numberize_state(:running)
+              })
+            |> Enum.each(&Repo.insert!/1)
+            :running
           {:err, :parse_failed} ->
-            setup_statuses_error(token, project, batch, patches, "bors.toml is invalid")
+            setup_statuses_error(token, batch, patches, "bors.toml is invalid")
+            :err
         end
     end
   end
 
-  defp setup_statuses_ok(_token, _project, batch, _patches, toml) do
-    Enum.map(toml.status, &%Status{
-      batch_id: batch.id,
-      identifier: &1,
-      url: nil,
-      state: Status.numberize_state(:waiting)
-      })
-    |> Enum.each(&Repo.insert!/1)
-  end
-
-  defp setup_statuses_error(token, _project, batch, patches, message) do
+  defp setup_statuses_error(token, batch, patches, message) do
     Batch.changeset(batch, %{state: Batch.numberize_state(:err)})
     |> Repo.update!()
     send_message(token, patches, {:config, message})
@@ -183,7 +183,7 @@ defmodule Aelita2.Batcher do
     send_message(token, patches, {state, erred})
   end
 
-  defp maybe_complete_batch(:waiting, _batch, _erred) do
+  defp maybe_complete_batch(:running, _batch, _erred) do
     :ok
   end
 
