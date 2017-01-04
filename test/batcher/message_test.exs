@@ -46,4 +46,14 @@ defmodule Aelita2.BatcherMessageTest do
   	actual_message = Aelita2.Batcher.Message.generate_message({:conflict, :retrying})
     assert expected_message == actual_message
   end
+
+  test "generate commit message" do
+    expected_message = "Merge #1 #2\n\n1: Alpha\n2: Beta\n"
+    patches = [%Aelita2.Patch{pr_xref: 1, title: "Alpha"}, %Aelita2.Patch{pr_xref: 2, title: "Beta"}]
+    patches2 = [%Aelita2.Patch{pr_xref: 2, title: "Beta"}, %Aelita2.Patch{pr_xref: 1, title: "Alpha"}]
+    actual_message = Aelita2.Batcher.Message.generate_commit_message(patches)
+    assert expected_message == actual_message
+    actual_message2 = Aelita2.Batcher.Message.generate_commit_message(patches2)
+    assert expected_message == actual_message2
+  end
 end

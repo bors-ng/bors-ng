@@ -14,7 +14,7 @@ defmodule Aelita2.Batcher.Message do
       :failed -> "Build failed"
       :retrying -> "Build failed (retrying...)"
     end
-    body = Enum.reduce(statuses, "# #{msg}", &gen_status_link/2)
+    Enum.reduce(statuses, "# #{msg}", &gen_status_link/2)
   end
   defp gen_status_link(status, acc) do
     status_link = case status.url do
@@ -22,5 +22,12 @@ defmodule Aelita2.Batcher.Message do
       url -> "[#{status.identifier}](#{url})"
     end
     "#{acc}\n  * #{status_link}"
+  end
+
+  def generate_commit_message(patches) do
+    patches = Enum.sort_by(patches, &(&1.pr_xref))
+    commit_title = Enum.reduce(patches, "Merge", &"#{&2} \##{&1.pr_xref}")
+    commit_body = Enum.reduce(patches, "", &"#{&2}#{&1.pr_xref}: #{&1.title}\n")
+    "#{commit_title}\n\n#{commit_body}"
   end
 end
