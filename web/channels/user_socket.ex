@@ -2,7 +2,7 @@ defmodule Aelita2.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  # channel "room:*", Aelita2.RoomChannel
+  channel "project_ping:*", Aelita2.ProjectPingChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket, timeout: 45_000
@@ -19,8 +19,15 @@ defmodule Aelita2.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
-  def connect(_params, socket) do
-    {:ok, socket}
+  def connect(%{"token" => token}, socket) do
+    case Phoenix.Token.verify(socket, "channel:current_user", token, max_age: 60*60) do
+      {:ok, current_user} ->
+        socket = socket
+        |> assign(:current_user, current_user)
+        {:ok, socket}
+      {:error, _} ->
+        :error
+    end
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:

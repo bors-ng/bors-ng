@@ -1,15 +1,22 @@
 defmodule Aelita2.Router do
   use Aelita2.Web, :router
 
-  pipeline :browser do
+  pipeline :browser_page do
     plug :accepts, ["html"]
+  end
+
+  pipeline :browser_ajax do
+    plug :accepts, ["json"]
+  end
+
+  pipeline :browser_session do
     plug :fetch_session
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
 
-  pipeline :browser_session do
+  pipeline :browser_login do
     plug :force_current_user
   end
 
@@ -18,14 +25,16 @@ defmodule Aelita2.Router do
   end
 
   scope "/", Aelita2 do
-    pipe_through :browser
+    pipe_through :browser_page
+    pipe_through :browser_session
 
     get "/", PageController, :index
   end
 
   scope "/repositories", Aelita2 do
-    pipe_through :browser
+    pipe_through :browser_page
     pipe_through :browser_session
+    pipe_through :browser_login
 
     get "/", ProjectController, :index
     post "/", ProjectController, :add
@@ -36,7 +45,13 @@ defmodule Aelita2.Router do
   end
 
   scope "/auth", Aelita2 do
-    pipe_through :browser
+    pipe_through :browser_ajax
+    pipe_through :browser_session
+    get "/socket-token", AuthController, :socket_token
+  end
+  scope "/auth", Aelita2 do
+    pipe_through :browser_page
+    pipe_through :browser_session
 
     get "/logout", AuthController, :logout
     get "/:provider", AuthController, :index
