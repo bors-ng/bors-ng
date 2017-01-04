@@ -2,7 +2,7 @@ defmodule Aelita2.Batcher.State do
   def summary_statuses(statuses) do
     statuses
     |> Enum.map(&(&1.state))
-    |> Enum.map(Aelita2.Status.atomize_state/1)
+    |> Enum.map(&Aelita2.Status.atomize_state/1)
     |> summary_states()
   end
   def summary_states(states) do
