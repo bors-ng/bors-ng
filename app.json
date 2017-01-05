@@ -13,7 +13,7 @@
       "value": "18"
     },
     "PUBLIC_URL": {
-      "description": "Where this website will be running"
+      "description": "Where this website will be running (probably https://<app name>.herokuapp.com/)"
     },
     "SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of cookies",
