@@ -47,5 +47,8 @@
     {
       "url": "https://github.com/HashNuke/heroku-buildpack-elixir.git"
     }
-  ]
+  ],
+  "scripts": {
+    "postdeploy": "MIX_ENV=prod mix ecto.migrate"
+  }
 }
