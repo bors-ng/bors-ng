@@ -1,45 +1,160 @@
-# Installing and starting
+[Bors-NG] implements a continuous-testing workflow where the master branch never breaks.
+It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
 
-To start your Phoenix app:
+# How to use it
 
-  * Install dependencies with `mix deps.get`
-  * Create and migrate your database with `mix ecto.create && mix ecto.migrate`
-  * Install Node.js dependencies with `npm install`
-  * Start Phoenix endpoint with `mix phoenix.server`
+Bors is a [GitHub integration], so (assuming you already have Travis CI set up), getting bors set up requires two steps:
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+ 1. Add the integration to your repo in GitHub.
+ 2. Commit a bors.toml with these contents:
 
-Ready to run in production? Please [check our deployment guides](http://www.phoenixframework.org/docs/deployment).
+        status = ["continuous-integration/travis-ci/push"]
 
-## Learn more
+To use it, you need to stop clicking the big green merge button, and instead leave a comment with this in it on any pull request that looks good to you:
 
-  * Official website: http://www.phoenixframework.org/
-  * Guides: http://phoenixframework.org/docs/overview
-  * Docs: https://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
+    bors r+
 
+As commits are reviewed, bors lumps them into a queue of batches. If everything passes, there will just be two batches; the one that's running, and the one that's waiting to be run (and is accumulating more and more pull requests until it gets a chance to run).
 
-# Required GitHub integration settings
+To run a batch, bors creates a merge commit, merging master with all the pull requests that make up the batch. They'll look like this:
 
-Repository metadata: Will be read-only. Must be set to receive "Repository created, deleted, publicized, or privatized" events. This is needed to automatically remove entries from our database when a repo is deleted.
+    Merge #5 #7 #8
 
-Repository administration: No access.
+    5: Rename `bifurcate()` to `bifurcateCrab()`
+    7: Call `bifurcate()` in the `onland` event handler
+    8: Fix crash in `drive()`
 
-Commit statuses: Must be set to "Read & write", to report a testing status. Also must get Status events, to integrate with CI systems that report their status via GitHub.
+If the build passes, the master branch gets fast-forwarded to meed the staging branch. Since the master branch contains the exact contents that were just tested, bit-for-bit, it's not broken. (at least, not in any way that the automated tests are able to detect)
 
-Deployments: No access.
+If the build fails, bors will follow a strategy called "bisecting". Namely, it splits the batch into two batches, and pushes those to the queue. In this example, the first batch will look like this:
 
-Issues: Must be set to "Read-only", because pull requests are issues. "Issue comment" events must be enabled, to get the "@bors r+" comments.
+    Merge #5 #7
 
-Pull requests: Must be set to "Read & write", to know when a pull request exists and what its current commit is, and to be able to post pull request comments. Also, must receive "Pull request" events to be able to keep the dashboard and cache, and must get "Pull request review" and "Pull request review comment" events to get those kinds of comments.
+    5: Rename `bifurcate()` to `bifurcateCrab()`
+    7: Call `bifurcate()` in the `onland` event handler
 
-Repository contents: Must be set to "Read-write," to be able to create merge commits.
+This batch will still fail, because the second patch inserts a call to a function that the first patch removes. It will get bisected again, as a result.
 
-Single file: No.
+The second will still pass, though.
 
-Repository projects: No.
+    Merge #8
 
-Organization members: No.
+    8: Fix crash in `drive()`
 
-Organization projects: No.
+This one will work, causing it to land in master, leaving the first two still in the backlog.
+
+    Merge #5
+
+    5: Rename `bifurcate()` to `bifurcateCrab()`
+
+This one will pass, since the PR it conflicts with (#7) is sitting behind it in the queue.
+
+    Merge #7
+
+    7: Call `bifurcate()` in the `onland` event handler
+
+When a batch cannot be bisected (because it only contains one PR), it gets kicked back to the creator so they can fix it.
+
+Note that you can watch this process running on the [dashboard page] if you want.
+
+[Bors-NG]: https://github.com/notriddle/bors-ng
+[GitHub integration]: https://github.com/settings/installations
+[Travis CI]: https://travis-ci.org/
+[dashboard page]: https://bors-ng.herokuapp.com/
+
+The original bors used a more simple system (it just tested one PR at a time all the time).
+The one-at-a-time strategy is O(N), where N is the total number of pull requests.
+The batching strategy is O(E log N), where N is again the total number of pull requests and E is the number of pull requests that fail.
+
+# How to set up your own instance
+
+Please read this whole guide before you start doing anything.
+
+## Step 1: set up a GitHub integration
+
+The first step is to [create a GitHub integration] on the GitHub web site.
+
+[create a GitHub integration]: https://github.com/settings/integrations
+
+### Integration settings
+
+The *name*, *description*, and *homepage URL* are irrelevant, though I suggest pointing the homepage at the dashboard page.
+
+Leave the *callback URL* blank.
+
+The *webhook URL* should be at `<dashboard page>/webhook/github`.
+
+The *webhook secret* should be a randomly generated string. The `mix phoenix.gen.secret` command will work awesomely for this.
+
+### Required GitHub integration permissions
+
+*Repository metadata*: Will be read-only. Must be set to receive *Repository* (Repository created, deleted, publicized, or privatized) events. This is needed to automatically remove entries from our database when a repo is deleted.
+
+*Repository administration*: No access.
+
+*Commit statuses*: Must be set to *Read & write*, to report a testing status. Also must get *Status* (Commit status updated from the API) events, to integrate with CI systems that report their status via GitHub.
+
+*Deployments*: No access.
+
+*Issues*: Must be set to *Read-only*, because pull requests are issues. *Issue comment* (Issue comment created, edited, or deleted) events must be enabled, to get the "bors r+" comments.
+
+*Pages*: No access.
+
+*Pull requests*: Must be set to *Read & write*, to be able to post pull request comments. Also, must receive *Pull request* (Pull request opened, closed, reopened, edited, assigned, unassigned, labeled, unlabeled, or synchronized) events to be able to keep the dashboard working, and must get *Pull request review* (pull request review submitted) and *Pull request review comment* (pull request diff comment created, edited, or deleted) events to get those kinds of comments.
+
+*Repository contents*: Must be set to *Read-write*, to be able to create merge commits.
+
+*Single file*: No.
+
+*Repository projects*: No.
+
+*Organization members*: No.
+
+*Organization projects*: No.
+
+### After you click the "Create" button
+
+GitHub will send a "ping" notification to your webhook endpoint. Since bors is not actually running yet, that will fail. This is expected.
+
+You'll need to jot down the Integration ID (it's between the "Install" button and the "Transfer ownership" button).
+
+You'll also need to generate the private key. Save the file, because you'll need it later.
+
+## Step 2: Set up the oAuth app
+
+To authenticate access to the dashboard page, you'll also need to [set up oAuth].
+
+The only important setting is *Authorization callback URL*, which is `<dashboard url>/auth/github/callback`.
+
+## Step 3: Set up the server
+
+bors-ng is built on the Phoenix web framework, and they have [docs on how to deploy phoenix apps] already. Where you deploy will determine the what the dashboard URL will be, which is needed in the previous steps, so this decision needs to be made before you can set up the Integration or the oAuth app.
+
+You'll need to edit the configuration with a few bors-specific variables.
+
+### Deploying on Heroku (and other 12-factor-style systems)
+
+The config file in the repository is already set up to pull the needed information from the environment, so just set the right env variables and deploy the app:
+
+    $ heroku create --buildpack "https://github.com/HashNuke/heroku-buildpack-elixir.git" bors-ng
+    $ heroku addons:create heroku-postgresql:hobby-dev
+    $ heroku config:set \
+        POOL_SIZE=18 \
+        PUBLIC_URL=https://bors-ng.herokuapp.com/ \
+        SECRET_KEY_BASE=<SECRET1> \
+        GITHUB_CLIENT_ID=<OAUTH_CLIENT_ID> \
+        GITHUB_CLIENT_SECRET=<OAUTH_CLIENT_SECRET> \
+        GITHUB_INTEGRATION_ID=<ISS> \
+        GITHUB_INTEGRATION_PEM=`base64 -w0 priv.pem` \
+        GITHUB_WEBHOOK_SECRET=<SECRET2>
+    $ git push heroku master
+
+*WARNING*: bors-ng stores some short-term state inside the `web` dyno (it uses a sleeping process to implement delays, specifically).
+It can recover the information after restarting, but it will not work correctly with Heroku's replication system.
+If you need more throughput than one dyno can provide, you should deploy using a system that allows Erlang clustering to work.
+
+### Deploying on your own cluster
+
+Your configuration can be done by modifying `config/prod.secret.exs`.
+
+[docs on how to deploy phoenix apps]: http://www.phoenixframework.org/docs/deployment
