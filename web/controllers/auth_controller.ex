@@ -15,6 +15,16 @@ defmodule Aelita2.AuthController do
     redirect conn, external: authorize_url! provider
   end
 
+  @doc """
+  This action converts a cookie to a socket token.
+  Socket tokens are usable for one hour before they must be reset.
+  """
+  def socket_token(conn, _params) do
+    current_user = Plug.Conn.get_session(conn, :current_user)
+    token = Phoenix.Token.sign(conn, "channel:current_user", current_user)
+    render conn, "socket_token.json", token: %{token: token, current_user: current_user}
+  end
+
   def logout(conn, _params) do
     conn
     |> put_flash(:info, "You have been logged out!")

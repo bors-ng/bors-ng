@@ -4,6 +4,7 @@ defmodule Aelita2.Batcher do
   alias Aelita2.Repo
   alias Aelita2.Batch
   alias Aelita2.Patch
+  alias Aelita2.Project
   alias Aelita2.Status
   alias Aelita2.LinkPatchBatch
 
@@ -113,6 +114,7 @@ defmodule Aelita2.Batcher do
         Batch.changeset(batch, %{state: Batch.numberize_state(state), commit: commit, last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)})
         |> Repo.update!()
     end
+    Project.ping!(project.id)
   end
 
   defp setup_statuses(token, project, batch, patches) do
@@ -171,6 +173,7 @@ defmodule Aelita2.Batcher do
     patches = Repo.all(Patch.all_for_batch(batch.id))
     |> Enum.map(&%Patch{&1 | project: batch.project})
     send_message(token, patches, {:succeeded, statuses})
+    Project.ping!(project.id)
   end
 
   defp maybe_complete_batch(:err, batch, statuses) do
@@ -181,6 +184,7 @@ defmodule Aelita2.Batcher do
     |> Enum.map(&%Patch{&1 | project: batch.project})
     state = bisect(patches)
     send_message(token, patches, {state, erred})
+    Project.ping!(project.id)
   end
 
   defp maybe_complete_batch(:running, _batch, _erred) do
