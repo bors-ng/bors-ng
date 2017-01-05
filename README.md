@@ -143,6 +143,7 @@ You can do it the easy way:
 Or you can do it manually:
 
     $ heroku create --buildpack "https://github.com/HashNuke/heroku-buildpack-elixir.git" bors-ng
+    $ heroku buildpacks:add https://github.com/gjaldon/heroku-buildpack-phoenix-static.git
     $ heroku addons:create heroku-postgresql:hobby-dev
     $ heroku config:set \
         POOL_SIZE=18 \
