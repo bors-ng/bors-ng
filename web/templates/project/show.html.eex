@@ -21,6 +21,12 @@
 
 <main role=main><div class=wrapper>
 
+<template id="js--on-project-ping" data-bors-project-id="<%= @project.id %>">
+<div role="alert" class="alert">
+This list is out of date. <a href="">Reload</a>
+</div>
+</template>
+
 <%= if @unbatched_patches != [] do %>
 <h2 class=header>Awaiting review</h2>
 <table class="table">

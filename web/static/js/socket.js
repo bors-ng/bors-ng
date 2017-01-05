@@ -1,62 +1,70 @@
-// NOTE: The contents of this file will only be executed if
-// you uncomment its entry in "web/static/js/app.js".
-
-// To use Phoenix channels, the first step is to import Socket
-// and connect at the socket path in "lib/my_app/endpoint.ex":
 import {Socket} from "phoenix"
 
-let socket = new Socket("/socket", {params: {token: window.userToken}})
+// Fetch a socket token, to actually be able to connect:
+function fetchSocketToken(onOk, onFail) {
+  let page_current_user = document.querySelector("meta[name='bors-current-user']");
+  if (page_current_user === null) {
+    setTimeout(() => onFail("current user"), 0);
+  }
+  page_current_user = Number(page_current_user.content);
+  let current_token = sessionStorage.getItem("bors-socket-token");
+  current_token = current_token === null ? null : JSON.parse(current_token);
+  // Refresh the token every half hour.
+  let timeout = Date.now() + (1000 * 60 * 30);
+  if (current_token === null || current_token.current_user !== page_current_user || current_token.time < timeout) {
+    let ajax = new XMLHttpRequest();
+    ajax.open("GET", "/auth/socket-token", true);
+    ajax.onreadystatechange = function() {
+      if (ajax.readyState === XMLHttpRequest.DONE) {
+        if (ajax.status === 200) {
+          let new_token = JSON.parse(ajax.responseText);
+          new_token.time = Date.now();
+          if (new_token.current_user !== page_current_user) {
+            onFail("ajax current user");
+          } else {
+            sessionStorage.setItem("bors-socket-token", JSON.stringify(new_token));
+            onOk(new_token.token);
+          }
+        } else {
+          onFail("ajax");
+        }
+      }
+    };
+    ajax.send();
+  } else {
+    setTimeout(() => onOk(current_token.token), 0);
+  }
+}
 
-// When you connect, you'll often need to authenticate the client.
-// For example, imagine you have an authentication plug, `MyAuth`,
-// which authenticates the session and assigns a `:current_user`.
-// If the current user exists you can assign the user's token in
-// the connection for use in the layout.
-//
-// In your "web/router.ex":
-//
-//     pipeline :browser do
-//       ...
-//       plug MyAuth
-//       plug :put_user_token
-//     end
-//
-//     defp put_user_token(conn, _) do
-//       if current_user = conn.assigns[:current_user] do
-//         token = Phoenix.Token.sign(conn, "user socket", current_user.id)
-//         assign(conn, :user_token, token)
-//       else
-//         conn
-//       end
-//     end
-//
-// Now you need to pass this token to JavaScript. You can do so
-// inside a script tag in "web/templates/layout/app.html.eex":
-//
-//     <script>window.userToken = "<%= assigns[:user_token] %>";</script>
-//
-// You will need to verify the user token in the "connect/2" function
-// in "web/channels/user_socket.ex":
-//
-//     def connect(%{"token" => token}, socket) do
-//       # max_age: 1209600 is equivalent to two weeks in seconds
-//       case Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600) do
-//         {:ok, user_id} ->
-//           {:ok, assign(socket, :user, user_id)}
-//         {:error, reason} ->
-//           :error
-//       end
-//     end
-//
-// Finally, pass the token on connect as below. Or remove it
-// from connect if you don't care about authentication.
+// Connect to a socket, including the user token fetching:
+function connectSocket(onOk, onError) {
+  fetchSocketToken(function(token) {
+    let socket = new Socket("/socket", {params: {token: token}});
+    socket.connect();
+    onOk(socket);
+  }, onError);
+}
 
-socket.connect()
-
-// Now that you are connected, you can join channels with a topic:
-let channel = socket.channel("topic:subtopic", {})
-channel.join()
-  .receive("ok", resp => { console.log("Joined successfully", resp) })
-  .receive("error", resp => { console.log("Unable to join", resp) })
-
-export default socket
+// Find project reload dialog element, and connect if it's there.
+let reload_template = document.getElementById("js--on-project-ping");
+if (reload_template !== null) {
+  connectSocket(function(socket) {
+    let project_id = Number(reload_template.getAttribute("data-bors-project-id"));
+    setupProjectPingChannel(socket, project_id);
+  }, function(error) {
+    console.log("bors socket error: " + error)
+  });
+}
+// Pop up the project reload dialog.
+function popupProjectPingDialog() {
+  let dialog = document.importNode(reload_template.content, true);
+  reload_template.parentNode.insertBefore(dialog, reload_template);
+}
+// If this is the project page, pop up the reload dialog.
+function setupProjectPingChannel(socket, project_id) {
+  let channel = socket.channel("project_ping:"+project_id, {});
+  channel.join()
+    .receive("ok", resp => { console.log("Joined successfully", resp) })
+    .receive("error", resp => { console.log("Unable to join", resp) });
+  channel.on("new_msg", popupProjectPingDialog);
+}

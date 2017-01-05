@@ -8,6 +8,7 @@
 .wrapper--mini {
 	padding: 8px 10px;
 }
+/* The header, nav bar, and footer */
 header, nav {
 	border-bottom: solid 1px #CCC;
 }
@@ -32,6 +33,14 @@ nav h1 {
 }
 footer {
 	border-top: solid 1px #CCC;
+}
+/* An alert box */
+.alert {
+	background: #d9edf7;
+	border-bottom: solid 1px #d9edf7;
+	color: #31708f;
+    padding: 8px 10px;
+    margin-bottom: 8px;
 }
 /* Use underline-on-hover for links.
    This is used for consistency, since fill-link breaks outlines. */
@@ -105,6 +114,15 @@ footer {
 .table--border th:first-child, .table--border td:first-child {
     border-left:none;
 }
+.fill-link {
+	overflow: hidden;
+}
+.fill-link > * {
+	display: block;
+	margin: -10em;
+	padding: 10em;
+}
+/* The buttons and the bars that they go inside */
 .toolbar {
 	margin: 16px -10px;
 }
@@ -127,14 +145,6 @@ footer {
 }
 .toolbar-item--add {
 	background: #4dae76;
-}
-.fill-link {
-	overflow: hidden;
-}
-.fill-link > * {
-	display: block;
-	margin: -10em;
-	padding: 10em;
 }
 /* The page headers. */
 .header {

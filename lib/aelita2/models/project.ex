@@ -25,6 +25,10 @@ defmodule Aelita2.Project do
     |> Enum.map(&(&1.project))
   end
 
+  def ping!(project_id) do
+    Aelita2.Endpoint.broadcast! "project_ping:#{project_id}", "new_msg", %{}
+  end
+
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """
