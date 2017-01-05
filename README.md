@@ -136,6 +136,12 @@ You'll need to edit the configuration with a few bors-specific variables.
 
 The config file in the repository is already set up to pull the needed information from the environment, so just set the right env variables and deploy the app:
 
+You can do it the easy way:
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+Or you can do it manually:
+
     $ heroku create --buildpack "https://github.com/HashNuke/heroku-buildpack-elixir.git" bors-ng
     $ heroku addons:create heroku-postgresql:hobby-dev
     $ heroku config:set \

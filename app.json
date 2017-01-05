@@ -1,0 +1,51 @@
+{
+  "name": "Bors-NG",
+  "description": "A merge bot for GitHub pull requests",
+  "repository": "https://github.com/notriddle/bors-ng",
+  "website": "https://github.com/notriddle/bors-ng",
+  "logo": "https://cdn.rawgit.com/notriddle/bors-ng/b9e756ecfdf4ede9241a8a30cbfdc4c010fd0a22/icon/bors-eye.svg",
+  "keywords": ["github", "continuous-integration", "continuous-testing", "elixir", "phoenix"],
+
+  "success_url": "/auth/github",
+  "env": {
+    "POOL_SIZE": {
+      "description": "Number of connections to PostgreSQL to keep open",
+      "value": "18"
+    },
+    "PUBLIC_URL": {
+      "description": "Where this website will be running"
+    },
+    "SECRET_KEY_BASE": {
+      "description": "A secret key for verifying the integrity of cookies",
+      "generator": "secret"
+    },
+    "GITHUB_CLIENT_ID": {
+      "description": "GitHub oAuth client ID"
+    },
+    "GITHUB_CLIENT_SECRET": {
+      "description": "GitHub oAuth client secret"
+    },
+    "GITHUB_INTEGRATION_ID": {
+      "description": "GitHub Integration ID"
+    },
+    "GITHUB_INTEGRATION_PEM": {
+      "description": "GitHub Integration private key (base64-encoded)"
+    },
+    "GITHUB_WEBHOOK_SECRET": {
+      "description": "Github Integration webhook secret"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "heroku-postgresql:hobby-dev"
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/HashNuke/heroku-buildpack-elixir.git"
+    }
+  ]
+}
