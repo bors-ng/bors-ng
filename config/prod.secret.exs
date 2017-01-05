@@ -8,7 +8,7 @@ config :aelita2, Aelita2.Batcher,
 
 config :aelita2, Aelita2.Endpoint,
   http: [port: {:system, "PORT"}],
-  url: [host: "sheltered-savannah-39730.herokuapp.com", port: 80],
+  url: System.get_env("PUBLIC_URL"),
   cache_static_manifest: "priv/static/manifest.json",
   secret_key_base: System.get_env("SECRET_KEY_BASE")
 
