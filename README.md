@@ -146,7 +146,7 @@ Or you can do it manually:
     $ heroku addons:create heroku-postgresql:hobby-dev
     $ heroku config:set \
         POOL_SIZE=18 \
-        PUBLIC_URL=https://bors-ng.herokuapp.com/ \
+        PUBLIC_HOST=bors-ng.herokuapp.com \
         SECRET_KEY_BASE=<SECRET1> \
         GITHUB_CLIENT_ID=<OAUTH_CLIENT_ID> \
         GITHUB_CLIENT_SECRET=<OAUTH_CLIENT_SECRET> \

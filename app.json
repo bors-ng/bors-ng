@@ -12,8 +12,8 @@
       "description": "Number of connections to PostgreSQL to keep open",
       "value": "18"
     },
-    "PUBLIC_URL": {
-      "description": "Where this website will be running (probably https://<app name>.herokuapp.com/)"
+    "PUBLIC_HOST": {
+      "description": "Where this website will be running (probably <app name>.herokuapp.com)"
     },
     "SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of cookies",
