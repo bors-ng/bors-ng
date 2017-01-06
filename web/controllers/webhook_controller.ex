@@ -107,13 +107,15 @@ defmodule Aelita2.WebhookController do
     :ok
   end
 
-  def do_webhook_pr(_conn, "closed", project, _patch, _author) do
+  def do_webhook_pr(_conn, "closed", project, patch, _author) do
     Project.ping!(project.id)
+    Repo.update!(Patch.changeset(patch, %{open: false}))
     :ok
   end
 
-  def do_webhook_pr(_conn, "reopened", project, _patch, _author) do
+  def do_webhook_pr(_conn, "reopened", project, patch, _author) do
     Project.ping!(project.id)
+    Repo.update!(Patch.changeset(patch, %{open: false}))
     :ok
   end
 
@@ -170,7 +172,8 @@ defmodule Aelita2.WebhookController do
         title: patch_json["title"],
         body: patch_json["body"],
         commit: patch_json["head"]["sha"],
-        author_id: author_id
+        author_id: author_id,
+        open: patch_json["state"] == "open"
       })
       patch -> patch
     end

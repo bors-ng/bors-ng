@@ -12,6 +12,7 @@ defmodule Aelita2.Patch do
     field :title, :string
     field :body, :string
     field :commit, :string
+    field :open, :boolean, default: true
     belongs_to :author, Aelita2.User
     timestamps()
   end
@@ -21,7 +22,7 @@ defmodule Aelita2.Patch do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:pr_xref, :title, :body, :commit, :author_id, :project_id, :author_id])
+    |> cast(params, [:pr_xref, :title, :body, :commit, :author_id, :project_id, :author_id, :open])
   end
 
   def all_for_batch(batch_id) do
@@ -40,7 +41,8 @@ defmodule Aelita2.Patch do
     all = all_links_not_err()
     from p in Patch,
       left_join: l in subquery(all), on: l.patch_id == p.id,
-      where: is_nil(l.batch_id)
+      where: is_nil(l.batch_id),
+      where: p.open == true
   end
 
   def all_for_project(project_id, :awaiting_review) do
