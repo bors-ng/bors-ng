@@ -102,15 +102,18 @@ defmodule Aelita2.WebhookController do
     Aelita2.Batcher.status(commit, identifier, state, url)
   end
 
-  def do_webhook_pr(_conn, "opened", _project, _patch, _author) do
+  def do_webhook_pr(_conn, "opened", project, _patch, _author) do
+    Project.ping!(project.id)
     :ok
   end
 
-  def do_webhook_pr(_conn, "closed", _project, _patch, _author) do
+  def do_webhook_pr(_conn, "closed", project, _patch, _author) do
+    Project.ping!(project.id)
     :ok
   end
 
-  def do_webhook_pr(_conn, "reopened", _project, _patch, _author) do
+  def do_webhook_pr(_conn, "reopened", project, _patch, _author) do
+    Project.ping!(project.id)
     :ok
   end
 
