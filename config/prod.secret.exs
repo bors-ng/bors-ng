@@ -8,7 +8,8 @@ config :aelita2, Aelita2.Batcher,
 
 config :aelita2, Aelita2.Endpoint,
   http: [port: {:system, "PORT"}],
-  url: [host: {:system, "PUBLIC_HOST"}, scheme: "https", port: 443],
+  url: [host: {:system, "PUBLIC_HOST"}, scheme: "https"],
+  check_origin: false,
   cache_static_manifest: "priv/static/manifest.json",
   secret_key_base: System.get_env("SECRET_KEY_BASE")
 
