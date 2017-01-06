@@ -33,7 +33,9 @@ defmodule Aelita2.WebhookController do
         i in Installation,
         where: i.installation_xref == ^installation_xref
       ))
-      "created" -> create_installation_by_xref(installation_xref, sender)
+      "created" -> Repo.transaction(fn ->
+        create_installation_by_xref(installation_xref, sender)
+      end)
       _ -> nil
     end
     :ok
@@ -53,7 +55,7 @@ defmodule Aelita2.WebhookController do
     |> Enum.each(&Repo.delete_all/1)
     payload["repositories_added"]
     |> Enum.map(&%Project{repo_xref: &1["id"], name: &1["full_name"], installation: installation})
-    |> Enum.each(&Repo.insert!/1)
+    |> Enum.map(&Repo.insert!/1)
     |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))
     :ok
   end
@@ -149,11 +151,15 @@ defmodule Aelita2.WebhookController do
   end
 
   def create_installation_by_xref(installation_xref, sender) do
-    i = Repo.insert!(%Installation{
-      installation_xref: installation_xref
-    })
+    i = case Repo.get_by(Installation, installation_xref: installation_xref) do
+      nil -> Repo.insert!(%Installation{
+        installation_xref: installation_xref
+      })
+      i -> i
+    end
     @github_api.Integration.get_installation_token!(installation_xref)
     |> @github_api.Integration.get_my_repos!()
+    |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
     |> Enum.map(&Repo.insert!/1)
     |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))
