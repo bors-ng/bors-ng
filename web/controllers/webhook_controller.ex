@@ -13,7 +13,7 @@ defmodule Aelita2.WebhookController do
   @doc """
   This action is reached via `/webhook/:provider`
   """
- def webhook(conn, %{"provider" => "github"}) do
+  def webhook(conn, %{"provider" => "github"}) do
     event = hd(get_req_header(conn, "x-github-event"))
     do_webhook conn, "github", event
     conn
