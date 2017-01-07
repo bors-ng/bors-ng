@@ -13,5 +13,6 @@ defmodule Aelita2.LinkUserProject do
     struct
     |> cast(params, [:user_id, :project_id])
     |> validate_required([:user_id, :project_id])
+    |> unique_constraint(:user_id, name: :link_user_project_user_id_project_id_index)
   end
 end

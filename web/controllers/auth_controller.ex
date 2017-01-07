@@ -27,7 +27,7 @@ defmodule Aelita2.AuthController do
 
   def logout(conn, _params) do
     conn
-    |> put_flash(:info, "You have been logged out!")
+    |> put_flash(:ok, "You have been logged out")
     |> configure_session(drop: true)
     |> redirect(to: "/")
   end
@@ -75,6 +75,7 @@ defmodule Aelita2.AuthController do
     end
 
     conn
+    |> put_flash(:ok, "Successfully logged in")
     |> put_session(:current_user, user_model.id)
     |> put_session(:github_access_token, client.token.access_token)
     |> redirect(to: redirect_to)

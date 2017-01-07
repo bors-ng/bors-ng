@@ -1,0 +1,66 @@
+<nav>
+
+<div class=wrapper>
+  <a href="<%= project_path(@conn, :index) %>">
+    Repositories
+  </a>
+  ›
+  <h1>
+    <a href="https://github.com/<%= @project.name %>/">
+      <%= @project.name %>
+    </a>
+  </h1>
+</div>
+
+<div class=tabs role=tabs>
+  <%= link "Pull requests", to: project_path(@conn, :show, @project), class: "tab" %>
+  <span class="tab tab--active">Settings</span>
+</div>
+
+</nav>
+
+<main role=main><div class=wrapper>
+
+<%= if not is_nil get_flash(@conn, :ok) do %>
+<div role="alert" class="alert alert--ok">
+<%= get_flash(@conn, :ok) %>
+</div>
+<% end %>
+
+<%= if not is_nil get_flash(@conn, :error) do %>
+<div role="alert" class="alert alert--error">
+<%= get_flash(@conn, :error) %>
+</div>
+<% end %>
+
+<h2 class=header>Reviewers</h2>
+<table class="table">
+  <tbody>
+<%= for reviewer <- @reviewers do %>
+    <tr>
+      <td>
+        <%= reviewer.login %>
+      </td>
+      <%= form_for @conn, project_path(@conn, :remove_reviewer, @project.id, reviewer.id), [as: :reviewer, method: :delete], fn _ -> %>
+      <td class="fill-link">
+  <%= if reviewer.id != @current_user_id do %>
+          <%= submit "Remove", class: "table-button table-button--remove" %>
+  <% end %>
+      </td>
+      <% end %>
+    </tr>
+<% end %>
+    <tr>
+      <%= form_for @conn, project_path(@conn, :add_reviewer, @project.id), [as: :reviewer], fn f -> %>
+      <td>
+        <%= text_input f, :login, placeholder: "GitHub login" %>
+      </td>
+      <td class="fill-link table-button-col">
+        <%= submit "Add", class: "table-button table-button--add" %>
+      </td>
+      <% end %>
+    </tr>
+  </tbody>
+</table>
+
+</div></main>

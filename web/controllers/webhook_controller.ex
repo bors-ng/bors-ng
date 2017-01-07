@@ -13,7 +13,7 @@ defmodule Aelita2.WebhookController do
   @doc """
   This action is reached via `/webhook/:provider`
   """
- def webhook(conn, %{"provider" => "github"}) do
+  def webhook(conn, %{"provider" => "github"}) do
     event = hd(get_req_header(conn, "x-github-event"))
     do_webhook conn, "github", event
     conn
@@ -148,10 +148,17 @@ defmodule Aelita2.WebhookController do
     Repo.update!(Patch.changeset(patch, %{title: title, body: body}))
   end
 
-  def do_webhook_comment(_conn, "github", _project, patch, _author, _commenter, comment) do
+  def do_webhook_comment(_conn, "github", project, patch, _author, commenter, comment) do
     activation_phrase = Application.get_env(:aelita2, Aelita2)[:activation_phrase]
     if :binary.match(comment, activation_phrase) != :nomatch do
-      Batcher.reviewed(patch.id)
+      link = Repo.get_by LinkUserProject, project_id: project.id, user_id: commenter.id
+      if not is_nil link do
+        Batcher.reviewed(patch.id)
+      else
+        installation = Repo.get!(Installation, project.installation_id)
+        token = @github_api.Integration.get_installation_token!(installation.installation_xref)
+        @github_api.post_comment!(token, project.repo_xref, patch.pr_xref, ":lock: Permission denied")
+      end
     end
   end
 

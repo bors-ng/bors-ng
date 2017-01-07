@@ -37,11 +37,10 @@ defmodule Aelita2.Router do
     pipe_through :browser_login
 
     get "/", ProjectController, :index
-    post "/", ProjectController, :add
-    get "/available", ProjectController, :available
-    get "/available/:page", ProjectController, :available
     get "/:id", ProjectController, :show
-    delete "/:id", ProjectController, :remove
+    get "/:id/settings", ProjectController, :settings
+    post "/:id/reviewer", ProjectController, :add_reviewer
+    delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
   end
 
   scope "/auth", Aelita2 do
