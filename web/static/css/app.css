@@ -37,10 +37,20 @@ footer {
 /* An alert box */
 .alert {
 	background: #d9edf7;
-	border-bottom: solid 1px #d9edf7;
+	border: solid 1px #d9edf7;
 	color: #31708f;
     padding: 8px 10px;
     margin-bottom: 8px;
+}
+.alert--ok {
+	color: #3c763d;
+	border-color: #d6e9c6;
+	background-color: #dff0d8;
+}
+.alert--error {
+	color: #a94442;
+	border-color: #ebccd1;
+	background-color: #f2dede;
 }
 /* Use underline-on-hover for links.
    This is used for consistency, since fill-link breaks outlines. */
@@ -49,7 +59,7 @@ footer {
 	color: #4d76ae;
 }
 :visited {
-	color: #ae764d;
+	color: #ae4d76;
 }
 :link:hover, :link:focus,
 :visited:hover, :visited:focus {
@@ -119,8 +129,42 @@ footer {
 }
 .fill-link > * {
 	display: block;
-	margin: -10em;
-	padding: 10em;
+	margin: -20em;
+	padding: 20em;
+}
+.table-button {
+	margin: -20em;
+	padding: 20em;
+	background: transparent;
+	border: none; outline: none;
+	color: #4d76ae;
+	transition-property: color, background-color;
+	transition-duration: 0.1s;
+	transition-timing-function: ease-in-out;
+}
+.table-button:hover,
+.table-button:focus {
+	background-color: #4d76ae;
+	color: #fff;
+}
+.table-button--add {
+	color: #5e9766;
+}
+.table-button--add:hover,
+.table-button--add:focus {
+	background-color: #5e9766;
+	color: #fff;
+}
+.table-button--remove {
+	color: #df3600;
+}
+.table-button--remove:hover,
+.table-button--remove:focus {
+	background-color: #df3600;
+	color: #fff;
+}
+.table-button-col {
+	width: 100px;
 }
 /* The buttons and the bars that they go inside */
 .toolbar {
@@ -144,7 +188,7 @@ footer {
 	box-shadow: 0 0 0 #666;
 }
 .toolbar-item--add {
-	background: #4dae76;
+	background: #5e9766;
 }
 /* The page headers. */
 .header {

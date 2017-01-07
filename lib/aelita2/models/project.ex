@@ -21,8 +21,8 @@ defmodule Aelita2.Project do
 
   def by_owner(owner_id) do
     from p in Project,
-      join: l in LinkUserProject,
-      where: l.user_id = ^owner_id
+      join: l in LinkUserProject, on: p.id == l.project_id,
+      where: l.user_id == ^owner_id
   end
 
   def ping!(project_id) do

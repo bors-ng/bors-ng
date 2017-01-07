@@ -4,9 +4,17 @@
 
 <main role=main><div class=wrapper>
 
-<div class=toolbar role=toolbar>
-<%= link "Add repository", to: project_path(@conn, :available), class: "toolbar-item toolbar-item--add", role: "toolbar-item" %>
+<%= if not is_nil get_flash(@conn, :ok) do %>
+<div role="alert" class="alert alert--ok">
+<%= get_flash(@conn, :ok) %>
 </div>
+<% end %>
+
+<%= if not is_nil get_flash(@conn, :error) do %>
+<div role="alert" class="alert alert--error">
+<%= get_flash(@conn, :error) %>
+</div>
+<% end %>
 
 <table class="table">
   <tbody>
