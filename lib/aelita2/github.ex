@@ -142,6 +142,21 @@ defmodule Aelita2.GitHub do
       [{"Authorization", "token #{token}"}])
   end
 
+  def get_user_by_login(token, login) when is_binary(token) do
+    resp = HTTPoison.get!(
+      "#{config()[:site]}/users/#{login}",
+      [{"Authorization", "token #{token}"}])
+    case resp do
+      %{body: raw, status_code: 200} ->
+        r = Poison.decode!(raw)
+        {:ok, %{
+          id: r["id"],
+        }}
+      %{status_code: 404} ->
+        {:error, :not_found}
+    end
+  end
+
   def map_state_to_status(state) do
     case state do
       "pending" -> :running

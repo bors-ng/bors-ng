@@ -2,6 +2,7 @@ defmodule Aelita2.Project do
   use Aelita2.Web, :model
 
   alias Aelita2.LinkUserProject
+  alias Aelita2.Project
   alias Aelita2.User
 
   schema "projects" do
@@ -19,10 +20,9 @@ defmodule Aelita2.Project do
   end
 
   def by_owner(owner_id) do
-    Aelita2.Repo.all(from l in LinkUserProject,
-      where: l.user_id == ^owner_id,
-      preload: :project)
-    |> Enum.map(&(&1.project))
+    from p in Project,
+      join: l in LinkUserProject, on: p.id == l.project_id,
+      where: l.user_id == ^owner_id
   end
 
   def ping!(project_id) do

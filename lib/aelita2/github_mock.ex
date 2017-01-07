@@ -24,6 +24,14 @@ defmodule Aelita2.GitHubMock do
   def get_repo!(_, _) do
     raise("unimplemented")
   end
+  def get_user_by_login(_, login) do
+    case login do
+      "ghost" ->
+        {:ok, %{id: 13}}
+      _ ->
+        {:error, :not_found}
+    end
+  end
   def map_state_to_status(state) do
     Aelita2.GitHub.map_state_to_status(state)
   end
