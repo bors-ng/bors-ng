@@ -165,3 +165,22 @@ If you need more throughput than one dyno can provide, you should deploy using a
 Your configuration can be done by modifying `config/prod.secret.exs`.
 
 [docs on how to deploy phoenix apps]: http://www.phoenixframework.org/docs/deployment
+
+## Optional step 4: make yourself an admin
+
+bors-ng offers a number of special functions for "administrator" users, including diagnostics and the ability to open a repo dashboard without being a reviewer.
+
+However, there's no UI for adding admins; you'll have to go into Postgres yourself to do it. There's two ways to do that:
+
+### From an iex prompt
+
+You can do it from the iex prompt, like this:
+
+    shell$ iex -S mix # or `heroku run iex -S mix`
+    iex> me = Aelita2.Repo.get_by! Aelita2.User, login: "<your login>"
+    iex> Aelita2.Repo.update! Aelita2.User.changeset(me, %{is_admin: true})
+
+You can do it from a PostgreSQL prompt like this:
+
+    postgres=# \c aelita2_dev -- or aelita2_prod
+    aelita2_dev=# update users set is_admin = true where login = '<your login>';
