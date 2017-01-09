@@ -17,7 +17,9 @@ defmodule Aelita2.ProjectController do
 
   defp do_action(conn, action, %{"id" => id} = params) do
     project = Repo.get! Project, id
-    true = User.has_perm(Repo, conn.assigns.user, project.id)
+    if not User.has_perm(Repo, conn.assigns.user, project.id) do
+      raise "Permission denied"
+    end
     apply(__MODULE__, action, [conn, project, params])
   end
   defp do_action(conn, action, params) do

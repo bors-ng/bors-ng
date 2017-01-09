@@ -71,4 +71,11 @@ defmodule Aelita2.ProjectControllerTest do
     refute html_response(conn, 200) =~ "Awaiting review"
     assert html_response(conn, 200) =~ "Waiting"
   end
+
+  test "do not show an unlinked project", %{conn: conn, project: project} do
+    conn = login conn
+    assert_raise RuntimeError, ~r/Permission denied/, fn ->
+     get conn, project_path(conn, :show, project)
+   end
+  end
 end
