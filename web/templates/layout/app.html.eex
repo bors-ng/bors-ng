@@ -19,6 +19,7 @@
 <%= if is_nil(@conn.assigns[:user]) do %>
           <a href='<%= auth_url(@conn, :index, "github") %>'>Log in with GitHub</a>
 <% else %>
+          <span><%= @conn.assigns.user.login %></span>
           <a href="<%= project_url(@conn, :index) %>">Repositories</a>
           <a href="<%= auth_url(@conn, :logout) %>">Log out</a>
 <% end %>

@@ -18,9 +18,13 @@ header, nav {
 	height: 25px; line-height: 20px;
 	margin-top: -12px;
 }
-#repos-button > a {
+#repos-button > a,
+#repos-button > span {
 	padding: 10px 10px;
 	vertical-align: middle;
+}
+#repos-button > span {
+	color: #666;
 }
 header {
 	z-index: 2;
