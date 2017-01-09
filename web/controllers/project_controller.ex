@@ -29,11 +29,7 @@ defmodule Aelita2.ProjectController do
   # One-item ones don't
 
   def index(conn, _params) do
-    projects = if conn.assigns.user.is_admin do
-      Project
-    else
-      Project.by_owner(conn.assigns.user.id)
-    end
+    projects = Project.by_owner(conn.assigns.user.id)
     |> Repo.all()
     render conn, "index.html", projects: projects
   end

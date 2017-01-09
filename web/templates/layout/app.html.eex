@@ -20,6 +20,9 @@
           <a href='<%= auth_url(@conn, :index, "github") %>'>Log in with GitHub</a>
 <% else %>
           <span><%= @conn.assigns.user.login %></span>
+  <%= if @conn.assigns.user.is_admin do %>
+          <a href="<%= admin_url(@conn, :index) %>">Admin</a>
+  <% end %>
           <a href="<%= project_url(@conn, :index) %>">Repositories</a>
           <a href="<%= auth_url(@conn, :logout) %>">Log out</a>
 <% end %>

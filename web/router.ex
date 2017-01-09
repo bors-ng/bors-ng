@@ -21,6 +21,10 @@ defmodule Aelita2.Router do
     plug :force_current_user
   end
 
+  pipeline :browser_admin do
+    plug :force_current_user_admin
+  end
+
   pipeline :webhook do
     plug Plug.Parsers, parsers: [:json], json_decoder: Poison
   end
@@ -42,6 +46,17 @@ defmodule Aelita2.Router do
     get "/:id/settings", ProjectController, :settings
     post "/:id/reviewer", ProjectController, :add_reviewer
     delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
+  end
+
+  scope "/admin", Aelita2 do
+    pipe_through :browser_page
+    pipe_through :browser_session
+    pipe_through :browser_login
+    pipe_through :browser_admin
+
+    get "/", AdminController, :index
+    get "/orphans", AdminController, :orphans
+    get "/project", AdminController, :project_by_name
   end
 
   scope "/auth", Aelita2 do
@@ -75,6 +90,7 @@ defmodule Aelita2.Router do
       assign(conn, :user, Aelita2.Repo.get!(Aelita2.User, user_id))
     end
   end
+
   defp force_current_user(conn, _) do
     if is_nil conn.assigns[:user] do
       conn
@@ -83,6 +99,16 @@ defmodule Aelita2.Router do
       |> halt
     else
       conn
+    end
+  end
+
+  defp force_current_user_admin(conn, _) do
+    if conn.assigns.user.is_admin do
+      conn
+    else
+      conn
+      |> Plug.Conn.send_resp(403, "Not allowed.")
+      |> halt
     end
   end
 end
