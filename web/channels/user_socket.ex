@@ -22,8 +22,9 @@ defmodule Aelita2.UserSocket do
   def connect(%{"token" => token}, socket) do
     case Phoenix.Token.verify(socket, "channel:current_user", token, max_age: 60*60) do
       {:ok, current_user} ->
+        user = Aelita2.Repo.get! Aelita2.User, current_user
         socket = socket
-        |> assign(:current_user, current_user)
+        |> assign(:user, user)
         {:ok, socket}
       {:error, _} ->
         :error
