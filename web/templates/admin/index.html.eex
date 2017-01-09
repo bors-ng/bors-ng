@@ -1,0 +1,40 @@
+<nav><div class=wrapper>
+<h1>Administrator</h1>
+</div></nav>
+
+<main role=main><div class=wrapper>
+
+<%= if not is_nil get_flash(@conn, :ok) do %>
+<div role="alert" class="alert alert--ok">
+<%= get_flash(@conn, :ok) %>
+</div>
+<% end %>
+
+<%= if not is_nil get_flash(@conn, :error) do %>
+<div role="alert" class="alert alert--error">
+<%= get_flash(@conn, :error) %>
+</div>
+<% end %>
+
+<h2 class=header>Open any repository</h2>
+<%= form_for @conn, admin_path(@conn, :project_by_name), [as: :project, method: :get], fn f -> %>
+  <%= text_input f, :name, placeholder: "Repository name" %>
+  <%= submit "Open" %>
+<% end %>
+
+<h2 class=header>Red flags</h2>
+
+<table class=table>
+  <tbody>
+    <tr>
+      <td>
+        <%= @orphan_count %>
+      </td>
+      <td class=fill-link>
+        <%= link "Orphaned repositories", to: admin_path(@conn, :orphans) %>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+</div></main>

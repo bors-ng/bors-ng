@@ -36,4 +36,13 @@ defmodule Aelita2.Project do
     struct
     |> cast(params, [:repo_xref, :name])
   end
+
+  # Red flag queries
+  # These should always return [].
+
+  def orphans() do
+    from p in Project,
+      left_join: l in LinkUserProject, on: p.id == l.project_id,
+      where: is_nil l.user_id
+  end
 end

@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>bors</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
-<%= if not is_nil(Plug.Conn.get_session(@conn, :current_user)) do %>
-    <meta name="bors-current-user" content="<%= Plug.Conn.get_session(@conn, :current_user) %>">
+<%= if not is_nil(@conn.assigns[:user]) do %>
+    <meta name="bors-current-user" content="<%= @conn.assigns.user.id %>">
 <% end %>
   </head>
 
@@ -16,9 +16,13 @@
       <div class="wrapper wrapper--mini">
         <a href="<%= page_url(@conn, :index) %>"><img alt="bors" src='<%= static_path(@conn, "/images/a.svg") %>' width="90" height="25"></a>
         <span id=repos-button>
-<%= if is_nil(Plug.Conn.get_session(@conn, :current_user)) do %>
+<%= if is_nil(@conn.assigns[:user]) do %>
           <a href='<%= auth_url(@conn, :index, "github") %>'>Log in with GitHub</a>
 <% else %>
+          <span><%= @conn.assigns.user.login %></span>
+  <%= if @conn.assigns.user.is_admin do %>
+          <a href="<%= admin_url(@conn, :index) %>">Admin</a>
+  <% end %>
           <a href="<%= project_url(@conn, :index) %>">Repositories</a>
           <a href="<%= auth_url(@conn, :logout) %>">Log out</a>
 <% end %>

@@ -14,10 +14,15 @@ defmodule Aelita2.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :get_current_user
   end
 
   pipeline :browser_login do
     plug :force_current_user
+  end
+
+  pipeline :browser_admin do
+    plug :force_current_user_admin
   end
 
   pipeline :webhook do
@@ -43,6 +48,17 @@ defmodule Aelita2.Router do
     delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
   end
 
+  scope "/admin", Aelita2 do
+    pipe_through :browser_page
+    pipe_through :browser_session
+    pipe_through :browser_login
+    pipe_through :browser_admin
+
+    get "/", AdminController, :index
+    get "/orphans", AdminController, :orphans
+    get "/project", AdminController, :project_by_name
+  end
+
   scope "/auth", Aelita2 do
     pipe_through :browser_ajax
     pipe_through :browser_session
@@ -65,15 +81,34 @@ defmodule Aelita2.Router do
   # Fetch the current user from the session and add it to `conn.assigns`. This
   # will allow you to have access to the current user in your views with
   # `@current_user`.
+
+  defp get_current_user(conn, _) do
+    user_id = Plug.Conn.get_session(conn, :current_user)
+    if is_nil user_id do
+      conn
+    else
+      assign(conn, :user, Aelita2.Repo.get!(Aelita2.User, user_id))
+    end
+  end
+
   defp force_current_user(conn, _) do
-    user = Plug.Conn.get_session(conn, :current_user)
-    if user == nil do
+    if is_nil conn.assigns[:user] do
       conn
       |> Plug.Conn.put_session(:auth_redirect_to, conn.request_path)
       |> Phoenix.Controller.redirect(to: "/auth/github")
       |> halt
     else
-      assign(conn, :current_user, user)
+      conn
+    end
+  end
+
+  defp force_current_user_admin(conn, _) do
+    if conn.assigns.user.is_admin do
+      conn
+    else
+      conn
+      |> Plug.Conn.send_resp(403, "Not allowed.")
+      |> halt
     end
   end
 end
