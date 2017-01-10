@@ -154,7 +154,7 @@ defmodule Aelita2.WebhookController do
 
   def do_webhook_pr(_conn, %{action: "reopened", project: project, patch: p}) do
     Project.ping!(project.id)
-    Repo.update!(Patch.changeset(p, %{open: false}))
+    Repo.update!(Patch.changeset(p, %{open: true}))
     :ok
   end
 

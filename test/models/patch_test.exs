@@ -155,4 +155,56 @@ defmodule Aelita2.PatchTest do
     assert got_patch.id == patch.id
   end
 
+  test "forbid duplicate patches", %{project: project} do
+    Repo.insert!(%Patch{
+      project: project,
+      pr_xref: 9,
+      title: "T",
+      body: "B",
+      commit: "C"})
+    assert_raise Ecto.InvalidChangesetError, ~r/insert/, fn ->
+      %Patch{}
+      |> Patch.changeset(%{
+        project_id: project.id,
+        pr_xref: 9,
+        title: "T",
+        body: "B",
+        commit: "C"})
+      |> Repo.insert!()
+    end
+  end
+
+  test "allow non-duplicate patches", %{project: project} do
+    Repo.insert!(%Patch{
+      project: project,
+      pr_xref: 9,
+      title: "T",
+      body: "B",
+      commit: "C"})
+    Repo.insert!(%Patch{
+      project: project,
+      pr_xref: 10,
+      title: "T",
+      body: "B",
+      commit: "C"})
+  end
+
+  test "allow duplicate patches on different projects", %{project: project} do
+    project2 = Repo.insert!(%Project{
+      installation_id: project.installation_id,
+      repo_xref: 14,
+      name: "example/project2"})
+    Repo.insert!(%Patch{
+      project: project,
+      pr_xref: 9,
+      title: "T",
+      body: "B",
+      commit: "C"})
+    Repo.insert!(%Patch{
+      project: project2,
+      pr_xref: 9,
+      title: "T",
+      body: "B",
+      commit: "C"})
+  end
 end

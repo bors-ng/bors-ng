@@ -1,9 +1,9 @@
 {
   "name": "Bors-NG",
   "description": "A merge bot for GitHub pull requests",
-  "repository": "https://github.com/notriddle/bors-ng",
-  "website": "https://github.com/notriddle/bors-ng",
-  "logo": "https://cdn.rawgit.com/notriddle/bors-ng/b9e756ecfdf4ede9241a8a30cbfdc4c010fd0a22/icon/bors-eye.svg",
+  "repository": "https://github.com/bors-ng/bors-ng",
+  "website": "https://github.com/bors-ng/bors-ng",
+  "logo": "https://cdn.rawgit.com/bors-ng/bors-ng/b9e756ecfdf4ede9241a8a30cbfdc4c010fd0a22/icon/bors-eye.svg",
   "keywords": ["github", "continuous-integration", "continuous-testing", "elixir", "phoenix"],
 
   "success_url": "/auth/github",
