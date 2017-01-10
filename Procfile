@@ -1,1 +1,2 @@
-web: MIX_ENV=prod mix phoenix.server
+web: mix phoenix.server
+
