@@ -128,6 +128,14 @@ The only important setting is *Authorization callback URL*, which is `<dashboard
 
 ## Step 3: Set up the server
 
+bors-ng is written in the [Elixir] programming language,
+and it uses [PostgreSQL] as the backend database.
+Whatever machine you plan to run it on needs to have both of those installed.
+
+[Elixir]: https://elixir-lang.org/
+[PostgreSQL]: https://postgresql.org/
+[docs on how to deploy phoenix apps]: http://www.phoenixframework.org/docs/deployment
+
 bors-ng is built on the Phoenix web framework, and they have [docs on how to deploy phoenix apps] already. Where you deploy will determine the what the dashboard URL will be, which is needed in the previous steps, so this decision needs to be made before you can set up the Integration or the oAuth app.
 
 You'll need to edit the configuration with a few bors-specific variables.
@@ -163,8 +171,6 @@ If you need more throughput than one dyno can provide, you should deploy using a
 ### Deploying on your own cluster
 
 Your configuration can be done by modifying `config/prod.secret.exs`.
-
-[docs on how to deploy phoenix apps]: http://www.phoenixframework.org/docs/deployment
 
 ## Optional step 4: make yourself an admin
 
