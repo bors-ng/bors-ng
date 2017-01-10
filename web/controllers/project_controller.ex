@@ -1,4 +1,14 @@
 defmodule Aelita2.ProjectController do
+  @moduledoc """
+  Shows a list of repositories, a single repository,
+  and the repository's settings page.
+
+  n.b.
+  We call it a project internally, though it corresponds
+  to a GitHub repository. This is to avoid confusing
+  a GitHub repo with an Ecto repo.
+  """
+
   use Aelita2.Web, :controller
 
   alias Aelita2.LinkUserProject
@@ -17,7 +27,7 @@ defmodule Aelita2.ProjectController do
 
   defp do_action(conn, action, %{"id" => id} = params) do
     project = Repo.get! Project, id
-    if not User.has_perm(Repo, conn.assigns.user, project.id) do
+    unless User.has_perm(Repo, conn.assigns.user, project.id) do
       raise "Permission denied"
     end
     apply(__MODULE__, action, [conn, project, params])
@@ -31,21 +41,37 @@ defmodule Aelita2.ProjectController do
   # One-item ones don't
 
   def index(conn, _params) do
-    projects = Project.by_owner(conn.assigns.user.id)
-    |> Repo.all()
+    projects = Repo.all(Project.by_owner(conn.assigns.user.id))
     render conn, "index.html", projects: projects
   end
 
+  defp batch_info(batch) do
+    %{
+      commit: batch.commit,
+      patches: Repo.all(Patch.all_for_batch(batch.id)),
+      state: batch.state}
+  end
+
   def show(conn, project, _params) do
-    batches = Repo.all(Batch.all_for_project(project.id, :incomplete))
-    |> Enum.map(&%{commit: &1.commit, patches: Repo.all(Patch.all_for_batch(&1.id)), state: &1.state})
-    unbatched_patches = Repo.all(Patch.all_for_project(project.id, :awaiting_review))
-    render conn, "show.html", project: project, batches: batches, unbatched_patches: unbatched_patches
+    batches = project.id
+    |> Batch.all_for_project(:incomplete)
+    |> Repo.all()
+    |> Enum.map(&batch_info/1)
+    unbatched_patches = project.id
+    |> Patch.all_for_project(:awaiting_review)
+    |> Repo.all()
+    render conn, "show.html",
+      project: project,
+      batches: batches,
+      unbatched_patches: unbatched_patches
   end
 
   def settings(conn, project, _params) do
     reviewers = Repo.all(User.by_project(project.id))
-    render conn, "settings.html", project: project, reviewers: reviewers, current_user_id: conn.assigns.user.id
+    render conn, "settings.html",
+      project: project,
+      reviewers: reviewers,
+      current_user_id: conn.assigns.user.id
   end
 
   def add_reviewer(conn, project, %{"reviewer" => %{"login" => login}}) do
@@ -60,16 +86,21 @@ defmodule Aelita2.ProjectController do
     end
     link = with(
       {:ok, user} <- user,
-      changeset <- LinkUserProject.changeset(%LinkUserProject{}, %{user_id: user.id, project_id: project.id}),
+      attrs <- %{user_id: user.id, project_id: project.id},
+      changeset <- LinkUserProject.changeset(%LinkUserProject{}, attrs),
       do: Repo.insert(changeset)
     )
     {state, msg} = case user do
-      {:error, :not_found} -> {:error, "GitHub user not found; maybe you typo-ed?"}
-      {:error, _} -> {:error, "Internal error adding user"}
+      {:error, :not_found} ->
+        {:error, "GitHub user not found; maybe you typo-ed?"}
+      {:error, _} ->
+        {:error, "Internal error adding user"}
       {:ok, user} ->
         case link do
-          {:error, _} -> {:error, "This user is already a reviewer"}
-          {:ok, _login} -> {:ok, "Successfully added #{user.login} as a reviewer"}
+          {:error, _} ->
+            {:error, "This user is already a reviewer"}
+          {:ok, _login} ->
+            {:ok, "Successfully added #{user.login} as a reviewer"}
         end
     end
     conn
@@ -78,7 +109,10 @@ defmodule Aelita2.ProjectController do
   end
 
   def remove_reviewer(conn, project, %{"user_id" => user_id}) do
-    link = Repo.get_by! LinkUserProject, project_id: project.id, user_id: user_id
+    link = Repo.get_by!(
+      LinkUserProject,
+      project_id: project.id,
+      user_id: user_id)
     Repo.delete!(link)
     conn
     |> put_flash(:ok, "Removed reviewer")

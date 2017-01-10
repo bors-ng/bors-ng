@@ -1,4 +1,10 @@
 defmodule Aelita2.Batch do
+  @moduledoc """
+  The database-level representation of a "batch".
+
+  A batch is a collection of patches that are running, or will run.
+  """
+
   use Aelita2.Web, :model
 
   alias Aelita2.Batch

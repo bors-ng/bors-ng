@@ -8,3 +8,12 @@ branches:
       - master
       - staging
 
+install:
+  - mix local.rebar --force
+  - mix local.hex --force
+  - mix deps.get
+
+script:
+  - mix test
+  - mix dogma
+

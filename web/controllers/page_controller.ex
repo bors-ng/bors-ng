@@ -1,4 +1,11 @@
 defmodule Aelita2.PageController do
+  @moduledoc """
+  The controller for the front-page / dashboard.
+
+  This will either show a dashboard, if the user is authenticated,
+  or a rundown of what Aelita2 is, if the user is not.
+  """
+
   use Aelita2.Web, :controller
 
   alias Aelita2.Patch

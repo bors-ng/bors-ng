@@ -17,7 +17,7 @@ defmodule Aelita2.BatchTest do
     {:ok, installation: installation, project: project}
   end
 
-  test "grab batches that are incomplete", %{installation: _installation, project: project} do
+  test "grab batches that are incomplete", %{project: project} do
     batch0 = Repo.insert!(%Batch{project: project, state: 0})
     batch1 = Repo.insert!(%Batch{project: project, state: 1})
     _batch2 = Repo.insert!(%Batch{project: project, state: 2})
@@ -28,7 +28,7 @@ defmodule Aelita2.BatchTest do
     assert Enum.count(incomplete) == 2
   end
 
-  test "grab batches that are complete", %{installation: _installation, project: project} do
+  test "grab batches that are complete", %{project: project} do
     _batch0 = Repo.insert!(%Batch{project: project, state: 0})
     _batch1 = Repo.insert!(%Batch{project: project, state: 1})
     batch2 = Repo.insert!(%Batch{project: project, state: 2})
@@ -43,12 +43,12 @@ defmodule Aelita2.BatchTest do
     p = %Project{batch_delay_sec: 1, batch_poll_period_sec: 2}
     b = %Batch{project: p, last_polled: 3, state: 0}
     assert Batch.get_next_poll_unix_sec(b) == 4
-    assert !Batch.next_poll_is_past(b, 3)
     assert Batch.next_poll_is_past(b, 5)
+    refute Batch.next_poll_is_past(b, 3)
     b = %Batch{b | state: 1}
     assert Batch.get_next_poll_unix_sec(b) == 5
-    assert !Batch.next_poll_is_past(b, 3)
-    assert !Batch.next_poll_is_past(b, 5)
     assert Batch.next_poll_is_past(b, 6)
+    refute Batch.next_poll_is_past(b, 3)
+    refute Batch.next_poll_is_past(b, 5)
   end
 end

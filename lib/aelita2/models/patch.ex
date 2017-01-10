@@ -1,4 +1,12 @@
 defmodule Aelita2.Patch do
+  @moduledoc """
+  Corresponds to a pull request in GitHub.
+
+  A closed patch may not be r+'ed,
+  nor can a patch associated with a completed batch be r+'ed again,
+  though a patch may be merged and r+'ed at the same time.
+  """
+
   use Aelita2.Web, :model
 
   alias Aelita2.Batch
@@ -22,7 +30,15 @@ defmodule Aelita2.Patch do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:pr_xref, :title, :body, :commit, :author_id, :project_id, :author_id, :open])
+    |> cast(params, [
+      :pr_xref,
+      :title,
+      :body,
+      :commit,
+      :author_id,
+      :project_id,
+      :author_id,
+      :open])
   end
 
   def all_for_batch(batch_id) do
@@ -31,7 +47,7 @@ defmodule Aelita2.Patch do
       where: l.batch_id == ^batch_id
   end
 
-  defp all_links_not_err() do
+  defp all_links_not_err do
     err = Batch.numberize_state(:err)
     from l in LinkPatchBatch,
       join: b in Batch, on: (l.batch_id == b.id and b.state != ^err)
@@ -42,7 +58,7 @@ defmodule Aelita2.Patch do
     from p in Patch,
       left_join: l in subquery(all), on: l.patch_id == p.id,
       where: is_nil(l.batch_id),
-      where: p.open == true
+      where: p.open
   end
 
   def all_for_project(project_id, :awaiting_review) do
