@@ -1,4 +1,11 @@
 defmodule Aelita2.Router do
+  @moduledoc """
+  This module maps from URLs to controllers and plugs.
+  It layers on pre-filters, primarily the session, flash,
+  CSRF protection, secure headers,
+  and user authentication part of the session.
+  """
+
   use Aelita2.Web, :router
 
   pipeline :browser_page do

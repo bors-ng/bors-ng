@@ -1,4 +1,10 @@
 defmodule Aelita2.Installation do
+  @moduledoc """
+  A GitHub installation.
+
+  See: https://developer.github.com/early-access/integrations/
+  """
+
   use Aelita2.Web, :model
 
   schema "installations" do

@@ -1,4 +1,10 @@
 defmodule Aelita2.Project do
+  @moduledoc """
+  Corresponds to a repo in GitHub, as opposed to a repo in Ecto.
+
+  This also corresponds to a queue of batches.
+  """
+
   use Aelita2.Web, :model
 
   alias Aelita2.LinkUserProject
@@ -40,7 +46,7 @@ defmodule Aelita2.Project do
   # Red flag queries
   # These should always return [].
 
-  def orphans() do
+  def orphans do
     from p in Project,
       left_join: l in LinkUserProject, on: p.id == l.project_id,
       where: is_nil l.user_id

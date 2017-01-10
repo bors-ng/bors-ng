@@ -1,8 +1,30 @@
 defmodule Aelita2.Batcher do
+  @moduledoc """
+  The "Batcher" manages the backlog of batches that each project has.
+  It implements this set of rules:
+
+    * When a patch is reviewed ("r+'ed"),
+      it gets added to the project's non-running batch.
+      If no such batch exists, it creates it.
+    * After a short delay, if there is no currently running batch,
+      the project's non-running batch is started.
+    * The project's CI is occasionally polled,
+      if a batch is currently running.
+      After polling, the completion logic is run.
+    * If a notification related to the underlying CI is received,
+      the completion logic is run.
+    * When the completion logic is run, the batch is either
+      bisected (if it failed and there are two or more patches in it),
+      blocked (if it failed and there is only one patch in it),
+      pushed to master (if it passed),
+      or (if there are still CI jobs with no results) it is left alone.
+  """
+
   use GenServer
 
   alias Aelita2.Repo
   alias Aelita2.Batch
+  alias Aelita2.Batcher
   alias Aelita2.Patch
   alias Aelita2.Project
   alias Aelita2.Status
@@ -42,16 +64,18 @@ defmodule Aelita2.Batcher do
     batch = get_new_batch(patch.project_id)
     project_id = batch.project_id
     ^project_id = patch.project_id
-    LinkPatchBatch.changeset(%LinkPatchBatch{}, %{batch_id: batch.id, patch_id: patch.id})
-    |> Repo.insert!()
+    params = %{batch_id: batch.id, patch_id: patch.id}
+    Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
   end
 
   def do_handle_cast({:status, commit, identifier, state, url}) do
     batch = Repo.all(Batch.get_assoc_by_commit(commit))
+    state = Status.numberize_state(state)
     case batch do
       [batch] ->
-        Status.get_for_batch(batch.id, identifier)
-        |> Repo.update_all([set: [state: Status.numberize_state(state), url: url]])
+        batch.id
+        |> Status.get_for_batch(identifier)
+        |> Repo.update_all([set: [state: state, url: url]])
         if batch.state == Batch.numberize_state(:running) do
           maybe_complete_batch(batch)
         end
@@ -67,8 +91,10 @@ defmodule Aelita2.Batcher do
 
   # Private implementation details
 
-  defp poll_all() do
-    Repo.all(Batch.all_assoc(:incomplete))
+  defp poll_all do
+    :incomplete
+    |> Batch.all_assoc()
+    |> Repo.all()
     |> Aelita2.Batcher.Queue.organize_batches_into_project_queues()
     |> Enum.each(&poll_batches/1)
   end
@@ -88,37 +114,65 @@ defmodule Aelita2.Batcher do
   end
 
   defp start_waiting_batch(batch) do
-    patches = Repo.all(Patch.all_for_batch(batch.id))
+    patches = batch.id
+    |> Patch.all_for_batch()
+    |> Repo.all()
     |> Enum.map(&%Patch{&1 | project: batch.project})
     project = batch.project
-    token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
+    ixref = project.installation.installation_xref
+    token = @github_api.Integration.get_installation_token!(ixref)
     stmp = "#{project.staging_branch}.tmp"
-    base = @github_api.copy_branch!(token, project.repo_xref, project.master_branch, stmp)
+    base = @github_api.copy_branch!(
+      token,
+      project.repo_xref,
+      project.master_branch,
+      stmp)
     do_merge_patch = fn patch, branch ->
       case branch do
         :conflict -> :conflict
-        _ -> @github_api.merge_branch!(token, project.repo_xref, patch.commit, stmp, "tmp")
+        _ -> @github_api.merge_branch!(
+          token,
+          project.repo_xref,
+          %{
+            from: patch.commit,
+            to: stmp,
+            commit_message: "tmp"
+          })
       end
     end
     head = with(
       %{tree: tree} <- Enum.reduce(patches, base, do_merge_patch),
       parents <- [base | Enum.map(patches, &(&1.commit))],
-      commit_message <- Aelita2.Batcher.Message.generate_commit_message(patches),
-      do: @github_api.synthesize_commit!(token, project.repo_xref, project.staging_branch, tree, parents, commit_message))
+      commit_message <- Batcher.Message.generate_commit_message(patches),
+      do: @github_api.synthesize_commit!(
+        token,
+        project.repo_xref,
+        %{
+          branch: project.staging_branch,
+          tree: tree,
+          parents: parents,
+          commit_message: commit_message}))
     case head do
       :conflict ->
         state = bisect(patches)
         send_message(token, patches, {:conflict, state})
       commit ->
         state = setup_statuses(token, project, batch, patches)
-        Batch.changeset(batch, %{state: Batch.numberize_state(state), commit: commit, last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)})
+        state = Batch.numberize_state(state)
+        now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+        batch
+        |> Batch.changeset(%{state: state, commit: commit, last_polled: now})
         |> Repo.update!()
     end
     Project.ping!(project.id)
   end
 
   defp setup_statuses(token, project, batch, patches) do
-    toml = @github_api.get_file(token, project.repo_xref, project.staging_branch, "bors.toml")
+    toml = @github_api.get_file(
+      token,
+      project.repo_xref,
+      project.staging_branch,
+      "bors.toml")
     case toml do
       nil ->
         setup_statuses_error(token, batch, patches, "bors.toml does not exist")
@@ -126,12 +180,12 @@ defmodule Aelita2.Batcher do
       toml ->
         case Aelita2.Batcher.BorsToml.new(toml) do
           {:ok, toml} ->
-            Enum.map(toml.status, &%Status{
-              batch_id: batch.id,
-              identifier: &1,
-              url: nil,
-              state: Status.numberize_state(:running)
-              })
+            toml.status
+            |> Enum.map(&%Status{
+                batch_id: batch.id,
+                identifier: &1,
+                url: nil,
+                state: Status.numberize_state(:running)})
             |> Enum.each(&Repo.insert!/1)
             :running
           {:err, :parse_failed} ->
@@ -142,18 +196,25 @@ defmodule Aelita2.Batcher do
   end
 
   defp setup_statuses_error(token, batch, patches, message) do
-    Batch.changeset(batch, %{state: Batch.numberize_state(:err)})
+    err = Batch.numberize_state(:err)
+    batch
+    |> Batch.changeset(%{state: err})
     |> Repo.update!()
     send_message(token, patches, {:config, message})
   end
 
   defp poll_running_batch(batch) do
     project = batch.project
-    token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
-    my_statuses = Repo.all(Status.all_for_batch(batch.id))
-    gh_statuses = @github_api.get_commit_status!(token, project.repo_xref, batch.commit)
-    Enum.filter(my_statuses, &Map.has_key?(gh_statuses, &1.identifier))
-    |> Enum.map(&Status.changeset(&1, %{state: Status.numberize_state(Map.fetch!(my_statuses, &1.identifier))}))
+    gh_statuses = project.installation.installation_xref
+    |> @github_api.Integration.get_installation_token!()
+    |> @github_api.get_commit_status!(project.repo_xref, batch.commit)
+    |> Enum.map(&{elem(&1, 0), Status.numberize_state(elem(&1, 1))})
+    batch.id
+    |> Status.all_for_batch()
+    |> Repo.all()
+    |> Enum.filter(&Map.has_key?(gh_statuses, &1.identifier))
+    |> Enum.map(&{&1, %{state: Map.fetch!(gh_statuses, &1.identifier)}})
+    |> Enum.map(&Status.changeset(elem(&1, 0), elem(&1, 1)))
     |> Enum.each(&Repo.update!/1)
     maybe_complete_batch(batch)
   end
@@ -162,15 +223,24 @@ defmodule Aelita2.Batcher do
     statuses = Repo.all(Status.all_for_batch(batch.id))
     state = Aelita2.Batcher.State.summary_statuses(statuses)
     maybe_complete_batch(state, batch, statuses)
-    Batch.changeset(batch, %{state: Batch.numberize_state(state), last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)})
+    state = Batch.numberize_state(state)
+    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    batch
+    |> Batch.changeset(%{state: state, last_polled: now})
     |> Repo.update!()
   end
 
   defp maybe_complete_batch(:ok, batch, statuses) do
     project = batch.project
-    token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
-    @github_api.copy_branch!(token, project.repo_xref, project.staging_branch, project.master_branch)
-    patches = Repo.all(Patch.all_for_batch(batch.id))
+    ixref = project.installation.installation_xref
+    token = @github_api.Integration.get_installation_token!(ixref)
+    @github_api.copy_branch!(token,
+      project.repo_xref,
+      project.staging_branch,
+      project.master_branch)
+    patches = batch.id
+    |> Patch.all_for_batch()
+    |> Repo.all()
     |> Enum.map(&%Patch{&1 | project: batch.project})
     send_message(token, patches, {:succeeded, statuses})
     Project.ping!(project.id)
@@ -178,9 +248,12 @@ defmodule Aelita2.Batcher do
 
   defp maybe_complete_batch(:err, batch, statuses) do
     project = batch.project
-    token = @github_api.Integration.get_installation_token!(project.installation.installation_xref)
+    ixref = project.installation.installation_xref
+    token = @github_api.Integration.get_installation_token!(ixref)
     erred = Enum.filter(statuses, &(&1.state == :err))
-    patches = Repo.all(Patch.all_for_batch(batch.id))
+    patches = batch.id
+    |> Patch.all_for_batch()
+    |> Repo.all()
     |> Enum.map(&%Patch{&1 | project: batch.project})
     state = bisect(patches)
     send_message(token, patches, {state, erred})
@@ -206,20 +279,27 @@ defmodule Aelita2.Batcher do
 
   defp make_batch(patches, project_id) do
     batch = Repo.insert!(Batch.new(project_id))
-    Enum.map(patches, &LinkPatchBatch.changeset(%LinkPatchBatch{}, %{batch_id: batch.id, patch_id: &1.id}))
+    patches
+    |> Enum.map(&%{batch_id: batch.id, patch_id: &1.id})
+    |> Enum.map(&LinkPatchBatch.changeset(%LinkPatchBatch{}, &1))
     |> Enum.each(&Repo.insert!/1)
     batch
   end
 
   def get_new_batch(project_id) do
-    case Repo.get_by(Batch, project_id: project_id, state: Batch.numberize_state(:waiting)) do
+    waiting = Batch.numberize_state(:waiting)
+    case Repo.get_by(Batch, project_id: project_id, state: waiting) do
       nil -> Repo.insert!(Batch.new(project_id))
       batch -> batch
     end
   end
 
   defp send_message(token, patches, message) do
-    body = Aelita2.Batcher.Message.generate_message(message)
-    Enum.each(patches, &@github_api.post_comment!(token, &1.project.repo_xref, &1.pr_xref, body))
+    body = Batcher.Message.generate_message(message)
+    Enum.each(patches, &@github_api.post_comment!(
+      token,
+      &1.project.repo_xref,
+      &1.pr_xref,
+      body))
   end
 end

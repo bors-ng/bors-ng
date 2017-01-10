@@ -1,6 +1,16 @@
 # This file is basically taken verbatim from:
-# https://github.com/scrogson/oauth2_example/blob/master/web/controllers/auth_controller.ex
+# https://github.com/scrogson/oauth2_example/
 defmodule Aelita2.AuthController do
+  @moduledoc """
+  Routing glue to allow authenticating with GitHub oAuth.
+  `Aelita2.Router` ensures that users have to go through here.
+  When a user is authenticated, the following items are added to the session
+
+   * `:current_user` the ID of the authenticated user in `Aelita2.User`.
+     This controller will create a user if none exists.
+   * `:github_access_token` the token to use when accessing the GitHub API.
+  """
+
   use Aelita2.Web, :controller
 
   alias Aelita2.User
@@ -8,7 +18,8 @@ defmodule Aelita2.AuthController do
   @github_api Application.get_env(:aelita2, Aelita2.GitHub)[:api]
 
   @doc """
-  This action is reached via `/auth/:provider` and redirects to the OAuth2 provider
+  This action is reached via `/auth/:provider`
+  and redirects to the OAuth2 provider
   based on the chosen strategy.
   """
   def index(conn, %{"provider" => provider}) do
@@ -20,8 +31,13 @@ defmodule Aelita2.AuthController do
   Socket tokens are usable for one hour before they must be reset.
   """
   def socket_token(conn, _params) do
-    token = Phoenix.Token.sign(conn, "channel:current_user", conn.assigns.user.id)
-    render conn, "socket_token.json", token: %{token: token, current_user: conn.assigns.user.id}
+    token = Phoenix.Token.sign(
+      conn,
+      "channel:current_user",
+      conn.assigns.user.id)
+    render conn,
+      "socket_token.json",
+      token: %{token: token, current_user: conn.assigns.user.id}
   end
 
   def logout(conn, _params) do
@@ -32,10 +48,13 @@ defmodule Aelita2.AuthController do
   end
 
   @doc """
-  This action is reached via `/auth/:provider/callback` is the the callback URL that
-  the OAuth2 provider will redirect the user back to with a `code` that will
-  be used to request an access token. The access token will then be used to
-  access protected resources on behalf of the user.
+  This action, which is reached at `/auth/:provider/callback`,
+  is the the callback URL that the OAuth2 provider will redirect
+  the user back to with a `code`.
+
+  Once here, we will request a permanent access token,
+  allowing us to act on the user's behalf through the GitHub REST API.
+  We also add a row to our database, if it does not already exist.
   """
   def callback(conn, %{"provider" => provider, "code" => code}) do
     # Exchange an auth code for an access token

@@ -1,4 +1,9 @@
 defmodule Aelita2.WebhookController do
+  @moduledoc """
+  The webhook controller responds to HTTP requests
+  that are initiated from other services (currently, just GitHub).
+  """
+
   use Aelita2.Web, :controller
 
   alias Aelita2.Installation
@@ -44,7 +49,9 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "integration_installation_repositories") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
-    installation = Repo.get_by!(Installation, installation_xref: installation_xref)
+    installation = Repo.get_by!(
+      Installation,
+      installation_xref: installation_xref)
     :ok = case payload["action"] do
       "removed" -> :ok
       "added" -> :ok
@@ -54,46 +61,76 @@ defmodule Aelita2.WebhookController do
     |> Enum.map(&from(p in Project, where: p.repo_xref == ^&1["id"]))
     |> Enum.each(&Repo.delete_all/1)
     payload["repositories_added"]
-    |> Enum.map(&%Project{repo_xref: &1["id"], name: &1["full_name"], installation: installation})
+    |> Enum.map(&project_from_json(&1, installation.id))
     |> Enum.map(&Repo.insert!/1)
-    |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))
+    |> Enum.map(&%LinkUserProject{user_id: sender.id, project_id: &1.id})
+    |> Enum.each(&Repo.insert!/1)
     :ok
   end
 
   def do_webhook(conn, "github", "pull_request") do
-    project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
+    repo_xref = conn.body_params["repository"]["id"]
+    project = Repo.get_by!(Project, repo_xref: repo_xref)
     author = sync_user(conn.body_params["pull_request"]["user"])
     patch = sync_patch(project.id, author.id, conn.body_params["pull_request"])
-    do_webhook_pr(conn, conn.body_params["action"], project, patch, author)
+    do_webhook_pr(conn, %{
+      action: conn.body_params["action"],
+      project: project,
+      patch: patch,
+      author: author})
   end
 
   def do_webhook(conn, "github", "issue_comment") do
     if Map.has_key?(conn.body_params["issue"], "pull_request") do
-      project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
-      patch = Repo.get_by!(Patch, project_id: project.id, pr_xref: conn.body_params["issue"]["number"])
+      project = Repo.get_by!(Project,
+        repo_xref: conn.body_params["repository"]["id"])
+      patch = Repo.get_by!(Patch,
+        project_id: project.id,
+        pr_xref: conn.body_params["issue"]["number"])
       author = sync_user(conn.body_params["issue"]["user"])
       commenter = sync_user(conn.body_params["comment"]["user"])
       comment = conn.body_params["comment"]["body"]
-      do_webhook_comment(conn, "github", project, patch, author, commenter, comment)
+      do_webhook_comment(conn, %{
+        project: project,
+        patch: patch,
+        author: author,
+        commenter: commenter,
+        comment: comment})
     end
   end
 
   def do_webhook(conn, "github", "pull_request_review_comment") do
-    project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
-    patch = Repo.get_by!(Patch, project_id: project.id, pr_xref: conn.body_params["issue"]["number"])
+    project = Repo.get_by!(Project,
+      repo_xref: conn.body_params["repository"]["id"])
+    patch = Repo.get_by!(Patch,
+      project_id: project.id,
+      pr_xref: conn.body_params["issue"]["number"])
     author = sync_user(conn.body_params["issue"]["user"])
     commenter = sync_user(conn.body_params["comment"]["user"])
     comment = conn.body_params["comment"]["body"]
-    do_webhook_comment(conn, "github", project, patch, author, commenter, comment)
+    do_webhook_comment(conn, %{
+      project: project,
+      patch: patch,
+      author: author,
+      commenter: commenter,
+      comment: comment})
   end
 
   def do_webhook(conn, "github", "pull_request_review") do
-    project = Repo.get_by!(Project, repo_xref: conn.body_params["repository"]["id"])
-    patch = Repo.get_by!(Patch, project_id: project.id, pr_xref: conn.body_params["issue"]["number"])
+    project = Repo.get_by!(Project,
+      repo_xref: conn.body_params["repository"]["id"])
+    patch = Repo.get_by!(Patch,
+      project_id: project.id,
+      pr_xref: conn.body_params["issue"]["number"])
     author = sync_user(conn.body_params["issue"]["user"])
     commenter = sync_user(conn.body_params["comment"]["user"])
     comment = conn.body_params["comment"]["body"]
-    do_webhook_comment(conn, "github", project, patch, author, commenter, comment)
+    do_webhook_comment(conn, %{
+      project: project,
+      patch: patch,
+      author: author,
+      commenter: commenter,
+      comment: comment})
   end
 
   def do_webhook(conn, "github", "status") do
@@ -104,60 +141,72 @@ defmodule Aelita2.WebhookController do
     Aelita2.Batcher.status(commit, identifier, state, url)
   end
 
-  def do_webhook_pr(_conn, "opened", project, _patch, _author) do
+  def do_webhook_pr(_conn, %{action: "opened", project: project}) do
     Project.ping!(project.id)
     :ok
   end
 
-  def do_webhook_pr(_conn, "closed", project, patch, _author) do
+  def do_webhook_pr(_conn, %{action: "closed", project: project, patch: p}) do
     Project.ping!(project.id)
-    Repo.update!(Patch.changeset(patch, %{open: false}))
+    Repo.update!(Patch.changeset(p, %{open: false}))
     :ok
   end
 
-  def do_webhook_pr(_conn, "reopened", project, patch, _author) do
+  def do_webhook_pr(_conn, %{action: "reopened", project: project, patch: p}) do
     Project.ping!(project.id)
-    Repo.update!(Patch.changeset(patch, %{open: false}))
+    Repo.update!(Patch.changeset(p, %{open: false}))
     :ok
   end
 
-  def do_webhook_pr(conn, "synchronize", _project, patch, _author) do
+  def do_webhook_pr(conn, %{action: "synchronized", patch: p}) do
     commit = conn.body_params["pull_request"]["head"]["sha"]
-    Repo.update!(Patch.changeset(patch, %{commit: commit}))
+    Repo.update!(Patch.changeset(p, %{commit: commit}))
   end
 
-  def do_webhook_pr(_conn, "assigned", _project, _patch, _author) do
+  def do_webhook_pr(_conn, %{action: "assigned"}) do
     :ok
   end
 
-  def do_webhook_pr(_conn, "unassigned", _project, _patch, _author) do
+  def do_webhook_pr(_conn, %{action: "unassigned"}) do
     :ok
   end
 
-  def do_webhook_pr(_conn, "labeled", _project, _patch, _author) do
+  def do_webhook_pr(_conn, %{action: "labeled"}) do
     :ok
   end
 
-  def do_webhook_pr(_conn, "unlabeled", _project, _patch, _author) do
+  def do_webhook_pr(_conn, %{action: "unlabeled"}) do
     :ok
   end
 
-  def do_webhook_pr(conn, "edited", _project, patch, _author) do
+  def do_webhook_pr(conn, %{action: "edited", patch: patch}) do
     title = conn.title_params["pull_request"]["title"]
     body = conn.body_params["pull_request"]["body"]
     Repo.update!(Patch.changeset(patch, %{title: title, body: body}))
   end
 
-  def do_webhook_comment(_conn, "github", project, patch, _author, commenter, comment) do
-    activation_phrase = Application.get_env(:aelita2, Aelita2)[:activation_phrase]
+  def do_webhook_comment(_conn, params) do
+    %{project: project,
+      patch: p,
+      commenter: commenter,
+      comment: comment} = params
+    config = Application.get_env(:aelita2, Aelita2)
+    activation_phrase = config[:activation_phrase]
     if :binary.match(comment, activation_phrase) != :nomatch do
-      link = Repo.get_by LinkUserProject, project_id: project.id, user_id: commenter.id
-      if not is_nil link do
-        Batcher.reviewed(patch.id)
-      else
+      link = Repo.get_by(LinkUserProject,
+        project_id: project.id,
+        user_id: commenter.id)
+      if is_nil link do
         installation = Repo.get!(Installation, project.installation_id)
-        token = @github_api.Integration.get_installation_token!(installation.installation_xref)
-        @github_api.post_comment!(token, project.repo_xref, patch.pr_xref, ":lock: Permission denied")
+        xref = installation.installation_xref
+        token = @github_api.Integration.get_installation_token!(xref)
+        @github_api.post_comment!(
+          token,
+          project.repo_xref,
+          p.pr_xref,
+          ":lock: Permission denied")
+      else
+        Batcher.reviewed(p.id)
       end
     end
   end
@@ -169,19 +218,22 @@ defmodule Aelita2.WebhookController do
       })
       i -> i
     end
-    @github_api.Integration.get_installation_token!(installation_xref)
+    token = @github_api.Integration.get_installation_token!(installation_xref)
+    token
     |> @github_api.Integration.get_my_repos!()
     |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
     |> Enum.map(&Repo.insert!/1)
-    |> Enum.each(&Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: &1.id}))
+    |> Enum.map(&%LinkUserProject{user_id: sender.id, project_id: &1.id})
+    |> Enum.each(&Repo.insert!/1)
   end
 
   def sync_patch(project_id, author_id, patch_json) do
-    case Repo.get_by(Patch, project_id: project_id, pr_xref: patch_json["number"]) do
+    number = patch_json["number"]
+    case Repo.get_by(Patch, project_id: project_id, pr_xref: number) do
       nil -> Repo.insert!(%Patch{
         project_id: project_id,
-        pr_xref: patch_json["number"],
+        pr_xref: number,
         title: patch_json["title"],
         body: patch_json["body"],
         commit: patch_json["head"]["sha"],
@@ -209,5 +261,12 @@ defmodule Aelita2.WebhookController do
         user
       end
     end
+  end
+
+  defp project_from_json(json, installation_id) do
+    %Project{
+      repo_xref: json["id"],
+      name: json["full_name"],
+      installation_id: installation_id}
   end
 end

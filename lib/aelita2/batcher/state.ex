@@ -1,4 +1,10 @@
 defmodule Aelita2.Batcher.State do
+  @moduledoc """
+  The batcher state machine.
+  It takes a list of status states,
+  and emits a batch state.
+  """
+
   def summary_statuses(statuses) do
     statuses
     |> Enum.map(&(&1.state))

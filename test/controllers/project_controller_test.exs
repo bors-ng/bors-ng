@@ -33,7 +33,11 @@ defmodule Aelita2.ProjectControllerTest do
   def login(conn) do
     conn = get conn, auth_path(conn, :index, "github")
     assert html_response(conn, 302) =~ "MOCK_GITHUB_AUTHORIZE_URL"
-    conn = get conn, auth_path(conn, :callback, "github", %{"code" => "MOCK_GITHUB_AUTHORIZE_CODE"})
+    conn = get conn, auth_path(
+      conn,
+      :callback,
+      "github",
+      %{"code" => "MOCK_GITHUB_AUTHORIZE_CODE"})
     html_response(conn, 302)
     conn
   end

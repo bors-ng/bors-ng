@@ -1,4 +1,11 @@
 defmodule Aelita2.Endpoint do
+  @moduledoc """
+  The set of plugs that are always present,
+  including the websocket interceptor and the JSON parser.
+
+  This is what Cowboy calls into.
+  """
+
   use Phoenix.Endpoint, otp_app: :aelita2
 
   socket "/socket", Aelita2.UserSocket
