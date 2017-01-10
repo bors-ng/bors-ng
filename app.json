@@ -8,6 +8,10 @@
 
   "success_url": "/auth/github",
   "env": {
+    "MIX_ENV": {
+      "description": "Mode to run the application in",
+      "value": "prod"
+    },
     "POOL_SIZE": {
       "description": "Number of connections to PostgreSQL to keep open",
       "value": "18"
