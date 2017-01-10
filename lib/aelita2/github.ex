@@ -1,17 +1,18 @@
 defmodule Aelita2.GitHub do
 
-  @content_type_raw "application/vnd.github.VERSION.raw"
-
   @moduledoc """
   Wrappers around the GitHub REST API.
   """
+
+  @content_type_raw "application/vnd.github.VERSION.raw"
 
   defp config do
     cfg = [
       site: "https://api.github.com",
       require_visibility: :public
     ]
-    Application.get_env(:aelita2, Aelita2.GitHub)
+    :aelita2
+    |> Application.get_env(Aelita2.GitHub)
     |> Keyword.merge(cfg)
   end
 
@@ -49,7 +50,10 @@ defmodule Aelita2.GitHub do
     force_push!(token, repository_id, sha, to)
   end
 
-  def merge_branch!(token, repository_id, from, to, commit_message) when is_binary(token) do
+  def merge_branch!(token, repository_id, %{
+    from: from,
+    to: to,
+    commit_message: commit_message}) when is_binary(token) do
     cfg = config()
     %{body: raw, status_code: status_code} = HTTPoison.post!(
       "#{cfg[:site]}/repositories/#{repository_id}/merges",
@@ -71,7 +75,11 @@ defmodule Aelita2.GitHub do
     end
   end
 
-  def synthesize_commit!(token, repository_id, branch, tree, parents, commit_message) when is_binary(token) do
+  def synthesize_commit!(token, repository_id, %{
+    branch: branch,
+    tree: tree,
+    parents: parents,
+    commit_message: commit_message}) when is_binary(token) do
     cfg = config()
     %{body: raw, status_code: 201} = HTTPoison.post!(
       "#{cfg[:site]}/repositories/#{repository_id}/git/commits",

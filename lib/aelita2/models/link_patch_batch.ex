@@ -1,4 +1,12 @@
 defmodule Aelita2.LinkPatchBatch do
+  @moduledoc """
+  Linker table between the patches that are being run by a batch,
+  and the batch itself.
+
+  There should not be more than one running batch with the same patch,
+  though once a batch fails out, other batches can take the same patch.
+  """
+
   use Aelita2.Web, :model
 
   schema "link_patch_batch" do

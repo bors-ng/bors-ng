@@ -11,7 +11,8 @@ defmodule Aelita2.GitHub.Integration do
   # Public API
 
   def config do
-    Application.get_env(:aelita2, Aelita2.GitHub.Integration)
+    :aelita2
+    |> Application.get_env(Aelita2.GitHub.Integration)
     |> Keyword.merge(Application.get_env(:aelita2, Aelita2.GitHub))
     |> Keyword.merge([site: "https://api.github.com"])
   end
@@ -20,7 +21,10 @@ defmodule Aelita2.GitHub.Integration do
     import Joken
     cfg = config()
     pem = JOSE.JWK.from_pem(cfg[:pem])
-    jwt_token = %{iat: current_time, exp: current_time + 400, iss: cfg[:iss]}
+    jwt_token = %{
+      iat: current_time(),
+      exp: current_time() + 400,
+      iss: cfg[:iss]}
     |> token()
     |> sign(rs256(pem))
     |> get_compact()

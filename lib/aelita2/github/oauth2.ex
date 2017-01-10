@@ -13,7 +13,8 @@ defmodule Aelita2.GitHub.OAuth2 do
       authorize_url: "https://github.com/login/oauth/authorize",
       token_url: "https://github.com/login/oauth/access_token"
     ]
-    Application.get_env(:aelita2, Aelita2.GitHub)
+    :aelita2
+    |> Application.get_env(Aelita2.GitHub)
     |> Keyword.merge(Application.get_env(:aelita2, Aelita2.GitHub.OAuth2))
     |> Keyword.merge(cfg)
   end
@@ -28,31 +29,36 @@ defmodule Aelita2.GitHub.OAuth2 do
     OAuth2.Client.new(config())
   end
 
-  def authorize_url!() do
-    OAuth2.Client.authorize_url!(client(), params)
+  def authorize_url! do
+    OAuth2.Client.authorize_url!(client(), params())
   end
 
   def get_token!(params \\ [], _headers \\ []) do
-    OAuth2.Client.get_token!(client(), Keyword.merge(params, client_secret: client().client_secret))
+    params = Keyword.merge(params, client_secret: client().client_secret)
+    OAuth2.Client.get_token!(client(), params)
   end
 
   @doc """
   List repoes that the oAuth-authenticated user is a contributor to.
   """
-  def get_my_repos!(github_access_token, url \\ nil) when is_binary(github_access_token) do
+  def get_my_repos!(github_access_token, url \\ nil) do
     visibility = case config()[:require_visibility] do
       :public -> "public"
       :all -> "all"
     end
+    params = [{"visibility", visibility}, {"sort", "full_name"}]
     {url, params} = case url do
-      nil -> {"#{config()[:site]}/user/repos", [params: [{"visibility", visibility}, {"sort", "full_name"}]]}
-      url -> {url, URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()}
+      nil ->
+        {"#{config()[:site]}/user/repos", [params: params]}
+      url ->
+        {url, URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()}
     end
     %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
       url,
       [{"Authorization", "token #{github_access_token}"}],
       params)
-    response = Poison.decode!(raw)
+    response = raw
+    |> Poison.decode!()
     |> Enum.map(&%{
       id: &1["id"],
       name: &1["full_name"],
@@ -67,8 +73,9 @@ defmodule Aelita2.GitHub.OAuth2 do
         login: &1["owner"]["login"],
         avatar_url: &1["owner"]["avatar_url"],
         type: &1["owner"]["type"]}})
-    next_headers = Enum.filter(headers, fn h -> {n, _} = h; n == "Link" end)
-    |> Enum.map(fn h -> {_, v} = h; ExLinkHeader.parse!(v) end)
+    next_headers = headers
+    |> Enum.filter(&(elem(&1, 0) == "Link"))
+    |> Enum.map(&(ExLinkHeader.parse!(elem(&1, 1))))
     |> Enum.filter(&!is_nil(&1.next))
     next = case next_headers do
       [] -> nil

@@ -1,4 +1,10 @@
 defmodule Aelita2.Status do
+  @moduledoc """
+  A database record for an individual CI run.
+  It corresponds to an item in the status = []
+  array of bors.toml.
+  """
+
   use Aelita2.Web, :model
 
   alias Aelita2.Status

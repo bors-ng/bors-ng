@@ -48,7 +48,8 @@ defmodule Aelita2.ModelCase do
 
   You could then write your assertion like:
 
-      assert {:password, "is unsafe"} in errors_on(%User{}, %{password: "password"})
+      assert {:password, "is unsafe"} \
+        in errors_on(%User{}, %{password: "password"})
 
   You can also create the changeset manually and retrieve the errors
   field directly:
@@ -58,7 +59,8 @@ defmodule Aelita2.ModelCase do
       true
   """
   def errors_on(struct, data) do
-    struct.__struct__.changeset(struct, data)
+    changeset = struct.__struct__.changeset(struct, data)
+    changeset
     |> Ecto.Changeset.traverse_errors(&Aelita2.ErrorHelpers.translate_error/1)
     |> Enum.flat_map(fn {key, errors} -> for msg <- errors, do: {key, msg} end)
   end

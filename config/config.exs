@@ -12,7 +12,8 @@ config :aelita2,
 # Configures the endpoint
 config :aelita2, Aelita2.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "RflEtl3q2wkPracTsiqJXfJwu+PtZ6P65kd5rcA7da8KR5Abc/YjB8aZHE4DBxMG",
+  secret_key_base:
+  "RflEtl3q2wkPracTsiqJXfJwu+PtZ6P65kd5rcA7da8KR5Abc/YjB8aZHE4DBxMG",
   render_errors: [view: Aelita2.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Aelita2.PubSub,
            adapter: Phoenix.PubSub.PG2]

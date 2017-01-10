@@ -11,7 +11,8 @@ defmodule Aelita2.BatcherQueueTest do
   test "splits two waiting items" do
     batch1 = %Batch{project_id: 1, id: 3, state: 0}
     batch2 = %Batch{project_id: 2, id: 4, state: 0}
-    batches = Queue.organize_batches_into_project_queues([batch1, batch2])
+    batches = [batch1, batch2]
+    |> Queue.organize_batches_into_project_queues()
     |> Enum.sort_by(&bid/1)
     assert batches == [{:waiting, [batch1]}, {:waiting, [batch2]}]
   end
@@ -20,7 +21,8 @@ defmodule Aelita2.BatcherQueueTest do
     batch1 = %Batch{project_id: 1, id: 3, state: 0, last_polled: 3}
     batch2 = %Batch{project_id: 1, id: 4, state: 0, last_polled: 4}
     batch3 = %Batch{project_id: 2, id: 5, state: 0}
-    batches = Queue.organize_batches_into_project_queues([batch1, batch3, batch2])
+    batches = [batch1, batch3, batch2]
+    |> Queue.organize_batches_into_project_queues()
     |> Enum.sort_by(&bid/1)
     assert batches == [{:waiting, [batch1, batch2]}, {:waiting, [batch3]}]
   end
@@ -49,7 +51,8 @@ defmodule Aelita2.BatcherQueueTest do
     batch1 = %Batch{project_id: 1, id: 3, state: 0, last_polled: 3}
     batch2 = %Batch{project_id: 1, id: 4, state: 1, last_polled: 4}
     batch3 = %Batch{project_id: 2, id: 5, state: 0}
-    batches = Queue.organize_batches_into_project_queues([batch1, batch3, batch2])
+    batches = [batch1, batch3, batch2]
+    |> Queue.organize_batches_into_project_queues()
     |> Enum.sort_by(&bid/1)
     assert batches == [{:running, [batch2, batch1]}, {:waiting, [batch3]}]
   end

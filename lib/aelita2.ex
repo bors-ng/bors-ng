@@ -1,4 +1,9 @@
 defmodule Aelita2 do
+  @moduledoc """
+  A GitHub integration that merges and tests pull requests
+  so that the master branch is never, ever broken.
+  """
+
   use Application
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
@@ -12,7 +17,6 @@ defmodule Aelita2 do
       supervisor(Aelita2.Repo, []),
       # Start the endpoint when the application starts
       supervisor(Aelita2.Endpoint, []),
-      # Start your own worker by calling: Aelita2.Worker.start_link(arg1, arg2, arg3)
       # worker(Aelita2.Worker, [arg1, arg2, arg3]),
     ]
 

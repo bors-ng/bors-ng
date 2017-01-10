@@ -1,4 +1,8 @@
 defmodule Aelita2.Batcher.Message do
+  @moduledoc """
+  User-readable strings that go in commit messages and comments.
+  """
+
   def generate_message({:config, message}) do
     "# Configuration problem\n#{message}"
   end
