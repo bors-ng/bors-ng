@@ -5,8 +5,8 @@ otp_release:
   - 18.3
 branches:
     only:
-      - master
       - staging
+      - trying
 
 install:
   - mix local.rebar --force

@@ -39,6 +39,7 @@ defmodule Aelita2.Patch do
       :project_id,
       :author_id,
       :open])
+    |> unique_constraint(:pr_xref, name: :patches_pr_xref_index)
   end
 
   def all_for_batch(batch_id) do
