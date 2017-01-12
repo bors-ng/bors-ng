@@ -154,6 +154,7 @@ Or you can do it manually:
     $ heroku buildpacks:add https://github.com/gjaldon/heroku-buildpack-phoenix-static.git
     $ heroku addons:create heroku-postgresql:hobby-dev
     $ heroku config:set \
+        MIX_ENV=prod \
         POOL_SIZE=18 \
         PUBLIC_HOST=bors-ng.herokuapp.com \
         SECRET_KEY_BASE=<SECRET1> \
