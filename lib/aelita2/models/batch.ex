@@ -59,16 +59,14 @@ defmodule Aelita2.Batch do
   def all_assoc(:incomplete) do
     from b in Batch,
       join: p in assoc(b, :project),
-      join: i in assoc(p, :installation),
-      preload: [project: {p, installation: i}],
+      preload: [project: p],
       where: (b.state == 0 or b.state == 1)
   end
 
   def get_assoc_by_commit(commit) do
     from b in Batch,
       join: p in assoc(b, :project),
-      join: i in assoc(p, :installation),
-      preload: [project: {p, installation: i}],
+      preload: [project: p],
       where: b.commit == ^commit
   end
 

@@ -139,6 +139,18 @@ defmodule Aelita2.WebhookController do
     url = conn.body_params["target_url"]
     state = @github_api.map_state_to_status(conn.body_params["state"])
     Aelita2.Batcher.status(commit, identifier, state, url)
+
+    commit_msg = conn.body_params["commit"]["commit"]["message"]
+    err_msg = Aelita2.Batcher.Message.generate_staging_tmp_message(identifier)
+    case commit_msg do
+      "-bors-staging-tmp-" <> pr_xref when not is_nil err_msg ->
+        conn.body_params["repository"]["id"]
+        |> Project.installation_connection()
+        |> Repo.one!()
+        |> @github_api.RepoConnection.connect!()
+        |> @github_api.post_comment!(pr_xref, err_msg)
+      _ -> :ok
+    end
   end
 
   def do_webhook_pr(_conn, %{action: "opened", project: project}) do
@@ -197,12 +209,11 @@ defmodule Aelita2.WebhookController do
         project_id: project.id,
         user_id: commenter.id)
       if is_nil link do
-        installation = Repo.get!(Installation, project.installation_id)
-        xref = installation.installation_xref
-        token = @github_api.Integration.get_installation_token!(xref)
-        @github_api.post_comment!(
-          token,
-          project.repo_xref,
+        project.repo_xref
+        |> Project.installation_connection()
+        |> Repo.one!()
+        |> @github_api.RepoConnection.connect!()
+        |> @github_api.post_comment!(
           p.pr_xref,
           ":lock: Permission denied")
       else
@@ -218,8 +229,8 @@ defmodule Aelita2.WebhookController do
       })
       i -> i
     end
-    token = @github_api.Integration.get_installation_token!(installation_xref)
-    token
+    installation_xref
+    |> @github_api.Integration.get_installation_token!()
     |> @github_api.Integration.get_my_repos!()
     |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
