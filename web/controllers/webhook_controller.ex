@@ -139,6 +139,18 @@ defmodule Aelita2.WebhookController do
     url = conn.body_params["target_url"]
     state = @github_api.map_state_to_status(conn.body_params["state"])
     Aelita2.Batcher.status(commit, identifier, state, url)
+
+    commit_msg = conn.body_params["commit"]["commit"]["message"]
+    err_msg = Aelita2.Batcher.Message.generate_staging_tmp_message(identifier)
+    case commit_msg do
+      "-bors-staging-tmp-" <> pr_xref when not is_nil err_msg ->
+        conn.body_params["repository"]["id"]
+        |> Project.installation_connection()
+        |> Repo.one!()
+        |> @github_api.RepoConnection.connect!()
+        |> @github_api.post_comment!(pr_xref, err_msg)
+      _ -> :ok
+    end
   end
 
   def do_webhook_pr(_conn, %{action: "opened", project: project}) do
