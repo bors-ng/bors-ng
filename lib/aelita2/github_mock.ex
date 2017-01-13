@@ -3,22 +3,22 @@ defmodule Aelita2.GitHubMock do
   This is only used for development and testing.
   """
 
-  def copy_branch!(_, _, _, _) do
+  def copy_branch!(_, _, _) do
     raise("unimplemented")
   end
-  def merge_branch!(_, _, _) do
+  def merge_branch!(_, _) do
     raise("unimplemented")
   end
-  def synthesize_commit!(_, _, _) do
+  def synthesize_commit!(_, _) do
     raise("unimplemented")
   end
-  def get_file(_, _, _, _) do
+  def get_file(_, _, _) do
     raise("unimplemented")
   end
-  def post_comment!(_, _, _, _) do
+  def post_comment!(_, _, _) do
     raise("unimplemented")
   end
-  def get_commit_status!(_, _, _) do
+  def get_commit_status!(_, _) do
     raise("unimplemented")
   end
   def get_repo!(_, _) do
@@ -32,9 +32,14 @@ defmodule Aelita2.GitHubMock do
         {:error, :not_found}
     end
   end
-  def map_state_to_status(state) do
-    Aelita2.GitHub.map_state_to_status(state)
-  end
+  defdelegate map_state_to_status(state), to: Aelita2.GitHub
+end
+defmodule Aelita2.GitHubMock.RepoConnection do
+  @moduledoc """
+  This is only used for development and testing.
+  """
+
+  defdelegate connect!(repo_conn), to: Aelita2.GitHub.RepoConnection
 end
 defmodule Aelita2.GitHubMock.OAuth2 do
   @moduledoc """
