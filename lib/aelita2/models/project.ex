@@ -7,12 +7,13 @@ defmodule Aelita2.Project do
 
   use Aelita2.Web, :model
 
+  alias Aelita2.Installation
   alias Aelita2.LinkUserProject
   alias Aelita2.Project
   alias Aelita2.User
 
   schema "projects" do
-    belongs_to :installation, Aelita2.Installation
+    belongs_to :installation, Installation
     field :repo_xref, :integer
     field :name, :string
     many_to_many :users, User, join_through: LinkUserProject
@@ -33,6 +34,16 @@ defmodule Aelita2.Project do
 
   def ping!(project_id) do
     Aelita2.Endpoint.broadcast! "project_ping:#{project_id}", "new_msg", %{}
+  end
+
+  def installation_connection(repo_xref) do
+    from p in Project,
+      join: i in Installation, on: i.id == p.installation_id,
+      where: p.repo_xref == ^repo_xref,
+      select: %{
+        repo: p.repo_xref,
+        installation: i.installation_xref,
+      }
   end
 
   @doc """
