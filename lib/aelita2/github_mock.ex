@@ -63,9 +63,6 @@ defmodule Aelita2.GitHubMock.OAuth2 do
     if token != @token, do: raise("Incorrect GitHub auth code: #{token}")
     %{body: %{"id" => 23, "login" => "space"}}
   end
-  def get_my_repos!(_, _) do
-    raise("unimplemented")
-  end
 end
 defmodule Aelita2.GitHubMock.Integration do
   @moduledoc """
