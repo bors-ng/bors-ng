@@ -210,6 +210,7 @@ defmodule Aelita2.Batcher do
     |> get_repo_conn()
     |> @github_api.get_commit_status!(batch.commit)
     |> Enum.map(&{elem(&1, 0), Status.numberize_state(elem(&1, 1))})
+    |> Map.new()
     batch.id
     |> Status.all_for_batch()
     |> Repo.all()
