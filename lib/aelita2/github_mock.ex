@@ -3,6 +3,9 @@ defmodule Aelita2.GitHubMock do
   This is only used for development and testing.
   """
 
+  def push!(_, _, _) do
+    raise("unimplemented")
+  end
   def copy_branch!(_, _, _) do
     raise("unimplemented")
   end
