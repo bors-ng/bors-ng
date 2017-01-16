@@ -235,9 +235,9 @@ defmodule Aelita2.Batcher do
   defp maybe_complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    @github_api.copy_branch!(
+    @github_api.push!(
       repo_conn,
-      project.staging_branch,
+      batch.commit,
       project.master_branch)
     patches = batch.id
     |> Patch.all_for_batch()

@@ -43,6 +43,16 @@ defmodule Aelita2.GitHub do
     end
   end
 
+  def push!(repo_conn, sha, to) do
+    %{body: _, status_code: 200} = patch!(
+      repo_conn,
+      "git/refs/heads/#{to}",
+      Poison.encode!(%{
+        "sha": sha
+        }))
+    sha
+  end
+
   def copy_branch!(repo_conn, from, to) do
     %{body: raw, status_code: 200} = get!(repo_conn, "branches/#{from}")
     sha = Poison.decode!(raw)["commit"]["sha"]

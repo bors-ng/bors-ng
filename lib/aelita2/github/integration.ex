@@ -36,7 +36,6 @@ defmodule Aelita2.GitHub.Integration do
   end
 
   def get_my_repos!(token, url \\ nil, append \\ []) when is_binary(token) do
-    cfg = config()
     {url, params} = case url do
       nil ->
         {"#{config()[:site]}/installation/repos", []}
@@ -67,7 +66,7 @@ defmodule Aelita2.GitHub.Integration do
     |> Enum.filter(&(elem(&1, 0) == "Link"))
     |> Enum.map(&(ExLinkHeader.parse!(elem(&1, 1))))
     |> Enum.filter(&!is_nil(&1.next))
-    next = case next_headers do
+    case next_headers do
       [] -> repositories
       [next] -> get_my_repos!(token, next.next.url, repositories)
     end
