@@ -35,12 +35,20 @@ defmodule Aelita2.GitHub.Integration do
     Poison.decode!(raw)["token"]
   end
 
-  def get_my_repos!(token) when is_binary(token) do
+  def get_my_repos!(token, url \\ nil, append \\ []) when is_binary(token) do
     cfg = config()
-    %{body: raw, status_code: 200} = HTTPoison.get!(
-      "#{cfg[:site]}/installation/repositories",
-      [{"Authorization", "token #{token}"}, {"Accept", @content_type}])
-    Poison.decode!(raw)["repositories"]
+    {url, params} = case url do
+      nil ->
+        {"#{config()[:site]}/installation/repos", []}
+      url ->
+        params = URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()
+        {url, [params: params]}
+    end
+    %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
+      url,
+      [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
+      params)
+    repositories = Poison.decode!(raw)["repositories"]
     |> Enum.map(&%{
       id: &1["id"],
       name: &1["full_name"],
@@ -54,5 +62,14 @@ defmodule Aelita2.GitHub.Integration do
         login: &1["owner"]["login"],
         avatar_url: &1["owner"]["avatar_url"],
         type: &1["owner"]["type"]}})
+    |> Enum.concat(append)
+    next_headers = headers
+    |> Enum.filter(&(elem(&1, 0) == "Link"))
+    |> Enum.map(&(ExLinkHeader.parse!(elem(&1, 1))))
+    |> Enum.filter(&!is_nil(&1.next))
+    next = case next_headers do
+      [] -> repositories
+      [next] -> get_my_repos!(token, next.next.url, repositories)
+    end
   end
 end

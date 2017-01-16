@@ -170,7 +170,7 @@ defmodule Aelita2.WebhookController do
     :ok
   end
 
-  def do_webhook_pr(conn, %{action: "synchronized", patch: p}) do
+  def do_webhook_pr(conn, %{action: "synchronize", patch: p}) do
     commit = conn.body_params["pull_request"]["head"]["sha"]
     Repo.update!(Patch.changeset(p, %{commit: commit}))
   end
