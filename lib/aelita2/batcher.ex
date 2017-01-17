@@ -249,7 +249,7 @@ defmodule Aelita2.Batcher do
   defp maybe_complete_batch(:err, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    erred = Enum.filter(statuses, &(&1.state == :err))
+    erred = Enum.filter(statuses, &(&1.state == Status.numberize_state(:err)))
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
