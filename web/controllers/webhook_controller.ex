@@ -104,8 +104,8 @@ defmodule Aelita2.WebhookController do
       repo_xref: conn.body_params["repository"]["id"])
     patch = Repo.get_by!(Patch,
       project_id: project.id,
-      pr_xref: conn.body_params["issue"]["number"])
-    author = sync_user(conn.body_params["issue"]["user"])
+      pr_xref: conn.body_params["pull_request"]["number"])
+    author = sync_user(conn.body_params["pull_request"]["user"])
     commenter = sync_user(conn.body_params["comment"]["user"])
     comment = conn.body_params["comment"]["body"]
     do_webhook_comment(conn, %{
@@ -121,10 +121,10 @@ defmodule Aelita2.WebhookController do
       repo_xref: conn.body_params["repository"]["id"])
     patch = Repo.get_by!(Patch,
       project_id: project.id,
-      pr_xref: conn.body_params["issue"]["number"])
-    author = sync_user(conn.body_params["issue"]["user"])
-    commenter = sync_user(conn.body_params["comment"]["user"])
-    comment = conn.body_params["comment"]["body"]
+      pr_xref: conn.body_params["pull_request"]["number"])
+    author = sync_user(conn.body_params["pull_request"]["user"])
+    commenter = sync_user(conn.body_params["review"]["user"])
+    comment = conn.body_params["review"]["body"]
     do_webhook_comment(conn, %{
       project: project,
       patch: patch,
@@ -204,7 +204,8 @@ defmodule Aelita2.WebhookController do
       comment: comment} = params
     config = Application.get_env(:aelita2, Aelita2)
     activation_phrase = config[:activation_phrase]
-    if :binary.match(comment, activation_phrase) != :nomatch do
+    if (not is_nil comment) and
+       (:binary.match(comment, activation_phrase) != :nomatch) do
       link = Repo.get_by(LinkUserProject,
         project_id: project.id,
         user_id: commenter.id)
