@@ -149,7 +149,7 @@ defmodule Aelita2.Batcher do
           commit_message: commit_message}))
     case head do
       :conflict ->
-        state = bisect(patches)
+        state = bisect(patches, project)
         send_message(repo_conn, patches, {:conflict, state})
       commit ->
         state = setup_statuses(repo_conn, batch, patches)
@@ -249,11 +249,11 @@ defmodule Aelita2.Batcher do
   defp maybe_complete_batch(:err, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    erred = Enum.filter(statuses, &(&1.state == :err))
+    erred = Enum.filter(statuses, &(&1.state == Status.numberize_state(:err)))
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
-    state = bisect(patches)
+    state = bisect(patches, project)
     send_message(repo_conn, patches, {state, erred})
     Project.ping!(project.id)
   end
@@ -262,10 +262,9 @@ defmodule Aelita2.Batcher do
     :ok
   end
 
-  defp bisect(patches) do
+  defp bisect(patches, project) do
     count = Enum.count(patches)
     if count > 1 do
-      project = patches[0].project
       {patches_lo, patches_hi} = Enum.split(patches, div(count, 2))
       make_batch(patches_lo, project.id)
       make_batch(patches_hi, project.id)
