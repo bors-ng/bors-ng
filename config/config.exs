@@ -9,6 +9,10 @@ use Mix.Config
 config :aelita2,
   ecto_repos: [Aelita2.Repo]
 
+config :aelita2, Aelita2,
+  activation_phrase: "bors r+",
+  deactivation_phrase: "bors r-"
+
 # Configures the endpoint
 config :aelita2, Aelita2.Endpoint,
   url: [host: "localhost"],

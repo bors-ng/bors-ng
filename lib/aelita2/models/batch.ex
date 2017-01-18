@@ -8,6 +8,7 @@ defmodule Aelita2.Batch do
   use Aelita2.Web, :model
 
   alias Aelita2.Batch
+  alias Aelita2.LinkPatchBatch
 
   schema "batches" do
     belongs_to :project, Aelita2.Project
@@ -33,6 +34,7 @@ defmodule Aelita2.Batch do
       1 -> :running
       2 -> :ok
       3 -> :err
+      4 -> :canceled
     end
   end
 
@@ -42,7 +44,15 @@ defmodule Aelita2.Batch do
       :running -> 1
       :ok -> 2
       :err -> 3
+      :canceled -> 4
     end
+  end
+
+  def is_empty(batch_id, repo) do
+    links = LinkPatchBatch
+    |> where([l], l.batch_id == ^batch_id)
+    |> repo.all()
+    links == []
   end
 
   def all_for_project(project_id, :incomplete) do
@@ -54,20 +64,35 @@ defmodule Aelita2.Batch do
   def all_for_project(project_id, :complete) do
     from b in Batch,
       where: b.project_id == ^project_id,
-      where: (b.state == 2 or b.state == 3)
+      where: b.state == 2 or b.state == 3 or b.state == 4
   end
+
+  def all_for_patch(patch_id, state \\ nil) do
+    from b in all_assoc(state),
+      join: l in LinkPatchBatch, on: l.batch_id == b.id,
+      where: l.patch_id == ^patch_id
+  end
+
+  def all_assoc do
+    from b in Batch,
+      join: p in assoc(b, :project),
+      preload: [project: p]
+  end
+
+  def all_assoc(nil), do: all_assoc()
 
   def all_assoc(:incomplete) do
-    from b in Batch,
-      join: p in assoc(b, :project),
-      preload: [project: p],
-      where: (b.state == 0 or b.state == 1)
+    from b in all_assoc(),
+      where: b.state == 0 or b.state == 1
   end
 
-  def get_assoc_by_commit(commit) do
-    from b in Batch,
-      join: p in assoc(b, :project),
-      preload: [project: p],
+  def all_assoc(:complete) do
+    from b in all_assoc(),
+      where: b.state == 2 or b.state == 3 or b.state == 4
+  end
+
+  def get_assoc_by_commit(commit, state \\ nil) do
+    from b in all_assoc(state),
       where: b.commit == ^commit
   end
 

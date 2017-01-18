@@ -50,8 +50,10 @@ defmodule Aelita2.Patch do
 
   defp all_links_not_err do
     err = Batch.numberize_state(:err)
+    canceled = Batch.numberize_state(:canceled)
     from l in LinkPatchBatch,
-      join: b in Batch, on: (l.batch_id == b.id and b.state != ^err)
+      join: b in Batch,
+      on: l.batch_id == b.id and b.state != ^err and b.state != ^canceled
   end
 
   def all(:awaiting_review) do
