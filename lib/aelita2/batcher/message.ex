@@ -12,6 +12,12 @@ defmodule Aelita2.Batcher.Message do
   def generate_message({:conflict, :retrying}) do
     "# Merge conflict (retrying...)"
   end
+  def generate_message({:timeout, :failed}) do
+    "# Timed out"
+  end
+  def generate_message({:timeout, :retrying}) do
+    "# Timed out (retrying...)"
+  end
   def generate_message({state, statuses}) do
     msg = case state do
       :succeeded -> "Build succeeded"
@@ -33,6 +39,22 @@ defmodule Aelita2.Batcher.Message do
     commit_title = Enum.reduce(patches, "Merge", &"#{&2} \##{&1.pr_xref}")
     commit_body = Enum.reduce(patches, "", &"#{&2}#{&1.pr_xref}: #{&1.title}\n")
     "#{commit_title}\n\n#{commit_body}"
+  end
+
+  def generate_bors_toml_error(:parse_failed) do
+    "bors.toml: syntax error"
+  end
+
+  def generate_bors_toml_error(:fetch_failed) do
+    "bors.toml: not found"
+  end
+
+  def generate_bors_toml_error(:timeout_sec) do
+    "bors.toml: expected timeout_sec to be an integer"
+  end
+
+  def generate_bors_toml_error(:status) do
+    "bors.toml: expected status to be a list"
   end
 
   @doc """
