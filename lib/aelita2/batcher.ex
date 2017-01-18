@@ -155,6 +155,10 @@ defmodule Aelita2.Batcher do
       :conflict ->
         state = bisect(patches, project)
         send_message(repo_conn, patches, {:conflict, state})
+        err = Batch.numberize_state(:err)
+        batch
+        |> Batch.changeset(%{state: err})
+        |> Repo.update!()
       commit ->
         state = setup_statuses(repo_conn, batch, patches)
         state = Batch.numberize_state(state)
