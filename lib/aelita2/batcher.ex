@@ -51,6 +51,10 @@ defmodule Aelita2.Batcher do
     GenServer.cast(Aelita2.Batcher, {:cancel, patch_id})
   end
 
+  def cancel_all(project_id) when is_integer(project_id) do
+    GenServer.cast(Aelita2.Batcher, {:cancel_all, project_id})
+  end
+
   # Server callbacks
 
   def init(:ok) do
@@ -101,6 +105,19 @@ defmodule Aelita2.Batcher do
         Repo.delete!(batch)
       end
     end
+  end
+
+  def do_handle_cast({:cancel_all, project_id}) do
+    canceled = Batch.numberize_state(:canceled)
+    project_id
+    |> Batch.all_for_project(:waiting)
+    |> Repo.all()
+    |> Enum.each(&Repo.delete!/1)
+    project_id
+    |> Batch.all_for_project(:running)
+    |> Repo.all()
+    |> Enum.map(&Batch.changeset(&1, %{state: canceled}))
+    |> Enum.each(&Repo.update!/1)
   end
 
   def handle_info(:poll, :ok) do

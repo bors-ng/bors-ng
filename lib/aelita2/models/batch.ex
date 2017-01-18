@@ -55,16 +55,27 @@ defmodule Aelita2.Batch do
     links == []
   end
 
-  def all_for_project(project_id, :incomplete) do
+  def all_for_project(project_id) do
     from b in Batch,
-      where: b.project_id == ^project_id,
-      where: (b.state == 0 or b.state == 1)
+      where: b.project_id == ^project_id
+  end
+
+  def all_for_project(project_id, nil), do: all_for_project(project_id)
+
+  def all_for_project(project_id, :incomplete) do
+    from b in all_for_project(project_id),
+      where: b.state == 0 or b.state == 1
   end
 
   def all_for_project(project_id, :complete) do
-    from b in Batch,
-      where: b.project_id == ^project_id,
+    from b in all_for_project(project_id),
       where: b.state == 2 or b.state == 3 or b.state == 4
+  end
+
+  def all_for_project(project_id, state) do
+    state = Batch.numberize_state(state)
+    from b in all_for_project(project_id),
+      where: b.state == ^state
   end
 
   def all_for_patch(patch_id, state \\ nil) do

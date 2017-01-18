@@ -11,6 +11,7 @@ defmodule Aelita2.ProjectController do
 
   use Aelita2.Web, :controller
 
+  alias Aelita2.Batcher
   alias Aelita2.LinkUserProject
   alias Aelita2.Project
   alias Aelita2.Batch
@@ -72,6 +73,13 @@ defmodule Aelita2.ProjectController do
       project: project,
       reviewers: reviewers,
       current_user_id: conn.assigns.user.id
+  end
+
+  def cancel_all(conn, project, _params) do
+    Batcher.cancel_all(project.id)
+    conn
+    |> put_flash(:ok, "Canceled all running batches")
+    |> redirect(to: project_path(conn, :show, project))
   end
 
   def add_reviewer(conn, project, %{"reviewer" => %{"login" => login}}) do

@@ -16,11 +16,11 @@
 
 <table class="table">
   <thead>
-    <tr><th>#</th><th>Title</th><th>Repository</th></tr>
+    <tr role=row><th>#</th><th>Title</th><th>Repository</th></tr>
   </thead>
   <tbody>
 <%= for patch <- @patches do %>
-    <tr>
+    <tr role=row>
       <td>
         <%= patch.pr_xref %>
       </td>
