@@ -108,8 +108,12 @@ defmodule Aelita2.Batcher do
 
   defp poll_batches({:running, batches}) do
     batch = hd(batches)
-    if Batch.next_poll_is_past(batch) do
-      poll_running_batch(batch)
+    cond do
+      Batch.timeout_is_past(batch) ->
+        timeout_batch(batch)
+      Batch.next_poll_is_past(batch) ->
+        poll_running_batch(batch)
+      true -> :ok
     end
   end
 
@@ -173,7 +177,7 @@ defmodule Aelita2.Batcher do
           repo_conn,
           batch,
           patches,
-          "bors.toml does not exist")
+          :fetch_failed)
         :err
       toml ->
         case Aelita2.Batcher.BorsToml.new(toml) do
@@ -185,18 +189,23 @@ defmodule Aelita2.Batcher do
                 url: nil,
                 state: Status.numberize_state(:running)})
             |> Enum.each(&Repo.insert!/1)
+            now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+            batch
+            |> Batch.changeset(%{timeout_at: now + toml.timeout_sec})
+            |> Repo.update!()
             :running
-          {:err, :parse_failed} ->
+          {:error, message} ->
             setup_statuses_error(repo_conn,
               batch,
               patches,
-              "bors.toml is invalid")
+              message)
             :err
         end
     end
   end
 
   defp setup_statuses_error(repo_conn, batch, patches, message) do
+    message = Batcher.Message.generate_bors_toml_error(message)
     err = Batch.numberize_state(:err)
     batch
     |> Batch.changeset(%{state: err})
@@ -260,6 +269,22 @@ defmodule Aelita2.Batcher do
 
   defp maybe_complete_batch(:running, _batch, _erred) do
     :ok
+  end
+
+  defp timeout_batch(batch) do
+    project = batch.project
+    patches = batch.id
+    |> Patch.all_for_batch()
+    |> Repo.all()
+    state = bisect(patches, project)
+    project
+    |> get_repo_conn()
+    |> send_message(patches, {:timeout, state})
+    err = Batch.numberize_state(:err)
+    batch
+    |> Batch.changeset(%{state: err})
+    |> Repo.update!()
+    Project.ping!(project.id)
   end
 
   defp bisect(patches, project) do
