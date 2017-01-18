@@ -14,6 +14,7 @@ defmodule Aelita2.Batch do
     field :commit, :string
     field :state, :integer
     field :last_polled, :integer
+    field :timeout_at, :integer
     timestamps()
   end
 
@@ -80,6 +81,11 @@ defmodule Aelita2.Batch do
     next < now_utc_sec
   end
 
+  def timeout_is_past(%Batch{timeout_at: timeout_at}) do
+    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now > timeout_at
+  end
+
   def get_next_poll_unix_sec(batch) do
     period = if Batch.atomize_state(batch.state) == :waiting do
       batch.project.batch_delay_sec
@@ -94,6 +100,6 @@ defmodule Aelita2.Batch do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:project_id, :commit, :state, :last_polled])
+    |> cast(params, [:project_id, :commit, :state, :last_polled, :timeout_at])
   end
 end
