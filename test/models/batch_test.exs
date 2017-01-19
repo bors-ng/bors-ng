@@ -2,6 +2,8 @@ defmodule Aelita2.BatchTest do
   use Aelita2.ModelCase
 
   alias Aelita2.Batch
+  alias Aelita2.Patch
+  alias Aelita2.LinkPatchBatch
   alias Aelita2.Installation
   alias Aelita2.Project
 
@@ -37,6 +39,14 @@ defmodule Aelita2.BatchTest do
     assert Enum.any?(incomplete, fn batch -> batch.id == batch2.id end)
     assert Enum.any?(incomplete, fn batch -> batch.id == batch3.id end)
     assert Enum.count(incomplete) == 2
+  end
+
+  test "get batch by patch", %{project: project} do
+    batch = Repo.insert!(%Batch{project: project, state: 0})
+    patch = Repo.insert!(%Patch{project: project})
+    Repo.insert! %LinkPatchBatch{batch: batch, patch: patch}
+    [batch_] = Repo.all(Batch.all_for_patch(patch.id))
+    assert batch_.id == batch.id
   end
 
   test "compute next poll time" do
