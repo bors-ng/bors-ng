@@ -76,7 +76,9 @@ defmodule Aelita2.ProjectController do
   end
 
   def cancel_all(conn, project, _params) do
-    Batcher.cancel_all(project.id)
+    project.id
+    |> Batcher.Registry.get()
+    |> Batcher.cancel_all()
     conn
     |> put_flash(:ok, "Canceled all running batches")
     |> redirect(to: project_path(conn, :show, project))

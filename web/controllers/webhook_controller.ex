@@ -137,11 +137,14 @@ defmodule Aelita2.WebhookController do
     identifier = conn.body_params["context"]
     commit = conn.body_params["sha"]
     url = conn.body_params["target_url"]
+    repo_xref = conn.body_params["repository"]["id"]
     state = @github_api.map_state_to_status(conn.body_params["state"])
-    Aelita2.Batcher.status(commit, identifier, state, url)
+    project = Repo.get_by(Project, repo_xref: repo_xref)
+    batcher = Batcher.Registry.get(project.id)
+    Batcher.status(batcher, {commit, identifier, state, url})
 
     commit_msg = conn.body_params["commit"]["commit"]["message"]
-    err_msg = Aelita2.Batcher.Message.generate_staging_tmp_message(identifier)
+    err_msg = Batcher.Message.generate_staging_tmp_message(identifier)
     case commit_msg do
       "-bors-staging-tmp-" <> pr_xref when not is_nil err_msg ->
         conn.body_params["repository"]["id"]
@@ -215,6 +218,7 @@ defmodule Aelita2.WebhookController do
         link = Repo.get_by(LinkUserProject,
           project_id: project.id,
           user_id: commenter.id)
+        batcher = Batcher.Registry.get(project.id)
         case {activated, deactivated, link} do
           {_, _, nil} ->
             project.repo_xref
@@ -225,9 +229,9 @@ defmodule Aelita2.WebhookController do
               p.pr_xref,
               ":lock: Permission denied")
           {_activated, :nomatch, _} ->
-            Batcher.reviewed(p.id)
+            Batcher.reviewed(batcher, p.id)
           {:nomatch, _deactivated, _} ->
-            Batcher.cancel(p.id)
+            Batcher.cancel(batcher, p.id)
         end
     end
   end
