@@ -49,6 +49,18 @@ defmodule Aelita2.BatchTest do
     assert batch_.id == batch.id
   end
 
+  test "is empty", %{project: project} do
+    batch = Repo.insert!(%Batch{project: project, state: 0})
+    assert Batch.is_empty(batch.id, Repo)
+  end
+
+  test "is not empty", %{project: project} do
+    batch = Repo.insert!(%Batch{project: project, state: 0})
+    patch = Repo.insert!(%Patch{project: project})
+    Repo.insert! %LinkPatchBatch{batch: batch, patch: patch}
+    refute Batch.is_empty(batch.id, Repo)
+  end
+
   test "compute next poll time" do
     p = %Project{batch_delay_sec: 1, batch_poll_period_sec: 2}
     b = %Batch{project: p, last_polled: 3, state: 0}
