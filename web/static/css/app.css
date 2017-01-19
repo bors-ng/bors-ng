@@ -1,212 +1,213 @@
 /* Should be used inside of the header, main, and footer */
 .wrapper {
-	max-width: 1000px;
-	margin: 0 auto;
-	padding: 16px 20px;
-	position: relative;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  position: relative;
 }
 .wrapper--mini {
-	padding: 8px 10px;
+  padding: 8px 20px;
 }
 /* The header, nav bar, and footer */
 header, nav {
-	border-bottom: solid 1px #CCC;
+  border-bottom: solid 1px #CCC;
 }
 #repos-button {
-	position: absolute;
-	top: 50%; right: 10px;
-	height: 25px; line-height: 20px;
-	margin-top: -12px;
+  position: absolute;
+  top: 50%; right: 10px;
+  height: 25px; line-height: 20px;
+  margin-top: -12px;
 }
 #repos-button > a,
 #repos-button > span {
-	padding: 10px 10px;
-	vertical-align: middle;
+  padding: 10px 10px;
+  vertical-align: middle;
 }
 #repos-button > span {
-	color: #666;
+  color: #666;
 }
 header {
-	z-index: 2;
+  z-index: 2;
 }
 nav {
-	background-color: #EEE;
+  background-color: #EEE;
 }
 nav h1 {
-	margin: 0;
+  margin: 0;
 }
 footer {
-	border-top: solid 1px #CCC;
+  border-top: solid 1px #CCC;
 }
 /* An alert box */
 .alert {
-	background: #d9edf7;
-	border: solid 1px #d9edf7;
-	color: #31708f;
-    padding: 8px 10px;
-    margin-bottom: 8px;
+  background: #d9edf7;
+  border: solid 1px #d9edf7;
+  color: #31708f;
+  padding: 8px 10px;
+  margin-bottom: 8px;
 }
 .alert--ok {
-	color: #3c763d;
-	border-color: #d6e9c6;
-	background-color: #dff0d8;
+  color: #3c763d;
+  border-color: #d6e9c6;
+  background-color: #dff0d8;
 }
 .alert--error {
-	color: #a94442;
-	border-color: #ebccd1;
-	background-color: #f2dede;
+  color: #a94442;
+  border-color: #ebccd1;
+  background-color: #f2dede;
 }
 /* Use underline-on-hover for links.
    This is used for consistency, since fill-link breaks outlines. */
 :link, :visited {
-	text-decoration: none;
-	color: #4d76ae;
+  text-decoration: none;
+  color: #4d76ae;
 }
 :visited {
-	color: #ae4d76;
+  color: #ae4d76;
 }
 :link:hover, :link:focus,
 :visited:hover, :visited:focus {
-	text-decoration: underline;
-	outline: none;
+  text-decoration: underline;
+  outline: none;
 }
 /* The tab bar. */
 .tabs {
-	margin: -1px auto;
-	max-width: 1000px;
+  margin: -1px auto;
+  padding: 0 20px;
+  max-width: 1000px;
 }
 .tabs::after {
-	content: ". . . . . . . . . . ";
-	visibility: hidden;
-	display: block;
-	width: 0; height: 0; overflow: hidden;
-	clear: both;
+  content: ". . . . . . . . . . ";
+  visibility: hidden;
+  display: block;
+  width: 0; height: 0; overflow: hidden;
+  clear: both;
 }
 .tab {
-	/* The 1px border on the left and right adds it up to 10px */
-	/* The top and bottom are 8px, even with the border, because of the -1px margin on tabs */
-	padding: 8px 8px 8px 9px;
-	float: left;
-	border: solid 1px transparent;
-	margin-left: -1px;
-	transition: border-color 0.1s ease-in-out;
+  /* The 1px border on the left and right adds it up to 10px */
+  /* The top and bottom are 8px, even with the border, because of the -1px margin on tabs */
+  padding: 8px 8px 8px 9px;
+  float: left;
+  border: solid 1px transparent;
+  margin-left: -1px;
+  transition: border-color 0.1s ease-in-out;
 }
 .tab--active, .tab:hover, .tab:focus {
-	border-color: #CCC;
-	border-bottom-color: transparent;
-	text-decoration: none;
+  border-color: #CCC;
+  border-bottom-color: transparent;
+  text-decoration: none;
 }
 .tab--active {
-	background: #FFF;
+  background: #FFF;
 }
 /* The fancy table. */
 .table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    overflow: hidden;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
 }
-.table tr {
-    transition-duration: 0.1s;
-    transition-timing-function: ease;
-    transition-property: background;
+.table tr[role="row"] {
+  transition-duration: 0.1s;
+  transition-timing-function: ease;
+  transition-property: background;
 }
-.table tbody > tr:hover {
-    background: #EEE;
+.table col td:not([role="presentation"]) {
+  background: #EEE;
+}
+.table tbody tr[role="row"]:hover {
+  background: #EEE;
 }
 .table th {
-    color: #666;
-    font-weight: bold;
-    text-align: left;
+  color: #666;
+  font-weight: bold;
+  text-align: left;
 }
-.table--border th, .table--border td {
-    border-left: solid 1px #CCC;
-}
-.table th, .table td {
-    padding: 8px 10px;
-}
-.table--border th:first-child, .table--border td:first-child {
-    border-left:none;
+.table tr[role="row"] th, .table tr[role="row"] td {
+  padding: 8px 10px;
 }
 .fill-link {
-	overflow: hidden;
+  overflow: hidden;
 }
 .fill-link > * {
-	display: block;
-	margin: -20em;
-	padding: 20em;
+  display: block;
+  margin: -20em;
+  padding: 20em;
 }
 .table-button {
-	margin: -20em;
-	padding: 20em;
-	background: transparent;
-	border: none; outline: none;
-	color: #4d76ae;
-	transition-property: color, background-color;
-	transition-duration: 0.1s;
-	transition-timing-function: ease-in-out;
+  margin: -20em;
+  padding: 20em;
+  background: transparent;
+  border: none; outline: none;
+  color: #4d76ae;
+  transition-property: color, background-color;
+  transition-duration: 0.1s;
+  transition-timing-function: ease-in-out;
 }
 .table-button:hover,
 .table-button:focus {
-	background-color: #4d76ae;
-	color: #fff;
+  background-color: #4d76ae;
+  color: #fff;
 }
 .table-button--add {
-	color: #5e9766;
+  color: #5e9766;
 }
 .table-button--add:hover,
 .table-button--add:focus {
-	background-color: #5e9766;
-	color: #fff;
+  background-color: #5e9766;
+  color: #fff;
 }
 .table-button--remove {
-	color: #df3600;
+  color: #df3600;
 }
 .table-button--remove:hover,
 .table-button--remove:focus {
-	background-color: #df3600;
-	color: #fff;
+  background-color: #df3600;
+  color: #fff;
 }
 .table-button-col {
-	width: 100px;
+  width: 100px;
 }
 /* The buttons and the bars that they go inside */
 .toolbar {
-	margin: 16px -10px;
+  margin: 16px -10px;
 }
 .toolbar-item {
-	margin: -8px 10px;
-	padding: 8px 10px;
-	color: #FFF;
-	background-color: #4d76ae;
-	border-radius: 8px;
-	transition: box-shadow 0.1s ease-in-out;
-	box-shadow: 0 1px 2px #666;
+  margin: -8px 10px;
+  padding: 8px 10px;
+  color: #FFF;
+  background-color: #4d76ae;
+  border-radius: 8px;
+  transition: box-shadow 0.1s ease-in-out;
+  box-shadow: 0 1px 2px #666;
 }
 .toolbar-item:hover, 
 .toolbar-item:focus {
-	text-decoration: none;
-	box-shadow: 0 1px 4px #666;
+  text-decoration: none;
+  box-shadow: 0 1px 4px #666;
 }
 .toolbar-item:active {
-	box-shadow: 0 0 0 #666;
+  box-shadow: 0 0 0 #666;
 }
 .toolbar-item--add {
-	background: #5e9766;
+  background: #5e9766;
+}
+.toolbar-button--remove {
+  background-color: #df3600;
 }
 /* The page headers. */
 .header {
-	border-bottom: solid 1px #CCC;
-	margin: 0;
-	margin-bottom: 7px;
-	padding-bottom: 8px;
+  border-bottom: solid 1px #CCC;
+  margin: 0;
+  margin-bottom: 7px;
+  padding-bottom: 8px;
 }
 /* home page hero images */
 .hero {
-	margin: 32px auto;
-	text-align: center;
-	font-size: 2em;
+  margin: 32px auto;
+  text-align: center;
+  font-size: 2em;
 }
 .hero p {
-	margin: 32px 0;
+  margin: 32px 0;
 }

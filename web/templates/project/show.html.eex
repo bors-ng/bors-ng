@@ -21,6 +21,12 @@
 
 <main role=main><div class=wrapper>
 
+<%= if @batches != [] do %>
+<div class=toolbar aria-role=toolbar>
+  <%= link "Cancel all", to: project_path(@conn, :cancel_all, @project), method: :delete, class: "toolbar-item toolbar-item--remove", data: [confirm: "Commenting `bors r-` on a PR will cancel just the one. You asked to cancel all of them, which is a PITA to undo.\n\nAre you sure you want to cancel all running and waiting pull requests?"] %>
+</div>
+<% end %>
+
 <%= if not is_nil get_flash(@conn, :ok) do %>
 <div role="alert" class="alert alert--ok">
 <%= get_flash(@conn, :ok) %>
@@ -39,15 +45,15 @@ This list is out of date. <a href="">Reload</a>
 </div>
 </template>
 
+<table class="table">
 <%= if @unbatched_patches != [] do %>
-<h2 class=header>Awaiting review</h2>
-<table class="table">
   <thead>
-    <tr><th>#</th><th>Title</th></tr>
+    <tr role=heading><td aria-role=presentation colspan=2><h2 class=header>Awaiting review</h2></td></tr>
+    <tr role=row><th>#</th><th>Title</th></tr>
   </thead>
   <tbody>
-<%= for patch <- @unbatched_patches do %>
-    <tr>
+  <%= for patch <- @unbatched_patches do %>
+    <tr role="row">
       <td>
         <%= patch.pr_xref %>
       </td>
@@ -57,20 +63,17 @@ This list is out of date. <a href="">Reload</a>
         </a>
       </td>
     </tr>
-<% end %>
+  <% end %>
   </tbody>
-</table>
 <% end %>
-
 <%= for batch <- @batches do %>
-<h2 class=header><%= stringify_state(batch.state) %></h2>
-<table class="table">
   <thead>
-    <tr><th>#</th><th>Title</th></tr>
+    <tr role=heading><td aria-role=presentation colspan=2><h2 class=header><%= stringify_state batch.state %></h2></td></tr>
+    <tr role=row><th>#</th><th>Title</th></tr>
   </thead>
   <tbody>
-<%= for patch <- batch.patches do %>
-    <tr>
+  <%= for patch <- batch.patches do %>
+    <tr role="row">
       <td>
         <%= patch.pr_xref %>
       </td>
@@ -80,9 +83,9 @@ This list is out of date. <a href="">Reload</a>
         </a>
       </td>
     </tr>
-<% end %>
+  <% end %>
   </tbody>
-</table>
 <% end %>
+</table>
 
 </div></main>

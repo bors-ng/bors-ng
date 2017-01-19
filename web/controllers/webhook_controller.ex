@@ -202,24 +202,33 @@ defmodule Aelita2.WebhookController do
       patch: p,
       commenter: commenter,
       comment: comment} = params
+    comment = case comment do
+      nil -> ""
+      comment -> comment
+    end
     config = Application.get_env(:aelita2, Aelita2)
-    activation_phrase = config[:activation_phrase]
-    if (not is_nil comment) and
-       (:binary.match(comment, activation_phrase) != :nomatch) do
-      link = Repo.get_by(LinkUserProject,
-        project_id: project.id,
-        user_id: commenter.id)
-      if is_nil link do
-        project.repo_xref
-        |> Project.installation_connection()
-        |> Repo.one!()
-        |> @github_api.RepoConnection.connect!()
-        |> @github_api.post_comment!(
-          p.pr_xref,
-          ":lock: Permission denied")
-      else
-        Batcher.reviewed(p.id)
-      end
+    activated = :binary.match(comment, config[:activation_phrase])
+    deactivated = :binary.match(comment, config[:deactivation_phrase])
+    case {activated, deactivated} do
+      {:nomatch, :nomatch} -> :ok
+      {_, _} ->
+        link = Repo.get_by(LinkUserProject,
+          project_id: project.id,
+          user_id: commenter.id)
+        case {activated, deactivated, link} do
+          {_, _, nil} ->
+            project.repo_xref
+            |> Project.installation_connection()
+            |> Repo.one!()
+            |> @github_api.RepoConnection.connect!()
+            |> @github_api.post_comment!(
+              p.pr_xref,
+              ":lock: Permission denied")
+          {_activated, :nomatch, _} ->
+            Batcher.reviewed(p.id)
+          {:nomatch, _deactivated, _} ->
+            Batcher.cancel(p.id)
+        end
     end
   end
 

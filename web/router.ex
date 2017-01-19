@@ -51,6 +51,7 @@ defmodule Aelita2.Router do
     get "/", ProjectController, :index
     get "/:id", ProjectController, :show
     get "/:id/settings", ProjectController, :settings
+    delete "/:id/batches/incomplete", ProjectController, :cancel_all
     post "/:id/reviewer", ProjectController, :add_reviewer
     delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
   end

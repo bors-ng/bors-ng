@@ -26,7 +26,7 @@
 
 <table class=table>
   <tbody>
-    <tr>
+    <tr role=row>
       <td>
         <%= @orphan_count %>
       </td>
