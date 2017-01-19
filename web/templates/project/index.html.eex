@@ -19,7 +19,7 @@
 <table class="table">
   <tbody>
 <%= for project <- @projects do %>
-    <tr>
+    <tr role=row>
       <td class="fill-link">
         <%= link project.name, to: project_path(@conn, :show, project) %>
       </td>

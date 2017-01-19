@@ -47,6 +47,14 @@ defmodule Aelita2.Batcher do
     GenServer.cast(Aelita2.Batcher, {:status, commit, identifier, state, url})
   end
 
+  def cancel(patch_id) when is_integer(patch_id) do
+    GenServer.cast(Aelita2.Batcher, {:cancel, patch_id})
+  end
+
+  def cancel_all(project_id) when is_integer(project_id) do
+    GenServer.cast(Aelita2.Batcher, {:cancel_all, project_id})
+  end
+
   # Server callbacks
 
   def init(:ok) do
@@ -81,6 +89,35 @@ defmodule Aelita2.Batcher do
         end
       [] -> :ok
     end
+  end
+
+  def do_handle_cast({:cancel, patch_id}) do
+    batch = patch_id
+    |> Batch.all_for_patch(:incomplete)
+    |> Repo.one!()
+    if batch.state == Batch.numberize_state(:running) do
+      cancel_batch(batch, patch_id)
+    else
+      LinkPatchBatch
+      |> Repo.get_by!(batch_id: batch.id, patch_id: patch_id)
+      |> Repo.delete!()
+      if Batch.is_empty(batch.id, Repo) do
+        Repo.delete!(batch)
+      end
+    end
+  end
+
+  def do_handle_cast({:cancel_all, project_id}) do
+    canceled = Batch.numberize_state(:canceled)
+    project_id
+    |> Batch.all_for_project(:waiting)
+    |> Repo.all()
+    |> Enum.each(&Repo.delete!/1)
+    project_id
+    |> Batch.all_for_project(:running)
+    |> Repo.all()
+    |> Enum.map(&Batch.changeset(&1, %{state: canceled}))
+    |> Enum.each(&Repo.update!/1)
   end
 
   def handle_info(:poll, :ok) do
@@ -288,6 +325,30 @@ defmodule Aelita2.Batcher do
     batch
     |> Batch.changeset(%{state: err})
     |> Repo.update!()
+    Project.ping!(project.id)
+  end
+
+  defp cancel_batch(batch, patch_id) do
+    project = batch.project
+    patches = batch.id
+    |> Patch.all_for_batch()
+    |> Repo.all()
+    state = case tl(patches) do
+      [] -> :failed
+      _ -> :retrying
+    end
+    project
+    |> get_repo_conn()
+    |> send_message(patches, {:canceled, state})
+    canceled = Batch.numberize_state(:canceled)
+    batch
+    |> Batch.changeset(%{status: canceled})
+    |> Repo.update!()
+    if state == :retrying do
+      patches
+      |> Enum.filter(&(&1.id == patch_id))
+      |> make_batch(project.id)
+    end
     Project.ping!(project.id)
   end
 

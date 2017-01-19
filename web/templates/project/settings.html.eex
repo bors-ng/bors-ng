@@ -37,7 +37,7 @@
 <table class="table">
   <tbody>
 <%= for reviewer <- @reviewers do %>
-    <tr>
+    <tr role=row>
       <td>
         <%= reviewer.login %>
       </td>
@@ -50,7 +50,7 @@
       <% end %>
     </tr>
 <% end %>
-    <tr>
+    <tr role=row>
       <%= form_for @conn, project_path(@conn, :add_reviewer, @project.id), [as: :reviewer], fn f -> %>
       <td>
         <%= text_input f, :login, placeholder: "GitHub login" %>

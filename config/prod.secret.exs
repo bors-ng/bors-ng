@@ -1,8 +1,5 @@
 use Mix.Config
 
-config :aelita2, Aelita2,
-  activation_phrase: "bors r+"
-
 config :aelita2, Aelita2.Batcher,
   run: true
 

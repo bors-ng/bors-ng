@@ -23,7 +23,7 @@
 <table class=table>
   <tbody>
 <%= for orphan <- @orphans do %>
-    <tr>
+    <tr role=row>
       <td class="fill-link">
         <%= link orphan.name, to: project_path(@conn, :settings, orphan) %>
       </td>

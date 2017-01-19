@@ -18,6 +18,12 @@ defmodule Aelita2.Batcher.Message do
   def generate_message({:timeout, :retrying}) do
     "# Timed out (retrying...)"
   end
+  def generate_message({:canceled, :failed}) do
+    "# Canceled"
+  end
+  def generate_message({:canceled, :retrying}) do
+    "# Canceled (will resume)"
+  end
   def generate_message({state, statuses}) do
     msg = case state do
       :succeeded -> "Build succeeded"
