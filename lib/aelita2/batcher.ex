@@ -1,6 +1,6 @@
 defmodule Aelita2.Batcher do
   @moduledoc """
-  The "Batcher" manages the backlog of batches that each project has.
+  A "Batcher" manages the backlog of batches a project has.
   It implements this set of rules:
 
     * When a patch is reviewed ("r+'ed"),
@@ -30,57 +30,58 @@ defmodule Aelita2.Batcher do
   alias Aelita2.Status
   alias Aelita2.LinkPatchBatch
 
-  @poll_period 1000
+  @poll_period 2000
   @github_api Application.get_env(:aelita2, Aelita2.GitHub)[:api]
 
   # Public API
 
-  def start_link do
-    GenServer.start_link(__MODULE__, :ok, name: Aelita2.Batcher)
+  def start_link(project_id) do
+    GenServer.start_link(__MODULE__, project_id)
   end
 
-  def reviewed(patch_id) when is_integer(patch_id) do
-    GenServer.cast(Aelita2.Batcher, {:reviewed, patch_id})
+  def reviewed(pid, patch_id) when is_integer(patch_id) do
+    GenServer.cast(pid, {:reviewed, patch_id})
   end
 
-  def status(commit, identifier, state, url) do
-    GenServer.cast(Aelita2.Batcher, {:status, commit, identifier, state, url})
+  def status(pid, stat) do
+    GenServer.cast(pid, {:status, stat})
   end
 
-  def cancel(patch_id) when is_integer(patch_id) do
-    GenServer.cast(Aelita2.Batcher, {:cancel, patch_id})
+  def cancel(pid, patch_id) when is_integer(patch_id) do
+    GenServer.cast(pid, {:cancel, patch_id})
   end
 
-  def cancel_all(project_id) when is_integer(project_id) do
-    GenServer.cast(Aelita2.Batcher, {:cancel_all, project_id})
+  def cancel_all(pid) do
+    GenServer.cast(pid, {:cancel_all})
   end
 
   # Server callbacks
 
-  def init(:ok) do
+  def init(project_id) do
     Process.send_after(self(), :poll, @poll_period)
-    {:ok, :ok}
+    {:ok, project_id}
   end
 
-  def handle_cast(args, state) do
-    Repo.transaction(fn -> do_handle_cast(args) end)
-    {:noreply, state}
+  def handle_cast(args, project_id) do
+    Repo.transaction(fn -> do_handle_cast(args, project_id) end)
+    {:noreply, project_id}
   end
 
-  def do_handle_cast({:reviewed, patch_id}) do
+  def do_handle_cast({:reviewed, patch_id}, project_id) do
     patch = Repo.get!(Patch.all(:awaiting_review), patch_id)
-    batch = get_new_batch(patch.project_id)
-    project_id = batch.project_id
     ^project_id = patch.project_id
+    batch = get_new_batch(project_id)
+    ^project_id = batch.project_id
     params = %{batch_id: batch.id, patch_id: patch.id}
     Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
   end
 
-  def do_handle_cast({:status, commit, identifier, state, url}) do
+  def do_handle_cast({:status, {commit, identifier, state, url}}, project_id) do
     batch = Repo.all(Batch.get_assoc_by_commit(commit))
     state = Status.numberize_state(state)
     case batch do
       [batch] ->
+        ^project_id = batch.project_id
         batch.id
         |> Status.get_for_batch(identifier)
         |> Repo.update_all([set: [state: state, url: url]])
@@ -91,10 +92,11 @@ defmodule Aelita2.Batcher do
     end
   end
 
-  def do_handle_cast({:cancel, patch_id}) do
+  def do_handle_cast({:cancel, patch_id}, project_id) do
     batch = patch_id
     |> Batch.all_for_patch(:incomplete)
     |> Repo.one!()
+    ^project_id = batch.project_id
     if batch.state == Batch.numberize_state(:running) do
       cancel_batch(batch, patch_id)
     else
@@ -107,7 +109,7 @@ defmodule Aelita2.Batcher do
     end
   end
 
-  def do_handle_cast({:cancel_all, project_id}) do
+  def do_handle_cast({:cancel_all}, project_id) do
     canceled = Batch.numberize_state(:canceled)
     project_id
     |> Batch.all_for_project(:waiting)
@@ -120,20 +122,34 @@ defmodule Aelita2.Batcher do
     |> Enum.each(&Repo.update!/1)
   end
 
-  def handle_info(:poll, :ok) do
-    Repo.transaction(&poll_all/0)
+  def handle_info(:poll, project_id) do
+    Repo.transaction(fn -> poll(project_id) end)
     Process.send_after(self(), :poll, @poll_period)
-    {:noreply, :ok}
+    {:noreply, project_id}
   end
 
   # Private implementation details
 
-  defp poll_all do
-    :incomplete
-    |> Batch.all_assoc()
+  defp poll(project_id) do
+    project = Repo.get(Project, project_id)
+    project_id
+    |> Batch.all_for_project(:incomplete)
     |> Repo.all()
-    |> Aelita2.Batcher.Queue.organize_batches_into_project_queues()
-    |> Enum.each(&poll_batches/1)
+    |> Enum.map(&%Batch{&1 | project: project})
+    |> sort_batches()
+    |> poll_batches()
+  end
+
+  def sort_batches(batches) do
+    sorted_batches = Enum.sort_by(batches, &{-&1.state, &1.last_polled})
+    new_batches = Enum.dedup_by(sorted_batches, &(&1.id))
+    state = if new_batches != [] and hd(new_batches).state == 1 do
+      :running
+    else
+      Enum.each(new_batches, fn batch -> 0 = batch.state end)
+      :waiting
+    end
+    {state, new_batches}
   end
 
   defp poll_batches({:waiting, batches}) do

@@ -22,7 +22,10 @@ defmodule Aelita2 do
 
     run_batcher = Application.get_env(:aelita2, Aelita2.Batcher)[:run]
     children = if run_batcher do
-      children ++ [worker(Aelita2.Batcher, [])]
+      children ++ [
+        supervisor(Aelita2.Batcher.Supervisor, []),
+        worker(Aelita2.Batcher.Registry, []),
+      ]
     else
       children
     end
