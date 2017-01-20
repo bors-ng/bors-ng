@@ -38,7 +38,7 @@ defmodule Aelita2.GitHub.Integration do
   def get_my_repos!(token, url \\ nil, append \\ []) when is_binary(token) do
     {url, params} = case url do
       nil ->
-        {"#{config()[:site]}/installation/repos", []}
+        {"#{config()[:site]}/installation/repositories", []}
       url ->
         params = URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()
         {url, [params: params]}
