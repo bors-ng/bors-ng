@@ -177,6 +177,7 @@ footer {
   padding: 8px 10px;
   color: #FFF;
   background-color: #4d76ae;
+  border: none;
   border-radius: 8px;
   transition: box-shadow 0.1s ease-in-out;
   box-shadow: 0 1px 2px #666;

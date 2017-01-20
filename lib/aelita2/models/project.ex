@@ -53,6 +53,11 @@ defmodule Aelita2.Project do
     struct
     |> cast(params, [:repo_xref, :name])
   end
+  def changeset_branches(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:master_branch, :staging_branch])
+    |> validate_required([:master_branch, :staging_branch])
+  end
 
   # Red flag queries
   # These should always return [].

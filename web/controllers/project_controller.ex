@@ -72,7 +72,8 @@ defmodule Aelita2.ProjectController do
     render conn, "settings.html",
       project: project,
       reviewers: reviewers,
-      current_user_id: conn.assigns.user.id
+      current_user_id: conn.assigns.user.id,
+      update_branches: Project.changeset_branches(project)
   end
 
   def cancel_all(conn, project, _params) do
@@ -82,6 +83,27 @@ defmodule Aelita2.ProjectController do
     conn
     |> put_flash(:ok, "Canceled all running batches")
     |> redirect(to: project_path(conn, :show, project))
+  end
+
+  def update_branches(conn, project, %{"project" => pdef}) do
+    result = project
+    |> Project.changeset_branches(pdef)
+    |> Repo.update()
+    conn = case result do
+      {:ok, _} ->
+        conn
+        |> put_flash(:ok, "Successfully updated branches")
+        |> redirect(to: project_path(conn, :settings, project))
+      {:error, changeset} ->
+        reviewers = Repo.all(User.by_project(project.id))
+        conn
+        |> put_flash(:error, "Cannot update branches")
+        |> render("settings.html",
+          project: project,
+          reviewers: reviewers,
+          current_user_id: conn.assigns.user.id,
+          update_branches: changeset)
+    end
   end
 
   def add_reviewer(conn, project, %{"reviewer" => %{"login" => login}}) do
