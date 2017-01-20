@@ -6,6 +6,12 @@ defmodule Aelita2.GitHubMock do
   def push!(_, _, _) do
     raise("unimplemented")
   end
+  def get_pr!(_, pr_xref) do
+    %{
+      "number" => pr_xref,
+      "base" => %{
+        "ref" => "master"}}
+  end
   def copy_branch!(_, _, _) do
     raise("unimplemented")
   end
