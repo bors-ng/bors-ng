@@ -82,17 +82,19 @@ defmodule Aelita2.WebhookController do
 
   def do_webhook(conn, "github", "issue_comment") do
     if Map.has_key?(conn.body_params["issue"], "pull_request") do
+      pull_request_json = conn.body_params["repository"]["id"]
+      |> Project.installation_connection()
+      |> Repo.one!()
+      |> @github_api.RepoConnection.connect!()
+      |> @github_api.get_pr!(conn.body_params["issue"]["number"])
       project = Repo.get_by!(Project,
         repo_xref: conn.body_params["repository"]["id"])
-      patch = Repo.get_by!(Patch,
-        project_id: project.id,
-        pr_xref: conn.body_params["issue"]["number"])
       author = sync_user(conn.body_params["issue"]["user"])
       commenter = sync_user(conn.body_params["comment"]["user"])
       comment = conn.body_params["comment"]["body"]
       do_webhook_comment(conn, %{
         project: project,
-        patch: patch,
+        pull_request_json: pull_request_json,
         author: author,
         commenter: commenter,
         comment: comment})
@@ -102,15 +104,12 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "pull_request_review_comment") do
     project = Repo.get_by!(Project,
       repo_xref: conn.body_params["repository"]["id"])
-    patch = Repo.get_by!(Patch,
-      project_id: project.id,
-      pr_xref: conn.body_params["pull_request"]["number"])
     author = sync_user(conn.body_params["pull_request"]["user"])
     commenter = sync_user(conn.body_params["comment"]["user"])
     comment = conn.body_params["comment"]["body"]
     do_webhook_comment(conn, %{
       project: project,
-      patch: patch,
+      pull_request_json: conn.body_params["pull_request"],
       author: author,
       commenter: commenter,
       comment: comment})
@@ -119,15 +118,12 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "pull_request_review") do
     project = Repo.get_by!(Project,
       repo_xref: conn.body_params["repository"]["id"])
-    patch = Repo.get_by!(Patch,
-      project_id: project.id,
-      pr_xref: conn.body_params["pull_request"]["number"])
     author = sync_user(conn.body_params["pull_request"]["user"])
     commenter = sync_user(conn.body_params["review"]["user"])
     comment = conn.body_params["review"]["body"]
     do_webhook_comment(conn, %{
       project: project,
-      patch: patch,
+      pull_request_json: conn.body_params["pull_request"],
       author: author,
       commenter: commenter,
       comment: comment})
@@ -202,19 +198,22 @@ defmodule Aelita2.WebhookController do
 
   def do_webhook_comment(_conn, params) do
     %{project: project,
-      patch: p,
+      pull_request_json: pull_request_json,
+      author: author,
       commenter: commenter,
       comment: comment} = params
     comment = case comment do
       nil -> ""
       comment -> comment
     end
+    p = sync_patch(project.id, author.id, pull_request_json)
     config = Application.get_env(:aelita2, Aelita2)
     activated = :binary.match(comment, config[:activation_phrase])
     deactivated = :binary.match(comment, config[:deactivation_phrase])
+    cur_branch = pull_request_json["base"]["ref"] == project.master_branch
     case {activated, deactivated} do
       {:nomatch, :nomatch} -> :ok
-      {_, _} ->
+      {_, _} when cur_branch ->
         link = Repo.get_by(LinkUserProject,
           project_id: project.id,
           user_id: commenter.id)
