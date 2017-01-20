@@ -43,6 +43,11 @@ defmodule Aelita2.GitHub do
     end
   end
 
+  def get_pr!(repo_conn, pr_xref) do
+    %{body: raw, status_code: 200} = get!(repo_conn, "pulls/#{pr_xref}")
+    Poison.decode!(raw)
+  end
+
   def push!(repo_conn, sha, to) do
     %{body: _, status_code: 200} = patch!(
       repo_conn,
