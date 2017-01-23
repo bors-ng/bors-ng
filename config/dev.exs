@@ -20,6 +20,9 @@ config :aelita2, Aelita2.Endpoint,
 config :aelita2, Aelita2.GitHub,
   api: Aelita2.GitHubMock
 
+config :aelita2, Aelita2.GitHub.Integration,
+  webhook_secret: "XXX"
+
 config :aelita2, Aelita2.Batcher,
   run: false
 

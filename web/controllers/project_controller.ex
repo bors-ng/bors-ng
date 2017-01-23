@@ -89,7 +89,7 @@ defmodule Aelita2.ProjectController do
     result = project
     |> Project.changeset_branches(pdef)
     |> Repo.update()
-    conn = case result do
+    case result do
       {:ok, _} ->
         conn
         |> put_flash(:ok, "Successfully updated branches")
