@@ -29,6 +29,11 @@ defmodule Aelita2.Endpoint do
   plug Plug.RequestId
   plug Plug.Logger
 
+  plug Aelita2.GitHub.WebhookParserPlug,
+    secret: Application.get_env(
+      :aelita2,
+      Aelita2.GitHub.Integration)[:webhook_secret]
+
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
