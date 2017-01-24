@@ -10,7 +10,12 @@ defmodule Aelita2.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      aliases: aliases(),
-     deps: deps()]
+     deps: deps(),
+     dialyzer: [
+      flags: [
+        "-Wno_unused",
+        "-Werror_handling",
+        "-Wrace_conditions"]]]
   end
 
   # Configuration for the OTP application.
@@ -42,13 +47,15 @@ defmodule Aelita2.Mixfile do
       {:poison, "~> 2.0"},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
-      {:oauth2, "~> 0.8"},
+      # Point at hex.pm once #84 gets into a release
+      {:oauth2, [git: "git://github.com/scrogson/oauth2.git"]},
       {:httpoison, "~> 0.10.0"},
       {:joken, "~> 1.1"},
       {:jose, "~> 1.8"},
       {:libsodium, "~> 0.0.3"},
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
-      {:dogma, "~> 0.1", only: :dev},
+      {:dogma, "~> 0.1", only: [:dev], runtime: false},
+      {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
     ]
   end
 

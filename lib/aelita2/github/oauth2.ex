@@ -25,15 +25,19 @@ defmodule Aelita2.GitHub.OAuth2 do
 
   # Public API
 
+  @type t :: OAuth2.Client.t
+
   def client do
     OAuth2.Client.new(config())
   end
 
+  @spec authorize_url!() :: binary
   def authorize_url! do
     OAuth2.Client.authorize_url!(client(), params())
   end
 
-  def get_token!(params \\ [], _headers \\ []) do
+  @spec get_token!(keyword) :: t
+  def get_token!(params \\ []) do
     params = Keyword.merge(params, client_secret: client().client_secret)
     OAuth2.Client.get_token!(client(), params)
   end
@@ -41,6 +45,7 @@ defmodule Aelita2.GitHub.OAuth2 do
   @doc """
   Get info about the user we are now logged in as
   """
+  @spec get_user!(t) :: map
   def get_user!(client) do
     OAuth2.Client.get! client, "/user"
   end
