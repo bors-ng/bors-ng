@@ -18,10 +18,9 @@ defmodule Aelita2.ProjectPingChannel do
   alias Aelita2.User
 
   def join("project_ping:" <> project_id, _message, socket) do
-    if User.has_perm(Aelita2.Repo, socket.assigns.user, project_id) do
-      {:ok, socket}
-    else
-      {:error, %{reason: "not added"}}
-    end
+    with(
+      %{assigns: %{user: user}} <- socket,
+      true <- User.has_perm(Aelita2.Repo, user, project_id),
+      do: {:ok, socket})
   end
 end

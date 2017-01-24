@@ -3,8 +3,8 @@ defmodule Aelita2.GitHubMock do
   This is only used for development and testing.
   """
 
-  def push!(_, _, _) do
-    raise("unimplemented")
+  def push!(_, sha, _) do
+    sha
   end
   def get_pr!(_, pr_xref) do
     %{
@@ -13,25 +13,28 @@ defmodule Aelita2.GitHubMock do
         "ref" => "master"}}
   end
   def copy_branch!(_, _, _) do
-    raise("unimplemented")
+    "SOMESHA"
   end
   def merge_branch!(_, _) do
-    raise("unimplemented")
+    %{
+      commit: "SOMEOTHERSHA",
+      tree: "ANOTHERSHA",
+    }
   end
   def synthesize_commit!(_, _) do
-    raise("unimplemented")
+    "YETANOTHERSHA"
   end
-  def get_file(_, _, _) do
-    raise("unimplemented")
+  def get_file(r, _, _) do
+    case r.repo do
+      1 -> nil
+      2 -> ~s/status = ["some-status"]/
+    end
   end
   def post_comment!(_, _, _) do
-    raise("unimplemented")
+    :ok
   end
   def get_commit_status!(_, _) do
-    raise("unimplemented")
-  end
-  def get_repo!(_, _) do
-    raise("unimplemented")
+    %{"some-status" => :ok}
   end
   def get_user_by_login(_, login) do
     case login do
@@ -78,10 +81,42 @@ defmodule Aelita2.GitHubMock.Integration do
   This is only used for development and testing.
   """
 
-  def get_installation_token!(_) do
-    raise("unimplemented")
+  def get_installation_token!(installation_xref) do
+    case installation_xref do
+      123 -> "INST123"
+      1 -> "INST"
+      69 -> "CCC"
+    end
   end
-  def get_my_repos!(_) do
-    raise("unimplemented")
+  def get_my_repos!(token) do
+    case token do
+      "INST123" -> [
+        %{
+          id: 1,
+          name: "test/repo",
+          owner: %{
+            id: 1,
+            login: "user",
+            avatar_url: "http://avatar/user",
+            type: "User"}}]
+      "INST" -> [
+        %{
+          id: 1,
+          name: "test/repo",
+          owner: %{
+            id: 1,
+            login: "user",
+            avatar_url: "http://avatar/user",
+            type: "User"}},
+        %{
+          id: 2,
+          name: "test/mess",
+          owner: %{
+            id: 2,
+            login: "group",
+            avatar_url: nil,
+            type: "Organization"}}]
+      "CCC" -> []
+    end
   end
 end

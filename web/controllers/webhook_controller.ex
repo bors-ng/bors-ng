@@ -141,13 +141,14 @@ defmodule Aelita2.WebhookController do
 
     commit_msg = conn.body_params["commit"]["commit"]["message"]
     err_msg = Batcher.Message.generate_staging_tmp_message(identifier)
-    case commit_msg do
-      "-bors-staging-tmp-" <> pr_xref when not is_nil err_msg ->
+    case {commit_msg, err_msg} do
+      {_, nil} -> :ok
+      {"-bors-staging-tmp-" <> pr_xref, err_msg} ->
         conn.body_params["repository"]["id"]
         |> Project.installation_connection()
         |> Repo.one!()
         |> @github_api.RepoConnection.connect!()
-        |> @github_api.post_comment!(pr_xref, err_msg)
+        |> @github_api.post_comment!(String.to_integer(pr_xref), err_msg)
       _ -> :ok
     end
   end

@@ -51,11 +51,6 @@ defmodule Aelita2.GitHub.Integration do
     |> Enum.map(&%{
       id: &1["id"],
       name: &1["full_name"],
-      permissions: %{
-        admin: &1["permissions"]["admin"],
-        push: &1["permissions"]["push"],
-        pull: &1["permissions"]["pull"]
-      },
       owner: %{
         id: &1["owner"]["id"],
         login: &1["owner"]["login"],

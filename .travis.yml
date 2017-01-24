@@ -5,15 +5,22 @@ otp_release:
   - 18.3
 branches:
     only:
+      - master
       - staging
       - trying
 
 install:
-  - mix local.rebar --force
-  - mix local.hex --force
-  - mix deps.get
+  - mix do local.rebar --force, local.hex --force, deps.get
 
 script:
-  - mix test
-  - mix dogma
+  - if [ $TYPE = test ]; then mix test; fi
+  - if [ $TYPE = dogma ]; then mix dogma; fi
+  - if [ $TYPE = dialyzer ]; then mix dialyzer --halt-exit-status; fi
 
+env:
+  - TYPE=test
+  - TYPE=dogma
+  - TYPE=dialyzer
+
+matrix:
+  fast_finish: true

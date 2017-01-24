@@ -8,46 +8,22 @@ defmodule Aelita2.GitHub do
 
   @content_type_raw "application/vnd.github.VERSION.raw"
 
+  @type tconn :: %Aelita2.GitHub.RepoConnection{}
+
+  @spec config() :: keyword
   defp config do
-    cfg = [
-      site: "https://api.github.com",
-      require_visibility: :public
-    ]
     :aelita2
     |> Application.get_env(Aelita2.GitHub)
-    |> Keyword.merge(cfg)
+    |> Keyword.merge([ site: "https://api.github.com" ])
   end
 
-  def get_repo!(token, id) do
-    resp = HTTPoison.get!(
-      "#{config()[:site]}/repositories/#{id}",
-      [{"Authorization", "token #{token}"}])
-    case resp do
-      %{body: raw, status_code: 200} -> (
-        r = Poison.decode!(raw)
-        {:ok, %{
-          id: r["id"],
-          name: r["full_name"],
-          permissions: %{
-            admin: r["permissions"]["admin"],
-            push: r["permissions"]["push"],
-            pull: r["permissions"]["pull"]
-          },
-          owner: %{
-            id: r["owner"]["id"],
-            login: r["owner"]["login"],
-            avatar_url: r["owner"]["avatar_url"],
-            type: r["owner"]["type"]}}}
-      )
-      %{status_code: code} -> {:err, code}
-    end
-  end
-
+  @spec get_pr!(tconn, number) :: map
   def get_pr!(repo_conn, pr_xref) do
     %{body: raw, status_code: 200} = get!(repo_conn, "pulls/#{pr_xref}")
     Poison.decode!(raw)
   end
 
+  @spec push!(tconn, binary, binary) :: binary
   def push!(repo_conn, sha, to) do
     %{body: _, status_code: 200} = patch!(
       repo_conn,
@@ -58,12 +34,14 @@ defmodule Aelita2.GitHub do
     sha
   end
 
+  @spec copy_branch!(tconn, binary, binary) :: binary
   def copy_branch!(repo_conn, from, to) do
     %{body: raw, status_code: 200} = get!(repo_conn, "branches/#{from}")
     sha = Poison.decode!(raw)["commit"]["sha"]
     force_push!(repo_conn, sha, to)
   end
 
+  @spec merge_branch!(tconn, map) :: map
   def merge_branch!(repo_conn, %{
     from: from,
     to: to,
@@ -88,6 +66,7 @@ defmodule Aelita2.GitHub do
     end
   end
 
+  @spec synthesize_commit!(tconn, map) :: binary
   def synthesize_commit!(repo_conn, %{
     branch: branch,
     tree: tree,
@@ -105,6 +84,7 @@ defmodule Aelita2.GitHub do
     force_push!(repo_conn, sha, branch)
   end
 
+  @spec force_push!(tconn, binary, binary) :: binary
   def force_push!(repo_conn, sha, to) do
     %{body: raw, status_code: status_code} = get!(repo_conn, "branches/#{to}")
     %{body: _, status_code: 200} = cond do
@@ -129,6 +109,7 @@ defmodule Aelita2.GitHub do
     sha
   end
 
+  @spec get_commit_status!(tconn, binary) :: map
   def get_commit_status!(repo_conn, sha) do
     %{body: raw, status_code: 200} = get!(repo_conn, "commits/#{sha}/status")
     Poison.decode!(raw)["statuses"]
@@ -136,6 +117,7 @@ defmodule Aelita2.GitHub do
     |> Map.new()
   end
 
+  @spec get_file(tconn, binary, binary) :: binary | nil
   def get_file(repo_conn, branch, path) do
     %{body: raw, status_code: status_code} = get!(
       repo_conn,
@@ -148,13 +130,16 @@ defmodule Aelita2.GitHub do
     end
   end
 
+  @spec post_comment!(tconn, number, binary) :: :ok
   def post_comment!(repo_conn, number, body) do
     %{status_code: 201} = post!(
       repo_conn,
       "issues/#{number}/comments",
       Poison.encode!(%{body: body}))
+    :ok
   end
 
+  @spec get_user_by_login(binary, binary) :: {:ok, map} | {:error, atom}
   def get_user_by_login(token, login) when is_binary(token) do
     resp = HTTPoison.get!(
       "#{config()[:site]}/users/#{login}",
@@ -170,39 +155,46 @@ defmodule Aelita2.GitHub do
     end
   end
 
+  @spec post!(tconn, binary, binary, list) :: map
   defp post!(
     %RepoConnection{token: token, repo: repo},
     path,
     body,
-    headers \\ []) do
+    headers \\ []
+    ) do
     HTTPoison.post!(
       "#{config()[:site]}/repositories/#{repo}/#{path}",
       body,
       [{"Authorization", "token #{token}"}] ++ headers)
   end
 
+  @spec patch!(tconn, binary, binary, list) :: map
   defp patch!(
     %RepoConnection{token: token, repo: repo},
     path,
     body,
-    headers \\ []) do
+    headers \\ []
+    ) do
     HTTPoison.patch!(
       "#{config()[:site]}/repositories/#{repo}/#{path}",
       body,
       [{"Authorization", "token #{token}"}] ++ headers)
   end
 
+  @spec get!(tconn, binary, list, list) :: map
   defp get!(
     %RepoConnection{token: token, repo: repo},
     path,
     headers \\ [],
-    params \\ []) do
+    params \\ []
+    ) do
     HTTPoison.get!(
       "#{config()[:site]}/repositories/#{repo}/#{path}",
       [{"Authorization", "token #{token}"}] ++ headers,
       params)
   end
 
+  @spec map_state_to_status(binary) :: atom
   def map_state_to_status(state) do
     case state do
       "pending" -> :running
