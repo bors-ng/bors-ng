@@ -9,6 +9,11 @@ branches:
       - staging
       - trying
 
+cache:
+  directories:
+    - _build
+    - deps
+
 install:
   - mix do local.rebar --force, local.hex --force, deps.get
 
