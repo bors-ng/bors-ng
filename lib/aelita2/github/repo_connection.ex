@@ -9,6 +9,9 @@ defmodule Aelita2.GitHub.RepoConnection do
 
   @github_api Application.get_env(:aelita2, Aelita2.GitHub)[:api]
 
+  @type t :: %Aelita2.GitHub.RepoConnection{}
+
+  @spec connect!(%{installation: number, repo: number}) :: t
   def connect!(%{installation: installation, repo: repo}) do
     token = @github_api.Integration.get_installation_token!(installation)
     %Aelita2.GitHub.RepoConnection{token: token, repo: repo}

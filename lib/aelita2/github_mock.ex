@@ -3,39 +3,50 @@ defmodule Aelita2.GitHubMock do
   This is only used for development and testing.
   """
 
+  @type tconn :: %Aelita2.GitHub.RepoConnection{}
+
+  @spec push!(tconn, binary, binary) :: binary
   def push!(_, sha, _) do
     sha
   end
+  @spec get_pr!(tconn, number) :: map
   def get_pr!(_, pr_xref) do
     %{
       "number" => pr_xref,
       "base" => %{
         "ref" => "master"}}
   end
+  @spec copy_branch!(tconn, binary, binary) :: binary
   def copy_branch!(_, _, _) do
     "SOMESHA"
   end
+  @spec merge_branch!(tconn, map) :: map
   def merge_branch!(_, _) do
     %{
       commit: "SOMEOTHERSHA",
       tree: "ANOTHERSHA",
     }
   end
+  @spec synthesize_commit!(tconn, map) :: binary
   def synthesize_commit!(_, _) do
     "YETANOTHERSHA"
   end
+  @spec get_file(tconn, binary, binary) :: binary | nil
   def get_file(r, _, _) do
     case r.repo do
       1 -> nil
       2 -> ~s/status = ["some-status"]/
     end
   end
+  @spec post_comment!(tconn, number, binary) :: :ok
   def post_comment!(_, _, _) do
     :ok
   end
+  @spec get_commit_status!(tconn, binary) :: map
   def get_commit_status!(_, _) do
     %{"some-status" => :ok}
   end
+  @spec get_user_by_login(binary, binary) :: {:ok, map} | {:error, atom}
   def get_user_by_login(_, login) do
     case login do
       "ghost" ->
@@ -51,6 +62,9 @@ defmodule Aelita2.GitHubMock.RepoConnection do
   This is only used for development and testing.
   """
 
+  @type t :: Aelita2.GitHub.RepoConnection.t
+
+  @spec connect!(%{installation: number, repo: number}) :: t
   defdelegate connect!(repo_conn), to: Aelita2.GitHub.RepoConnection
 end
 defmodule Aelita2.GitHubMock.OAuth2 do
@@ -62,14 +76,19 @@ defmodule Aelita2.GitHubMock.OAuth2 do
   @url "MOCK_GITHUB_AUTHORIZE_URL"
   @token "MOCK_GITHUB_AUTHORIZE_TOKEN"
 
+  @type t :: map
+
+  @spec authorize_url!() :: binary
   def authorize_url! do
     "/auth/github/callback?code=#{@code}\##{@url}"
   end
+  @spec get_token!(keyword) :: t
   def get_token!(args) do
     code = args[:code]
     if code != @code, do: raise("Incorrect GitHub auth code: #{code}")
     %{token: %{access_token: @token}}
   end
+  @spec get_user!(t) :: map
   def get_user!(client) do
     token = client.token.access_token
     if token != @token, do: raise("Incorrect GitHub auth code: #{token}")
@@ -81,6 +100,7 @@ defmodule Aelita2.GitHubMock.Integration do
   This is only used for development and testing.
   """
 
+  @spec get_installation_token!(number) :: binary
   def get_installation_token!(installation_xref) do
     case installation_xref do
       123 -> "INST123"
@@ -88,6 +108,7 @@ defmodule Aelita2.GitHubMock.Integration do
       69 -> "CCC"
     end
   end
+  @spec get_installation_token!(binary) :: [map]
   def get_my_repos!(token) do
     case token do
       "INST123" -> [

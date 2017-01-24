@@ -10,13 +10,15 @@ defmodule Aelita2.GitHub.Integration do
 
   # Public API
 
-  def config do
+  @spec config() :: keyword
+  defp config do
     :aelita2
     |> Application.get_env(Aelita2.GitHub.Integration)
     |> Keyword.merge(Application.get_env(:aelita2, Aelita2.GitHub))
     |> Keyword.merge([site: "https://api.github.com"])
   end
 
+  @spec get_installation_token!(number) :: binary
   def get_installation_token!(installation_xref) do
     import Joken
     cfg = config()
@@ -35,18 +37,18 @@ defmodule Aelita2.GitHub.Integration do
     Poison.decode!(raw)["token"]
   end
 
-  def get_my_repos!(token, url \\ nil, append \\ []) when is_binary(token) do
-    {url, params} = case url do
-      nil ->
-        {"#{config()[:site]}/installation/repositories", []}
-      url ->
-        params = URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()
-        {url, [params: params]}
-    end
+  @spec get_my_repos!(binary) :: [map]
+  def get_my_repos!(token) do
+    get_my_repos_!(token, "#{config()[:site]}/installation/repositories", [])
+  end
+
+  @spec get_my_repos_!(binary, binary, [map]) :: [map]
+  defp get_my_repos_!(token, url, append) when is_binary(token) do
+    params = URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()
     %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
       url,
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
-      params)
+      [params: params])
     repositories = Poison.decode!(raw)["repositories"]
     |> Enum.map(&%{
       id: &1["id"],
@@ -63,7 +65,7 @@ defmodule Aelita2.GitHub.Integration do
     |> Enum.filter(&!is_nil(&1.next))
     case next_headers do
       [] -> repositories
-      [next] -> get_my_repos!(token, next.next.url, repositories)
+      [next] -> get_my_repos_!(token, next.next.url, repositories)
     end
   end
 end
