@@ -405,6 +405,7 @@ defmodule Aelita2.Batcher do
       body))
   end
 
+  @spec get_repo_conn(%Project{}) :: map
   defp get_repo_conn(project) do
     project.repo_xref
     |> Project.installation_connection()

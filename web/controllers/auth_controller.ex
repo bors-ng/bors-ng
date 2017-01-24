@@ -31,13 +31,17 @@ defmodule Aelita2.AuthController do
   Socket tokens are usable for one hour before they must be reset.
   """
   def socket_token(conn, _params) do
-    token = Phoenix.Token.sign(
-      conn,
-      "channel:current_user",
-      conn.assigns.user.id)
-    render conn,
-      "socket_token.json",
-      token: %{token: token, current_user: conn.assigns.user.id}
+    with(
+      %{assigns: %{user: %{id: user_id}}} <- conn,
+      do: (
+        token = Phoenix.Token.sign(
+          conn,
+          "channel:current_user",
+          user_id)
+        render conn,
+          "socket_token.json",
+          token: %{token: token, current_user: user_id}
+      ))
   end
 
   def logout(conn, _params) do

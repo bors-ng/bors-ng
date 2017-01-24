@@ -23,6 +23,11 @@ config :aelita2, Aelita2.GitHub,
 config :aelita2, Aelita2.GitHub.Integration,
   webhook_secret: "XXX"
 
+config :aelita2, Aelita2.GitHub.OAuth2,
+  client_id: "III",
+  client_secret: "YYY",
+  scope: "public_repo user"
+
 config :aelita2, Aelita2.Batcher,
   run: false
 

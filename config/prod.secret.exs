@@ -17,8 +17,7 @@ config :aelita2, Aelita2.Repo,
   ssl: true
 
 config :aelita2, Aelita2.GitHub,
-  api: Aelita2.GitHub,
-  require_visibility: :public
+  api: Aelita2.GitHub
 
 config :aelita2, Aelita2.GitHub.OAuth2,
   client_id: System.get_env("GITHUB_CLIENT_ID"),

@@ -26,13 +26,13 @@ defmodule Aelita2.User do
       where: u.id == l.user_id
   end
 
-  def has_perm(repo, user, project_id) do
-    if user.is_admin do
-      true
-    else
-      params = [project_id: project_id, user_id: user.id]
-      not is_nil repo.get_by(LinkUserProject, params)
-    end
+  def has_perm(_repo, %User{is_admin: true}, _project_id) do
+    true
+  end
+
+  def has_perm(repo, %User{id: id}, project_id) do
+    params = [project_id: project_id, user_id: id]
+    not is_nil repo.get_by(LinkUserProject, params)
   end
 
   @doc """
