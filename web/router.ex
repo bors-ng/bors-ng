@@ -96,7 +96,9 @@ defmodule Aelita2.Router do
     if is_nil user_id do
       conn
     else
-      assign(conn, :user, Aelita2.Repo.get!(Aelita2.User, user_id))
+      conn
+      |> assign(:user, Aelita2.Repo.get!(Aelita2.User, user_id))
+      |> assign(:avatar_url, Plug.Conn.get_session(conn, :avatar_url))
     end
   end
 

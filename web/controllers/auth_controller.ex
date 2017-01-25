@@ -67,6 +67,7 @@ defmodule Aelita2.AuthController do
     # Request the user's data with the access token
     user = get_user! provider, client
     false = is_nil(user.id)
+    avatar = user.avatar
 
     # Create (or reuse) the database record for this user
     maybe_user_model = Repo.get_by User, user_xref: user.id
@@ -99,6 +100,7 @@ defmodule Aelita2.AuthController do
     conn
     |> put_flash(:ok, "Successfully logged in")
     |> put_session(:current_user, user_model.id)
+    |> put_session(:avatar_url, avatar)
     |> put_session(:github_access_token, client.token.access_token)
     |> redirect(to: redirect_to)
   end
@@ -111,6 +113,6 @@ defmodule Aelita2.AuthController do
 
   defp get_user!("github", client) do
     %{body: user} = @github_api.OAuth2.get_user! client
-    %{id: user["id"], login: user["login"]}
+    %{id: user["id"], login: user["login"], avatar: user["avatar_url"]}
   end
 end

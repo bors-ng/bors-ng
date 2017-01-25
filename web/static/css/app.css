@@ -3,7 +3,6 @@
   max-width: 1000px;
   margin: 0 auto;
   padding: 16px 20px;
-  position: relative;
 }
 .wrapper--mini {
   padding: 8px 20px;
@@ -12,22 +11,36 @@
 header, nav {
   border-bottom: solid 1px #CCC;
 }
-#repos-button {
-  position: absolute;
-  top: 50%; right: 10px;
-  height: 25px; line-height: 20px;
-  margin-top: -12px;
+#header-user {
+  float: right;
 }
-#repos-button > a,
-#repos-button > span {
-  padding: 10px 10px;
+#header-user > a, #header-user img {
   vertical-align: middle;
+  line-height: 25px;
+  height: 25px;
+  display: inline-block;
 }
-#repos-button > span {
-  color: #666;
+.drop-down-menu {
+  display: none;
+  position: fixed;
+  background: #fff;
+  border: solid 1px #CCC;
+  padding: 8px 0;
 }
-header {
-  z-index: 2;
+.drop-down-menu:target, .drop-down-menu--open {
+  display: block;
+}
+.drop-down-menu > a {
+  display: block;
+  height: 25px;
+  line-height: 25px;
+  padding: 8px 20px;
+}
+.drop-down-menu--right {
+  direction: rtl;
+}
+.drop-down-menu--right > .drop-down-menu {
+  direction: ltr;
 }
 nav {
   background-color: #EEE;
