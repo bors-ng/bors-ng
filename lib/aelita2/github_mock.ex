@@ -75,6 +75,7 @@ defmodule Aelita2.GitHubMock.OAuth2 do
   @code "MOCK_GITHUB_AUTHORIZE_CODE"
   @url "MOCK_GITHUB_AUTHORIZE_URL"
   @token "MOCK_GITHUB_AUTHORIZE_TOKEN"
+  @avatar "https://cdn.rawgit.com/notriddle/bors-ng/b9e756/icon/bors-eye.svg"
 
   @type t :: map
 
@@ -92,7 +93,7 @@ defmodule Aelita2.GitHubMock.OAuth2 do
   def get_user!(client) do
     token = client.token.access_token
     if token != @token, do: raise("Incorrect GitHub auth code: #{token}")
-    %{body: %{"id" => 23, "login" => "space"}}
+    %{body: %{"id" => 23, "login" => "space", "avatar_url" => @avatar}}
   end
 end
 defmodule Aelita2.GitHubMock.Integration do
