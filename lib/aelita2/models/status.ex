@@ -50,7 +50,7 @@ defmodule Aelita2.Status do
       0 -> :waiting
       1 -> :running
       2 -> :ok
-      3 -> :err
+      3 -> :error
     end
   end
 
@@ -59,7 +59,7 @@ defmodule Aelita2.Status do
       :waiting -> 0
       :running -> 1
       :ok -> 2
-      :err -> 3
+      :error -> 3
     end
   end
 end

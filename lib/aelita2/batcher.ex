@@ -208,7 +208,7 @@ defmodule Aelita2.Batcher do
       :conflict ->
         state = bisect(patches, project)
         send_message(repo_conn, patches, {:conflict, state})
-        err = Batch.numberize_state(:err)
+        err = Batch.numberize_state(:error)
         batch
         |> Batch.changeset(%{state: err})
         |> Repo.update!()
@@ -263,7 +263,7 @@ defmodule Aelita2.Batcher do
 
   defp setup_statuses_error(repo_conn, batch, patches, message) do
     message = Batcher.Message.generate_bors_toml_error(message)
-    err = Batch.numberize_state(:err)
+    err = Batch.numberize_state(:error)
     batch
     |> Batch.changeset(%{state: err})
     |> Repo.update!()
@@ -312,10 +312,10 @@ defmodule Aelita2.Batcher do
     Project.ping!(project.id)
   end
 
-  defp maybe_complete_batch(:err, batch, statuses) do
+  defp maybe_complete_batch(:error, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    erred = Enum.filter(statuses, &(&1.state == Status.numberize_state(:err)))
+    erred = Enum.filter(statuses, &(&1.state == Status.numberize_state(:error)))
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
@@ -337,7 +337,7 @@ defmodule Aelita2.Batcher do
     project
     |> get_repo_conn()
     |> send_message(patches, {:timeout, state})
-    err = Batch.numberize_state(:err)
+    err = Batch.numberize_state(:error)
     batch
     |> Batch.changeset(%{state: err})
     |> Repo.update!()

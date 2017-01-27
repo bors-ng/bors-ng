@@ -33,7 +33,7 @@ defmodule Aelita2.Batch do
       0 -> :waiting
       1 -> :running
       2 -> :ok
-      3 -> :err
+      3 -> :error
       4 -> :canceled
     end
   end
@@ -43,7 +43,7 @@ defmodule Aelita2.Batch do
       :waiting -> 0
       :running -> 1
       :ok -> 2
-      :err -> 3
+      :error -> 3
       :canceled -> 4
     end
   end

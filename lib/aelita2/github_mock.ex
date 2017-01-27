@@ -9,12 +9,20 @@ defmodule Aelita2.GitHubMock do
   def push!(_, sha, _) do
     sha
   end
-  @spec get_pr!(tconn, number) :: map
+  @spec get_pr!(tconn, integer | bitstring) :: Aelita2.GitHub.Pr.t
   def get_pr!(_, pr_xref) do
-    %{
-      "number" => pr_xref,
-      "base" => %{
-        "ref" => "master"}}
+    number = case pr_xref do
+      x when is_integer(x) -> x
+      x when is_binary(x) -> String.to_integer(x)
+    end
+    %Aelita2.GitHub.Pr{
+      number: number,
+      title: "",
+      body: "",
+      state: :open,
+      base_ref: "master",
+      head_sha: "NNN",
+    }
   end
   @spec copy_branch!(tconn, binary, binary) :: binary
   def copy_branch!(_, _, _) do
@@ -42,7 +50,7 @@ defmodule Aelita2.GitHubMock do
   def post_comment!(_, _, _) do
     :ok
   end
-  @spec get_commit_status!(tconn, binary) :: map
+  @spec get_commit_status!(tconn, binary) :: %{binary => :running | :ok | :error}
   def get_commit_status!(_, _) do
     %{"some-status" => :ok}
   end

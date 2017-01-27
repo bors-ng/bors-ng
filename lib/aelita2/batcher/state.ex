@@ -17,8 +17,8 @@ defmodule Aelita2.Batcher.State do
   end
   def summarize(self, rest) do
     case {self, rest} do
-      {:err, _} -> :err
-      {_, :err} -> :err
+      {:error, _} -> :error
+      {_, :error} -> :error
       {:waiting, _} -> :waiting
       {_, :waiting} -> :waiting
       {:running, _} -> :running

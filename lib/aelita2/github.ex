@@ -17,10 +17,11 @@ defmodule Aelita2.GitHub do
     |> Keyword.merge([ site: "https://api.github.com" ])
   end
 
-  @spec get_pr!(tconn, number) :: map
+  @spec get_pr!(tconn, integer | bitstring) :: Aelita2.GitHub.Pr.t
   def get_pr!(repo_conn, pr_xref) do
     %{body: raw, status_code: 200} = get!(repo_conn, "pulls/#{pr_xref}")
     Poison.decode!(raw)
+    |> Aelita2.GitHub.Pr.from_json!()
   end
 
   @spec push!(tconn, binary, binary) :: binary
@@ -109,7 +110,7 @@ defmodule Aelita2.GitHub do
     sha
   end
 
-  @spec get_commit_status!(tconn, binary) :: map
+  @spec get_commit_status!(tconn, binary) :: %{binary => :running | :ok | :error}
   def get_commit_status!(repo_conn, sha) do
     %{body: raw, status_code: 200} = get!(repo_conn, "commits/#{sha}/status")
     Poison.decode!(raw)["statuses"]
@@ -194,13 +195,13 @@ defmodule Aelita2.GitHub do
       params)
   end
 
-  @spec map_state_to_status(binary) :: atom
+  @spec map_state_to_status(binary) :: :running | :ok | :error
   def map_state_to_status(state) do
     case state do
       "pending" -> :running
       "success" -> :ok
-      "failure" -> :err
-      "error" -> :err
+      "failure" -> :error
+      "error" -> :error
     end
   end
 end

@@ -14,6 +14,8 @@ defmodule Aelita2.Patch do
   alias Aelita2.LinkUserProject
   alias Aelita2.Patch
 
+  @type t :: %Patch{}
+
   schema "patches" do
     belongs_to :project, Aelita2.Project
     field :pr_xref, :integer
@@ -49,7 +51,7 @@ defmodule Aelita2.Patch do
   end
 
   defp all_links_not_err do
-    err = Batch.numberize_state(:err)
+    err = Batch.numberize_state(:error)
     canceled = Batch.numberize_state(:canceled)
     from l in LinkPatchBatch,
       join: b in Batch,
