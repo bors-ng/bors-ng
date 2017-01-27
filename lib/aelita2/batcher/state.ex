@@ -5,16 +5,24 @@ defmodule Aelita2.Batcher.State do
   and emits a batch state.
   """
 
+  @typep n :: Aelita2.Status.state_n
+  @typep t :: Aelita2.Status.state
+
+  @spec summary_statuses([n]) :: t
   def summary_statuses(statuses) do
     statuses
     |> Enum.map(&(&1.state))
     |> Enum.map(&Aelita2.Status.atomize_state/1)
     |> summary_states()
   end
+
+  @spec summary_states([t]) :: t
   def summary_states(states) do
     states
     |> Enum.reduce(:ok, &summarize/2)
   end
+
+  @spec summarize(t, t) :: t
   def summarize(self, rest) do
     case {self, rest} do
       {:error, _} -> :error

@@ -5,6 +5,9 @@ defmodule Aelita2.Status do
   array of bors.toml.
   """
 
+  @type state_n :: 0 | 1 | 2 | 3
+  @type state :: :waiting | :running | :ok | :error
+
   use Aelita2.Web, :model
 
   alias Aelita2.Status
@@ -45,6 +48,7 @@ defmodule Aelita2.Status do
       where: s.state == ^state
   end
 
+  @spec atomize_state(state_n) :: state
   def atomize_state(state) do
     case state do
       0 -> :waiting
@@ -54,6 +58,7 @@ defmodule Aelita2.Status do
     end
   end
 
+  @spec numberize_state(state) :: state_n
   def numberize_state(state) do
     case state do
       :waiting -> 0
