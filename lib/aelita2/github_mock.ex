@@ -5,6 +5,8 @@ defmodule Aelita2.GitHubMock do
 
   @type tconn :: %Aelita2.GitHub.RepoConnection{}
 
+  @type tuser :: Aelita2.GitHub.User.t
+
   @spec push!(tconn, binary, binary) :: binary
   def push!(_, sha, _) do
     sha
@@ -54,13 +56,13 @@ defmodule Aelita2.GitHubMock do
   def get_commit_status!(_, _) do
     %{"some-status" => :ok}
   end
-  @spec get_user_by_login(binary, binary) :: {:ok, map} | {:error, atom}
+  @spec get_user_by_login(binary, binary) :: {:ok, tuser} | :error | nil
   def get_user_by_login(_, login) do
     case login do
       "ghost" ->
-        {:ok, %{id: 13}}
+        {:ok, %Aelita2.GitHub.User{id: 13, login: "ghost", avatar_url: ""}}
       _ ->
-        {:error, :not_found}
+        nil
     end
   end
   defdelegate map_state_to_status(state), to: Aelita2.GitHub
@@ -86,6 +88,7 @@ defmodule Aelita2.GitHubMock.OAuth2 do
   @avatar "https://cdn.rawgit.com/notriddle/bors-ng/b9e756/icon/bors-eye.svg"
 
   @type t :: map
+  @type tuser :: Aelita2.GitHub.User.t
 
   @spec authorize_url!() :: binary
   def authorize_url! do
@@ -97,11 +100,11 @@ defmodule Aelita2.GitHubMock.OAuth2 do
     if code != @code, do: raise("Incorrect GitHub auth code: #{code}")
     %{token: %{access_token: @token}}
   end
-  @spec get_user!(t) :: map
+  @spec get_user!(t) :: tuser
   def get_user!(client) do
     token = client.token.access_token
     if token != @token, do: raise("Incorrect GitHub auth code: #{token}")
-    %{body: %{"id" => 23, "login" => "space", "avatar_url" => @avatar}}
+    %Aelita2.GitHub.User{id: 23, login: "space", avatar_url: @avatar}
   end
 end
 defmodule Aelita2.GitHubMock.Integration do

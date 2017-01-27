@@ -62,39 +62,35 @@ defmodule Aelita2.AuthController do
   """
   def callback(conn, %{"provider" => provider, "code" => code}) do
     # Exchange an auth code for an access token
-    client = get_token! provider, code
+    client = get_token!(provider, code)
 
     # Request the user's data with the access token
-    user = get_user! provider, client
-    false = is_nil(user.id)
-    avatar = user.avatar
+    user = get_user!(provider, client)
+    avatar = user.avatar_url
 
     # Create (or reuse) the database record for this user
-    maybe_user_model = Repo.get_by User, user_xref: user.id
-    current_user_model =
-      if is_nil(maybe_user_model) do
+    current_user_model = case Repo.get_by(User, user_xref: user.id) do
+      nil ->
         Repo.insert! %User{
           user_xref: user.id,
           login: user.login}
-      else
-        maybe_user_model
-      end
+      current_user_model ->
+        current_user_model
+    end
 
     # Make sure the login is up-to-date (GitHub users are allowed to change it)
     user_model =
       if current_user_model.login != user.login do
-        cs = Ecto.Changeset.change current_user_model, login: user.login
+        cs = Ecto.Changeset.change(current_user_model, login: user.login)
         true = cs.valid?
         Repo.update! cs
       else
         current_user_model
       end
 
-    redirect_to = get_session(conn, :auth_redirect_to)
-    redirect_to = if is_nil(redirect_to) do
-      page_path(conn, :index)
-    else
-      redirect_to
+    redirect_to = case get_session(conn, :auth_redirect_to) do
+      nil -> page_path(conn, :index)
+      redirect_to -> redirect_to
     end
 
     conn
@@ -111,8 +107,6 @@ defmodule Aelita2.AuthController do
   defp get_token!("github", code), do: @github_api.OAuth2.get_token! code: code
   defp get_token!(_, _), do: raise "No matching provider available"
 
-  defp get_user!("github", client) do
-    %{body: user} = @github_api.OAuth2.get_user! client
-    %{id: user["id"], login: user["login"], avatar: user["avatar_url"]}
-  end
+  defp get_user!("github", client), do: @github_api.OAuth2.get_user!(client)
+  defp get_user!(_, _), do: raise "No matching provider available"
 end

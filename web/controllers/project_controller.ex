@@ -123,9 +123,11 @@ defmodule Aelita2.ProjectController do
       do: Repo.insert(changeset)
     )
     {state, msg} = case user do
-      {:error, :not_found} ->
+      nil ->
         {:error, "GitHub user not found; maybe you typo-ed?"}
       {:error, _} ->
+        {:error, "Internal error adding user"}
+      :error ->
         {:error, "Internal error adding user"}
       {:ok, user} ->
         case link do

@@ -10,6 +10,8 @@ defmodule Aelita2.GitHub do
 
   @type tconn :: %Aelita2.GitHub.RepoConnection{}
 
+  @type tuser :: Aelita2.GitHub.User.t
+
   @spec config() :: keyword
   defp config do
     :aelita2
@@ -140,19 +142,18 @@ defmodule Aelita2.GitHub do
     :ok
   end
 
-  @spec get_user_by_login(binary, binary) :: {:ok, map} | {:error, atom}
+  @spec get_user_by_login(binary, binary) :: {:ok, tuser} | :error | nil
   def get_user_by_login(token, login) when is_binary(token) do
     resp = HTTPoison.get!(
       "#{config()[:site]}/users/#{login}",
       [{"Authorization", "token #{token}"}])
     case resp do
       %{body: raw, status_code: 200} ->
-        r = Poison.decode!(raw)
-        {:ok, %{
-          id: r["id"],
-        }}
+        raw
+        |> Poison.decode!()
+        |> Aelita2.GitHub.User.from_json()
       %{status_code: 404} ->
-        {:error, :not_found}
+        nil
     end
   end
 
