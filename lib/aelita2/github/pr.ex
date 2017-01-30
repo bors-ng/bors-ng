@@ -3,18 +3,7 @@ defmodule Aelita2.GitHub.Pr do
   The structure of GitHub pull requests
   """
 
-  @type tjson :: %{
-    "number": integer,
-    "title": bitstring,
-    "body": bitstring,
-    "state": bitstring,
-    "base": %{
-      "ref": bitstring,
-    },
-    "head": %{
-      "sha": bitstring,
-    }
-  }
+  @type tjson :: map
   @type t :: %Aelita2.GitHub.Pr{
     number: integer,
     title: bitstring | nil,
@@ -39,15 +28,15 @@ defmodule Aelita2.GitHub.Pr do
   """
   @spec from_json(tjson) :: {:ok, t} | :err
   def from_json(%{
-    "number": number,
-    "title": title,
-    "body": body,
-    "state": state,
-    "base": %{
-      "ref": base_ref,
+    "number" => number,
+    "title" => title,
+    "body" => body,
+    "state" => state,
+    "base" => %{
+      "ref" => base_ref,
     },
-    "head": %{
-      "sha": head_sha
+    "head" => %{
+      "sha" => head_sha
     },
   }) when is_integer(number) do
     {:ok, %Aelita2.GitHub.Pr{

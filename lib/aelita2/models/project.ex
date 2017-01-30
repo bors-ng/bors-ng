@@ -36,14 +36,13 @@ defmodule Aelita2.Project do
     Aelita2.Endpoint.broadcast! "project_ping:#{project_id}", "new_msg", %{}
   end
 
-  def installation_connection(repo_xref) do
-    from p in Project,
+  def installation_connection(repo_xref, repo) do
+    {installation_xref, repo_xref} = from(p in Project,
       join: i in Installation, on: i.id == p.installation_id,
       where: p.repo_xref == ^repo_xref,
-      select: %{
-        repo: p.repo_xref,
-        installation: i.installation_xref,
-      }
+      select: {i.installation_xref, p.repo_xref})
+    |> repo.one!()
+    {{:installation, installation_xref}, repo_xref}
   end
 
   @doc """

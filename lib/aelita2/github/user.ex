@@ -5,11 +5,7 @@ defmodule Aelita2.GitHub.User do
 
   defstruct id: 0, login: "", avatar_url: ""
 
-  @type tjson :: %{
-    "id": integer,
-    "login": bitstring,
-    "avatar_url": bitstring,
-  }
+  @type tjson :: map
 
   @type t :: %Aelita2.GitHub.User{
     id: integer,
@@ -32,9 +28,9 @@ defmodule Aelita2.GitHub.User do
   """
   @spec from_json(tjson) :: {:ok, t} | :err
   def from_json(%{
-    "id": id,
-    "login": login,
-    "avatar_url": avatar_url,
+    "id" => id,
+    "login" => login,
+    "avatar_url" => avatar_url,
   }) when is_integer(id) do
     {:ok, %Aelita2.GitHub.User{
       id: id,
