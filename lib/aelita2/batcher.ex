@@ -31,7 +31,8 @@ defmodule Aelita2.Batcher do
   alias Aelita2.LinkPatchBatch
   alias Aelita2.GitHub
 
-  @poll_period 2000
+  # Every half-hour
+  @poll_period 30*60*1000
 
   # Public API
 
@@ -78,9 +79,12 @@ defmodule Aelita2.Batcher do
         |> send_message([patch], :not_awaiting_review)
       patch ->
         # Patch exists and is awaiting review
+        # This will cause the PR to start after the patch's scheduled delay
+        project = Repo.get!(Project, patch.project_id)
         batch = get_new_batch(project_id)
         params = %{batch_id: batch.id, patch_id: patch.id}
         Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
+        Process.send_after(self(), :poll, (project.batch_delay_sec + 1) * 1000)
     end
   end
 
