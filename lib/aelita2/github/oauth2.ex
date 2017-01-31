@@ -45,9 +45,12 @@ defmodule Aelita2.GitHub.OAuth2 do
   @doc """
   Get info about the user we are now logged in as
   """
-  @spec get_user!(t) :: map
+  @spec get_user!(t) :: Aelita2.GitHub.User.t
   def get_user!(client) do
-    OAuth2.Client.get! client, "/user"
+    client
+    |> OAuth2.Client.get!("/user")
+    |> Map.fetch!(:body)
+    |> Aelita2.GitHub.User.from_json!()
   end
 
   # Strategy Callbacks

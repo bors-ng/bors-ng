@@ -6,9 +6,6 @@ config :aelita2, Aelita2.Endpoint,
   http: [port: 4001],
   server: false
 
-config :aelita2, Aelita2.Batcher,
-  run: false
-
 # Print only warnings and errors during test
 config :logger, level: :warn
 
@@ -22,4 +19,7 @@ config :aelita2, Aelita2.Repo,
   pool: Ecto.Adapters.SQL.Sandbox
 
 config :aelita2, Aelita2.GitHub,
-  api: Aelita2.GitHubMock
+  server: Aelita2.GitHub.ServerMock
+
+config :aelita2, Aelita2.GitHub.OAuth2,
+  api: Aelita2.GitHub.OAuth2Mock

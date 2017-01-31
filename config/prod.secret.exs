@@ -1,8 +1,5 @@
 use Mix.Config
 
-config :aelita2, Aelita2.Batcher,
-  run: true
-
 config :aelita2, Aelita2.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [host: {:system, "PUBLIC_HOST"}, scheme: "https", port: 443],
@@ -17,9 +14,10 @@ config :aelita2, Aelita2.Repo,
   ssl: true
 
 config :aelita2, Aelita2.GitHub,
-  api: Aelita2.GitHub
+  server: Aelita2.GitHub.Server
 
 config :aelita2, Aelita2.GitHub.OAuth2,
+  api: Aelita2.GitHub.OAuth2,
   client_id: System.get_env("GITHUB_CLIENT_ID"),
   client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
   scope: "public_repo user"

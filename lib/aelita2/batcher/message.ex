@@ -3,6 +3,9 @@ defmodule Aelita2.Batcher.Message do
   User-readable strings that go in commit messages and comments.
   """
 
+  def generate_message(:not_awaiting_review) do
+    "Not awaiting review"
+  end
   def generate_message({:config, message}) do
     "# Configuration problem\n#{message}"
   end

@@ -15,21 +15,18 @@ config :aelita2, Aelita2.Endpoint,
                     cd: Path.expand("../", __DIR__)]]
 
 # On developer boxes, we do not actually talk to GitHub.
-# Use the mock instance, and do not run the batcher.
-# To test these, compile in prod mode.
+# Use the mock instance.
 config :aelita2, Aelita2.GitHub,
-  api: Aelita2.GitHubMock
+  server: Aelita2.GitHub.ServerMock
 
 config :aelita2, Aelita2.GitHub.Integration,
   webhook_secret: "XXX"
 
 config :aelita2, Aelita2.GitHub.OAuth2,
+  api: Aelita2.GitHub.OAuth2Mock,
   client_id: "III",
   client_secret: "YYY",
   scope: "public_repo user"
-
-config :aelita2, Aelita2.Batcher,
-  run: false
 
 # Watch static and templates for browser reloading.
 config :aelita2, Aelita2.Endpoint,

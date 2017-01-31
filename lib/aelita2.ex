@@ -18,17 +18,10 @@ defmodule Aelita2 do
       # Start the endpoint when the application starts
       supervisor(Aelita2.Endpoint, []),
       # worker(Aelita2.Worker, [arg1, arg2, arg3]),
+      worker(Application.get_env(:aelita2, Aelita2.GitHub)[:server], []),
+      supervisor(Aelita2.Batcher.Supervisor, []),
+      worker(Aelita2.Batcher.Registry, []),
     ]
-
-    run_batcher = Application.get_env(:aelita2, Aelita2.Batcher)[:run]
-    children = if run_batcher do
-      children ++ [
-        supervisor(Aelita2.Batcher.Supervisor, []),
-        worker(Aelita2.Batcher.Registry, []),
-      ]
-    else
-      children
-    end
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
