@@ -105,6 +105,12 @@ defmodule Aelita2.ProjectController do
     end
   end
 
+  def add_reviewer(conn, project, %{"reviewer" => %{"login" => ""}}) do
+    conn
+    |> put_flash(:error, "Please enter a GitHub user's nickname")
+    |> redirect(to: project_path(conn, :settings, project))
+  end
+
   def add_reviewer(conn, project, %{"reviewer" => %{"login" => login}}) do
     token = {:raw, get_session(conn, :github_access_token)}
     user = case Repo.get_by(User, login: login) do

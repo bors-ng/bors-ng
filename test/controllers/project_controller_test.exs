@@ -1,6 +1,7 @@
 defmodule Aelita2.ProjectControllerTest do
   use Aelita2.ConnCase
 
+  alias Aelita2.GitHub
   alias Aelita2.Installation
   alias Aelita2.Batch
   alias Aelita2.LinkPatchBatch
@@ -81,5 +82,67 @@ defmodule Aelita2.ProjectControllerTest do
     assert_raise RuntimeError, ~r/Permission denied/, fn ->
      get conn, project_path(conn, :show, project)
    end
+  end
+
+  test "add a known reviewer", %{conn: conn, project: project, user: user} do
+    Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}
+    Repo.insert! %User{login: "case", user_xref: 9999}
+    conn = conn
+    |> login()
+    |> post(project_path(conn, :add_reviewer, project), %{"reviewer" => %{"login" => "case"}})
+    resp = conn
+    |> get(redirected_to(conn, 302))
+    |> html_response(200)
+    assert resp =~ "case"
+    refute resp =~ "GitHub user not found"
+  end
+
+  test "do not add nonexistent reviewer", %{conn: conn, project: project, user: user} do
+    Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}
+    GitHub.ServerMock.put_state(%{
+      users: %{ }
+    })
+    conn = conn
+    |> login()
+    |> post(project_path(conn, :add_reviewer, project), %{"reviewer" => %{"login" => "case"}})
+    resp = conn
+    |> get(redirected_to(conn, 302))
+    |> html_response(200)
+    assert resp =~ "GitHub user not found"
+  end
+
+  test "add an unknown reviewer", %{conn: conn, project: project, user: user} do
+    Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}
+    GitHub.ServerMock.put_state(%{
+      users: %{
+        "case" => %GitHub.User{
+          login: "case",
+          id: 9999
+        }}})
+    conn = conn
+    |> login()
+    |> post(project_path(conn, :add_reviewer, project), %{"reviewer" => %{"login" => "case"}})
+    resp = conn
+    |> get(redirected_to(conn, 302))
+    |> html_response(200)
+    assert resp =~ "case"
+    refute resp =~ "GitHub user not found"
+  end
+
+  test "do not add an empty reviewer", %{conn: conn, project: project, user: user} do
+    Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}
+    GitHub.ServerMock.put_state(%{
+      users: %{
+        "" => %GitHub.User{
+          login: "",
+          id: 9999
+        }}})
+    conn = conn
+    |> login()
+    |> post(project_path(conn, :add_reviewer, project), %{"reviewer" => %{"login" => ""}})
+    resp = conn
+    |> get(redirected_to(conn, 302))
+    |> html_response(200)
+    assert resp =~ "Please enter a GitHub user"
   end
 end

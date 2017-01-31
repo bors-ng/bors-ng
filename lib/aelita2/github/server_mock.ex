@@ -195,7 +195,7 @@ defmodule Aelita2.GitHub.ServerMock do
       do: {:ok, users[login]})
     |> case do
       {:ok, user} -> {{:ok, user}, state}
-      _ -> {{:error, :get_user_by_login}, state}
+      _ -> {{:ok, nil}, state}
     end
   end
 
