@@ -54,7 +54,11 @@ defmodule Aelita2.BatcherTest do
         statuses: %{},
         files: %{}
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "N"} |> Repo.insert!()
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N"}
+    |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
@@ -79,7 +83,10 @@ defmodule Aelita2.BatcherTest do
     assert batch.state == 3
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "iniN", "staging.tmp" => "iniN" },
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN",
+          "staging.tmp" => "iniN" },
         comments: %{ 1 => [ "# Configuration problem\nbors.toml: not found" ] },
         statuses: %{},
         files: %{}
@@ -95,7 +102,11 @@ defmodule Aelita2.BatcherTest do
         statuses: %{ "iniN" => [] },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "N"} |> Repo.insert!()
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N"}
+    |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
@@ -120,7 +131,10 @@ defmodule Aelita2.BatcherTest do
     assert batch.state == 1
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "iniN", "staging.tmp" => "iniN" },
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN",
+          "staging.tmp" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => [] },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -138,7 +152,10 @@ defmodule Aelita2.BatcherTest do
     assert batch.state == 1
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "iniN", "staging.tmp" => "iniN" },
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN",
+          "staging.tmp" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => [] },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -147,7 +164,10 @@ defmodule Aelita2.BatcherTest do
     # At this point, just running should still do nothing.
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "iniN", "staging.tmp" => "iniN" },
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN",
+          "staging.tmp" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => [ {"ci", :ok}] },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -157,7 +177,10 @@ defmodule Aelita2.BatcherTest do
     assert batch.state == 1
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "iniN", "staging.tmp" => "iniN" },
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN",
+          "staging.tmp" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => [ {"ci", :ok}] },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -171,7 +194,10 @@ defmodule Aelita2.BatcherTest do
     assert batch.state == 2
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "iniN", "staging" => "iniN", "staging.tmp" => "iniN" },
+        branches: %{
+          "master" => "iniN",
+          "staging" => "iniN",
+          "staging.tmp" => "iniN" },
         comments: %{ 1 => [ "# Build succeeded\n  * ci" ] },
         statuses: %{ "iniN" => [ {"ci", :ok}] },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }

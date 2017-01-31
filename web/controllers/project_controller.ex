@@ -115,7 +115,8 @@ defmodule Aelita2.ProjectController do
     token = {:raw, get_session(conn, :github_access_token)}
     user = case Repo.get_by(User, login: login) do
       nil ->
-        GitHub.get_user_by_login!(token, login)
+        token
+        |> GitHub.get_user_by_login!(login)
         |> case do
           nil -> nil
           gh_user ->
@@ -129,7 +130,9 @@ defmodule Aelita2.ProjectController do
         {:error, "GitHub user not found; maybe you typo-ed?"}
       user ->
         %LinkUserProject{}
-        |> LinkUserProject.changeset(%{user_id: user.id, project_id: project.id})
+        |> LinkUserProject.changeset(%{
+          user_id: user.id,
+          project_id: project.id})
         |> Repo.insert()
         |> case do
           {:error, _} ->

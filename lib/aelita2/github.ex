@@ -34,7 +34,9 @@ defmodule Aelita2.GitHub do
 
   @spec copy_branch!(tconn, binary, binary) :: binary
   def copy_branch!(repo_conn, from, to) do
-    {:ok, sha} = GenServer.call(Aelita2.GitHub, {:copy_branch, repo_conn, {from, to}})
+    {:ok, sha} = GenServer.call(
+      Aelita2.GitHub,
+      {:copy_branch, repo_conn, {from, to}})
     sha
   end
 
@@ -44,7 +46,9 @@ defmodule Aelita2.GitHub do
     commit_message: bitstring,
     }) :: %{commit: bitstring, tree: binary}
   def merge_branch!(repo_conn, info) do
-    {:ok, commit} = GenServer.call(Aelita2.GitHub, {:merge_branch, repo_conn, {info}})
+    {:ok, commit} = GenServer.call(
+      Aelita2.GitHub,
+      {:merge_branch, repo_conn, {info}})
     commit
   end
 
@@ -54,43 +58,58 @@ defmodule Aelita2.GitHub do
     parents: [bitstring],
     commit_message: bitstring}) :: binary
   def synthesize_commit!(repo_conn, info) do
-    {:ok, sha} = GenServer.call(Aelita2.GitHub, {:synthesize_commit, repo_conn, {info}})
+    {:ok, sha} = GenServer.call(
+      Aelita2.GitHub,
+      {:synthesize_commit, repo_conn, {info}})
     sha
   end
 
   @spec force_push!(tconn, binary, binary) :: binary
   def force_push!(repo_conn, sha, to) do
-    {:ok, sha} = GenServer.call(Aelita2.GitHub, {:force_push, repo_conn, {sha, to}})
+    {:ok, sha} = GenServer.call(
+      Aelita2.GitHub,
+      {:force_push, repo_conn, {sha, to}})
     sha
   end
 
-  @spec get_commit_status!(tconn, binary) :: %{binary => :running | :ok | :error}
+  @spec get_commit_status!(tconn, binary) :: %{
+    binary => :running | :ok | :error}
   def get_commit_status!(repo_conn, sha) do
-    {:ok, status} = GenServer.call(Aelita2.GitHub, {:get_commit_status, repo_conn, {sha}})
+    {:ok, status} = GenServer.call(
+      Aelita2.GitHub,
+      {:get_commit_status, repo_conn, {sha}})
     status
   end
 
   @spec get_file!(tconn, binary, binary) :: binary | nil
   def get_file!(repo_conn, branch, path) do
-    {:ok, file} = GenServer.call(Aelita2.GitHub, {:get_file, repo_conn, {branch, path}})
+    {:ok, file} = GenServer.call(
+      Aelita2.GitHub,
+      {:get_file, repo_conn, {branch, path}})
     file
   end
 
   @spec post_comment!(tconn, number, binary) :: :ok
   def post_comment!(repo_conn, number, body) do
-    :ok = GenServer.call(Aelita2.GitHub, {:post_comment, repo_conn, {number, body}})
+    :ok = GenServer.call(
+      Aelita2.GitHub,
+      {:post_comment, repo_conn, {number, body}})
     :ok
   end
 
   @spec get_user_by_login!(ttoken, binary) :: {:ok, tuser} | :error | nil
   def get_user_by_login!(token, login) do
-    {:ok, user} = GenServer.call(Aelita2.GitHub, {:get_user_by_login, token, {login}})
+    {:ok, user} = GenServer.call(
+      Aelita2.GitHub,
+      {:get_user_by_login, token, {login}})
     user
   end
 
   @spec get_installation_repos!(ttoken) :: [trepo]
   def get_installation_repos!(token) do
-    {:ok, repos} = GenServer.call(Aelita2.GitHub, {:get_installation_repos, token, {}})
+    {:ok, repos} = GenServer.call(
+      Aelita2.GitHub,
+      {:get_installation_repos, token, {}})
     repos
   end
 

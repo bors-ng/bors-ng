@@ -32,7 +32,7 @@ defmodule Aelita2.Batcher do
   alias Aelita2.GitHub
 
   # Every half-hour
-  @poll_period 30*60*1000
+  @poll_period 30 * 60 * 1000
 
   # Public API
 

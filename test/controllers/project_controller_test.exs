@@ -89,7 +89,9 @@ defmodule Aelita2.ProjectControllerTest do
     Repo.insert! %User{login: "case", user_xref: 9999}
     conn = conn
     |> login()
-    |> post(project_path(conn, :add_reviewer, project), %{"reviewer" => %{"login" => "case"}})
+    |> post(
+      project_path(conn, :add_reviewer, project),
+      %{"reviewer" => %{"login" => "case"}})
     resp = conn
     |> get(redirected_to(conn, 302))
     |> html_response(200)
@@ -97,14 +99,16 @@ defmodule Aelita2.ProjectControllerTest do
     refute resp =~ "GitHub user not found"
   end
 
-  test "do not add nonexistent reviewer", %{conn: conn, project: project, user: user} do
+  test "reject nil reviewer", %{conn: conn, project: project, user: user} do
     Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}
     GitHub.ServerMock.put_state(%{
       users: %{ }
     })
     conn = conn
     |> login()
-    |> post(project_path(conn, :add_reviewer, project), %{"reviewer" => %{"login" => "case"}})
+    |> post(
+      project_path(conn, :add_reviewer, project),
+      %{"reviewer" => %{"login" => "case"}})
     resp = conn
     |> get(redirected_to(conn, 302))
     |> html_response(200)
@@ -121,7 +125,9 @@ defmodule Aelita2.ProjectControllerTest do
         }}})
     conn = conn
     |> login()
-    |> post(project_path(conn, :add_reviewer, project), %{"reviewer" => %{"login" => "case"}})
+    |> post(
+      project_path(conn, :add_reviewer, project),
+      %{"reviewer" => %{"login" => "case"}})
     resp = conn
     |> get(redirected_to(conn, 302))
     |> html_response(200)
@@ -129,7 +135,7 @@ defmodule Aelita2.ProjectControllerTest do
     refute resp =~ "GitHub user not found"
   end
 
-  test "do not add an empty reviewer", %{conn: conn, project: project, user: user} do
+  test "reject empty reviewer", %{conn: conn, project: project, user: user} do
     Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}
     GitHub.ServerMock.put_state(%{
       users: %{
@@ -139,7 +145,9 @@ defmodule Aelita2.ProjectControllerTest do
         }}})
     conn = conn
     |> login()
-    |> post(project_path(conn, :add_reviewer, project), %{"reviewer" => %{"login" => ""}})
+    |> post(
+      project_path(conn, :add_reviewer, project),
+      %{"reviewer" => %{"login" => ""}})
     resp = conn
     |> get(redirected_to(conn, 302))
     |> html_response(200)

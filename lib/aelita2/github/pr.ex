@@ -12,7 +12,13 @@ defmodule Aelita2.GitHub.Pr do
     base_ref: bitstring,
     head_sha: bitstring,
   }
-  defstruct number: 0, title: "", body: "", state: :closed, base_ref: "", head_sha: ""
+  defstruct(
+    number: 0,
+    title: "",
+    body: "",
+    state: :closed,
+    base_ref: "",
+    head_sha: "")
 
   @doc """
   Convert from Poison-decoded JSON to a Pr struct.

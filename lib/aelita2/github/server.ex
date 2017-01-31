@@ -6,7 +6,7 @@ defmodule Aelita2.GitHub.Server do
   This doesn't currently do rate limiting, but it will.
   """
 
-  def start_link() do
+  def start_link do
     GenServer.start_link(__MODULE__, :ok, name: Aelita2.GitHub)
   end
 
@@ -48,7 +48,8 @@ defmodule Aelita2.GitHub.Server do
   def do_handle_call(:get_pr, repo_conn, {pr_xref}) do
     case get!(repo_conn, "pulls/#{pr_xref}") do
       %{body: raw, status_code: 200} ->
-        pr = Poison.decode!(raw)
+        pr = raw
+        |> Poison.decode!()
         |> Aelita2.GitHub.Pr.from_json!()
         {:ok, pr}
       _ ->
@@ -298,7 +299,9 @@ defmodule Aelita2.GitHub.Server do
     %{body: raw, status_code: 201} = HTTPoison.post!(
       "#{cfg[:site]}/installations/#{installation_xref}/access_tokens",
       "",
-      [{"Authorization", "Bearer #{jwt_token}"}, {"Accept", @installation_content_type}])
+      [
+        {"Authorization", "Bearer #{jwt_token}"},
+        {"Accept", @installation_content_type}])
     Poison.decode!(raw)["token"]
   end
 

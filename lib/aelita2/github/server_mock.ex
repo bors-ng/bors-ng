@@ -5,7 +5,7 @@ defmodule Aelita2.GitHub.ServerMock do
   Provides a fake connection to GitHub's REST API.
   """
 
-  def start_link() do
+  def start_link do
     GenServer.start_link(__MODULE__, :ok, name: Aelita2.GitHub)
   end
 
