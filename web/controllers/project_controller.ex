@@ -17,8 +17,7 @@ defmodule Aelita2.ProjectController do
   alias Aelita2.Batch
   alias Aelita2.Patch
   alias Aelita2.User
-
-  @github_api Application.get_env(:aelita2, Aelita2.GitHub)[:api]
+  alias Aelita2.GitHub
 
   # Auto-grab the project and check the permissions
 
@@ -106,29 +105,36 @@ defmodule Aelita2.ProjectController do
     end
   end
 
+  def add_reviewer(conn, project, %{"reviewer" => %{"login" => ""}}) do
+    conn
+    |> put_flash(:error, "Please enter a GitHub user's nickname")
+    |> redirect(to: project_path(conn, :settings, project))
+  end
+
   def add_reviewer(conn, project, %{"reviewer" => %{"login" => login}}) do
-    token = get_session(conn, :github_access_token)
+    token = {:raw, get_session(conn, :github_access_token)}
     user = case Repo.get_by(User, login: login) do
-      nil -> with(
-        {:ok, gh_user} <- @github_api.get_user_by_login(token, login),
-        user <- %User{user_xref: gh_user.id, login: login},
-        do: Repo.insert(user)
-      )
-      user -> {:ok, user}
+      nil ->
+        token
+        |> GitHub.get_user_by_login!(login)
+        |> case do
+          nil -> nil
+          gh_user ->
+            %User{user_xref: gh_user.id, login: gh_user.login}
+            |> Repo.insert!()
+        end
+      user -> user
     end
-    link = with(
-      {:ok, user} <- user,
-      attrs <- %{user_id: user.id, project_id: project.id},
-      changeset <- LinkUserProject.changeset(%LinkUserProject{}, attrs),
-      do: Repo.insert(changeset)
-    )
     {state, msg} = case user do
-      {:error, :not_found} ->
+      nil ->
         {:error, "GitHub user not found; maybe you typo-ed?"}
-      {:error, _} ->
-        {:error, "Internal error adding user"}
-      {:ok, user} ->
-        case link do
+      user ->
+        %LinkUserProject{}
+        |> LinkUserProject.changeset(%{
+          user_id: user.id,
+          project_id: project.id})
+        |> Repo.insert()
+        |> case do
           {:error, _} ->
             {:error, "This user is already a reviewer"}
           {:ok, _login} ->

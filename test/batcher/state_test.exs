@@ -7,25 +7,25 @@ defmodule Aelita2.BatcherStateTest do
     assert State.summarize(:waiting, :waiting) == :waiting
     assert State.summarize(:waiting, :running) == :waiting
     assert State.summarize(:waiting, :ok) == :waiting
-    assert State.summarize(:waiting, :err) == :err
+    assert State.summarize(:waiting, :error) == :error
     assert State.summarize(:running, :waiting) == :waiting
     assert State.summarize(:running, :running) == :running
     assert State.summarize(:running, :ok) == :running
-    assert State.summarize(:running, :err) == :err
+    assert State.summarize(:running, :error) == :error
     assert State.summarize(:ok, :waiting) == :waiting
     assert State.summarize(:ok, :running) == :running
     assert State.summarize(:ok, :ok) == :ok
-    assert State.summarize(:ok, :err) == :err
-    assert State.summarize(:err, :waiting) == :err
-    assert State.summarize(:err, :running) == :err
-    assert State.summarize(:err, :ok) == :err
-    assert State.summarize(:err, :err) == :err
+    assert State.summarize(:ok, :error) == :error
+    assert State.summarize(:error, :waiting) == :error
+    assert State.summarize(:error, :running) == :error
+    assert State.summarize(:error, :ok) == :error
+    assert State.summarize(:error, :error) == :error
   end
 
   test "summary containing an err is err" do
-    assert State.summary_states([:ok, :running, :err]) == :err
-    assert State.summary_states([:ok, :err]) == :err
-    assert State.summary_states([:err]) == :err
+    assert State.summary_states([:ok, :running, :error]) == :error
+    assert State.summary_states([:ok, :error]) == :error
+    assert State.summary_states([:error]) == :error
   end
 
   test "summary of ok is ok" do
