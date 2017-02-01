@@ -185,6 +185,9 @@ footer {
 .toolbar {
   margin: 16px -10px;
 }
+.toolbar form {
+  display: inline;
+}
 .toolbar-item {
   margin: -8px 10px;
   padding: 8px 10px;
