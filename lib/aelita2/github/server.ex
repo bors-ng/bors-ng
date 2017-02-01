@@ -16,6 +16,7 @@ defmodule Aelita2.GitHub.Server do
   @type tconn :: Aelita2.GitHub.tconn
   @type ttoken :: Aelita2.GitHub.ttoken
   @type trepo :: Aelita2.GitHub.trepo
+  @type tpr :: Aelita2.GitHub.tpr
 
   @typedoc """
   The token cache.
@@ -55,6 +56,13 @@ defmodule Aelita2.GitHub.Server do
       _ ->
         {:error, :get_pr}
     end
+  end
+
+  def do_handle_call(:get_open_prs, {{:raw, token}, repo_xref}, {}) do
+    {:ok, get_open_prs_!(
+      token,
+      "#{config()[:site]}/repositories/#{repo_xref}/pulls/open?state=open",
+      [])}
   end
 
   def do_handle_call(:push, repo_conn, {sha, to}) do
@@ -232,6 +240,26 @@ defmodule Aelita2.GitHub.Server do
     case next_headers do
       [] -> repositories
       [next] -> get_installation_repos_!(token, next.next.url, repositories)
+    end
+  end
+
+  @spec get_open_prs_!(binary, binary, [tpr]) :: [tpr]
+  defp get_open_prs_!(token, url, append) do
+    params = URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()
+    %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
+      url,
+      [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
+      [params: params])
+    prs = Poison.decode!(raw)
+    |> Enum.map(&Aelita2.GitHub.Pr.from_json/1)
+    |> Enum.concat(append)
+    next_headers = headers
+    |> Enum.filter(&(elem(&1, 0) == "Link"))
+    |> Enum.map(&(ExLinkHeader.parse!(elem(&1, 1))))
+    |> Enum.filter(&!is_nil(&1.next))
+    case next_headers do
+      [] -> prs
+      [next] -> get_open_prs_!(token, next.next.url, prs)
     end
   end
 

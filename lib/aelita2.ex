@@ -21,11 +21,13 @@ defmodule Aelita2 do
       worker(Application.get_env(:aelita2, Aelita2.GitHub)[:server], []),
       supervisor(Aelita2.Batcher.Supervisor, []),
       worker(Aelita2.Batcher.Registry, []),
+      supervisor(Task.Supervisor, [[name: Aelita2.Syncer.Supervisor]]),
+      supervisor(Registry, [:unique, Aelita2.Syncer.Registry]),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Aelita2.Supervisor]
+    opts = [strategy: :rest_for_one, name: Aelita2.Supervisor]
     Supervisor.start_link(children, opts)
   end
 

@@ -194,6 +194,7 @@ footer {
   border-radius: 8px;
   transition: box-shadow 0.1s ease-in-out;
   box-shadow: 0 1px 2px #666;
+  cursor: pointer;
 }
 .toolbar-item:hover, 
 .toolbar-item:focus {
@@ -202,6 +203,14 @@ footer {
 }
 .toolbar-item:active {
   box-shadow: 0 0 0 #666;
+}
+.toolbar-item--disabled,
+.toolbar-item--disabled:hover,
+.toolbar-item--disabled:active,
+.toolbar-item--disabled:focus {
+  box-shadow: none;
+  background-color: #999;
+  cursor: not-allowed;
 }
 .toolbar-item--add {
   background: #5e9766;

@@ -61,6 +61,16 @@ defmodule Aelita2.GitHub.ServerMock do
     end
   end
 
+  def do_handle_call(:get_open_prs, repo_conn, {}, state) do
+    with({:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, pulls} <- Map.fetch(repo, :pulls),
+      do: {:ok, Map.values(pulls) |> Enum.filter(&(&1.state == :open))})
+    |> case do
+      {:ok, _} = res -> {res, state}
+      _ -> {{:error, :get_open_prs}, state}
+    end
+  end
+
   def do_handle_call(:push, repo_conn, {sha, to}, state) do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, branches} <- Map.fetch(repo, :branches) do
