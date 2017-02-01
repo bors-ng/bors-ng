@@ -61,7 +61,7 @@ defmodule Aelita2.GitHub.Server do
   def do_handle_call(:get_open_prs, {{:raw, token}, repo_xref}, {}) do
     {:ok, get_open_prs_!(
       token,
-      "#{config()[:site]}/repositories/#{repo_xref}/pulls/open?state=open",
+      "#{config()[:site]}/repositories/#{repo_xref}/pulls?state=open",
       [])}
   end
 
@@ -251,7 +251,7 @@ defmodule Aelita2.GitHub.Server do
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
       [params: params])
     prs = Poison.decode!(raw)
-    |> Enum.map(&Aelita2.GitHub.Pr.from_json/1)
+    |> Enum.map(&Aelita2.GitHub.Pr.from_json!/1)
     |> Enum.concat(append)
     next_headers = headers
     |> Enum.filter(&(elem(&1, 0) == "Link"))
