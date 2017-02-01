@@ -61,9 +61,13 @@ defmodule Aelita2.ProjectController do
     unbatched_patches = project.id
     |> Patch.all_for_project(:awaiting_review)
     |> Repo.all()
+    is_synchronizing = match?(
+      [{_, _}],
+      Registry.lookup(Aelita2.Syncer.Registry, project.id))
     render conn, "show.html",
       project: project,
       batches: batches,
+      is_synchronizing: is_synchronizing,
       unbatched_patches: unbatched_patches
   end
 
