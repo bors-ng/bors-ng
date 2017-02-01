@@ -21,11 +21,16 @@
 
 <main role=main><div class=wrapper>
 
-<%= if @batches != [] do %>
 <div class=toolbar aria-role=toolbar>
+<%= if @batches != [] do %>
   <%= link "Cancel all", to: project_path(@conn, :cancel_all, @project), method: :delete, class: "toolbar-item toolbar-item--remove", data: [confirm: "Commenting `bors r-` on a PR will cancel just the one. You asked to cancel all of them, which is a PITA to undo.\n\nAre you sure you want to cancel all running and waiting pull requests?"] %>
-</div>
 <% end %>
+<%= if @is_synchronizing do %>
+  <span class="toolbar-item toolbar-item--disabled">Synchronizing...</span>
+<% else %>
+  <%= link "Sync pull requests", to: project_path(@conn, :synchronize, @project), method: :put, class: "toolbar-item" %>
+<% end %>
+</div>
 
 <%= if not is_nil get_flash(@conn, :ok) do %>
 <div role="alert" class="alert alert--ok">

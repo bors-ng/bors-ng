@@ -18,6 +18,7 @@ defmodule Aelita2.ProjectController do
   alias Aelita2.Patch
   alias Aelita2.User
   alias Aelita2.GitHub
+  alias Aelita2.Syncer
 
   # Auto-grab the project and check the permissions
 
@@ -60,9 +61,13 @@ defmodule Aelita2.ProjectController do
     unbatched_patches = project.id
     |> Patch.all_for_project(:awaiting_review)
     |> Repo.all()
+    is_synchronizing = match?(
+      [{_, _}],
+      Registry.lookup(Aelita2.Syncer.Registry, project.id))
     render conn, "show.html",
       project: project,
       batches: batches,
+      is_synchronizing: is_synchronizing,
       unbatched_patches: unbatched_patches
   end
 
@@ -155,5 +160,12 @@ defmodule Aelita2.ProjectController do
     conn
     |> put_flash(:ok, "Removed reviewer")
     |> redirect(to: project_path(conn, :settings, project))
+  end
+
+  def synchronize(conn, project, _params) do
+    Syncer.start_synchronize_project(project.id)
+    conn
+    |> put_flash(:ok, "Started synchronizing")
+    |> redirect(to: project_path(conn, :show, project))
   end
 end

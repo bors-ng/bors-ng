@@ -10,9 +10,9 @@ defmodule Aelita2.WebhookController do
   alias Aelita2.Installation
   alias Aelita2.Patch
   alias Aelita2.Project
-  alias Aelita2.User
   alias Aelita2.Batcher
   alias Aelita2.LinkUserProject
+  alias Aelita2.Syncer
 
   @doc """
   This action is reached via `/webhook/:provider`
@@ -31,7 +31,9 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "integration_installation") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
-    sender = sync_user(payload["sender"])
+    sender = payload["sender"]
+    |> GitHub.User.from_json!()
+    |> Syncer.sync_user()
     case payload["action"] do
       "deleted" -> Repo.delete_all(from(
         i in Installation,
@@ -55,7 +57,9 @@ defmodule Aelita2.WebhookController do
       "removed" -> :ok
       "added" -> :ok
     end
-    sender = sync_user(payload["sender"])
+    sender = payload["sender"]
+    |> GitHub.User.from_json!()
+    |> Syncer.sync_user()
     payload["repositories_removed"]
     |> Enum.map(&from(p in Project, where: p.repo_xref == ^&1["id"]))
     |> Enum.each(&Repo.delete_all/1)
@@ -70,14 +74,13 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "pull_request") do
     repo_xref = conn.body_params["repository"]["id"]
     project = Repo.get_by!(Project, repo_xref: repo_xref)
-    author = sync_user(conn.body_params["pull_request"]["user"])
     pr = Aelita2.GitHub.Pr.from_json!(conn.body_params["pull_request"])
-    patch = sync_patch(project.id, author.id, pr)
+    patch = Syncer.sync_patch(project.id, pr)
     do_webhook_pr(conn, %{
       action: conn.body_params["action"],
       project: project,
       patch: patch,
-      author: author})
+      author: patch.author})
   end
 
   def do_webhook(conn, "github", "issue_comment") do
@@ -87,13 +90,13 @@ defmodule Aelita2.WebhookController do
       |> GitHub.get_pr!(conn.body_params["issue"]["number"])
       project = Repo.get_by!(Project,
         repo_xref: conn.body_params["repository"]["id"])
-      author = sync_user(conn.body_params["issue"]["user"])
-      commenter = sync_user(conn.body_params["comment"]["user"])
+      commenter = conn.body_params["comment"]["user"]
+      |> GitHub.User.from_json!()
+      |> Syncer.sync_user()
       comment = conn.body_params["comment"]["body"]
       do_webhook_comment(conn, %{
         project: project,
         pr: pr,
-        author: author,
         commenter: commenter,
         comment: comment})
     end
@@ -102,13 +105,13 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "pull_request_review_comment") do
     project = Repo.get_by!(Project,
       repo_xref: conn.body_params["repository"]["id"])
-    author = sync_user(conn.body_params["pull_request"]["user"])
-    commenter = sync_user(conn.body_params["comment"]["user"])
+    commenter = conn.body_params["comment"]["user"]
+    |> GitHub.User.from_json!()
+    |> Syncer.sync_user()
     comment = conn.body_params["comment"]["body"]
     do_webhook_comment(conn, %{
       project: project,
       pr: Aelita2.GitHub.Pr.from_json!(conn.body_params["pull_request"]),
-      author: author,
       commenter: commenter,
       comment: comment})
   end
@@ -116,13 +119,13 @@ defmodule Aelita2.WebhookController do
   def do_webhook(conn, "github", "pull_request_review") do
     project = Repo.get_by!(Project,
       repo_xref: conn.body_params["repository"]["id"])
-    author = sync_user(conn.body_params["pull_request"]["user"])
-    commenter = sync_user(conn.body_params["review"]["user"])
+    commenter = conn.body_params["review"]["user"]
+    |> GitHub.User.from_json!()
+    |> Syncer.sync_user()
     comment = conn.body_params["review"]["body"]
     do_webhook_comment(conn, %{
       project: project,
       pr: Aelita2.GitHub.Pr.from_json!(conn.body_params["pull_request"]),
-      author: author,
       commenter: commenter,
       comment: comment})
   end
@@ -196,14 +199,13 @@ defmodule Aelita2.WebhookController do
   def do_webhook_comment(_conn, params) do
     %{project: project,
       pr: pr,
-      author: author,
       commenter: commenter,
       comment: comment} = params
     comment = case comment do
       nil -> ""
       comment -> comment
     end
-    p = sync_patch(project.id, author.id, pr)
+    p = Syncer.sync_patch(project.id, pr)
     config = Application.get_env(:aelita2, Aelita2)
     activated = :binary.match(comment, config[:activation_phrase])
     deactivated = :binary.match(comment, config[:deactivation_phrase])
@@ -244,42 +246,9 @@ defmodule Aelita2.WebhookController do
     |> Enum.map(&Repo.insert!/1)
     |> Enum.map(&%LinkUserProject{user_id: sender.id, project_id: &1.id})
     |> Enum.each(&Repo.insert!/1)
-  end
-
-  @spec sync_patch(integer, integer, Aelita2.GitHub.Pr.t) :: Aelita2.Patch.t
-  def sync_patch(project_id, author_id, pr) do
-    number = pr.number
-    case Repo.get_by(Patch, project_id: project_id, pr_xref: number) do
-      nil -> Repo.insert!(%Patch{
-        project_id: project_id,
-        pr_xref: number,
-        title: pr.title,
-        body: pr.body,
-        commit: pr.head_sha,
-        author_id: author_id,
-        open: pr.state == :open
-      })
-      patch -> patch
-    end
-  end
-
-  def sync_user(user_json) do
-    user = case Repo.get_by(User, user_xref: user_json["id"]) do
-      nil -> %User{
-        id: nil,
-        user_xref: user_json["id"],
-        login: user_json["login"]}
-      user -> user
-    end
-    if is_nil(user.id) do
-      Repo.insert!(user)
-    else
-      if user.login != user_json["login"] do
-        Repo.update! User.changeset(user, %{login: user_json["login"]})
-      else
-        user
-      end
-    end
+    |> Enum.each(fn %LinkUserProject{project_id: project_id} ->
+      Syncer.start_synchronize_project(project_id)
+    end)
   end
 
   defp project_from_json(json, installation_id) do
