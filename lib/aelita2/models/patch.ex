@@ -66,6 +66,12 @@ defmodule Aelita2.Patch do
       where: p.open
   end
 
+  def all_for_project(project_id, :open) do
+    from p in Patch,
+      where: p.open,
+      where: p.project_id == ^project_id
+  end
+
   def all_for_project(project_id, :awaiting_review) do
     from p in Patch.all(:awaiting_review),
       where: p.project_id == ^project_id

@@ -19,11 +19,20 @@ defmodule Aelita2.GitHub do
 
   @type tuser :: Aelita2.GitHub.User.t
   @type trepo :: Aelita2.GitHub.Repo.t
+  @type tpr :: Aelita2.GitHub.Pr.t
 
   @spec get_pr!(tconn, integer | bitstring) :: Aelita2.GitHub.Pr.t
   def get_pr!(repo_conn, pr_xref) do
     {:ok, pr} = GenServer.call(Aelita2.GitHub, {:get_pr, repo_conn, {pr_xref}})
     pr
+  end
+
+  @spec get_open_prs!(tconn) :: [tpr]
+  def get_open_prs!(repo_conn) do
+    {:ok, prs} = GenServer.call(
+      Aelita2.GitHub,
+      {:get_open_prs, repo_conn, {}})
+    prs
   end
 
   @spec push!(tconn, binary, binary) :: binary
