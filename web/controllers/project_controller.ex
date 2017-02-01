@@ -18,6 +18,7 @@ defmodule Aelita2.ProjectController do
   alias Aelita2.Patch
   alias Aelita2.User
   alias Aelita2.GitHub
+  alias Aelita2.Syncer
 
   # Auto-grab the project and check the permissions
 
@@ -155,5 +156,12 @@ defmodule Aelita2.ProjectController do
     conn
     |> put_flash(:ok, "Removed reviewer")
     |> redirect(to: project_path(conn, :settings, project))
+  end
+
+  def synchronize(conn, project, _params) do
+    Syncer.start_synchronize_project(project.id)
+    conn
+    |> put_flash(:ok, "Started synchronizing")
+    |> redirect(to: project_path(conn, :show, project))
   end
 end

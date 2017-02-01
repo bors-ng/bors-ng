@@ -246,6 +246,9 @@ defmodule Aelita2.WebhookController do
     |> Enum.map(&Repo.insert!/1)
     |> Enum.map(&%LinkUserProject{user_id: sender.id, project_id: &1.id})
     |> Enum.each(&Repo.insert!/1)
+    |> Enum.each(fn %LinkUserProject{project_id: project_id} ->
+      Syncer.start_synchronize_project(project_id)
+    end)
   end
 
   defp project_from_json(json, installation_id) do
