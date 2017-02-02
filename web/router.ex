@@ -39,6 +39,7 @@ defmodule Aelita2.Router do
   scope "/", Aelita2 do
     pipe_through :browser_page
     pipe_through :browser_session
+    pipe_through :browser_login
 
     get "/", PageController, :index
   end

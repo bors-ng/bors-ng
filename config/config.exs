@@ -11,7 +11,8 @@ config :aelita2,
 
 config :aelita2, Aelita2,
   activation_phrase: "bors r+",
-  deactivation_phrase: "bors r-"
+  deactivation_phrase: "bors r-",
+  home_url: "https://bors-ng.github.io/"
 
 # Configures the endpoint
 config :aelita2, Aelita2.Endpoint,
