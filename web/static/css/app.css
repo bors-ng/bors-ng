@@ -228,12 +228,3 @@ footer {
   margin-bottom: 7px;
   padding-bottom: 8px;
 }
-/* home page hero images */
-.hero {
-  margin: 32px auto;
-  text-align: center;
-  font-size: 2em;
-}
-.hero p {
-  margin: 32px 0;
-}
