@@ -45,10 +45,10 @@ defmodule Aelita2.AuthController do
   end
 
   def logout(conn, _params) do
+    home_url = Application.get_env(:aelita2, Aelita2)[:home_url]
     conn
-    |> put_flash(:ok, "You have been logged out")
     |> configure_session(drop: true)
-    |> redirect(to: "/")
+    |> redirect(external: home_url)
   end
 
   @doc """
