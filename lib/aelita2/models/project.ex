@@ -19,6 +19,7 @@ defmodule Aelita2.Project do
     many_to_many :users, User, join_through: LinkUserProject
     field :master_branch, :string, default: "master"
     field :staging_branch, :string, default: "staging"
+    field :trying_branch, :string, default: "trying"
     field :batch_poll_period_sec, :integer, default: (60 * 30)
     field :batch_delay_sec, :integer, default: 10
     field :batch_timeout_sec, :integer, default: (60 * 60 * 2)
@@ -63,8 +64,8 @@ defmodule Aelita2.Project do
   end
   def changeset_branches(struct, params \\ %{}) do
     struct
-    |> cast(params, [:master_branch, :staging_branch])
-    |> validate_required([:master_branch, :staging_branch])
+    |> cast(params, [:master_branch, :staging_branch, :trying_branch])
+    |> validate_required([:master_branch, :staging_branch, :trying_branch])
   end
 
   # Red flag queries

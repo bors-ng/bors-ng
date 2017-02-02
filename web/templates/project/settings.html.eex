@@ -69,6 +69,8 @@
   <%= text_input f, :master_branch, id: "master_branch" %>
   <label for=staging_branch>staging</label>
   <%= text_input f, :staging_branch, id: "staging_branch" %>
+  <label for=trying_branch>trying</label>
+  <%= text_input f, :trying_branch, id: "trying_branch" %>
   <div class=toolbar><%= submit "Update", class: "toolbar-item" %></div>
 <% end %>
 
