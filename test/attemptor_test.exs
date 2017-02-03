@@ -32,7 +32,7 @@ defmodule Aelita2.AttemptorTest do
     patch = %Patch{project_id: proj.id, pr_xref: 1} |> Repo.insert!()
     _attempt = %Attempt{patch_id: patch.id, state: 0, patch_id: patch.id}
     |> Repo.insert!()
-    Attemptor.handle_cast({:tried, patch.id}, proj.id)
+    Attemptor.handle_cast({:tried, patch.id, ""}, proj.id)
     state = GitHub.ServerMock.get_state()
     assert state == %{
       {{:installation, 91}, 14} => %{
@@ -59,7 +59,7 @@ defmodule Aelita2.AttemptorTest do
       pr_xref: 1,
       commit: "N"}
     |> Repo.insert!()
-    Attemptor.handle_cast({:tried, patch.id}, proj.id)
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{

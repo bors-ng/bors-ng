@@ -31,8 +31,8 @@ defmodule Aelita2.Attemptor do
     GenServer.start_link(__MODULE__, project_id)
   end
 
-  def tried(pid, patch_id) when is_integer(patch_id) do
-    GenServer.cast(pid, {:tried, patch_id})
+  def tried(pid, patch_id, arguments) when is_integer(patch_id) do
+    GenServer.cast(pid, {:tried, patch_id, arguments})
   end
 
   def status(pid, stat) do
@@ -51,7 +51,7 @@ defmodule Aelita2.Attemptor do
     {:noreply, project_id}
   end
 
-  def do_handle_cast({:tried, patch_id}, project_id) do
+  def do_handle_cast({:tried, patch_id, arguments}, project_id) do
     patch = Repo.get!(Patch, patch_id)
     ^project_id = patch.project_id
     project = Repo.get!(Project, project_id)
@@ -62,7 +62,7 @@ defmodule Aelita2.Attemptor do
         patch_id
         |> Attempt.new()
         |> Repo.insert!()
-        |> start_attempt(project, patch)
+        |> start_attempt(project, patch, arguments)
       _attempt ->
         # There is already a running attempt
         project
@@ -106,7 +106,7 @@ defmodule Aelita2.Attemptor do
     |> Enum.map(&poll_attempt(&1, project))
   end
 
-  defp start_attempt(attempt, project, patch) do
+  defp start_attempt(attempt, project, patch, arguments) do
     stmp = "#{project.trying_branch}.tmp"
     repo_conn = get_repo_conn(project)
     GitHub.copy_branch!(
@@ -118,7 +118,7 @@ defmodule Aelita2.Attemptor do
       %{
         from: patch.commit,
         to: stmp,
-        commit_message: "Try \##{patch.pr_xref}: "})
+        commit_message: "Try \##{patch.pr_xref}:#{arguments}"})
     case merged do
       :conflict ->
         send_message(repo_conn, patch, {:conflict, :failed})

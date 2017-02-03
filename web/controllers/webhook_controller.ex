@@ -232,7 +232,7 @@ defmodule Aelita2.WebhookController do
     config = Application.get_env(:aelita2, Aelita2)
     activated = :binary.match(comment, config[:activation_phrase])
     deactivated = :binary.match(comment, config[:deactivation_phrase])
-    tried = :binary.match(comment, config[:try_phrase])
+    tried = Attemptor.Command.parse(comment)
     cur_branch = pr.base_ref == project.master_branch
     case {activated, deactivated, tried} do
       {:nomatch, :nomatch, :nomatch} -> :ok
@@ -253,9 +253,9 @@ defmodule Aelita2.WebhookController do
           {:nomatch, _deactivated, :nomatch, _} ->
             batcher = Batcher.Registry.get(project.id)
             Batcher.cancel(batcher, p.id)
-          {:nomatch, :nomatch, _tried, _} ->
+          {:nomatch, :nomatch, arguments, _} ->
             attemptor = Attemptor.Registry.get(project.id)
-            Attemptor.tried(attemptor, p.id)
+            Attemptor.tried(attemptor, p.id, arguments)
           {_, _, _, _} ->
             project.repo_xref
             |> Project.installation_connection(Repo)
