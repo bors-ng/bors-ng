@@ -21,6 +21,8 @@ defmodule Aelita2 do
       worker(Application.get_env(:aelita2, Aelita2.GitHub)[:server], []),
       supervisor(Aelita2.Batcher.Supervisor, []),
       worker(Aelita2.Batcher.Registry, []),
+      supervisor(Aelita2.Attemptor.Supervisor, []),
+      worker(Aelita2.Attemptor.Registry, []),
       supervisor(Task.Supervisor, [[name: Aelita2.Syncer.Supervisor]]),
       supervisor(Registry, [:unique, Aelita2.Syncer.Registry]),
     ]

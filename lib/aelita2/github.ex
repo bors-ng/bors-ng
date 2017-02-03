@@ -53,7 +53,7 @@ defmodule Aelita2.GitHub do
     from: bitstring,
     to: bitstring,
     commit_message: bitstring,
-    }) :: %{commit: bitstring, tree: binary}
+    }) :: %{commit: bitstring, tree: binary} | :conflict
   def merge_branch!(repo_conn, info) do
     {:ok, commit} = GenServer.call(
       Aelita2.GitHub,
