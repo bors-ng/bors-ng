@@ -234,6 +234,12 @@ defmodule Aelita2.WebhookController do
           {:nomatch, :nomatch, _tried, _} ->
             attemptor = Attemptor.Registry.get(project.id)
             Attemptor.tried(attemptor, p.id)
+          {_, _, _, _} ->
+            project.repo_xref
+            |> Project.installation_connection(Repo)
+            |> GitHub.post_comment!(
+              p.pr_xref,
+              ":confused: Multiple matching commands")
         end
     end
   end
