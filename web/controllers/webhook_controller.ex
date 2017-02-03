@@ -6,6 +6,7 @@ defmodule Aelita2.WebhookController do
 
   use Aelita2.Web, :controller
 
+  alias Aelita2.Attemptor
   alias Aelita2.GitHub
   alias Aelita2.Installation
   alias Aelita2.Patch
@@ -209,25 +210,30 @@ defmodule Aelita2.WebhookController do
     config = Application.get_env(:aelita2, Aelita2)
     activated = :binary.match(comment, config[:activation_phrase])
     deactivated = :binary.match(comment, config[:deactivation_phrase])
+    tried = :binary.match(comment, config[:try_phrase])
     cur_branch = pr.base_ref == project.master_branch
-    case {activated, deactivated} do
-      {:nomatch, :nomatch} -> :ok
-      {_, _} when cur_branch ->
+    case {activated, deactivated, tried} do
+      {:nomatch, :nomatch, :nomatch} -> :ok
+      {_, _, _} when cur_branch ->
         link = Repo.get_by(LinkUserProject,
           project_id: project.id,
           user_id: commenter.id)
-        batcher = Batcher.Registry.get(project.id)
-        case {activated, deactivated, link} do
-          {_, _, nil} ->
+        case {activated, deactivated, tried, link} do
+          {_, _, _, nil} ->
             project.repo_xref
             |> Project.installation_connection(Repo)
             |> GitHub.post_comment!(
               p.pr_xref,
               ":lock: Permission denied")
-          {_activated, :nomatch, _} ->
+          {_activated, :nomatch, :nomatch, _} ->
+            batcher = Batcher.Registry.get(project.id)
             Batcher.reviewed(batcher, p.id)
-          {:nomatch, _deactivated, _} ->
+          {:nomatch, _deactivated, :nomatch, _} ->
+            batcher = Batcher.Registry.get(project.id)
             Batcher.cancel(batcher, p.id)
+          {:nomatch, :nomatch, _tried, _} ->
+            attemptor = Attemptor.Registry.get(project.id)
+            Attemptor.tried(attemptor, p.id)
         end
     end
   end
