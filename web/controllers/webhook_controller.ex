@@ -6,6 +6,7 @@ defmodule Aelita2.WebhookController do
 
   use Aelita2.Web, :controller
 
+  alias Aelita2.Attemptor
   alias Aelita2.GitHub
   alias Aelita2.Installation
   alias Aelita2.Patch
@@ -131,6 +132,12 @@ defmodule Aelita2.WebhookController do
   end
 
   def do_webhook(conn, "github", "status") do
+    do_webhook_status(
+      conn,
+      conn.body_params["commit"]["commit"]["message"])
+  end
+
+  def do_webhook_status(conn, "Merge " <> _) do
     identifier = conn.body_params["context"]
     commit = conn.body_params["sha"]
     url = conn.body_params["target_url"]
@@ -139,17 +146,33 @@ defmodule Aelita2.WebhookController do
     project = Repo.get_by(Project, repo_xref: repo_xref)
     batcher = Batcher.Registry.get(project.id)
     Batcher.status(batcher, {commit, identifier, state, url})
+  end
 
-    commit_msg = conn.body_params["commit"]["commit"]["message"]
+  def do_webhook_status(conn, "Try " <> _) do
+    identifier = conn.body_params["context"]
+    commit = conn.body_params["sha"]
+    url = conn.body_params["target_url"]
+    repo_xref = conn.body_params["repository"]["id"]
+    state = GitHub.map_state_to_status(conn.body_params["state"])
+    project = Repo.get_by(Project, repo_xref: repo_xref)
+    attemptor = Attemptor.Registry.get(project.id)
+    Attemptor.status(attemptor, {commit, identifier, state, url})
+  end
+
+  def do_webhook_status(conn, "-bors-staging-tmp-" <> pr_xref) do
+    identifier = conn.body_params["context"]
     err_msg = Batcher.Message.generate_staging_tmp_message(identifier)
-    case {commit_msg, err_msg} do
-      {_, nil} -> :ok
-      {"-bors-staging-tmp-" <> pr_xref, err_msg} ->
+    case err_msg do
+      nil -> :ok
+      err_msg ->
         conn.body_params["repository"]["id"]
         |> Project.installation_connection(Repo)
         |> GitHub.post_comment!(String.to_integer(pr_xref), err_msg)
-      _ -> :ok
     end
+  end
+
+  def do_webhook_status(_conn, _) do
+    :ok
   end
 
   def do_webhook_pr(_conn, %{action: "opened", project: project}) do
@@ -209,25 +232,36 @@ defmodule Aelita2.WebhookController do
     config = Application.get_env(:aelita2, Aelita2)
     activated = :binary.match(comment, config[:activation_phrase])
     deactivated = :binary.match(comment, config[:deactivation_phrase])
+    tried = Attemptor.Command.parse(comment)
     cur_branch = pr.base_ref == project.master_branch
-    case {activated, deactivated} do
-      {:nomatch, :nomatch} -> :ok
-      {_, _} when cur_branch ->
+    case {activated, deactivated, tried} do
+      {:nomatch, :nomatch, :nomatch} -> :ok
+      {_, _, _} when cur_branch ->
         link = Repo.get_by(LinkUserProject,
           project_id: project.id,
           user_id: commenter.id)
-        batcher = Batcher.Registry.get(project.id)
-        case {activated, deactivated, link} do
-          {_, _, nil} ->
+        case {activated, deactivated, tried, link} do
+          {_, _, _, nil} ->
             project.repo_xref
             |> Project.installation_connection(Repo)
             |> GitHub.post_comment!(
               p.pr_xref,
               ":lock: Permission denied")
-          {_activated, :nomatch, _} ->
+          {_activated, :nomatch, :nomatch, _} ->
+            batcher = Batcher.Registry.get(project.id)
             Batcher.reviewed(batcher, p.id)
-          {:nomatch, _deactivated, _} ->
+          {:nomatch, _deactivated, :nomatch, _} ->
+            batcher = Batcher.Registry.get(project.id)
             Batcher.cancel(batcher, p.id)
+          {:nomatch, :nomatch, arguments, _} ->
+            attemptor = Attemptor.Registry.get(project.id)
+            Attemptor.tried(attemptor, p.id, arguments)
+          {_, _, _, _} ->
+            project.repo_xref
+            |> Project.installation_connection(Repo)
+            |> GitHub.post_comment!(
+              p.pr_xref,
+              ":confused: Multiple matching commands")
         end
     end
   end
