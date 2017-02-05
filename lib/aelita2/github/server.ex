@@ -208,7 +208,7 @@ defmodule Aelita2.GitHub.Server do
       %{body: raw, status_code: 200} ->
         user = raw
         |> Poison.decode!()
-        |> Aelita2.GitHub.User.from_json()
+        |> Aelita2.GitHub.User.from_json!()
         {:ok, user}
       %{status_code: 404} ->
         {:ok, nil}
