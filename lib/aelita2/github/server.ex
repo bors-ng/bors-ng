@@ -237,7 +237,9 @@ defmodule Aelita2.GitHub.Server do
     end
     %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
       url,
-      [{"Authorization", "token #{token}"}, {"Accept", @installation_content_type}],
+      [
+        {"Authorization", "token #{token}"},
+        {"Accept", @installation_content_type}],
       [params: params])
     repositories = Poison.decode!(raw)["repositories"]
     |> Enum.map(&Aelita2.GitHub.Repo.from_json!/1)
