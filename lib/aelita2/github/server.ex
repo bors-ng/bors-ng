@@ -10,6 +10,7 @@ defmodule Aelita2.GitHub.Server do
     GenServer.start_link(__MODULE__, :ok, name: Aelita2.GitHub)
   end
 
+  @installation_content_type "application/vnd.github.machine-man-preview+json"
   @content_type_raw "application/vnd.github.v3.raw"
   @content_type "application/vnd.github.v3+json"
 
@@ -236,7 +237,7 @@ defmodule Aelita2.GitHub.Server do
     end
     %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
       url,
-      [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
+      [{"Authorization", "token #{token}"}, {"Accept", @installation_content_type}],
       [params: params])
     repositories = Poison.decode!(raw)["repositories"]
     |> Enum.map(&Aelita2.GitHub.Repo.from_json/1)
@@ -311,7 +312,6 @@ defmodule Aelita2.GitHub.Server do
   end
 
   @token_exp 400
-  @installation_content_type "application/vnd.github.machine-man-preview+json"
 
   defp installation_config do
     :aelita2
