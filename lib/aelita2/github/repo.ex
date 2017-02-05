@@ -31,7 +31,7 @@ defmodule Aelita2.GitHub.Repo do
   """
   def from_json(%{
     "id" => id,
-    "name" => name,
+    "full_name" => name,
     "owner" => %{
       "id" => owner_id,
       "login" => owner_login,
