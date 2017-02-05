@@ -240,7 +240,7 @@ defmodule Aelita2.GitHub.Server do
       [{"Authorization", "token #{token}"}, {"Accept", @installation_content_type}],
       [params: params])
     repositories = Poison.decode!(raw)["repositories"]
-    |> Enum.map(&Aelita2.GitHub.Repo.from_json/1)
+    |> Enum.map(&Aelita2.GitHub.Repo.from_json!/1)
     |> Enum.concat(append)
     next_headers = headers
     |> Enum.filter(&(elem(&1, 0) == "Link"))

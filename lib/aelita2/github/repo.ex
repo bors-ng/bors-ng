@@ -21,6 +21,11 @@ defmodule Aelita2.GitHub.Repo do
         avatar_url: bitstring,
         type: :user | :organization}}
 
+  def from_json!(json) do
+    {:ok, repo} = from_json(json)
+    repo
+  end
+
   @doc """
   Convert from Poison-decoded JSON to a Repository struct.
   """
