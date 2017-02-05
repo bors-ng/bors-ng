@@ -223,14 +223,17 @@ defmodule Aelita2.GitHub.Server do
       [])}
   end
 
-  @spec get_installation_repos_!(binary, binary | nil, [trepo]) :: [trepo]
+  @spec get_installation_repos_!(binary, binary, [trepo]) :: [trepo]
 
   defp get_installation_repos_!(_, nil, repos) do
     repos
   end
 
   defp get_installation_repos_!(token, url, append) do
-    params = URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()
+    params = case URI.parse(url).query do
+      nil -> []
+      qry -> URI.query_decoder(qry) |> Enum.to_list()
+    end
     %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
       url,
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
