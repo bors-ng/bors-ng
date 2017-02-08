@@ -85,6 +85,9 @@ defmodule Aelita2.Batcher do
         params = %{batch_id: batch.id, patch_id: patch.id}
         Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
         Process.send_after(self(), :poll, (project.batch_delay_sec + 1) * 1000)
+        project
+        |> get_repo_conn
+        |> send_status([patch], :running)
     end
   end
 
@@ -118,20 +121,30 @@ defmodule Aelita2.Batcher do
       if Batch.is_empty(batch.id, Repo) do
         Repo.delete!(batch)
       end
+      patch = Repo.get!(Patch, patch_id)
+      Project
+      |> Repo.get!(project_id)
+      |> get_repo_conn()
+      |> send_status([patch], :canceled)
     end
   end
 
   def do_handle_cast({:cancel_all}, project_id) do
     canceled = Batch.numberize_state(:canceled)
-    project_id
+    waiting = project_id
     |> Batch.all_for_project(:waiting)
     |> Repo.all()
-    |> Enum.each(&Repo.delete!/1)
-    project_id
+    Enum.each(waiting, &Repo.delete!/1)
+    running = project_id
     |> Batch.all_for_project(:running)
     |> Repo.all()
-    |> Enum.map(&Batch.changeset(&1, %{state: canceled}))
+    Enum.map(running, &Batch.changeset(&1, %{state: canceled}))
     |> Enum.each(&Repo.update!/1)
+    repo_conn = project_id
+    |> Repo.get!(Project)
+    |> get_repo_conn()
+    Enum.each(running, &send_status(repo_conn, &1, :canceled))
+    Enum.each(waiting, &send_status(repo_conn, &1, :canceled))
   end
 
   def handle_info(:poll, project_id) do
@@ -224,8 +237,10 @@ defmodule Aelita2.Batcher do
         batch
         |> Batch.changeset(%{state: err})
         |> Repo.update!()
+        send_status(repo_conn, batch, :conflict)
       commit ->
         state = setup_statuses(repo_conn, batch, patches)
+        send_status(repo_conn, batch, state)
         state = Batch.numberize_state(state)
         now = DateTime.to_unix(DateTime.utc_now(), :seconds)
         batch
@@ -301,13 +316,19 @@ defmodule Aelita2.Batcher do
 
   defp maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
-    state = Aelita2.Batcher.State.summary_statuses(statuses)
-    maybe_complete_batch(state, batch, statuses)
-    state = Batch.numberize_state(state)
+    status = Aelita2.Batcher.State.summary_statuses(statuses)
+    state = Batch.numberize_state(status)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     batch
     |> Batch.changeset(%{state: state, last_polled: now})
     |> Repo.update!()
+    if status != :running do
+      batch.project
+      |> get_repo_conn()
+      |> send_status(batch, status)
+      Project.ping!(batch.project_id)
+    end
+    maybe_complete_batch(status, batch, statuses)
   end
 
   defp maybe_complete_batch(:ok, batch, statuses) do
@@ -321,7 +342,6 @@ defmodule Aelita2.Batcher do
     |> Patch.all_for_batch()
     |> Repo.all()
     send_message(repo_conn, patches, {:succeeded, statuses})
-    Project.ping!(project.id)
   end
 
   defp maybe_complete_batch(:error, batch, statuses) do
@@ -333,7 +353,6 @@ defmodule Aelita2.Batcher do
     |> Repo.all()
     state = bisect(patches, project)
     send_message(repo_conn, patches, {state, erred})
-    Project.ping!(project.id)
   end
 
   defp maybe_complete_batch(:running, _batch, _erred) do
@@ -354,6 +373,9 @@ defmodule Aelita2.Batcher do
     |> Batch.changeset(%{state: err})
     |> Repo.update!()
     Project.ping!(project.id)
+    project
+    |> get_repo_conn()
+    |> send_status(batch, :timeout)
   end
 
   defp cancel_batch(batch, patch_id) do
@@ -415,6 +437,26 @@ defmodule Aelita2.Batcher do
       repo_conn,
       &1.pr_xref,
       body))
+  end
+
+  defp send_status(repo_conn, %Batch{id: id, commit: commit}, message) do
+    patches = id
+    |> Patch.all_for_batch()
+    |> Repo.all()
+    send_status(repo_conn, patches, message)
+    unless is_nil commit do
+      {msg, status} = Batcher.Message.generate_status(message)
+      repo_conn
+      |> GitHub.post_commit_status!(commit, status, msg)
+    end
+  end
+  defp send_status(repo_conn, patches, message) do
+    {msg, status} = Batcher.Message.generate_status(message)
+    Enum.each(patches, &GitHub.post_commit_status!(
+      repo_conn,
+      &1.commit,
+      status,
+      msg))
   end
 
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}

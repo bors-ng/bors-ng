@@ -198,6 +198,27 @@ defmodule Aelita2.GitHub.ServerMock do
     end
   end
 
+  def do_handle_call(:post_commit_status, repo_conn, {sha, status, _}, state) do
+    with {:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, statuses} <- Map.fetch(repo, :statuses) do
+      sha_statuses = case Map.has_key?(statuses, sha) do
+        false -> %{ "bors" => status }
+        true ->
+          statuses
+          |> Map.fetch!(sha)
+          |> Map.put("bors", status)
+      end
+      statuses = Map.put(statuses, sha, sha_statuses)
+      repo = %{ repo | statuses: statuses }
+      state = %{ state | repo_conn => repo }
+      {:ok, state}
+    end
+    |> case do
+      {:ok, state} -> {:ok, state}
+      _ -> {{:error, :post_commit_status}, state}
+    end
+  end
+
   def do_handle_call(
     :get_user_by_login, _token, {login}, state
   ) do

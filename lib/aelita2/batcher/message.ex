@@ -3,6 +3,28 @@ defmodule Aelita2.Batcher.Message do
   User-readable strings that go in commit messages and comments.
   """
 
+  def generate_status(:waiting) do
+    {"Waiting in queue", :running}
+  end
+  def generate_status(:canceled) do
+    {"Canceled", :error}
+  end
+  def generate_status(:running) do
+    {"Running", :running}
+  end
+  def generate_status(:ok) do
+    {"Build succeeded", :ok}
+  end
+  def generate_status(:error) do
+    {"Build failed", :error}
+  end
+  def generate_status(:timeout) do
+    {"Timed out", :error}
+  end
+  def generate_status(:conflict) do
+    {"Merge conflict", :error}
+  end
+
   def generate_message(:not_awaiting_review) do
     "Not awaiting review"
   end

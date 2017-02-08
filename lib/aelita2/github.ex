@@ -20,6 +20,7 @@ defmodule Aelita2.GitHub do
   @type tuser :: Aelita2.GitHub.User.t
   @type trepo :: Aelita2.GitHub.Repo.t
   @type tpr :: Aelita2.GitHub.Pr.t
+  @type tstatus :: :ok | :running | :error
 
   @spec get_pr!(tconn, integer | bitstring) :: Aelita2.GitHub.Pr.t
   def get_pr!(repo_conn, pr_xref) do
@@ -82,7 +83,7 @@ defmodule Aelita2.GitHub do
   end
 
   @spec get_commit_status!(tconn, binary) :: %{
-    binary => :running | :ok | :error}
+    binary => tstatus}
   def get_commit_status!(repo_conn, sha) do
     {:ok, status} = GenServer.call(
       Aelita2.GitHub,
@@ -106,6 +107,14 @@ defmodule Aelita2.GitHub do
     :ok
   end
 
+  @spec post_commit_status!(tconn, binary, tstatus, binary) :: :ok
+  def post_commit_status!(repo_conn, sha, status, msg) do
+    :ok = GenServer.call(
+      Aelita2.GitHub,
+      {:post_commit_status, repo_conn, {sha, status, msg}})
+    :ok
+  end
+
   @spec get_user_by_login!(ttoken, binary) :: {:ok, tuser} | :error | nil
   def get_user_by_login!(token, login) do
     {:ok, user} = GenServer.call(
@@ -122,13 +131,22 @@ defmodule Aelita2.GitHub do
     repos
   end
 
-  @spec map_state_to_status(binary) :: :running | :ok | :error
+  @spec map_state_to_status(binary) :: tstatus
   def map_state_to_status(state) do
     case state do
       "pending" -> :running
       "success" -> :ok
       "failure" -> :error
       "error" -> :error
+    end
+  end
+
+  @spec map_status_to_state(tstatus) :: binary
+  def map_status_to_state(state) do
+    case state do
+      :running -> "pending"
+      :ok -> "success"
+      :error -> "failure"
     end
   end
 end
