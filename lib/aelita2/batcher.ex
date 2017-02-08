@@ -87,7 +87,7 @@ defmodule Aelita2.Batcher do
         Process.send_after(self(), :poll, (project.batch_delay_sec + 1) * 1000)
         project
         |> get_repo_conn
-        |> send_status([patch], :running)
+        |> send_status([patch], :waiting)
     end
   end
 
