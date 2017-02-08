@@ -199,6 +199,19 @@ defmodule Aelita2.GitHub.Server do
     end
   end
 
+  def do_handle_call(:post_commit_status, repo_conn, {sha, status, msg}) do
+    state = Aelita2.GitHub.map_status_to_state(status)
+    body = %{state: state, context: "bors", description: msg}
+    repo_conn
+    |> post!("statuses/#{sha}", Poison.encode!(body))
+    |> case do
+      %{status_code: 201} ->
+        :ok
+      _ ->
+        {:error, :post_commit_status}
+    end
+  end
+
   def do_handle_call(
     :get_user_by_login, {:raw, token}, {login}
   ) do
