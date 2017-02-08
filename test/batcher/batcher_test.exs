@@ -64,7 +64,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
         comments: %{ 1 => [] },
-        statuses: %{},
+        statuses: %{ "N" => %{ "bors" => :running }},
         files: %{}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
@@ -88,7 +88,7 @@ defmodule Aelita2.BatcherTest do
           "staging" => "iniN",
           "staging.tmp" => "iniN" },
         comments: %{ 1 => [ "# Configuration problem\nbors.toml: not found" ] },
-        statuses: %{},
+        statuses: %{ "N" => %{ "bors" => :error } },
         files: %{}
       }}
   end
@@ -99,7 +99,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
         comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
+        statuses: %{ "iniN" => %{} },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }})
     patch = %Patch{
@@ -112,7 +112,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
         comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
+        statuses: %{ "iniN" => %{}, "N" => %{ "bors" => :running } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
@@ -136,7 +136,7 @@ defmodule Aelita2.BatcherTest do
           "staging" => "iniN",
           "staging.tmp" => "iniN" },
         comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
+        statuses: %{ "iniN" => %{}, "N" => %{ "bors" => :running } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }}
     # Polling again should change nothing.
@@ -157,7 +157,7 @@ defmodule Aelita2.BatcherTest do
           "staging" => "iniN",
           "staging.tmp" => "iniN" },
         comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
+        statuses: %{ "iniN" => %{}, "N" => %{ "bors" => :running } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }}
     # Mark the CI as having finished.
@@ -169,7 +169,9 @@ defmodule Aelita2.BatcherTest do
           "staging" => "iniN",
           "staging.tmp" => "iniN" },
         comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [ {"ci", :ok}] },
+        statuses: %{
+          "iniN" => %{ "ci" => :ok },
+          "N" => %{ "bors" => :running } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }})
     Batcher.handle_info(:poll, proj.id)
@@ -182,7 +184,9 @@ defmodule Aelita2.BatcherTest do
           "staging" => "iniN",
           "staging.tmp" => "iniN" },
         comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [ {"ci", :ok}] },
+        statuses: %{
+          "iniN" => %{ "ci" => :ok },
+          "N" => %{ "bors" => :running } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }}
     # Finally, an actual poll should finish it.
@@ -199,7 +203,9 @@ defmodule Aelita2.BatcherTest do
           "staging" => "iniN",
           "staging.tmp" => "iniN" },
         comments: %{ 1 => [ "# Build succeeded\n  * ci" ] },
-        statuses: %{ "iniN" => [ {"ci", :ok}] },
+        statuses: %{
+          "iniN" => %{ "bors" => :ok, "ci" => :ok },
+          "N" => %{ "bors" => :ok } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }}
   end
