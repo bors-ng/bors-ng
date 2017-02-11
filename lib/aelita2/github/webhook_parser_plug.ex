@@ -11,14 +11,18 @@ defmodule Aelita2.GitHub.WebhookParserPlug do
 
   def call(conn, options) do
     if conn.path_info == ["webhook", "github"] do
-      run(conn, options)
+      key = Dict.get(options, :secret)
+      run(conn, options, key)
     else
       conn
     end
   end
 
-  def run(conn, options) do
-    key = Dict.get(options, :secret)
+  def run(conn, _options, nil) do
+    conn
+  end
+
+  def run(conn, _options, key) do
     {:ok, body, _} = read_body(conn)
     signature = case get_req_header(conn, "x-hub-signature") do
       ["sha1=" <> signature  | []] ->

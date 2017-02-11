@@ -214,7 +214,7 @@ defmodule Aelita2.WebhookController do
   end
 
   def do_webhook_pr(conn, %{action: "edited", patch: patch}) do
-    title = conn.title_params["pull_request"]["title"]
+    title = conn.body_params["pull_request"]["title"]
     body = conn.body_params["pull_request"]["body"]
     Repo.update!(Patch.changeset(patch, %{title: title, body: body}))
   end
