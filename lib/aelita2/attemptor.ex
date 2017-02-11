@@ -90,20 +90,30 @@ defmodule Aelita2.Attemptor do
   end
 
   def handle_info(:poll, project_id) do
-    Repo.transaction(fn -> poll(project_id) end)
-    Process.send_after(self(), :poll, @poll_period)
-    {:noreply, project_id}
+    case Repo.transaction(fn -> poll(project_id) end) do
+      {:ok, :stop} ->
+        {:stop, :normal, project_id}
+      {:ok, :again} ->
+        Process.send_after(self(), :poll, @poll_period)
+        {:noreply, project_id}
+    end
   end
 
   # Private implementation details
 
   defp poll(project_id) do
     project = Repo.get(Project, project_id)
-    project_id
+    incomplete = project_id
     |> Attempt.all_for_project(:incomplete)
     |> Repo.all()
+    incomplete
     |> Enum.filter(&Attempt.next_poll_is_past(&1, project))
-    |> Enum.map(&poll_attempt(&1, project))
+    |> Enum.each(&poll_attempt(&1, project))
+    if Enum.empty?(incomplete) do
+      :stop
+    else
+      :again
+    end
   end
 
   defp start_attempt(attempt, project, patch, arguments) do
