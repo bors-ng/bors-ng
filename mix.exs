@@ -41,7 +41,7 @@ defmodule Aelita2.Mixfile do
       {:phoenix, "~> 1.2.1"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.0"},
-      {:postgrex, ">= 0.0.0"},
+      {:postgrex, "~> 0.13.0"},
       {:phoenix_html, "~> 2.6"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:poison, "~> 2.0"},
@@ -56,6 +56,8 @@ defmodule Aelita2.Mixfile do
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
       {:dogma, "~> 0.1", only: [:dev], runtime: false},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
+      {:distillery, "~> 1.0"},
+      {:edeliver, "~> 1.4.0"},
     ]
   end
 
