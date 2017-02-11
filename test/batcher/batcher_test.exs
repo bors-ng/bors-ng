@@ -21,6 +21,85 @@ defmodule Aelita2.BatcherTest do
     {:ok, inst: inst, proj: proj}
   end
 
+  test "partially cancel a waiting batch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => [], 2 => []},
+        statuses: %{},
+        files: %{}
+      }})
+    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "N"}
+    |> Repo.insert!()
+    patch2 = %Patch{project_id: proj.id, pr_xref: 2, commit: "O"}
+    |> Repo.insert!()
+    batch = %Batch{project_id: proj.id, state: 0} |> Repo.insert!()
+    link = %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+    link2 = %LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id}
+    |> Repo.insert!()
+    Batcher.handle_cast({:cancel, patch.id}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{
+          1 => [ "# Canceled" ],
+          2 => []
+          },
+        statuses: %{ "N" => %{ "bors" => :error }},
+        files: %{}
+      }}
+    assert nil == Repo.get(LinkPatchBatch, link.id)
+    refute nil == Repo.get(LinkPatchBatch, link2.id)
+  end
+
+  test "cancel a running batch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "N"}
+    |> Repo.insert!()
+    batch = %Batch{project_id: proj.id, state: 1} |> Repo.insert!()
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id} |> Repo.insert!()
+    Batcher.handle_cast({:cancel, patch.id}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{
+          1 => [ "# Canceled" ]
+          },
+        statuses: %{ "N" => %{ "bors" => :error }},
+        files: %{}
+      }}
+    assert Batch.numberize_state(:canceled) == Repo.get(Batch, batch.id).state
+  end
+
+  test "ignore cancel on not-running patch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+    patch = %Patch{project_id: proj.id, pr_xref: 1} |> Repo.insert!()
+    Batcher.handle_cast({:cancel, patch.id}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }}
+  end
+
   test "rejects running patches", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
