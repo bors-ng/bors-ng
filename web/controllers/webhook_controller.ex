@@ -192,7 +192,9 @@ defmodule Aelita2.WebhookController do
     :ok
   end
 
-  def do_webhook_pr(conn, %{action: "synchronize", patch: p}) do
+  def do_webhook_pr(conn, %{action: "synchronize", project: pro, patch: p}) do
+    batcher = Batcher.Registry.get(pro.id)
+    Batcher.cancel(batcher, p.id)
     commit = conn.body_params["pull_request"]["head"]["sha"]
     Repo.update!(Patch.changeset(p, %{commit: commit}))
   end
