@@ -107,26 +107,11 @@ defmodule Aelita2.Batcher do
     end
   end
 
-  def do_handle_cast({:cancel, patch_id}, project_id) do
+  def do_handle_cast({:cancel, patch_id}, _project_id) do
     batch = patch_id
     |> Batch.all_for_patch(:incomplete)
-    |> Repo.one!()
-    ^project_id = batch.project_id
-    if batch.state == Batch.numberize_state(:running) do
-      cancel_batch(batch, patch_id)
-    else
-      LinkPatchBatch
-      |> Repo.get_by!(batch_id: batch.id, patch_id: patch_id)
-      |> Repo.delete!()
-      if Batch.is_empty(batch.id, Repo) do
-        Repo.delete!(batch)
-      end
-      patch = Repo.get!(Patch, patch_id)
-      Project
-      |> Repo.get!(project_id)
-      |> get_repo_conn()
-      |> send_status([patch], :canceled)
-    end
+    |> Repo.one()
+    cancel_patch(batch, patch_id)
   end
 
   def do_handle_cast({:cancel_all}, project_id) do
@@ -388,7 +373,14 @@ defmodule Aelita2.Batcher do
     |> send_status(batch, :timeout)
   end
 
-  defp cancel_batch(batch, patch_id) do
+  defp cancel_patch(nil, _), do: :ok
+
+  defp cancel_patch(batch, patch_id) do
+    cancel_patch(batch, patch_id, Batch.atomize_state(batch.state))
+    Project.ping!(batch.project.id)
+  end
+
+  defp cancel_patch(batch, patch_id, :running) do
     project = batch.project
     patches = batch.id
     |> Patch.all_for_batch()
@@ -397,19 +389,32 @@ defmodule Aelita2.Batcher do
       [] -> :failed
       _ -> :retrying
     end
-    project
-    |> get_repo_conn()
-    |> send_message(patches, {:canceled, state})
     canceled = Batch.numberize_state(:canceled)
     batch
-    |> Batch.changeset(%{status: canceled})
+    |> Batch.changeset(%{state: canceled})
     |> Repo.update!()
     if state == :retrying do
       patches
       |> Enum.filter(&(&1.id == patch_id))
       |> make_batch(project.id)
     end
-    Project.ping!(project.id)
+    repo_conn = get_repo_conn(project)
+    send_status(repo_conn, batch, :canceled)
+    send_message(repo_conn, patches, {:canceled, state})
+  end
+
+  defp cancel_patch(batch, patch_id, _state) do
+    project = batch.project
+    LinkPatchBatch
+    |> Repo.get_by!(batch_id: batch.id, patch_id: patch_id)
+    |> Repo.delete!()
+    if Batch.is_empty(batch.id, Repo) do
+      Repo.delete!(batch)
+    end
+    patch = Repo.get!(Patch, patch_id)
+    repo_conn = get_repo_conn(project)
+    send_status(repo_conn, [patch], :canceled)
+    send_message(repo_conn, [patch], {:canceled, :failed})
   end
 
   defp bisect(patches, project) do
