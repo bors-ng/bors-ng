@@ -19,7 +19,7 @@ defmodule Aelita2.Mixfile do
      name: "Bors-NG",
      source_url: "https://github.com/bors-ng/bors-ng",
      homepage_url: "https://bors-ng.github.io/",
-     docs: [main: "Aelita2", logo: "icon/bors-path.svg", extras: "README.md"]]
+     docs: [main: "Aelita2", extras: ["README.md"]]]
   end
 
   # Configuration for the OTP application.
