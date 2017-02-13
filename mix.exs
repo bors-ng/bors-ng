@@ -15,7 +15,11 @@ defmodule Aelita2.Mixfile do
       flags: [
         "-Wno_unused",
         "-Werror_handling",
-        "-Wrace_conditions"]]]
+        "-Wrace_conditions"]],
+     name: "Bors-NG",
+     source_url: "https://github.com/bors-ng/bors-ng",
+     homepage_url: "https://bors-ng.github.io/",
+     docs: [main: "Aelita2", logo: "icon/bors-path.svg", extras: "README.md"]]
   end
 
   # Configuration for the OTP application.
@@ -58,6 +62,7 @@ defmodule Aelita2.Mixfile do
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:distillery, "~> 1.0"},
       {:edeliver, "~> 1.4.0"},
+      {:ex_doc, "~> 0.14", only: :dev},
     ]
   end
 
