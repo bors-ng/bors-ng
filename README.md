@@ -1,7 +1,61 @@
 [Bors-NG] implements a continuous-testing workflow where the master branch never breaks.
 It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
 
-# How to use it
+* [Home page](https://bors-ng.github.io/)
+* [Getting started](https://bors-ng.github.io/getting-started/)
+* [Developer documentation](https://bors-ng.github.io/devdocs/bors-ng/Aelita2.html)
+
+# But don't GitHub's Protected Branches already do this?
+
+Travis and Jenkins both run the test suite on every branch after it's pushed to
+and every pull request when it's opened, and GitHub can block the pull requests
+if the tests fail on them. To understand why this is insufficient to get an
+evergreen master, imagine this:
+
+  * #### Pull Request \#1: Rename `bifurcate()` to `bifurcateCrab()`
+
+    Change the name of this function, as well as every call site that currently
+    exists in master. I've thought of making it a method on Crab instead of on
+    Sword, but then it would be `bifurcateWithSword()`, which hardly seems like
+    an improvement.
+
+  * #### Pull Request \#2: `bifurcate()` after landing, in addition to before
+
+    Adds another call to `bifurcate()`, to make sure it gets done even if we
+    skip the pre-landing procedure.
+
+When both of these pull requests are sitting open in the backlog, they will
+both be tested against master. Assuming they both pass, GitHub will happily
+present the Big Green Merge Button. Once they both get merged master will
+go red (Method `bifurcate()` not found).
+
+In addition to the testing requirements, GitHub can also be set to block pull
+requests that are not "up to date" with master, meaning that problems like this
+can show up. This fixes the problem, by requiring that master only contain a
+snapshot of the code that has passed the tests, but it requires maintainers to
+manually:
+
+ 1. "Update the pull requests," merging them onto master without changing
+    master itself
+ 2. Wait for the test suite to finish
+ 3. Merge the pull request when it's done, which is a trivial operation that
+    can't break the test suite thanks to step 1
+
+And it has to be done for every pull request one at a time.
+
+This is similar to, but less efficient than, the process that bors automates.
+Instead of merging, you add reviewed pull requests to a "merge queue" of pull
+requests that are tested against master by copying master to a staging branch
+and merging into that. When the status of staging is determined (either pass or fail),
+bors reports the result back as a comment and merges staging into master if it was a pass.
+Then it goes on to the next one.
+Based on the assumption that the tests usually pass once they're r+-ed,
+bors actually tests them in batches (and bisects if a batch fails).
+
+Note that bors is not a replacement for Jenkins or Travis. It just implements
+this workflow.
+
+# How it works
 
 Bors is a [GitHub integration], so (assuming you already have Travis CI set up), getting bors set up requires two steps:
 
