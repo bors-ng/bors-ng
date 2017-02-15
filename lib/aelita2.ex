@@ -1,7 +1,6 @@
 defmodule Aelita2 do
   @moduledoc """
-  A GitHub integration that merges and tests pull requests
-  so that the master branch is never, ever broken.
+  The top-level OPT application for Bors-NG.
   """
 
   use Application
