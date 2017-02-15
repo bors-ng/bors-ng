@@ -3,6 +3,78 @@ defmodule Aelita2.GitHub.ServerMock do
 
   @moduledoc """
   Provides a fake connection to GitHub's REST API.
+
+  This is used for unit testing and when running in a "dev" environment,
+  like on a local machine.
+  It's basically just a genserver frontend for a big map;
+  you can put and get its state,
+  and other functions will mutate or read subsets of it.
+
+  For example, I can run `iex -S mix phoenix.server` and do this:
+
+      iex> # Push state to "GitHub"
+      iex> alias Aelita2.GitHub
+      iex> alias Aelita2.GitHub.ServerMock
+      iex> ServerMock.put_state(%{
+      ...>   {:installation, 91} => %{ repos: [
+      ...>     %GitHub.Repo{
+      ...>       id: 14,
+      ...>       name: "test/repo",
+      ...>       owner: %{
+      ...>         id: 6,
+      ...>         login: "bors-fanboi",
+      ...>         avatar_url: "data:image/svg+xml,<svg></svg>",
+      ...>         type: :user
+      ...>       }}
+      ...>   ] },
+      ...>   {{:installation, 91}, 14} => %{
+      ...>     branches: %{},
+      ...>     comments: %{1 => []},
+      ...>     pulls: %{
+      ...>       1 => %GitHub.Pr{
+      ...>         number: 1,
+      ...>         title: "Test",
+      ...>         body: "Mess",
+      ...>         state: :open,
+      ...>         base_ref: "master",
+      ...>         head_sha: "00000001",
+      ...>         user: %GitHub.User{
+      ...>           id: 6,
+      ...>           login: "bors-fanboi",
+      ...>           avatar_url: "data:image/svg+xml,<svg></svg>"}}},
+      ...>     statuses: %{},
+      ...>     files: %{}}})
+      iex> GitHub.get_open_prs!({{:installation, 91}, 14})
+      [
+        %Aelita2.GitHub.Pr{
+          number: 1,
+          title: "Test",
+          body: "Mess",
+          state: :open,
+          base_ref: "master",
+          head_sha: "00000001",
+          user: %Aelita2.GitHub.User{
+            id: 6,
+            login: "bors-fanboi",
+            avatar_url: "data:image/svg+xml,<svg></svg>"}}]
+      iex> # The installation now exists; notify bors about it.
+      iex> Aelita2.WebhookController.do_webhook(%{
+      ...>   body_params: %{
+      ...>     "installation" => %{ "id" => 91 },
+      ...>     "sender" => %{
+      ...>       "id" => 6,
+      ...>       "login" => "bors-fanboi",
+      ...>       "avatar_url" => "" },
+      ...>     "action" => "created" }}, "github", "integration_installation")
+      iex> proj = Aelita2.Repo.get_by!(Aelita2.Project, repo_xref: 14)
+      iex> proj.name
+      "test/repo"
+      iex> # This has also started a (background) sync of all attached patches.
+      iex> # Watch it happen in the user interface.
+      iex> Aelita2.Syncer.wait_hot_spin(proj.id)
+      iex> patch = Aelita2.Repo.get_by!(Aelita2.Patch, pr_xref: 1)
+      iex> patch.title
+      "Test"
   """
 
   def start_link do
@@ -11,6 +83,7 @@ defmodule Aelita2.GitHub.ServerMock do
 
   @type tconn :: Aelita2.GitHub.tconn
   @type ttoken :: Aelita2.GitHub.ttoken
+  @type trepo :: Aelita2.GitHub.trepo
   @type tuser :: Aelita2.GitHub.User.t
 
   @type tbranch :: bitstring
@@ -22,6 +95,9 @@ defmodule Aelita2.GitHub.ServerMock do
       comments: %{ integer => [ bitstring ] },
       statuses: %{ tbranch => %{ bitstring => :open | :closed | :running } },
       files: %{ tbranch => %{ bitstring => bitstring } }
+    },
+    {:installation, number} => %{
+      repos: [ trepo ]
     },
     :users => %{ bitstring => tuser }
   }
@@ -58,6 +134,16 @@ defmodule Aelita2.GitHub.ServerMock do
     |> case do
       {:ok, _} = res -> {res, state}
       _ -> {{:error, :get_pr}, state}
+    end
+  end
+
+  def do_handle_call(:get_installation_repos, installation_conn, {}, state) do
+    with({:ok, installation} <- Map.fetch(state, installation_conn),
+         {:ok, repos} <- Map.fetch(installation, :repos),
+      do: {:ok, repos})
+    |> case do
+      {:ok, _} = res -> {res, state}
+      _ -> {{:error, :get_open_prs}, state}
     end
   end
 
