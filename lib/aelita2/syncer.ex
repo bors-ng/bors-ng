@@ -101,4 +101,15 @@ defmodule Aelita2.Syncer do
         end
     end
   end
+
+  @doc """
+  Wait for synchronization to finish by hot-spinning.
+  Used in test cases.
+  """
+  def wait_hot_spin(project_id) do
+    case Registry.lookup(Aelita2.Syncer.Registry, project_id) do
+      [{_, _}] -> wait_hot_spin(project_id)
+      _ -> :ok
+    end
+  end
 end
