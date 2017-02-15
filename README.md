@@ -1,3 +1,6 @@
+A merge bot for GitHub pull requests
+====================================
+
 [Bors-NG] implements a continuous-testing workflow where the master branch never breaks.
 It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
 
