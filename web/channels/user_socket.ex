@@ -34,8 +34,7 @@ defmodule Aelita2.UserSocket do
     case vfy do
       {:ok, current_user} ->
         user = Aelita2.Repo.get! Aelita2.User, current_user
-        socket = socket
-        |> assign(:user, user)
+        socket = assign(socket, :user, user)
         {:ok, socket}
       {:error, _} ->
         :error

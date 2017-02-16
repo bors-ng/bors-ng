@@ -5,7 +5,7 @@ Thanks for wanting to help out with Bors-NG!
 
 
 Submitting bug reports
-======================
+----------------------
 
 Go ahead and submit an issue report;
 we can't fix a problem if we don't know about it.
@@ -34,7 +34,7 @@ Filing an issue is as easy as going to the [new issue page] and filling out the 
 
 
 Sending your change to us
-=========================
+-------------------------
 
 The best way to send changes to Bors-NG is to fork our repo, then open a pull request.
 GitHub has a [howto for the fork-pull system] on their own website.
