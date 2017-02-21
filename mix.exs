@@ -58,12 +58,13 @@ defmodule Aelita2.Mixfile do
       {:httpoison, "~> 0.10.0"},
       {:joken, "~> 1.1"},
       {:jose, "~> 1.8"},
-      {:libsodium, "~> 0.0.3"},
+      {:libsodium, "~> 0.0.3", runtime: false},
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
       {:dogma, "~> 0.1", only: [:dev], runtime: false},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:distillery, "~> 1.0"},
       {:edeliver, "~> 1.4.0"},
+      {:wobserver, "~> 0.1.5"},
       {:ex_doc, "~> 0.14", only: :dev},
     ]
   end

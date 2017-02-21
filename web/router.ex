@@ -6,6 +6,8 @@ defmodule Aelita2.Router do
   and user authentication part of the session.
   """
 
+  @wobserver_url Application.get_env(:wobserver, :remote_url_prefix)
+
   use Aelita2.Web, :router
 
   pipeline :browser_page do
@@ -59,6 +61,8 @@ defmodule Aelita2.Router do
     delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
   end
 
+  forward @wobserver_url, Wobserver.Web.Router
+
   scope "/admin", Aelita2 do
     pipe_through :browser_page
     pipe_through :browser_session
@@ -75,6 +79,7 @@ defmodule Aelita2.Router do
     pipe_through :browser_session
     get "/socket-token", AuthController, :socket_token
   end
+
   scope "/auth", Aelita2 do
     pipe_through :browser_page
     pipe_through :browser_session
