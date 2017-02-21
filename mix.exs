@@ -53,7 +53,7 @@ defmodule Aelita2.Mixfile do
       {:cowboy, "~> 1.0"},
       {:oauth2, [git: "git://github.com/bors-ng/oauth2.git"]},
       {:httpoison, "~> 0.10.0"},
-      {:joken, "~> 1.1"},
+      {:joken, "~> 1.4"},
       {:jose, "~> 1.8"},
       {:libsodium, "~> 0.0.3", runtime: false},
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
