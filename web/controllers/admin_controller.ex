@@ -21,7 +21,9 @@ defmodule Aelita2.AdminController do
     orphans = Project.orphans()
     orphan_count = from(p in orphans, select: count(p.id))
     [orphan_count] = Repo.all(orphan_count)
-    render conn, "index.html", orphan_count: orphan_count
+    render conn, "index.html",
+      orphan_count: orphan_count,
+      wobserver_url: Application.get_env(:wobserver, :remote_url_prefix)
   end
 
   def orphans(conn, _params) do

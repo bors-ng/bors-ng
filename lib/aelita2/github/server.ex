@@ -341,9 +341,9 @@ defmodule Aelita2.GitHub.Server do
     cfg = installation_config()
     pem = JOSE.JWK.from_pem(cfg[:pem])
     jwt_token = %{
-      iat: current_time(),
-      exp: current_time() + @token_exp,
-      iss: cfg[:iss]}
+      "iat" => current_time(),
+      "exp" => current_time() + @token_exp,
+      "iss" => cfg[:iss]}
     |> token()
     |> sign(rs256(pem))
     |> get_compact()
