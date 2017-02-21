@@ -4,6 +4,10 @@
 
 <main role=main><div class=wrapper>
 
+<div class=toolbar>
+<a class=toolbar-item href="<%= @wobserver_url %>/">Observer</a>
+</div>
+
 <%= if not is_nil get_flash(@conn, :ok) do %>
 <div role="alert" class="alert alert--ok">
 <%= get_flash(@conn, :ok) %>

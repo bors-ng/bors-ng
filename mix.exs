@@ -29,9 +29,7 @@ defmodule Aelita2.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Aelita2, []},
-     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy,
-                    :logger, :gettext, :phoenix_ecto, :postgrex, :oauth2,
-                    :httpoison, :etoml]]
+     extra_applications: [:logger]]
   end
 
   # Specifies which paths to compile per environment.
@@ -53,17 +51,17 @@ defmodule Aelita2.Mixfile do
       {:poison, "~> 2.0"},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
-      # Point at hex.pm once #84 gets into a release
-      {:oauth2, [git: "git://github.com/scrogson/oauth2.git"]},
+      {:oauth2, [git: "git://github.com/bors-ng/oauth2.git"]},
       {:httpoison, "~> 0.10.0"},
-      {:joken, "~> 1.1"},
+      {:joken, "~> 1.4"},
       {:jose, "~> 1.8"},
-      {:libsodium, "~> 0.0.3"},
+      {:libsodium, "~> 0.0.3", runtime: false},
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
       {:dogma, "~> 0.1", only: [:dev], runtime: false},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
       {:distillery, "~> 1.0"},
       {:edeliver, "~> 1.4.0"},
+      {:wobserver, "~> 0.1.5"},
       {:ex_doc, "~> 0.14", only: :dev},
     ]
   end
