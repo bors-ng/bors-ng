@@ -246,40 +246,29 @@ defmodule Aelita2.Batcher do
   end
 
   defp setup_statuses(repo_conn, batch, patches) do
-    toml = GitHub.get_file!(
+    toml = Aelita2.Batcher.GetBorsToml.get(
       repo_conn,
-      batch.project.staging_branch,
-      "bors.toml")
+      batch.project.staging_branch)
     case toml do
-      nil ->
-        setup_statuses_error(
-          repo_conn,
+      {:ok, toml} ->
+        toml.status
+        |> Enum.map(&%Status{
+            batch_id: batch.id,
+            identifier: &1,
+            url: nil,
+            state: Status.numberize_state(:running)})
+        |> Enum.each(&Repo.insert!/1)
+        now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+        batch
+        |> Batch.changeset(%{timeout_at: now + toml.timeout_sec})
+        |> Repo.update!()
+        :running
+      {:error, message} ->
+        setup_statuses_error(repo_conn,
           batch,
           patches,
-          :fetch_failed)
+          message)
         :error
-      toml ->
-        case Aelita2.Batcher.BorsToml.new(toml) do
-          {:ok, toml} ->
-            toml.status
-            |> Enum.map(&%Status{
-                batch_id: batch.id,
-                identifier: &1,
-                url: nil,
-                state: Status.numberize_state(:running)})
-            |> Enum.each(&Repo.insert!/1)
-            now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-            batch
-            |> Batch.changeset(%{timeout_at: now + toml.timeout_sec})
-            |> Repo.update!()
-            :running
-          {:error, message} ->
-            setup_statuses_error(repo_conn,
-              batch,
-              patches,
-              message)
-            :error
-        end
     end
   end
 

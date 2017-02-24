@@ -45,6 +45,45 @@ defmodule Aelita2.AttemptorTest do
       }}
   end
 
+  test "infer from .travis.yml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{ "master" => "ini", "trying" => "", "trying.tmp" => "" },
+        comments: %{ 1 => [] },
+        statuses: %{ "iniN" => [] },
+        files: %{ "trying" => %{ ".travis.yml" => "" } }
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N"}
+    |> Repo.insert!()
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    [status] = Repo.all(Aelita2.AttemptStatus)
+    assert status.identifier == "continuous-integration/travis-ci/push"
+  end
+
+  test "infer from .travis.yml and appveyor.yml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{ "master" => "ini", "trying" => "", "trying.tmp" => "" },
+        comments: %{ 1 => [] },
+        statuses: %{ "iniN" => [] },
+        files: %{ "trying" => %{ ".travis.yml" => "", "appveyor.yml" => "" } }
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N"}
+    |> Repo.insert!()
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    statuses = Repo.all(Aelita2.AttemptStatus)
+    assert Enum.any?(statuses,
+      &(&1.identifier == "continuous-integration/travis-ci/push"))
+    assert Enum.any?(statuses,
+      &(&1.identifier == "continuous-integration/appveyor/branch"))
+  end
+
   test "full runthrough (with polling fallback)", %{proj: proj} do
     # Attempts start running immediately
     GitHub.ServerMock.put_state(%{
