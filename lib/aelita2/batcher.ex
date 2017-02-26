@@ -197,10 +197,17 @@ defmodule Aelita2.Batcher do
     project = batch.project
     stmp = "#{project.staging_branch}.tmp"
     repo_conn = get_repo_conn(project)
-    base = GitHub.copy_branch!(
+    base = GitHub.get_branch!(
       repo_conn,
-      project.master_branch,
-      stmp)
+      project.master_branch)
+    tbase = GitHub.synthesize_commit!(
+      repo_conn,
+      %{
+        branch: stmp,
+        tree: base.tree,
+        parents: [base.commit],
+        commit_message: "[ci skip]"
+        })
     do_merge_patch = fn patch, branch ->
       case branch do
         :conflict -> :conflict
@@ -209,13 +216,13 @@ defmodule Aelita2.Batcher do
           %{
             from: patch.commit,
             to: stmp,
-            commit_message: "-bors-staging-tmp-#{patch.pr_xref}"
+            commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"
           })
       end
     end
     head = with(
-      %{tree: tree} <- Enum.reduce(patches, base, do_merge_patch),
-      parents <- [base | Enum.map(patches, &(&1.commit))],
+      %{tree: tree} <- Enum.reduce(patches, tbase, do_merge_patch),
+      parents <- [base.commit | Enum.map(patches, &(&1.commit))],
       commit_message <- Batcher.Message.generate_commit_message(patches),
       do: GitHub.synthesize_commit!(
         repo_conn,
@@ -224,6 +231,7 @@ defmodule Aelita2.Batcher do
           tree: tree,
           parents: parents,
           commit_message: commit_message}))
+    GitHub.delete_branch!(repo_conn, stmp)
     case head do
       :conflict ->
         state = bisect(patches, project)

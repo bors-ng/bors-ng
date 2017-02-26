@@ -103,8 +103,7 @@ defmodule Aelita2.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN",
-          "trying.tmp" => "iniN" },
+          "trying" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => [] },
         files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -117,8 +116,7 @@ defmodule Aelita2.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN",
-          "trying.tmp" => "iniN" },
+          "trying" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => [] },
         files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -131,8 +129,7 @@ defmodule Aelita2.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN",
-          "trying.tmp" => "iniN" },
+          "trying" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => [ {"ci", :ok}] },
         files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -144,8 +141,7 @@ defmodule Aelita2.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN",
-          "trying.tmp" => "iniN" },
+          "trying" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => [ {"ci", :ok}] },
         files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -161,8 +157,7 @@ defmodule Aelita2.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN",
-          "trying.tmp" => "iniN" },
+          "trying" => "iniN" },
         comments: %{ 1 => [ "# Build succeeded\n  * ci" ] },
         statuses: %{ "iniN" => [ {"ci", :ok}] },
         files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }

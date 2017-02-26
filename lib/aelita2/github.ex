@@ -42,12 +42,20 @@ defmodule Aelita2.GitHub do
     sha
   end
 
-  @spec copy_branch!(tconn, binary, binary) :: binary
-  def copy_branch!(repo_conn, from, to) do
-    {:ok, sha} = GenServer.call(
+  @spec get_branch!(tconn, binary) :: %{commit: bitstring, tree: bitstring}
+  def get_branch!(repo_conn, from) do
+    {:ok, commit} = GenServer.call(
       Aelita2.GitHub,
-      {:copy_branch, repo_conn, {from, to}})
-    sha
+      {:get_branch, repo_conn, {from}})
+    commit
+  end
+
+  @spec delete_branch!(tconn, binary) :: :ok
+  def delete_branch!(repo_conn, branch) do
+    :ok = GenServer.call(
+      Aelita2.GitHub,
+      {:delete_branch, repo_conn, {branch}})
+    :ok
   end
 
   @spec merge_branch!(tconn, %{

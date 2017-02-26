@@ -164,8 +164,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN",
-          "staging.tmp" => "iniN" },
+          "staging" => "iniN" },
         comments: %{ 1 => [ "# Configuration problem\nbors.toml: not found" ] },
         statuses: %{ "N" => %{ "bors" => :error } },
         files: %{}
@@ -212,8 +211,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN",
-          "staging.tmp" => "iniN" },
+          "staging" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => %{}, "N" => %{ "bors" => :running } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -233,8 +231,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN",
-          "staging.tmp" => "iniN" },
+          "staging" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{ "iniN" => %{}, "N" => %{ "bors" => :running } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
@@ -245,8 +242,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN",
-          "staging.tmp" => "iniN" },
+          "staging" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{
           "iniN" => %{ "ci" => :ok },
@@ -260,8 +256,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN",
-          "staging.tmp" => "iniN" },
+          "staging" => "iniN" },
         comments: %{ 1 => [] },
         statuses: %{
           "iniN" => %{ "ci" => :ok },
@@ -279,8 +274,7 @@ defmodule Aelita2.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "iniN",
-          "staging" => "iniN",
-          "staging.tmp" => "iniN" },
+          "staging" => "iniN" },
         comments: %{ 1 => [ "# Build succeeded\n  * ci" ] },
         statuses: %{
           "iniN" => %{ "bors" => :ok, "ci" => :ok },
