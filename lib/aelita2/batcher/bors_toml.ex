@@ -9,6 +9,10 @@ defmodule Aelita2.Batcher.BorsToml do
 
   defstruct status: [""], timeout_sec: (60 * 60)
 
+  @type t :: %Aelita2.Batcher.BorsToml{
+    status: bitstring,
+    timeout_sec: integer}
+
   def new(str) when is_binary(str) do
     case :etoml.parse(str) do
       {:ok, toml} ->

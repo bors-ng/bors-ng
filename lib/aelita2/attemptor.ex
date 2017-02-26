@@ -151,40 +151,29 @@ defmodule Aelita2.Attemptor do
   end
 
   defp setup_statuses(repo_conn, attempt, project, patch) do
-    toml = GitHub.get_file!(
+    toml = Aelita2.Batcher.GetBorsToml.get(
       repo_conn,
-      project.trying_branch,
-      "bors.toml")
+      project.trying_branch)
     case toml do
-      nil ->
-        setup_statuses_error(
-          repo_conn,
+      {:ok, toml} ->
+        toml.status
+        |> Enum.map(&%AttemptStatus{
+            attempt_id: attempt.id,
+            identifier: &1,
+            url: nil,
+            state: AttemptStatus.numberize_state(:running)})
+        |> Enum.each(&Repo.insert!/1)
+        now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+        attempt
+        |> Attempt.changeset(%{timeout_at: now + toml.timeout_sec})
+        |> Repo.update!()
+        :running
+      {:error, message} ->
+        setup_statuses_error(repo_conn,
           attempt,
           patch,
-          :fetch_failed)
+          message)
         :error
-      toml ->
-        case Aelita2.Batcher.BorsToml.new(toml) do
-          {:ok, toml} ->
-            toml.status
-            |> Enum.map(&%AttemptStatus{
-                attempt_id: attempt.id,
-                identifier: &1,
-                url: nil,
-                state: AttemptStatus.numberize_state(:running)})
-            |> Enum.each(&Repo.insert!/1)
-            now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-            attempt
-            |> Attempt.changeset(%{timeout_at: now + toml.timeout_sec})
-            |> Repo.update!()
-            :running
-          {:error, message} ->
-            setup_statuses_error(repo_conn,
-              attempt,
-              patch,
-              message)
-            :error
-        end
     end
   end
 

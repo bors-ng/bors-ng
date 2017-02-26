@@ -288,4 +288,29 @@ defmodule Aelita2.BatcherTest do
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }}
   end
+
+  test "infer from .travis.yml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
+        comments: %{ 1 => [] },
+        statuses: %{ "iniN" => [] },
+        files: %{ "staging" => %{ ".travis.yml" => "" } }
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id}, proj.id)
+    Batcher.handle_info(:poll, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 0
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info(:poll, proj.id)
+    [status] = Repo.all(Aelita2.Status)
+    assert status.identifier == "continuous-integration/travis-ci/push"
+  end
 end
