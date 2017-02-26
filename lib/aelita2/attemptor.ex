@@ -119,16 +119,23 @@ defmodule Aelita2.Attemptor do
   defp start_attempt(attempt, project, patch, arguments) do
     stmp = "#{project.trying_branch}.tmp"
     repo_conn = get_repo_conn(project)
-    GitHub.copy_branch!(
+    base = GitHub.get_branch!(
       repo_conn,
-      project.master_branch,
-      stmp)
+      project.master_branch)
+    GitHub.synthesize_commit!(
+      repo_conn,
+      %{
+        branch: stmp,
+        tree: base.tree,
+        parents: [base.commit],
+        commit_message: "[ci skip]"
+        })
     merged = GitHub.merge_branch!(
       repo_conn,
       %{
         from: patch.commit,
         to: stmp,
-        commit_message: "Try \##{patch.pr_xref}:#{arguments}"})
+        commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"})
     case merged do
       :conflict ->
         send_message(repo_conn, patch, {:conflict, :failed})
@@ -137,10 +144,14 @@ defmodule Aelita2.Attemptor do
         |> Attempt.changeset(%{state: err})
         |> Repo.update!()
       _ ->
-        commit = GitHub.copy_branch!(
+        commit = GitHub.synthesize_commit!(
           repo_conn,
-          stmp,
-          project.trying_branch)
+          %{
+            branch: project.trying_branch,
+            tree: merged.tree,
+            parents: [base.commit, patch.commit],
+            commit_message: "Try \##{patch.pr_xref}:#{arguments}"
+            })
         state = setup_statuses(repo_conn, attempt, project, patch)
         state = Attempt.numberize_state(state)
         now = DateTime.to_unix(DateTime.utc_now(), :seconds)

@@ -171,21 +171,18 @@ defmodule Aelita2.GitHub.ServerMock do
     end
   end
 
-  def do_handle_call(:copy_branch, repo_conn, {from, to}, state) do
+  def do_handle_call(:get_branch, repo_conn, {from}, state) do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, branches} <- Map.fetch(repo, :branches) do
       sha = case branches[from] do
         nil -> from
         sha -> sha
       end
-      branches = %{ branches | to => sha }
-      repo = %{ repo | branches: branches }
-      state = %{ state | repo_conn => repo }
-      {{:ok, sha}, state}
+      {{:ok, %{commit: sha, tree: sha}}, state}
     end
     |> case do
       {{:ok, _}, _} = res -> res
-      _ -> {{:error, :copy_branch}, state}
+      _ -> {{:error, :get_branch}, state}
     end
   end
 

@@ -77,13 +77,13 @@ defmodule Aelita2.GitHub.Server do
     end
   end
 
-  def do_handle_call(:copy_branch, repo_conn, {from, to}) do
-    case get!(repo_conn, "branches/#{from}") do
+  def do_handle_call(:get_branch, repo_conn, {branch}) do
+    case get!(repo_conn, "branches/#{branch}") do
       %{body: raw, status_code: 200} ->
-        sha = Poison.decode!(raw)["commit"]["sha"]
-        do_handle_call(:force_push, repo_conn, {sha, to})
+        r = Poison.decode!(raw)["commit"]
+        {:ok, %{commit: r["sha"], tree: r["commit"]["tree"]["sha"]}}
       _ ->
-        {:error, :copy_branch}
+        {:error, :get_branch}
     end
   end
 
