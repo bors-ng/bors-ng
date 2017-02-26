@@ -77,13 +77,22 @@ defmodule Aelita2.GitHub.Server do
     end
   end
 
-  def do_handle_call(:copy_branch, repo_conn, {from, to}) do
-    case get!(repo_conn, "branches/#{from}") do
+  def do_handle_call(:get_branch, repo_conn, {branch}) do
+    case get!(repo_conn, "branches/#{branch}") do
       %{body: raw, status_code: 200} ->
-        sha = Poison.decode!(raw)["commit"]["sha"]
-        do_handle_call(:force_push, repo_conn, {sha, to})
+        r = Poison.decode!(raw)["commit"]
+        {:ok, %{commit: r["sha"], tree: r["commit"]["tree"]["sha"]}}
       _ ->
-        {:error, :copy_branch}
+        {:error, :get_branch}
+    end
+  end
+
+  def do_handle_call(:delete_branch, repo_conn, {branch}) do
+    case delete!(repo_conn, "git/refs/heads/#{branch}") do
+      %{status_code: 204} ->
+        :ok
+      _ ->
+        {:error, :delete_branch}
     end
   end
 
@@ -321,6 +330,19 @@ defmodule Aelita2.GitHub.Server do
     params \\ []
     ) do
     HTTPoison.get!(
+      "#{config()[:site]}/repositories/#{repo_xref}/#{path}",
+      [{"Authorization", "token #{token}"}] ++ headers,
+      params)
+  end
+
+  @spec delete!(tconn, binary, list, list) :: map
+  defp delete!(
+    {{:raw, token}, repo_xref},
+    path,
+    headers \\ [],
+    params \\ []
+    ) do
+    HTTPoison.delete!(
       "#{config()[:site]}/repositories/#{repo_xref}/#{path}",
       [{"Authorization", "token #{token}"}] ++ headers,
       params)

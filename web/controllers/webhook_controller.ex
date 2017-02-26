@@ -159,7 +159,7 @@ defmodule Aelita2.WebhookController do
     Attemptor.status(attemptor, {commit, identifier, state, url})
   end
 
-  def do_webhook_status(conn, "-bors-staging-tmp-" <> pr_xref) do
+  def do_webhook_status(conn, "[ci skip] -bors-staging-tmp-" <> pr_xref) do
     identifier = conn.body_params["context"]
     err_msg = Batcher.Message.generate_staging_tmp_message(identifier)
     case err_msg do
