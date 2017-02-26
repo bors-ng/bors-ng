@@ -159,6 +159,7 @@ defmodule Aelita2.Attemptor do
         |> Attempt.changeset(%{state: state, commit: commit, last_polled: now})
         |> Repo.update!()
     end
+    GitHub.delete_branch!(repo_conn, stmp)
   end
 
   defp setup_statuses(repo_conn, attempt, project, patch) do

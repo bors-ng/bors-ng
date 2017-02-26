@@ -186,6 +186,20 @@ defmodule Aelita2.GitHub.ServerMock do
     end
   end
 
+  def do_handle_call(:delete_branch, repo_conn, {branch}, state) do
+    with {:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, branches} <- Map.fetch(repo, :branches) do
+      branches = Map.delete(branches, branch)
+      repo = %{ repo | branches: branches }
+      state = %{ state | repo_conn => repo }
+      {:ok, state}
+    end
+    |> case do
+      {:ok, _} = res -> res
+      _ -> {{:error, :get_branch}, state}
+    end
+  end
+
   def do_handle_call(:merge_branch, repo_conn, {%{
     from: from,
     to: to,

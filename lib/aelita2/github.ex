@@ -50,6 +50,14 @@ defmodule Aelita2.GitHub do
     commit
   end
 
+  @spec delete_branch!(tconn, binary) :: :ok
+  def delete_branch!(repo_conn, branch) do
+    :ok = GenServer.call(
+      Aelita2.GitHub,
+      {:delete_branch, repo_conn, {branch}})
+    :ok
+  end
+
   @spec merge_branch!(tconn, %{
     from: bitstring,
     to: bitstring,

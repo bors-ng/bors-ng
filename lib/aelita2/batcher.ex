@@ -231,6 +231,7 @@ defmodule Aelita2.Batcher do
           tree: tree,
           parents: parents,
           commit_message: commit_message}))
+    GitHub.delete_branch!(repo_conn, stmp)
     case head do
       :conflict ->
         state = bisect(patches, project)

@@ -87,6 +87,15 @@ defmodule Aelita2.GitHub.Server do
     end
   end
 
+  def do_handle_call(:delete_branch, repo_conn, {branch}) do
+    case delete!(repo_conn, "git/refs/heads/#{branch}") do
+      %{status_code: 204} ->
+        :ok
+      _ ->
+        {:error, :delete_branch}
+    end
+  end
+
   def do_handle_call(:merge_branch, repo_conn, {%{
     from: from,
     to: to,
@@ -321,6 +330,19 @@ defmodule Aelita2.GitHub.Server do
     params \\ []
     ) do
     HTTPoison.get!(
+      "#{config()[:site]}/repositories/#{repo_xref}/#{path}",
+      [{"Authorization", "token #{token}"}] ++ headers,
+      params)
+  end
+
+  @spec delete!(tconn, binary, list, list) :: map
+  defp delete!(
+    {{:raw, token}, repo_xref},
+    path,
+    headers \\ [],
+    params \\ []
+    ) do
+    HTTPoison.delete!(
       "#{config()[:site]}/repositories/#{repo_xref}/#{path}",
       [{"Authorization", "token #{token}"}] ++ headers,
       params)
