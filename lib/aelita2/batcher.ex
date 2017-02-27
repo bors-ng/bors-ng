@@ -191,12 +191,12 @@ defmodule Aelita2.Batcher do
   end
 
   defp start_waiting_batch(batch) do
+    project = batch.project
+    repo_conn = get_repo_conn(project)
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
-    project = batch.project
     stmp = "#{project.staging_branch}.tmp"
-    repo_conn = get_repo_conn(project)
     base = GitHub.get_branch!(
       repo_conn,
       project.master_branch)
@@ -206,8 +206,7 @@ defmodule Aelita2.Batcher do
         branch: stmp,
         tree: base.tree,
         parents: [base.commit],
-        commit_message: "[ci skip]"
-        })
+        commit_message: "[ci skip]"})
     do_merge_patch = fn patch, branch ->
       case branch do
         :conflict -> :conflict
@@ -216,41 +215,41 @@ defmodule Aelita2.Batcher do
           %{
             from: patch.commit,
             to: stmp,
-            commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"
-          })
+            commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"})
       end
     end
-    head = with(
-      %{tree: tree} <- Enum.reduce(patches, tbase, do_merge_patch),
-      parents <- [base.commit | Enum.map(patches, &(&1.commit))],
-      commit_message <- Batcher.Message.generate_commit_message(patches),
-      do: GitHub.synthesize_commit!(
-        repo_conn,
-        %{
-          branch: project.staging_branch,
-          tree: tree,
-          parents: parents,
-          commit_message: commit_message}))
+    merge = Enum.reduce(patches, tbase, do_merge_patch)
+    {status, commit} = start_waiting_merged_batch(batch, patches, base, merge)
+    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     GitHub.delete_branch!(repo_conn, stmp)
-    case head do
-      :conflict ->
-        state = bisect(patches, project)
-        send_message(repo_conn, patches, {:conflict, state})
-        err = Batch.numberize_state(:error)
-        batch
-        |> Batch.changeset(%{state: err})
-        |> Repo.update!()
-        send_status(repo_conn, batch, :conflict)
-      commit ->
-        state = setup_statuses(repo_conn, batch, patches)
-        send_status(repo_conn, batch, state)
-        state = Batch.numberize_state(state)
-        now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-        batch
-        |> Batch.changeset(%{state: state, commit: commit, last_polled: now})
-        |> Repo.update!()
-    end
+    send_status(repo_conn, batch, status)
+    state = Batch.numberize_state(status)
+    batch
+    |> Batch.changeset(%{state: state, commit: commit, last_polled: now})
+    |> Repo.update!()
     Project.ping!(project.id)
+    status
+  end
+
+  defp start_waiting_merged_batch(batch, patches, base, %{tree: tree}) do
+    repo_conn = get_repo_conn(batch.project)
+    parents = [base.commit | Enum.map(patches, &(&1.commit))]
+    commit_message = Batcher.Message.generate_commit_message(patches)
+    head = GitHub.synthesize_commit!(
+      repo_conn,
+      %{
+        branch: batch.project.staging_branch,
+        tree: tree,
+        parents: parents,
+        commit_message: commit_message})
+    {setup_statuses(repo_conn, batch, patches), head}
+  end
+
+  defp start_waiting_merged_batch(batch, patches, _base, :conflict) do
+    repo_conn = get_repo_conn(batch.project)
+    state = bisect(patches, batch.project)
+    send_message(repo_conn, patches, {:conflict, state})
+    {:conflict, nil}
   end
 
   defp setup_statuses(repo_conn, batch, patches) do
