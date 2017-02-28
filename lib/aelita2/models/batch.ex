@@ -44,6 +44,7 @@ defmodule Aelita2.Batch do
       :running -> 1
       :ok -> 2
       :error -> 3
+      :conflict -> 3
       :canceled -> 4
     end
   end
