@@ -25,6 +25,9 @@ defmodule Aelita2.Batcher.Message do
     {"Merge conflict", :error}
   end
 
+  def generate_message({:preflight, :blocked_labels}) do
+    ":-1: Rejected by label"
+  end
   def generate_message(:not_awaiting_review) do
     "Not awaiting review"
   end
@@ -86,6 +89,10 @@ defmodule Aelita2.Batcher.Message do
 
   def generate_bors_toml_error(:status) do
     "bors.toml: expected status to be a list"
+  end
+
+  def generate_bors_toml_error(:blocked_labels) do
+    "bors.toml: expected blocked_labels to be a list"
   end
 
   @doc """

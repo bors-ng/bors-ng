@@ -82,12 +82,18 @@ defmodule Aelita2.Batcher do
         # This will cause the PR to start after the patch's scheduled delay
         project = Repo.get!(Project, patch.project_id)
         batch = get_new_batch(project_id)
-        params = %{batch_id: batch.id, patch_id: patch.id}
-        Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
-        Process.send_after(self(), :poll, (project.batch_delay_sec + 1) * 1000)
-        project
-        |> get_repo_conn
-        |> send_status([patch], :waiting)
+        repo_conn = get_repo_conn(project)
+        case patch_preflight(repo_conn, patch) do
+          :ok ->
+            params = %{batch_id: batch.id, patch_id: patch.id}
+            Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
+            poll_at = (project.batch_delay_sec + 1) * 1000
+            Process.send_after(self(), :poll, poll_at)
+            send_status(repo_conn, [patch], :waiting)
+          {:error, message} ->
+            send_message(repo_conn, [patch], {:preflight, message})
+            send_status(repo_conn, [patch], :error)
+        end
     end
   end
 
@@ -422,6 +428,28 @@ defmodule Aelita2.Batcher do
       :retrying
     else
       :failed
+    end
+  end
+
+  defp patch_preflight(repo_conn, patch) do
+    toml = Aelita2.Batcher.GetBorsToml.get(
+      repo_conn,
+      patch.commit)
+    patch_preflight(repo_conn, patch, toml)
+  end
+
+  defp patch_preflight(_repo_conn, _patch, {:error, _}) do
+    :ok
+  end
+
+  defp patch_preflight(repo_conn, patch, {:ok, toml}) do
+    passed_label = repo_conn
+    |> GitHub.get_labels!(patch.pr_xref)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.block_labels))
+    case passed_label do
+      true -> :ok
+      false -> {:error, :blocked_labels}
     end
   end
 

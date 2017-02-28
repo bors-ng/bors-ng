@@ -99,6 +99,14 @@ defmodule Aelita2.GitHub do
     status
   end
 
+  @spec get_labels!(tconn, integer | bitstring) :: [bitstring]
+  def get_labels!(repo_conn, issue_xref) do
+    {:ok, labels} = GenServer.call(
+      Aelita2.GitHub,
+      {:get_labels, repo_conn, {issue_xref}})
+    labels
+  end
+
   @spec get_file!(tconn, binary, binary) :: binary | nil
   def get_file!(repo_conn, branch, path) do
     {:ok, file} = GenServer.call(

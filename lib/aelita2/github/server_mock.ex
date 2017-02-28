@@ -269,6 +269,16 @@ defmodule Aelita2.GitHub.ServerMock do
     end
   end
 
+  def do_handle_call(:get_labels, repo_conn, {issue_xref}, state) do
+    with({:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, labels} <- Map.fetch(repo, :labels),
+      do: {:ok, labels[issue_xref]})
+    |> case do
+      {:ok, _} = res -> {res, state}
+      _ -> {{:ok, []}, state}
+    end
+  end
+
   def do_handle_call(:get_file, repo_conn, {branch, path}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, files} <- Map.fetch(repo, :files),
