@@ -6,7 +6,7 @@ It integrates GitHub pull requests with a tool like [Travis CI] that runs your t
 
 * [Home page](https://bors-ng.github.io/)
 * [Getting started](https://bors-ng.github.io/getting-started/)
-* [Developer documentation](https://bors-ng.github.io/devdocs/bors-ng/Aelita2.html)
+* [Developer documentation](https://bors-ng.github.io/devdocs/bors-ng/hacking.html)
 
 # But don't GitHub's Protected Branches already do this?
 
