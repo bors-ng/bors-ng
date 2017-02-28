@@ -82,12 +82,18 @@ defmodule Aelita2.Batcher do
         # This will cause the PR to start after the patch's scheduled delay
         project = Repo.get!(Project, patch.project_id)
         batch = get_new_batch(project_id)
-        params = %{batch_id: batch.id, patch_id: patch.id}
-        Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
-        Process.send_after(self(), :poll, (project.batch_delay_sec + 1) * 1000)
-        project
-        |> get_repo_conn
-        |> send_status([patch], :waiting)
+        repo_conn = get_repo_conn(project)
+        case patch_preflight(repo_conn, patch) do
+          :ok ->
+            params = %{batch_id: batch.id, patch_id: patch.id}
+            Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
+            poll_at = (project.batch_delay_sec + 1) * 1000
+            Process.send_after(self(), :poll, poll_at)
+            send_status(repo_conn, [patch], :waiting)
+          {:error, message} ->
+            send_message(repo_conn, [patch], {:preflight, message})
+            send_status(repo_conn, [patch], :error)
+        end
     end
   end
 
@@ -191,12 +197,12 @@ defmodule Aelita2.Batcher do
   end
 
   defp start_waiting_batch(batch) do
+    project = batch.project
+    repo_conn = get_repo_conn(project)
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
-    project = batch.project
     stmp = "#{project.staging_branch}.tmp"
-    repo_conn = get_repo_conn(project)
     base = GitHub.get_branch!(
       repo_conn,
       project.master_branch)
@@ -206,8 +212,7 @@ defmodule Aelita2.Batcher do
         branch: stmp,
         tree: base.tree,
         parents: [base.commit],
-        commit_message: "[ci skip]"
-        })
+        commit_message: "[ci skip]"})
     do_merge_patch = fn patch, branch ->
       case branch do
         :conflict -> :conflict
@@ -216,41 +221,41 @@ defmodule Aelita2.Batcher do
           %{
             from: patch.commit,
             to: stmp,
-            commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"
-          })
+            commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"})
       end
     end
-    head = with(
-      %{tree: tree} <- Enum.reduce(patches, tbase, do_merge_patch),
-      parents <- [base.commit | Enum.map(patches, &(&1.commit))],
-      commit_message <- Batcher.Message.generate_commit_message(patches),
-      do: GitHub.synthesize_commit!(
-        repo_conn,
-        %{
-          branch: project.staging_branch,
-          tree: tree,
-          parents: parents,
-          commit_message: commit_message}))
+    merge = Enum.reduce(patches, tbase, do_merge_patch)
+    {status, commit} = start_waiting_merged_batch(batch, patches, base, merge)
+    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     GitHub.delete_branch!(repo_conn, stmp)
-    case head do
-      :conflict ->
-        state = bisect(patches, project)
-        send_message(repo_conn, patches, {:conflict, state})
-        err = Batch.numberize_state(:error)
-        batch
-        |> Batch.changeset(%{state: err})
-        |> Repo.update!()
-        send_status(repo_conn, batch, :conflict)
-      commit ->
-        state = setup_statuses(repo_conn, batch, patches)
-        send_status(repo_conn, batch, state)
-        state = Batch.numberize_state(state)
-        now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-        batch
-        |> Batch.changeset(%{state: state, commit: commit, last_polled: now})
-        |> Repo.update!()
-    end
+    send_status(repo_conn, batch, status)
+    state = Batch.numberize_state(status)
+    batch
+    |> Batch.changeset(%{state: state, commit: commit, last_polled: now})
+    |> Repo.update!()
     Project.ping!(project.id)
+    status
+  end
+
+  defp start_waiting_merged_batch(batch, patches, base, %{tree: tree}) do
+    repo_conn = get_repo_conn(batch.project)
+    parents = [base.commit | Enum.map(patches, &(&1.commit))]
+    commit_message = Batcher.Message.generate_commit_message(patches)
+    head = GitHub.synthesize_commit!(
+      repo_conn,
+      %{
+        branch: batch.project.staging_branch,
+        tree: tree,
+        parents: parents,
+        commit_message: commit_message})
+    {setup_statuses(repo_conn, batch, patches), head}
+  end
+
+  defp start_waiting_merged_batch(batch, patches, _base, :conflict) do
+    repo_conn = get_repo_conn(batch.project)
+    state = bisect(patches, batch.project)
+    send_message(repo_conn, patches, {:conflict, state})
+    {:conflict, nil}
   end
 
   defp setup_statuses(repo_conn, batch, patches) do
@@ -423,6 +428,35 @@ defmodule Aelita2.Batcher do
       :retrying
     else
       :failed
+    end
+  end
+
+  defp patch_preflight(repo_conn, patch) do
+    toml = Aelita2.Batcher.GetBorsToml.get(
+      repo_conn,
+      patch.commit)
+    patch_preflight(repo_conn, patch, toml)
+  end
+
+  defp patch_preflight(_repo_conn, _patch, {:error, _}) do
+    :ok
+  end
+
+  defp patch_preflight(repo_conn, patch, {:ok, toml}) do
+    passed_label = repo_conn
+    |> GitHub.get_labels!(patch.pr_xref)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.block_labels))
+    passed_status = repo_conn
+    |> GitHub.get_commit_status!(patch.commit)
+    |> Enum.filter(fn {_, status} -> status != :ok end)
+    |> Enum.map(fn {context, _} -> context end)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+    case {passed_label, passed_status} do
+      {true, true} -> :ok
+      {false, _} -> {:error, :blocked_labels}
+      {_, false} -> {:error, :pr_status}
     end
   end
 

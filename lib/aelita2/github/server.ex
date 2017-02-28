@@ -184,6 +184,19 @@ defmodule Aelita2.GitHub.Server do
     end
   end
 
+  def do_handle_call(:get_labels, repo_conn, {issue_xref}) do
+    repo_conn
+    |> get!("issues/#{issue_xref}/labels")
+    |> case do
+      %{body: raw, status_code: 200} ->
+        res = Poison.decode!(raw)
+        |> Enum.map(fn %{ "name" => name } -> name end)
+        {:ok, res}
+      _ ->
+        {:error, :get_labels}
+    end
+  end
+
   def do_handle_call(:get_file, repo_conn, {branch, path}) do
     %{body: raw, status_code: status_code} = get!(
       repo_conn,
