@@ -28,6 +28,9 @@ defmodule Aelita2.Batcher.Message do
   def generate_message({:preflight, :blocked_labels}) do
     ":-1: Rejected by label"
   end
+  def generate_message({:preflight, :pr_status}) do
+    ":-1: Rejected by PR status"
+  end
   def generate_message(:not_awaiting_review) do
     "Not awaiting review"
   end

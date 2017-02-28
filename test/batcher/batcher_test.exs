@@ -130,7 +130,7 @@ defmodule Aelita2.BatcherTest do
         branches: %{},
         comments: %{ 1 => [] },
         labels: %{ 1 => ["no"] },
-        statuses: %{},
+        statuses: %{ "Z" => %{} },
         files: %{ "Z" => %{ "bors.toml" =>
           ~s/status = [ "ci" ]\nblock_labels = [ "no" ]/ }},
       }})
@@ -147,6 +147,30 @@ defmodule Aelita2.BatcherTest do
         statuses: %{ "Z" => %{ "bors" => :error }},
         files: %{ "Z" => %{ "bors.toml" =>
           ~s/status = [ "ci" ]\nblock_labels = [ "no" ]/ }},
+      }}
+  end
+
+  test "rejects a patch with a bad PR status", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{ 1 => [] },
+        statuses: %{ "Z" => %{ "cn" => :error }},
+        files: %{ "Z" => %{ "bors.toml" =>
+          ~s/status = [ "ci" ]\npr_status = [ "cn" ]/ }},
+      }})
+    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "Z"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{
+          1 => [ ":-1: Rejected by PR status" ] },
+        statuses: %{ "Z" => %{ "bors" => :error, "cn" => :error }},
+        files: %{ "Z" => %{ "bors.toml" =>
+          ~s/status = [ "ci" ]\npr_status = [ "cn" ]/ }},
       }}
   end
 

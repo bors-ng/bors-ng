@@ -447,9 +447,16 @@ defmodule Aelita2.Batcher do
     |> GitHub.get_labels!(patch.pr_xref)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.block_labels))
-    case passed_label do
-      true -> :ok
-      false -> {:error, :blocked_labels}
+    passed_status = repo_conn
+    |> GitHub.get_commit_status!(patch.commit)
+    |> Enum.filter(fn {_, status} -> status != :ok end)
+    |> Enum.map(fn {context, _} -> context end)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+    case {passed_label, passed_status} do
+      {true, true} -> :ok
+      {false, _} -> {:error, :blocked_labels}
+      {_, false} -> {:error, :pr_status}
     end
   end
 
