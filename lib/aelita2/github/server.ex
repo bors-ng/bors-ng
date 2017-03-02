@@ -54,8 +54,8 @@ defmodule Aelita2.GitHub.Server do
         |> Poison.decode!()
         |> Aelita2.GitHub.Pr.from_json!()
         {:ok, pr}
-      _ ->
-        {:error, :get_pr}
+      e ->
+        {:error, :get_pr, e.status_code, pr_xref}
     end
   end
 
