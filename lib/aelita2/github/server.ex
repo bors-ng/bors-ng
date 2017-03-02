@@ -32,7 +32,7 @@ defmodule Aelita2.GitHub.Server do
   end
 
   def init(:ok) do
-    {:ok, %{}}
+    {:ok, {}}
   end
 
   def handle_call({type, {{_, _} = token, repo_xref}, args}, _from, state) do
@@ -361,7 +361,7 @@ defmodule Aelita2.GitHub.Server do
       params)
   end
 
-  @token_exp 400
+  @token_exp 60
 
   defp installation_config do
     :aelita2
