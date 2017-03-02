@@ -8,7 +8,7 @@
 erl_crash.dump
 
 # Static artifacts
-/node_modules
+/apps/aelita2/node_modules
 
 # Generated documentation
 /doc
@@ -16,4 +16,4 @@ erl_crash.dump
 # Since we are building assets from web/static,
 # we ignore priv/static. You may want to comment
 # this depending on your deployment strategy.
-/priv/static/
+/apps/aelita2/priv/static/
