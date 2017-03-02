@@ -8,9 +8,9 @@ Path.join(["rel", "plugins", "*.exs"])
 
 use Mix.Releases.Config,
     # This sets the default release built by `mix release`
-    default_release: :default,
+    default_release: :bors_frontend,
     # This sets the default environment used by `mix release`
-    default_environment: :dev
+    default_environment: Mix.env
 
 # For a full list of config options for both releases
 # and environments, visit https://hexdocs.pm/distillery/configuration.html
@@ -40,6 +40,9 @@ end
 # when running `mix release`, the first release in the file
 # will be used by default
 
-release :aelita2 do
-  set version: current_version(:aelita2)
+release :bors_frontend do
+  set version: current_version(:bors_frontend)
+  set applications: [
+    bors_frontend: :permanent,
+    bors_github: :permanent ]
 end

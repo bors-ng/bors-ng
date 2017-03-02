@@ -1,7 +1,7 @@
 # App artifacts
-/_build
+**/_build
 /db
-/deps
+**/deps
 /*.ez
 
 /.deliver/releases/
@@ -10,7 +10,7 @@
 erl_crash.dump
 
 # Static artifacts
-/apps/aelita2/node_modules
+/apps/bors_frontend/node_modules
 
 # Generated documentation
 /doc
@@ -18,4 +18,4 @@ erl_crash.dump
 # Since we are building assets from web/static,
 # we ignore priv/static. You may want to comment
 # this depending on your deployment strategy.
-/apps/aelita2/priv/static/
+/apps/bors_frontend/priv/static/
