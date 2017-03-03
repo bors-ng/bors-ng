@@ -22,13 +22,13 @@ defmodule BorsNG.Batcher do
 
   use GenServer
 
-  alias BorsNG.Repo
-  alias BorsNG.Batch
   alias BorsNG.Batcher
-  alias BorsNG.Patch
-  alias BorsNG.Project
-  alias BorsNG.Status
-  alias BorsNG.LinkPatchBatch
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.Batch
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Status
+  alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
 
   # Every half-hour
@@ -233,7 +233,7 @@ defmodule BorsNG.Batcher do
     batch
     |> Batch.changeset(%{state: state, commit: commit, last_polled: now})
     |> Repo.update!()
-    Project.ping!(project.id)
+    BorsNG.ProjectPingChannel.ping!(project.id)
     status
   end
 
@@ -259,7 +259,7 @@ defmodule BorsNG.Batcher do
   end
 
   defp setup_statuses(repo_conn, batch, patches) do
-    toml = BorsNG.Batcher.GetBorsToml.get(
+    toml = Batcher.GetBorsToml.get(
       repo_conn,
       batch.project.staging_branch)
     case toml do
@@ -313,7 +313,7 @@ defmodule BorsNG.Batcher do
 
   defp maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
-    status = BorsNG.Batcher.State.summary_statuses(statuses)
+    status = Batcher.State.summary_database_statuses(statuses)
     state = Batch.numberize_state(status)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     batch
@@ -323,7 +323,7 @@ defmodule BorsNG.Batcher do
       batch.project
       |> get_repo_conn()
       |> send_status(batch, status)
-      Project.ping!(batch.project_id)
+      BorsNG.ProjectPingChannel.ping!(batch.project_id)
     end
     maybe_complete_batch(status, batch, statuses)
   end
@@ -369,7 +369,7 @@ defmodule BorsNG.Batcher do
     batch
     |> Batch.changeset(%{state: err})
     |> Repo.update!()
-    Project.ping!(project.id)
+    BorsNG.ProjectPingChannel.ping!(project.id)
     project
     |> get_repo_conn()
     |> send_status(batch, :timeout)
@@ -379,7 +379,7 @@ defmodule BorsNG.Batcher do
 
   defp cancel_patch(batch, patch_id) do
     cancel_patch(batch, patch_id, Batch.atomize_state(batch.state))
-    Project.ping!(batch.project.id)
+    BorsNG.ProjectPingChannel.ping!(batch.project_id)
   end
 
   defp cancel_patch(batch, patch_id, :running) do
@@ -432,7 +432,7 @@ defmodule BorsNG.Batcher do
   end
 
   defp patch_preflight(repo_conn, patch) do
-    toml = BorsNG.Batcher.GetBorsToml.get(
+    toml = Batcher.GetBorsToml.get(
       repo_conn,
       patch.commit)
     patch_preflight(repo_conn, patch, toml)

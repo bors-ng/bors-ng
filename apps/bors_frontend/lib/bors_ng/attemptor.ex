@@ -15,11 +15,12 @@ defmodule BorsNG.Attemptor do
 
   use GenServer
 
-  alias BorsNG.Attempt
-  alias BorsNG.AttemptStatus
-  alias BorsNG.Repo
-  alias BorsNG.Patch
-  alias BorsNG.Project
+  alias BorsNG.Batcher
+  alias BorsNG.Database.Attempt
+  alias BorsNG.Database.AttemptStatus
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
   alias BorsNG.GitHub
 
   # Every half-hour
@@ -163,7 +164,7 @@ defmodule BorsNG.Attemptor do
   end
 
   defp setup_statuses(repo_conn, attempt, project, patch) do
-    toml = BorsNG.Batcher.GetBorsToml.get(
+    toml = Batcher.GetBorsToml.get(
       repo_conn,
       project.trying_branch)
     case toml do
@@ -190,7 +191,7 @@ defmodule BorsNG.Attemptor do
   end
 
   defp setup_statuses_error(repo_conn, attempt, patch, message) do
-    message = BorsNG.Batcher.Message.generate_bors_toml_error(message)
+    message = Batcher.Message.generate_bors_toml_error(message)
     err = Attempt.numberize_state(:error)
     attempt
     |> Attempt.changeset(%{state: err})
@@ -222,7 +223,7 @@ defmodule BorsNG.Attemptor do
 
   defp maybe_complete_attempt(attempt, project, patch) do
     statuses = Repo.all(AttemptStatus.all_for_attempt(attempt.id))
-    state = BorsNG.Batcher.State.summary_statuses(statuses)
+    state = Batcher.State.summary_database_statuses(statuses)
     maybe_complete_attempt(state, project, patch, statuses)
     state = Attempt.numberize_state(state)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
@@ -259,7 +260,7 @@ defmodule BorsNG.Attemptor do
   end
 
   defp send_message(repo_conn, patch, message) do
-    body = BorsNG.Batcher.Message.generate_message(message)
+    body = Batcher.Message.generate_message(message)
     GitHub.post_comment!(
       repo_conn,
       patch.pr_xref,

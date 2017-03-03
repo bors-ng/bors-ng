@@ -18,7 +18,7 @@ case Mix.env do
       format: "$time $metadata[$level] $message\n",
       metadata: [:request_id]
   :test ->
-    config :logger, level: :info
+    config :logger, level: :warn
     config :logger, :console, format: "$message\n"
   _ ->
     config :logger, :console,

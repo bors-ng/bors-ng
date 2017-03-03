@@ -9,6 +9,7 @@ defmodule BorsNG.Router do
   @wobserver_url Application.get_env(:wobserver, :remote_url_prefix)
 
   use BorsNG.Web, :router
+  alias BorsNG.Database
 
   pipeline :browser_page do
     plug :accepts, ["html"]
@@ -104,7 +105,7 @@ defmodule BorsNG.Router do
       conn
     else
       conn
-      |> assign(:user, BorsNG.Repo.get!(BorsNG.User, user_id))
+      |> assign(:user, Database.Repo.get!(Database.User, user_id))
       |> assign(:avatar_url, Plug.Conn.get_session(conn, :avatar_url))
     end
   end

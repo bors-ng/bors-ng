@@ -11,7 +11,8 @@ defmodule BorsNG.AdminController do
 
   use BorsNG.Web, :controller
 
-  alias BorsNG.Project
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
 
   # The actual handlers
   # Two-item ones have a project ID inputed

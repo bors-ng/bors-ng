@@ -16,21 +16,10 @@ defmodule BorsNG.Web do
   below.
   """
 
-  def model do
-    quote do
-      use Ecto.Schema
-
-      import Ecto
-      import Ecto.Changeset
-      import Ecto.Query
-    end
-  end
-
   def controller do
     quote do
       use Phoenix.Controller
 
-      alias BorsNG.Repo
       import Ecto
       import Ecto.Query
 
@@ -66,7 +55,6 @@ defmodule BorsNG.Web do
     quote do
       use Phoenix.Channel
 
-      alias BorsNG.Repo
       import Ecto
       import Ecto.Query
       import BorsNG.Gettext

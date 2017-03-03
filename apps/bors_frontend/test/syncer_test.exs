@@ -1,10 +1,11 @@
 defmodule BorsNG.SyncerTest do
-  use BorsNG.ModelCase
+  use BorsNG.ConnCase
 
   alias BorsNG.GitHub
-  alias BorsNG.Installation
-  alias BorsNG.Patch
-  alias BorsNG.Project
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
   alias BorsNG.Syncer
 
   setup do

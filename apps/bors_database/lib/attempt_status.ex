@@ -1,4 +1,4 @@
-defmodule BorsNG.AttemptStatus do
+defmodule BorsNG.Database.AttemptStatus do
   @moduledoc """
   A database record for an individual CI run.
   It corresponds to an item in the status = []
@@ -8,12 +8,10 @@ defmodule BorsNG.AttemptStatus do
   rather than a batch.
   """
 
-  use BorsNG.Web, :model
-
-  alias BorsNG.AttemptStatus
+  use BorsNG.Database.Model
 
   schema "attempt_statuses" do
-    belongs_to :attempt, BorsNG.Attempt
+    belongs_to :attempt, Attempt
     field :identifier, :string
     field :url, :string
     field :state, :integer

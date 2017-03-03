@@ -2,8 +2,6 @@ defmodule BorsNG.BatcherMessageTest do
   use ExUnit.Case, async: true
 
   alias BorsNG.Batcher.Message
-  alias BorsNG.Patch
-  alias BorsNG.Status
 
   test "generate configuration problem message" do
     expected_message = "# Configuration problem\nExample problem"
@@ -13,28 +11,28 @@ defmodule BorsNG.BatcherMessageTest do
 
   test "generate retry message" do
     expected_message = "# Build failed (retrying...)\n  * stat"
-    example_statuses = [%Status{identifier: "stat"}]
+    example_statuses = [%{url: nil, identifier: "stat"}]
     actual_message = Message.generate_message({:retrying, example_statuses})
     assert expected_message == actual_message
   end
 
   test "generate retry message w/ url" do
     expected_message = "# Build failed (retrying...)\n  * [stat](x)"
-    example_statuses = [%Status{identifier: "stat", url: "x"}]
+    example_statuses = [%{url: nil, identifier: "stat", url: "x"}]
     actual_message = Message.generate_message({:retrying, example_statuses})
     assert expected_message == actual_message
   end
 
   test "generate failure message" do
     expected_message = "# Build failed\n  * stat"
-    example_statuses = [%Status{identifier: "stat"}]
+    example_statuses = [%{url: nil, identifier: "stat"}]
     actual_message = Message.generate_message({:failed, example_statuses})
     assert expected_message == actual_message
   end
 
   test "generate success message" do
     expected_message = "# Build succeeded\n  * stat"
-    example_statuses = [%Status{identifier: "stat"}]
+    example_statuses = [%{url: nil, identifier: "stat"}]
     actual_message = Message.generate_message({:succeeded, example_statuses})
     assert expected_message == actual_message
   end
@@ -54,11 +52,11 @@ defmodule BorsNG.BatcherMessageTest do
   test "generate commit message" do
     expected_message = "Merge #1 #2\n\n1: Alpha\n2: Beta\n"
     patches = [
-      %Patch{pr_xref: 1, title: "Alpha"},
-      %Patch{pr_xref: 2, title: "Beta"}]
+      %{pr_xref: 1, title: "Alpha"},
+      %{pr_xref: 2, title: "Beta"}]
     patches2 = [
-      %Patch{pr_xref: 2, title: "Beta"},
-      %Patch{pr_xref: 1, title: "Alpha"}]
+      %{pr_xref: 2, title: "Beta"},
+      %{pr_xref: 1, title: "Alpha"}]
     actual_message = Message.generate_commit_message(patches)
     assert expected_message == actual_message
     actual_message2 = Message.generate_commit_message(patches2)

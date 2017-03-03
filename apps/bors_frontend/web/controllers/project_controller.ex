@@ -12,11 +12,12 @@ defmodule BorsNG.ProjectController do
   use BorsNG.Web, :controller
 
   alias BorsNG.Batcher
-  alias BorsNG.LinkUserProject
-  alias BorsNG.Project
-  alias BorsNG.Batch
-  alias BorsNG.Patch
-  alias BorsNG.User
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.LinkUserProject
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Batch
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.User
   alias BorsNG.GitHub
   alias BorsNG.Syncer
 
@@ -63,7 +64,7 @@ defmodule BorsNG.ProjectController do
     |> Repo.all()
     is_synchronizing = match?(
       [{_, _}],
-      Registry.lookup(BorsNG.Syncer.Registry, project.id))
+      Registry.lookup(Syncer.Registry, project.id))
     render conn, "show.html",
       project: project,
       batches: batches,

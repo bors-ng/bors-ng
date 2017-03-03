@@ -1,5 +1,5 @@
 defmodule BorsNG.AttemptorCommandTest do
-  use BorsNG.ModelCase, async: true
+  use ExUnit.Case, async: true
 
   alias BorsNG.Attemptor.Command
 

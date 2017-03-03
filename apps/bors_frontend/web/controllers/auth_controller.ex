@@ -13,7 +13,8 @@ defmodule BorsNG.AuthController do
 
   use BorsNG.Web, :controller
 
-  alias BorsNG.User
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.User
 
   @github_api Application.get_env(:bors_github, :oauth2)
 

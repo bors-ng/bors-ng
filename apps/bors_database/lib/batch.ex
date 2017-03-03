@@ -1,17 +1,14 @@
-defmodule BorsNG.Batch do
+defmodule BorsNG.Database.Batch do
   @moduledoc """
   The database-level representation of a "batch".
 
   A batch is a collection of patches that are running, or will run.
   """
 
-  use BorsNG.Web, :model
-
-  alias BorsNG.Batch
-  alias BorsNG.LinkPatchBatch
+  use BorsNG.Database.Model
 
   schema "batches" do
-    belongs_to :project, BorsNG.Project
+    belongs_to :project, Project
     field :commit, :string
     field :state, :integer
     field :last_polled, :integer

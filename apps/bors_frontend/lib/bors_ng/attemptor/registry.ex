@@ -13,8 +13,8 @@ defmodule BorsNG.Attemptor.Registry do
   use GenServer
 
   alias BorsNG.Attemptor
-  alias BorsNG.Project
-  alias BorsNG.Repo
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
 
   @name BorsNG.Attemptor.Registry
 

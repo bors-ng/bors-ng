@@ -13,8 +13,8 @@ defmodule BorsNG.Batcher.Registry do
   use GenServer
 
   alias BorsNG.Batcher
-  alias BorsNG.Project
-  alias BorsNG.Repo
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
 
   @name BorsNG.Batcher.Registry
 

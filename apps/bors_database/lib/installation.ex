@@ -1,11 +1,11 @@
-defmodule BorsNG.Installation do
+defmodule BorsNG.Database.Installation do
   @moduledoc """
   A GitHub installation.
 
   See: https://developer.github.com/early-access/integrations/
   """
 
-  use BorsNG.Web, :model
+  use BorsNG.Database.Model
 
   schema "installations" do
     field :installation_xref, :integer

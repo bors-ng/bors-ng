@@ -6,9 +6,6 @@
 use Mix.Config
 
 # General application configuration
-config :bors_frontend,
-  ecto_repos: [BorsNG.Repo]
-
 config :bors_frontend, BorsNG,
   activation_phrase: "bors r+",
   deactivation_phrase: "bors r-",

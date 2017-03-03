@@ -1,4 +1,4 @@
-defmodule BorsNG.Attempt do
+defmodule BorsNG.Database.Attempt do
   @moduledoc """
   The database-level representation of a "attempt".
 
@@ -6,13 +6,10 @@ defmodule BorsNG.Attempt do
   and it's CI result is reported, but it is not pushed to master.
   """
 
-  use BorsNG.Web, :model
-
-  alias BorsNG.Attempt
-  alias BorsNG.Patch
+  use BorsNG.Database.Model
 
   schema "attempts" do
-    belongs_to :patch, BorsNG.Patch
+    belongs_to :patch, Patch
     field :commit, :string
     field :state, :integer
     field :last_polled, :integer

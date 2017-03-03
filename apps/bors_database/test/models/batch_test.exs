@@ -1,11 +1,11 @@
-defmodule BorsNG.BatchTest do
-  use BorsNG.ModelCase
+defmodule BorsNG.Database.BatchTest do
+  use BorsNG.Database.ModelCase
 
-  alias BorsNG.Batch
-  alias BorsNG.Patch
-  alias BorsNG.LinkPatchBatch
-  alias BorsNG.Installation
-  alias BorsNG.Project
+  alias BorsNG.Database.Batch
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.LinkPatchBatch
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.Project
 
   setup do
     installation = Repo.insert!(%Installation{

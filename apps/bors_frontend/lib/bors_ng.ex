@@ -12,8 +12,6 @@ defmodule BorsNG do
 
     # Define workers and child supervisors to be supervised
     children = [
-      # Start the Ecto repository
-      supervisor(BorsNG.Repo, []),
       # Start the endpoint when the application starts
       supervisor(BorsNG.Endpoint, []),
       # worker(BorsNG.Worker, [arg1, arg2, arg3]),

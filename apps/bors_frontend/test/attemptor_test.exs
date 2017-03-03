@@ -1,12 +1,14 @@
 defmodule BorsNG.AttemptorTest do
-  use BorsNG.ModelCase
+  use BorsNG.ConnCase
 
-  alias BorsNG.Attempt
   alias BorsNG.Attemptor
+  alias BorsNG.Database.Attempt
+  alias BorsNG.Database.AttemptStatus
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
   alias BorsNG.GitHub
-  alias BorsNG.Installation
-  alias BorsNG.Patch
-  alias BorsNG.Project
 
   setup do
     inst = %Installation{installation_xref: 91}
@@ -59,7 +61,7 @@ defmodule BorsNG.AttemptorTest do
       commit: "N"}
     |> Repo.insert!()
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
-    [status] = Repo.all(BorsNG.AttemptStatus)
+    [status] = Repo.all(AttemptStatus)
     assert status.identifier == "continuous-integration/travis-ci/push"
   end
 
@@ -77,7 +79,7 @@ defmodule BorsNG.AttemptorTest do
       commit: "N"}
     |> Repo.insert!()
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
-    statuses = Repo.all(BorsNG.AttemptStatus)
+    statuses = Repo.all(AttemptStatus)
     assert Enum.any?(statuses,
       &(&1.identifier == "continuous-integration/travis-ci/push"))
     assert Enum.any?(statuses,

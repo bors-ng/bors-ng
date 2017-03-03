@@ -8,7 +8,8 @@ defmodule BorsNG.PageController do
 
   use BorsNG.Web, :controller
 
-  alias BorsNG.Patch
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.Patch
 
   def index(conn, _params) do
     user = conn.assigns[:user]

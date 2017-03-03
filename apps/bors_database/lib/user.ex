@@ -1,14 +1,10 @@
-defmodule BorsNG.User do
+defmodule BorsNG.Database.User do
   @moduledoc """
   A user account;
   each user account in our system has a corresponding GitHub account.
   """
 
-  use BorsNG.Web, :model
-
-  alias BorsNG.Project
-  alias BorsNG.LinkUserProject
-  alias BorsNG.User
+  use BorsNG.Database.Model
 
   schema "users" do
     field :user_xref, :integer

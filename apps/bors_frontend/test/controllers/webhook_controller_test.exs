@@ -1,10 +1,11 @@
 defmodule BorsNG.WebhookControllerTest do
   use BorsNG.ConnCase
 
-  alias BorsNG.Patch
-  alias BorsNG.Installation
-  alias BorsNG.Project
-  alias BorsNG.User
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.User
 
   setup do
     installation = Repo.insert!(%Installation{

@@ -7,6 +7,9 @@ defmodule BorsNG.UserSocket do
 
   use Phoenix.Socket
 
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.User
+
   # Channels
   channel "project_ping:*", BorsNG.ProjectPingChannel
 
@@ -33,7 +36,7 @@ defmodule BorsNG.UserSocket do
       max_age: 60 * 60)
     case vfy do
       {:ok, current_user} ->
-        user = BorsNG.Repo.get! BorsNG.User, current_user
+        user = Repo.get! User, current_user
         socket = assign(socket, :user, user)
         {:ok, socket}
       {:error, _} ->

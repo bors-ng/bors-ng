@@ -1,4 +1,4 @@
-defmodule BorsNG.Patch do
+defmodule BorsNG.Database.Patch do
   @moduledoc """
   Corresponds to a pull request in GitHub.
 
@@ -7,23 +7,18 @@ defmodule BorsNG.Patch do
   though a patch may be merged and r+'ed at the same time.
   """
 
-  use BorsNG.Web, :model
-
-  alias BorsNG.Batch
-  alias BorsNG.LinkPatchBatch
-  alias BorsNG.LinkUserProject
-  alias BorsNG.Patch
+  use BorsNG.Database.Model
 
   @type t :: %Patch{}
 
   schema "patches" do
-    belongs_to :project, BorsNG.Project
+    belongs_to :project, Project
     field :pr_xref, :integer
     field :title, :string
     field :body, :string
     field :commit, :string
     field :open, :boolean, default: true
-    belongs_to :author, BorsNG.User
+    belongs_to :author, User
     timestamps()
   end
 

@@ -8,6 +8,7 @@ defmodule BorsNG.WebhookController do
       iex> # Push state to "GitHub"
       iex> alias BorsNG.GitHub
       iex> alias BorsNG.GitHub.ServerMock
+      iex> alias BorsNG.Database
       iex> ServerMock.put_state(%{
       ...>   {:installation, 91} => %{ repos: [
       ...>     %GitHub.Repo{
@@ -46,13 +47,13 @@ defmodule BorsNG.WebhookController do
       ...>       "login" => "bors-fanboi",
       ...>       "avatar_url" => "" },
       ...>     "action" => "created" }}, "github", "integration_installation")
-      iex> proj = BorsNG.Repo.get_by!(BorsNG.Project, repo_xref: 14)
+      iex> proj = Database.Repo.get_by!(Database.Project, repo_xref: 14)
       iex> proj.name
       "test/repo"
       iex> # This has also started a (background) sync of all attached patches.
       iex> # Watch it happen in the user interface.
       iex> BorsNG.Syncer.wait_hot_spin(proj.id)
-      iex> patch = BorsNG.Repo.get_by!(BorsNG.Patch, pr_xref: 1)
+      iex> patch = Database.Repo.get_by!(Database.Patch, pr_xref: 1)
       iex> patch.title
       "Test"
   """
@@ -60,12 +61,13 @@ defmodule BorsNG.WebhookController do
   use BorsNG.Web, :controller
 
   alias BorsNG.Attemptor
-  alias BorsNG.GitHub
-  alias BorsNG.Installation
-  alias BorsNG.Patch
-  alias BorsNG.Project
   alias BorsNG.Batcher
-  alias BorsNG.LinkUserProject
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.LinkUserProject
+  alias BorsNG.GitHub
   alias BorsNG.Syncer
 
   @doc """
@@ -229,18 +231,18 @@ defmodule BorsNG.WebhookController do
   end
 
   def do_webhook_pr(_conn, %{action: "opened", project: project}) do
-    Project.ping!(project.id)
+    BorsNG.ProjectPingChannel.ping!(project.id)
     :ok
   end
 
   def do_webhook_pr(_conn, %{action: "closed", project: project, patch: p}) do
-    Project.ping!(project.id)
+    BorsNG.ProjectPingChannel.ping!(project.id)
     Repo.update!(Patch.changeset(p, %{open: false}))
     :ok
   end
 
   def do_webhook_pr(_conn, %{action: "reopened", project: project, patch: p}) do
-    Project.ping!(project.id)
+    BorsNG.ProjectPingChannel.ping!(project.id)
     Repo.update!(Patch.changeset(p, %{open: true}))
     :ok
   end

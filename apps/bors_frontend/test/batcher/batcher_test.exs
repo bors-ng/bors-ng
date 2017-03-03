@@ -1,13 +1,15 @@
 defmodule BorsNG.BatcherTest do
-  use BorsNG.ModelCase
+  use BorsNG.ConnCase
 
-  alias BorsNG.Batch
   alias BorsNG.Batcher
+  alias BorsNG.Database.Batch
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.LinkPatchBatch
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.Status
   alias BorsNG.GitHub
-  alias BorsNG.Installation
-  alias BorsNG.LinkPatchBatch
-  alias BorsNG.Patch
-  alias BorsNG.Project
 
   setup do
     inst = %Installation{installation_xref: 91}
@@ -354,7 +356,7 @@ defmodule BorsNG.BatcherTest do
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
     Batcher.handle_info(:poll, proj.id)
-    [status] = Repo.all(BorsNG.Status)
+    [status] = Repo.all(Status)
     assert status.identifier == "continuous-integration/travis-ci/push"
   end
 end

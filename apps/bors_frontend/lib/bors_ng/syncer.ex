@@ -5,26 +5,27 @@ defmodule BorsNG.Syncer do
   and patches that don't exist get created.
   """
 
-  alias BorsNG.Repo
+  alias BorsNG.Syncer
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.User
   alias BorsNG.GitHub
-  alias BorsNG.Patch
-  alias BorsNG.Project
-  alias BorsNG.User
 
   def start_synchronize_project(project_id) do
     {:ok, _} = Task.Supervisor.start_child(
-      BorsNG.Syncer.Supervisor,
+      Syncer.Supervisor,
       fn -> synchronize_project(project_id) end)
   end
 
   def synchronize_project(project_id) do
-    {:ok, _} = Registry.register(BorsNG.Syncer.Registry, project_id, {})
+    {:ok, _} = Registry.register(Syncer.Registry, project_id, {})
     conn = Project.installation_project_connection(project_id, Repo)
     open_patches = Repo.all(Patch.all_for_project(project_id, :open))
     open_prs = GitHub.get_open_prs!(conn)
     deltas = synchronize_patches(open_patches, open_prs)
     Enum.each(deltas, &do_synchronize!(project_id, &1))
-    Project.ping!(project_id)
+    BorsNG.ProjectPingChannel.ping!(project_id)
   end
 
   @spec synchronize_patches([%Patch{}], [%GitHub.Pr{}]) ::
@@ -59,7 +60,7 @@ defmodule BorsNG.Syncer do
     |> Repo.update!()
   end
 
-  @spec sync_patch(integer, BorsNG.GitHub.Pr.t) :: BorsNG.Patch.t
+  @spec sync_patch(integer, GitHub.Pr.t) :: Patch.t
   def sync_patch(project_id, pr) do
     number = pr.number
     author = sync_user(pr.user)
@@ -85,7 +86,7 @@ defmodule BorsNG.Syncer do
     %Patch{patch | author: author}
   end
 
-  @spec sync_user(BorsNG.GitHub.User.t) :: %BorsNG.User{}
+  @spec sync_user(GitHub.User.t) :: %User{}
   def sync_user(gh_user) do
     case Repo.get_by(User, user_xref: gh_user.id) do
       nil -> Repo.insert!(%User{
@@ -107,7 +108,7 @@ defmodule BorsNG.Syncer do
   Used in test cases.
   """
   def wait_hot_spin(project_id) do
-    case Registry.lookup(BorsNG.Syncer.Registry, project_id) do
+    case Registry.lookup(Syncer.Registry, project_id) do
       [{_, _}] -> wait_hot_spin(project_id)
       _ -> :ok
     end

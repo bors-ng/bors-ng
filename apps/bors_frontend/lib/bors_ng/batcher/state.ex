@@ -8,11 +8,11 @@ defmodule BorsNG.Batcher.State do
   @typep n :: BorsNG.Status.state_n
   @typep t :: BorsNG.Status.state
 
-  @spec summary_statuses([n]) :: t
-  def summary_statuses(statuses) do
+  @spec summary_database_statuses([n]) :: t
+  def summary_database_statuses(statuses) do
     statuses
     |> Enum.map(&(&1.state))
-    |> Enum.map(&BorsNG.Status.atomize_state/1)
+    |> Enum.map(&BorsNG.Database.Status.atomize_state/1)
     |> summary_states()
   end
 

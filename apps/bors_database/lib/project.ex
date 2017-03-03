@@ -1,16 +1,11 @@
-defmodule BorsNG.Project do
+defmodule BorsNG.Database.Project do
   @moduledoc """
   Corresponds to a repo in GitHub, as opposed to a repo in Ecto.
 
   This also corresponds to a queue of batches.
   """
 
-  use BorsNG.Web, :model
-
-  alias BorsNG.Installation
-  alias BorsNG.LinkUserProject
-  alias BorsNG.Project
-  alias BorsNG.User
+  use BorsNG.Database.Model
 
   schema "projects" do
     belongs_to :installation, Installation
@@ -31,10 +26,6 @@ defmodule BorsNG.Project do
     from p in Project,
       join: l in LinkUserProject, on: p.id == l.project_id,
       where: l.user_id == ^owner_id
-  end
-
-  def ping!(project_id) do
-    BorsNG.Endpoint.broadcast! "project_ping:#{project_id}", "new_msg", %{}
   end
 
   def installation_project_connection(project_id, repo) do

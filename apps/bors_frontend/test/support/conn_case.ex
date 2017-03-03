@@ -20,7 +20,7 @@ defmodule BorsNG.ConnCase do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
 
-      alias BorsNG.Repo
+      alias BorsNG.Database
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
@@ -33,10 +33,10 @@ defmodule BorsNG.ConnCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(BorsNG.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(BorsNG.Database.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(BorsNG.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(BorsNG.Database.Repo, {:shared, self()})
     end
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}

@@ -1,14 +1,15 @@
 defmodule BorsNG.ProjectControllerTest do
   use BorsNG.ConnCase
 
+  alias BorsNG.Database.Batch
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.LinkPatchBatch
+  alias BorsNG.Database.LinkUserProject
+  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
+  alias BorsNG.Database.User
   alias BorsNG.GitHub
-  alias BorsNG.Installation
-  alias BorsNG.Batch
-  alias BorsNG.LinkPatchBatch
-  alias BorsNG.LinkUserProject
-  alias BorsNG.Patch
-  alias BorsNG.Project
-  alias BorsNG.User
 
   setup do
     installation = Repo.insert!(%Installation{

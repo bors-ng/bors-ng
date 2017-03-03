@@ -1,4 +1,4 @@
-defmodule BorsNG.Status do
+defmodule BorsNG.Database.Status do
   @moduledoc """
   A database record for an individual CI run.
   It corresponds to an item in the status = []
@@ -8,12 +8,10 @@ defmodule BorsNG.Status do
   @type state_n :: 0 | 1 | 2 | 3
   @type state :: :waiting | :running | :ok | :error
 
-  use BorsNG.Web, :model
-
-  alias BorsNG.Status
+  use BorsNG.Database.Model
 
   schema "statuses" do
-    belongs_to :batch, BorsNG.Batch
+    belongs_to :batch, Batch
     field :identifier, :string
     field :url, :string
     field :state, :integer

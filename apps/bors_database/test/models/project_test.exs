@@ -1,10 +1,10 @@
-defmodule BorsNG.ProjectTest do
-  use BorsNG.ModelCase
+defmodule BorsNG.Database.ProjectTest do
+  use BorsNG.Database.ModelCase
 
-  alias BorsNG.Installation
-  alias BorsNG.Project
-  alias BorsNG.User
-  alias BorsNG.LinkUserProject
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.User
+  alias BorsNG.Database.LinkUserProject
 
   setup do
     installation = Repo.insert!(%Installation{

@@ -1,4 +1,4 @@
-defmodule BorsNG.LinkUserProject do
+defmodule BorsNG.Database.LinkUserProject do
   @moduledoc """
   The connection between a project and its reviewers.
 
@@ -6,11 +6,11 @@ defmodule BorsNG.LinkUserProject do
   for a project, and can r+ a commit. Otherwise, they can't.
   """
 
-  use BorsNG.Web, :model
+  use BorsNG.Database.Model
 
   schema "link_user_project" do
-    belongs_to :user, BorsNG.User
-    belongs_to :project, BorsNG.Project
+    belongs_to :user, User
+    belongs_to :project, Project
   end
 
   @doc """

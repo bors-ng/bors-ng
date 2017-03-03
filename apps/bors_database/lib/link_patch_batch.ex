@@ -1,4 +1,4 @@
-defmodule BorsNG.LinkPatchBatch do
+defmodule BorsNG.Database.LinkPatchBatch do
   @moduledoc """
   Linker table between the patches that are being run by a batch,
   and the batch itself.
@@ -7,11 +7,11 @@ defmodule BorsNG.LinkPatchBatch do
   though once a batch fails out, other batches can take the same patch.
   """
 
-  use BorsNG.Web, :model
+  use BorsNG.Database.Model
 
   schema "link_patch_batch" do
-    belongs_to :patch, BorsNG.Patch
-    belongs_to :batch, BorsNG.Batch
+    belongs_to :patch, Patch
+    belongs_to :batch, Batch
   end
 
   @doc """
