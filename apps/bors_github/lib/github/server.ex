@@ -44,8 +44,8 @@ defmodule BorsNG.GitHub.Server do
     {:reply, res, state}
   end
 
-  def handle_call({type, {_, _} = token, args}, _from, state) do
-    {token, state} = raw_token!(token, state)
+  def handle_call({type, {_, _} = token, args}, _from, _state) do
+    {token, state} = raw_token!(token, %{})
     res = do_handle_call(type, token, args)
     {:reply, res, state}
   end
