@@ -20,7 +20,7 @@ install:
 script:
   - if [ $TYPE = test ]; then mix test; fi
   - if [ $TYPE = dogma ]; then mix dogma; fi
-  - if [ $TYPE = dialyzer ]; then mix dialyzer --halt-exit-status; fi
+  #- if [ $TYPE = dialyzer ]; then mix dialyzer --halt-exit-status; fi
 
 env:
   - TYPE=test
