@@ -1,4 +1,4 @@
-APP="aelita2"
+APP="bors_frontend"
 
 # Note: you'll need to change this stuff.
 # Also, your server will need esl-erlang, nodejs, elixir, build-essential, libtool, autoconf
@@ -10,6 +10,8 @@ BUILD_AT="/home/bors-ng/build"
 PRODUCTION_HOSTS="ec2-54-144-12-125.compute-1.amazonaws.com"
 PRODUCTION_USER="bors-ng"
 DELIVER_TO="/home/bors-ng/production"
+
+RELEASE_DIR="$BUILD_AT/_build/prod/rel/$APP/"
 
 pre_erlang_clean_compile() {
   status "Running phoenix.digest" # log output prepended with "----->"
@@ -28,7 +30,8 @@ pre_erlang_get_and_update_deps() {
   local _prod_secret_path="/home/bors-ng/prod.secret.exs"
   if [ "$TARGET_MIX_ENV" = "prod" ]; then
     __sync_remote "
-      ln -sfn '$_prod_secret_path' '$BUILD_AT/config/prod.secret.exs'
+      ln -sfn '$_prod_secret_path' '$BUILD_AT/apps/bors_frontend/config/prod.secret.exs'
+      ln -sfn '$_prod_secret_path' '$BUILD_AT/apps/bors_github/config/prod.secret.exs'
     "
   fi
 }

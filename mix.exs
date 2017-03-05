@@ -1,80 +1,41 @@
-defmodule Aelita2.Mixfile do
+defmodule BorsNg.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :aelita2,
-     version: "0.0.1",
-     elixir: "~> 1.2",
-     elixirc_paths: elixirc_paths(Mix.env),
-     compilers: [:phoenix, :gettext] ++ Mix.compilers,
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     aliases: aliases(),
-     deps: deps(),
-     dialyzer: [
-      flags: [
-        "-Wno_unused",
-        "-Werror_handling",
-        "-Wrace_conditions"]],
-     name: "Bors-NG",
-     source_url: "https://github.com/bors-ng/bors-ng",
-     homepage_url: "https://bors-ng.github.io/",
-     docs: [
-      main: "hacking",
-      extras: [ "HACKING.md", "CONTRIBUTING.md", "README.md" ] ] ]
+    [ name: "Bors-NG",
+      apps_path: "apps",
+      build_embedded: Mix.env == :prod,
+      start_permanent: Mix.env == :prod,
+      deps: deps(),
+      source_url: "https://github.com/bors-ng/bors-ng",
+      homepage_url: "https://bors-ng.github.io/",
+      docs: [
+        main: "hacking",
+        extras: [ "HACKING.md", "CONTRIBUTING.md", "README.md" ] ],
+      dialyzer: [
+        flags: [
+          "-Wno_unused",
+          "-Werror_handling",
+          "-Wrace_conditions" ] ] ]
   end
 
-  # Configuration for the OTP application.
+  # Dependencies can be Hex packages:
   #
-  # Type `mix help compile.app` for more information.
-  def application do
-    [mod: {Aelita2, []},
-     extra_applications: [:logger]]
-  end
-
-  # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
-  defp elixirc_paths(_),     do: ["lib", "web"]
-
-  # Specifies your project dependencies.
+  #   {:my_dep, "~> 0.3.0"}
   #
-  # Type `mix help deps` for examples and options.
+  # Or git/path repositories:
+  #
+  #   {:my_dep, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+  #
+  # Type "mix help deps" for more examples and options.
+  #
+  # Dependencies listed here are available only for this project
+  # and cannot be accessed from applications inside the apps folder
   defp deps do
-    [
-      {:ex_link_header, "~> 0.0.5"},
-      {:phoenix, "~> 1.2.1"},
-      {:phoenix_pubsub, "~> 1.0"},
-      {:phoenix_ecto, "~> 3.0"},
-      {:postgrex, "~> 0.13.0"},
-      {:phoenix_html, "~> 2.6"},
-      {:phoenix_live_reload, "~> 1.0", only: :dev},
-      {:poison, "~> 2.0"},
-      {:gettext, "~> 0.11"},
-      {:cowboy, "~> 1.0"},
-      {:oauth2, [git: "git://github.com/bors-ng/oauth2.git"]},
-      {:httpoison, "~> 0.10.0"},
-      {:joken, "~> 1.4"},
-      {:jose, "~> 1.8"},
-      {:libsodium, "~> 0.0.3", runtime: false},
-      {:etoml, [git: "git://github.com/kalta/etoml.git"]},
-      {:dogma, "~> 0.1", only: [:dev], runtime: false},
-      {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
-      {:distillery, "~> 1.0"},
-      {:edeliver, "~> 1.4.0"},
-      {:wobserver, "~> 0.1.5"},
-      {:ex_doc, "~> 0.14", only: :dev},
-    ]
-  end
-
-  # Aliases are shortcuts or tasks specific to the current project.
-  # For example, to create, migrate and run the seeds file at once:
-  #
-  #     $ mix ecto.setup
-  #
-  # See the documentation for `Mix` for more info on aliases.
-  defp aliases do
-    ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-     "ecto.reset": ["ecto.drop", "ecto.setup"],
-     "test": ["ecto.create --quiet", "ecto.migrate", "test"]]
+    [ {:dogma, "~> 0.1", only: [ :dev ], runtime: false},
+      {:dialyxir, "~> 0.4", only: [ :dev ], runtime: false},
+      {:distillery, "~> 1.0", runtime: false},
+      {:edeliver, "~> 1.4.0", runtime: false},
+      {:ex_doc, "~> 0.14", only: :dev} ]
   end
 end
