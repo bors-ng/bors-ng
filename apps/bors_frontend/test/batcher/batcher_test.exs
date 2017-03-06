@@ -335,6 +335,95 @@ defmodule BorsNG.BatcherTest do
       }}
   end
 
+  test "full runthrough and continue", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
+        comments: %{ 1 => [], 2 => [] },
+        statuses: %{},
+        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
+        comments: %{ 1 => [], 2 => [] },
+        statuses: %{ "N" => %{ "bors" => :running } },
+        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+      }}
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 0
+    # Polling at a later time (yeah, I'm setting the clock back to do it)
+    # kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info(:poll, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 1
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN" },
+        comments: %{ 1 => [], 2 => [] },
+        statuses: %{ "N" => %{ "bors" => :running } },
+        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+      }}
+    # Submit the second one.
+    Batcher.handle_cast({:reviewed, patch2.id}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN" },
+        comments: %{ 1 => [], 2 => [] },
+        statuses: %{
+          "N" => %{ "bors" => :running },
+          "O" => %{ "bors" => :running } },
+        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+      }}
+    # Push the second one's timer, so it'll start now.
+    {batch, batch2} = case Repo.all(Batch) do
+      [batch1, batch2] ->
+        if batch1.id == batch.id do
+          {batch1, batch2}
+        else
+          {batch2, batch1}
+        end
+    end
+    batch2
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    # Finally, finish it.
+    Batcher.do_handle_cast({:status, {"iniN", "ci", :ok, nil}}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == 2
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "iniN",
+          "staging" => "iniNO" },
+        comments: %{ 1 => [ "# Build succeeded\n  * ci" ], 2 => [] },
+        statuses: %{
+          "iniN" => %{ "bors" => :ok },
+          "N" => %{ "bors" => :ok },
+          "O" => %{ "bors" => :running } },
+        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+      }}
+  end
+
   test "infer from .travis.yml", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{

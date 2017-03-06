@@ -324,11 +324,12 @@ defmodule BorsNG.Batcher do
       |> get_repo_conn()
       |> send_status(batch, status)
       BorsNG.ProjectPingChannel.ping!(batch.project_id)
+      complete_batch(status, batch, statuses)
+      poll(batch.project_id)
     end
-    maybe_complete_batch(status, batch, statuses)
   end
 
-  defp maybe_complete_batch(:ok, batch, statuses) do
+  defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
     GitHub.push!(
@@ -341,7 +342,7 @@ defmodule BorsNG.Batcher do
     send_message(repo_conn, patches, {:succeeded, statuses})
   end
 
-  defp maybe_complete_batch(:error, batch, statuses) do
+  defp complete_batch(:error, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
     erred = Enum.filter(statuses, &(&1.state == Status.numberize_state(:error)))
@@ -350,10 +351,6 @@ defmodule BorsNG.Batcher do
     |> Repo.all()
     state = bisect(patches, project)
     send_message(repo_conn, patches, {state, erred})
-  end
-
-  defp maybe_complete_batch(:running, _batch, _erred) do
-    :ok
   end
 
   defp timeout_batch(batch) do
