@@ -5,8 +5,8 @@ defmodule BorsNG.Batcher.State do
   and emits a batch state.
   """
 
-  @typep n :: BorsNG.Status.state_n
-  @typep t :: BorsNG.Status.state
+  @typep n :: BorsNG.Database.Status.state_n
+  @typep t :: BorsNG.Database.Status.state
 
   @spec summary_database_statuses([n]) :: t
   def summary_database_statuses(statuses) do
