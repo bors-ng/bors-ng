@@ -21,7 +21,6 @@ defmodule BorsNG.Batcher do
   """
 
   use GenServer
-
   alias BorsNG.Batcher
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Batch
@@ -59,7 +58,7 @@ defmodule BorsNG.Batcher do
   # Server callbacks
 
   def init(project_id) do
-    Process.send_after(self(), :poll, @poll_period)
+    Process.send_after(self(), {:poll, :repeat}, @poll_period)
     {:ok, project_id}
   end
 
@@ -88,7 +87,7 @@ defmodule BorsNG.Batcher do
             params = %{batch_id: batch.id, patch_id: patch.id}
             Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
             poll_at = (project.batch_delay_sec + 1) * 1000
-            Process.send_after(self(), :poll, poll_at)
+            Process.send_after(self(), {:poll, :once}, poll_at)
             send_status(repo_conn, [patch], :waiting)
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
@@ -138,12 +137,14 @@ defmodule BorsNG.Batcher do
     Enum.each(waiting, &send_status(repo_conn, &1, :canceled))
   end
 
-  def handle_info(:poll, project_id) do
+  def handle_info({:poll, repetition}, project_id) do
+    if repetition != :once do
+      Process.send_after(self(), {:poll, repetition}, @poll_period)
+    end
     case Repo.transaction(fn -> poll(project_id) end) do
       {:ok, :stop} ->
         {:stop, :normal, project_id}
       {:ok, :again} ->
-        Process.send_after(self(), :poll, @poll_period)
         {:noreply, project_id}
     end
   end

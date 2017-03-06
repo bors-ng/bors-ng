@@ -201,7 +201,7 @@ defmodule BorsNG.BatcherTest do
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
     # Polling at the same time doesn't change that.
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
     # Polling at a later time (yeah, I'm setting the clock back to do it)
@@ -209,7 +209,7 @@ defmodule BorsNG.BatcherTest do
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 3
     assert GitHub.ServerMock.get_state() == %{
@@ -248,7 +248,7 @@ defmodule BorsNG.BatcherTest do
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
     # Polling at the same time doesn't change that.
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
     # Polling at a later time (yeah, I'm setting the clock back to do it)
@@ -256,7 +256,7 @@ defmodule BorsNG.BatcherTest do
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 1
     assert GitHub.ServerMock.get_state() == %{
@@ -269,14 +269,14 @@ defmodule BorsNG.BatcherTest do
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }}
     # Polling again should change nothing.
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 1
     # Force-polling again should still change nothing.
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 1
     assert GitHub.ServerMock.get_state() == %{
@@ -301,7 +301,7 @@ defmodule BorsNG.BatcherTest do
           "N" => %{ "bors" => :running } },
         files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
       }})
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 1
     assert GitHub.ServerMock.get_state() == %{
@@ -319,7 +319,7 @@ defmodule BorsNG.BatcherTest do
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 2
     assert GitHub.ServerMock.get_state() == %{
@@ -369,7 +369,7 @@ defmodule BorsNG.BatcherTest do
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 1
     assert GitHub.ServerMock.get_state() == %{
@@ -438,13 +438,13 @@ defmodule BorsNG.BatcherTest do
       commit: "N"}
     |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id}, proj.id)
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
-    Batcher.handle_info(:poll, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
     [status] = Repo.all(Status)
     assert status.identifier == "continuous-integration/travis-ci/push"
   end
