@@ -216,7 +216,7 @@ defmodule BorsNG.GitHub.ServerMock do
       |> Enum.reverse()
       |> Enum.reduce(&<>/2)
       ^nsha = tree
-      branches = %{ branches | branch => nsha }
+      branches = Map.put(branches, branch, nsha)
       repo = %{ repo | branches: branches }
       state = %{ state | repo_conn => repo }
       {{:ok, nsha}, state}
