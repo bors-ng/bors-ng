@@ -6,6 +6,8 @@ defmodule BorsNG.Database.User do
 
   use BorsNG.Database.Model
 
+  @type t :: %User{}
+
   schema "users" do
     field :user_xref, :integer
     field :login, :string
