@@ -7,6 +7,8 @@ defmodule BorsNG.Database.Project do
 
   use BorsNG.Database.Model
 
+  @type t :: %Project{}
+
   schema "projects" do
     belongs_to :installation, Installation
     field :repo_xref, :integer
