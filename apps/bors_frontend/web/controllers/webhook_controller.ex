@@ -62,6 +62,7 @@ defmodule BorsNG.WebhookController do
 
   alias BorsNG.Attemptor
   alias BorsNG.Batcher
+  alias BorsNG.Command
   alias BorsNG.Database.Installation
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
@@ -141,20 +142,18 @@ defmodule BorsNG.WebhookController do
 
   def do_webhook(conn, "github", "issue_comment") do
     if Map.has_key?(conn.body_params["issue"], "pull_request") do
-      pr = conn.body_params["repository"]["id"]
-      |> Project.installation_connection(Repo)
-      |> GitHub.get_pr!(conn.body_params["issue"]["number"])
       project = Repo.get_by!(Project,
         repo_xref: conn.body_params["repository"]["id"])
       commenter = conn.body_params["comment"]["user"]
       |> GitHub.User.from_json!()
       |> Syncer.sync_user()
       comment = conn.body_params["comment"]["body"]
-      do_webhook_comment(conn, %{
+      %Command{
         project: project,
-        pr: pr,
         commenter: commenter,
-        comment: comment})
+        comment: comment,
+        pr_xref: conn.body_params["issue"]["number"]}
+      |> Command.run()
     end
   end
 
@@ -165,11 +164,15 @@ defmodule BorsNG.WebhookController do
     |> GitHub.User.from_json!()
     |> Syncer.sync_user()
     comment = conn.body_params["comment"]["body"]
-    do_webhook_comment(conn, %{
+    pr = GitHub.Pr.from_json!(conn.body_params["pull_request"])
+    %Command{
       project: project,
-      pr: BorsNG.GitHub.Pr.from_json!(conn.body_params["pull_request"]),
       commenter: commenter,
-      comment: comment})
+      comment: comment,
+      pr_xref: conn.body_params["pull_request"]["number"],
+      pr: pr,
+      patch: Syncer.sync_patch(project.id, pr)}
+    |> Command.run()
   end
 
   def do_webhook(conn, "github", "pull_request_review") do
@@ -179,11 +182,15 @@ defmodule BorsNG.WebhookController do
     |> GitHub.User.from_json!()
     |> Syncer.sync_user()
     comment = conn.body_params["review"]["body"]
-    do_webhook_comment(conn, %{
+    pr = GitHub.Pr.from_json!(conn.body_params["pull_request"])
+    %Command{
       project: project,
-      pr: BorsNG.GitHub.Pr.from_json!(conn.body_params["pull_request"]),
       commenter: commenter,
-      comment: comment})
+      comment: comment,
+      pr_xref: conn.body_params["pull_request"]["number"],
+      pr: pr,
+      patch: Syncer.sync_patch(project.id, pr)}
+    |> Command.run()
   end
 
   def do_webhook(conn, "github", "status") do
@@ -274,53 +281,6 @@ defmodule BorsNG.WebhookController do
     title = conn.body_params["pull_request"]["title"]
     body = conn.body_params["pull_request"]["body"]
     Repo.update!(Patch.changeset(patch, %{title: title, body: body}))
-  end
-
-  def do_webhook_comment(_conn, params) do
-    %{project: project,
-      pr: pr,
-      commenter: commenter,
-      comment: comment} = params
-    comment = case comment do
-      nil -> ""
-      comment -> comment
-    end
-    p = Syncer.sync_patch(project.id, pr)
-    config = Application.get_env(:bors_frontend, BorsNG)
-    activated = :binary.match(comment, config[:activation_phrase])
-    deactivated = :binary.match(comment, config[:deactivation_phrase])
-    tried = Attemptor.Command.parse(comment)
-    cur_branch = pr.base_ref == project.master_branch
-    case {activated, deactivated, tried} do
-      {:nomatch, :nomatch, :nomatch} -> :ok
-      {_, _, _} when cur_branch ->
-        link = Repo.get_by(LinkUserProject,
-          project_id: project.id,
-          user_id: commenter.id)
-        case {activated, deactivated, tried, link} do
-          {_, _, _, nil} ->
-            project.repo_xref
-            |> Project.installation_connection(Repo)
-            |> GitHub.post_comment!(
-              p.pr_xref,
-              ":lock: Permission denied")
-          {_activated, :nomatch, :nomatch, _} ->
-            batcher = Batcher.Registry.get(project.id)
-            Batcher.reviewed(batcher, p.id)
-          {:nomatch, _deactivated, :nomatch, _} ->
-            batcher = Batcher.Registry.get(project.id)
-            Batcher.cancel(batcher, p.id)
-          {:nomatch, :nomatch, arguments, _} ->
-            attemptor = Attemptor.Registry.get(project.id)
-            Attemptor.tried(attemptor, p.id, arguments)
-          {_, _, _, _} ->
-            project.repo_xref
-            |> Project.installation_connection(Repo)
-            |> GitHub.post_comment!(
-              p.pr_xref,
-              ":confused: Multiple matching commands")
-        end
-    end
   end
 
   def create_installation_by_xref(installation_xref, sender) do

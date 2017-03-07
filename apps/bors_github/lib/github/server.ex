@@ -38,14 +38,14 @@ defmodule BorsNG.GitHub.Server do
     {:ok, %{}}
   end
 
-  def handle_call({type, {{_, _} = token, repo_xref}, args}, _from, _state) do
-    {token, state} = raw_token!(token, %{})
+  def handle_call({type, {{_, _} = token, repo_xref}, args}, _from, state) do
+    {token, state} = raw_token!(token, state)
     res = do_handle_call(type, {token, repo_xref}, args)
     {:reply, res, state}
   end
 
-  def handle_call({type, {_, _} = token, args}, _from, _state) do
-    {token, state} = raw_token!(token, %{})
+  def handle_call({type, {_, _} = token, args}, _from, state) do
+    {token, state} = raw_token!(token, state)
     res = do_handle_call(type, token, args)
     {:reply, res, state}
   end
@@ -397,12 +397,11 @@ defmodule BorsNG.GitHub.Server do
   def raw_token!({:installation, installation_xref}, state) do
     now = Joken.current_time()
     case state[installation_xref] do
-      {token, expires} when expires < now ->
+      {token, issued} when issued < (now - 1) ->
         {{:raw, token}, state}
       _ ->
         token = get_installation_token!(installation_xref)
-        exp = now + (@token_exp / 2) # Give us a little slack to work with.
-        state = Map.put(state, installation_xref, {token, exp})
+        state = Map.put(state, installation_xref, {token, now})
         {{:raw, token}, state}
     end
   end
