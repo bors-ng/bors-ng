@@ -130,8 +130,8 @@ defmodule BorsNG.Batcher do
     |> Repo.all()
     Enum.map(running, &Batch.changeset(&1, %{state: canceled}))
     |> Enum.each(&Repo.update!/1)
-    repo_conn = project_id
-    |> Repo.get!(Project)
+    repo_conn = Project
+    |> Repo.get!(project_id)
     |> get_repo_conn()
     Enum.each(running, &send_status(repo_conn, &1, :canceled))
     Enum.each(waiting, &send_status(repo_conn, &1, :canceled))
