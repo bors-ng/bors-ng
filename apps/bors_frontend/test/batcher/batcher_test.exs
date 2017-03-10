@@ -23,6 +23,21 @@ defmodule BorsNG.BatcherTest do
     {:ok, inst: inst, proj: proj}
   end
 
+  test "cancel all", %{proj: proj} do
+    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "N"}
+    |> Repo.insert!()
+    patch2 = %Patch{project_id: proj.id, pr_xref: 2, commit: "O"}
+    |> Repo.insert!()
+    batch = %Batch{project_id: proj.id, state: 0} |> Repo.insert!()
+    link = %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+    link2 = %LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id}
+    |> Repo.insert!()
+    Batcher.handle_cast({:cancel_all}, proj.id)
+    assert nil == Repo.get(LinkPatchBatch, link.id)
+    assert nil == Repo.get(LinkPatchBatch, link2.id)
+  end
+
   test "partially cancel a waiting batch", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
