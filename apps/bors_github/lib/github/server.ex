@@ -116,8 +116,10 @@ defmodule BorsNG.GitHub.Server do
         {:ok, res}
       %{status_code: 409} ->
         {:ok, :conflict}
-      _ ->
-        {:error, :merge_branch}
+      %{status_code: 204} ->
+        {:ok, :conflict}
+      %{status_code: status_code} ->
+        {:error, :merge_branch, status_code}
     end
   end
 
