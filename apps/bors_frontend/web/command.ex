@@ -38,6 +38,8 @@ defmodule BorsNG.Command do
 
   @activation_phrase(
     Application.get_env(:bors_frontend, BorsNG)[:activation_phrase])
+  @activation_by_phrase(
+    Application.get_env(:bors_frontend, BorsNG)[:activation_by_phrase])
   @deactivation_phrase(
     Application.get_env(:bors_frontend, BorsNG)[:deactivation_phrase])
   @try_phrase(
@@ -87,16 +89,29 @@ defmodule BorsNG.Command do
     end
   end
 
+  @type cmd ::
+    {:try, binary} |
+    {:activate_by, binary} |
+    :activate |
+    :deactivate |
+    :nomatch
+
   @doc """
   Parse a comment for bors commands.
   """
-  @spec parse(binary | nil) ::
-    {:try, binary} | :activate | :deactivate | :nomatch
+  @spec parse(binary | nil) :: cmd
   def parse(@try_phrase <> arguments) do
     {:try, arguments}
   end
   def parse(@activation_phrase <> _) do
     :activate
+  end
+  def parse(@activation_by_phrase <> arguments) do
+    arguments = parse_activation_args("", arguments)
+    case arguments do
+      "" -> :nomatch
+      arguments -> {:activate_by, arguments}
+    end
   end
   def parse(@deactivation_phrase <> _) do
     :deactivate
@@ -111,12 +126,54 @@ defmodule BorsNG.Command do
     :nomatch
   end
 
+  @doc ~S{
+  The username part of an activation-by command is defined like this:
+
+    * It may start with whitespace
+    * @-signs are stripped
+    * ", " is converted to ","
+    * Otherwise, whitespace ends it.
+
+      iex> alias BorsNG.Command
+      iex> Command.parse_activation_args("", " this, is, whitespace heavy")
+      "this,is,whitespace"
+      iex> Command.parse_activation_args("", " @this, @has, @ats")
+      "this,has,ats"
+      iex> Command.parse_activation_args("", " trimmed ")
+      "trimmed"
+      iex> Command.parse_activation_args("", "what\never")
+      "what"
+  }
+  def parse_activation_args("", " " <> rest) do
+    parse_activation_args("", rest)
+  end
+  def parse_activation_args(args, "@" <> rest) do
+    parse_activation_args(args, rest)
+  end
+  def parse_activation_args(args, ", " <> rest) do
+    parse_activation_args(args <> ",", rest)
+  end
+  def parse_activation_args(args, "\n" <> _) do
+    args
+  end
+  def parse_activation_args(args, "") do
+    args
+  end
+  def parse_activation_args(args, " " <> _) do
+    args
+  end
+  def parse_activation_args(args, <<c :: 8, rest :: binary>>) do
+    parse_activation_args(<<args :: binary, c :: 8>>, rest)
+  end
+
   @doc """
   Given a populated struct, run everything.
   """
+  @spec run(t) :: :ok
   def run(c) do
     run(c, parse(c.comment))
   end
+  @spec run(t, cmd) :: :ok
   def run(_, :nomatch) do
     :ok
   end
@@ -126,6 +183,7 @@ defmodule BorsNG.Command do
       user_id: c.commenter.id)
     run(c, cmd, link)
   end
+  @spec run(t, cmd, term | nil) :: :ok
   def run(c, _, nil) do
     c.project.repo_xref
     |> Project.installation_connection(Repo)
@@ -133,13 +191,16 @@ defmodule BorsNG.Command do
       c.pr_xref,
       ":lock: Permission denied")
   end
-  def run(c, :activate, _) do
+  def run(c, :activate, link) do
+    run(c, {:activate_by, c.commenter.login}, link)
+  end
+  def run(c, {:activate_by, username}, _) do
     c = c
     |> fetch_pr()
     |> fetch_patch()
     if c.pr.base_ref == c.project.master_branch do
       batcher = Batcher.Registry.get(c.project.id)
-      Batcher.reviewed(batcher, c.patch.id)
+      Batcher.reviewed(batcher, c.patch.id, username)
     else
       c.project.repo_xref
       |> Project.installation_connection(Repo)
