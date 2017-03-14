@@ -49,7 +49,7 @@ defmodule BorsNG.Command do
     pr: map | nil,
     pr_xref: integer,
     patch: Patch.t | nil,
-    comment: bitstring}
+    comment: binary}
 
   @doc """
   If the GitHub PR is not already in this struct, fetch it.
