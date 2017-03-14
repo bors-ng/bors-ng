@@ -39,8 +39,8 @@ defmodule BorsNG.Batcher do
     GenServer.start_link(__MODULE__, project_id)
   end
 
-  def reviewed(pid, patch_id) when is_integer(patch_id) do
-    GenServer.cast(pid, {:reviewed, patch_id})
+  def reviewed(pid, patch_id, reviewer) when is_integer(patch_id) do
+    GenServer.cast(pid, {:reviewed, patch_id, reviewer})
   end
 
   def status(pid, stat) do
@@ -67,7 +67,7 @@ defmodule BorsNG.Batcher do
     {:noreply, project_id}
   end
 
-  def do_handle_cast({:reviewed, patch_id}, project_id) do
+  def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
     case Repo.get(Patch.all(:awaiting_review), patch_id) do
       nil ->
         # Patch exists (otherwise, no ID), but is not awaiting review
@@ -84,7 +84,10 @@ defmodule BorsNG.Batcher do
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
-            params = %{batch_id: batch.id, patch_id: patch.id}
+            params = %{
+              batch_id: batch.id,
+              patch_id: patch.id,
+              reviewer: reviewer }
             Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
             poll_at = (project.batch_delay_sec + 1) * 1000
             Process.send_after(self(), {:poll, :once}, poll_at)
@@ -200,9 +203,7 @@ defmodule BorsNG.Batcher do
   defp start_waiting_batch(batch) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    patches = batch.id
-    |> Patch.all_for_batch()
-    |> Repo.all()
+    patch_links = Repo.all(LinkPatchBatch.from_batch(batch.id))
     stmp = "#{project.staging_branch}.tmp"
     base = GitHub.get_branch!(
       repo_conn,
@@ -214,7 +215,7 @@ defmodule BorsNG.Batcher do
         tree: base.tree,
         parents: [base.commit],
         commit_message: "[ci skip]"})
-    do_merge_patch = fn patch, branch ->
+    do_merge_patch = fn %{ patch: patch }, branch ->
       case branch do
         :conflict -> :conflict
         _ -> GitHub.merge_branch!(
@@ -225,8 +226,12 @@ defmodule BorsNG.Batcher do
             commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"})
       end
     end
-    merge = Enum.reduce(patches, tbase, do_merge_patch)
-    {status, commit} = start_waiting_merged_batch(batch, patches, base, merge)
+    merge = Enum.reduce(patch_links, tbase, do_merge_patch)
+    {status, commit} = start_waiting_merged_batch(
+      batch,
+      patch_links,
+      base,
+      merge)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     GitHub.delete_branch!(repo_conn, stmp)
     send_status(repo_conn, batch, status)
@@ -238,10 +243,10 @@ defmodule BorsNG.Batcher do
     status
   end
 
-  defp start_waiting_merged_batch(batch, patches, base, %{tree: tree}) do
+  defp start_waiting_merged_batch(batch, patch_links, base, %{tree: tree}) do
     repo_conn = get_repo_conn(batch.project)
-    parents = [base.commit | Enum.map(patches, &(&1.commit))]
-    commit_message = Batcher.Message.generate_commit_message(patches)
+    parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
+    commit_message = Batcher.Message.generate_commit_message(patch_links)
     head = GitHub.synthesize_commit!(
       repo_conn,
       %{
@@ -249,11 +254,13 @@ defmodule BorsNG.Batcher do
         tree: tree,
         parents: parents,
         commit_message: commit_message})
+    patches = Enum.map(patch_links, &(&1.patch))
     {setup_statuses(repo_conn, batch, patches), head}
   end
 
-  defp start_waiting_merged_batch(batch, patches, _base, :conflict) do
+  defp start_waiting_merged_batch(batch, patch_links, _base, :conflict) do
     repo_conn = get_repo_conn(batch.project)
+    patches = Enum.map(patch_links, &(&1.patch))
     state = bisect(patches, batch.project)
     send_message(repo_conn, patches, {:conflict, state})
     {:conflict, nil}

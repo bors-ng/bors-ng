@@ -71,11 +71,18 @@ defmodule BorsNG.Batcher.Message do
     "#{acc}\n  * #{status_link}"
   end
 
-  def generate_commit_message(patches) do
-    patches = Enum.sort_by(patches, &(&1.pr_xref))
-    commit_title = Enum.reduce(patches, "Merge", &"#{&2} \##{&1.pr_xref}")
-    commit_body = Enum.reduce(patches, "", &"#{&2}#{&1.pr_xref}: #{&1.title}\n")
-    "#{commit_title}\n\n#{commit_body}"
+  def generate_commit_message(patch_links) do
+    patch_links = Enum.sort_by(patch_links, &(&1.patch.pr_xref))
+    commit_title = Enum.reduce(patch_links,
+      "Merge", &"#{&2} \##{&1.patch.pr_xref}")
+    commit_body = Enum.reduce(patch_links, "", fn link, acc ->
+      """
+      #{acc}
+      #{link.patch.pr_xref}: #{link.patch.title} r=#{link.reviewer}
+      #{link.patch.body}
+      """
+    end)
+    "#{commit_title}\n#{commit_body}"
   end
 
   def generate_bors_toml_error(:parse_failed) do

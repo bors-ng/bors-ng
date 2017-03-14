@@ -12,6 +12,13 @@ defmodule BorsNG.Database.LinkPatchBatch do
   schema "link_patch_batch" do
     belongs_to :patch, Patch
     belongs_to :batch, Batch
+    field :reviewer, :string
+  end
+
+  def from_batch(batch_id) do
+    from l in LinkPatchBatch,
+      preload: [:patch],
+      where: l.batch_id == ^batch_id
   end
 
   @doc """
@@ -19,7 +26,7 @@ defmodule BorsNG.Database.LinkPatchBatch do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:patch_id, :batch_id])
-    |> validate_required([:patch_id, :batch_id])
+    |> cast(params, [:patch_id, :batch_id, :reviewer])
+    |> validate_required([:patch_id, :batch_id, :reviewer])
   end
 end
