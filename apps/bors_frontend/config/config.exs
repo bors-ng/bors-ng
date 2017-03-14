@@ -8,6 +8,7 @@ use Mix.Config
 # General application configuration
 config :bors_frontend, BorsNG,
   activation_phrase: "bors r+",
+  activation_by_phrase: "bors r=",
   deactivation_phrase: "bors r-",
   home_url: "https://bors-ng.github.io/",
   try_phrase: "bors try"

@@ -50,13 +50,13 @@ defmodule BorsNG.BatcherMessageTest do
   end
 
   test "generate commit message" do
-    expected_message = "Merge #1 #2\n\n1: Alpha\n2: Beta\n"
+    expected_message = "Merge #1 #2\n\n1: Alpha r=r\na\n\n2: Beta r=s\nb\n"
     patches = [
-      %{pr_xref: 1, title: "Alpha"},
-      %{pr_xref: 2, title: "Beta"}]
+      %{patch: %{pr_xref: 1, title: "Alpha", body: "a"}, reviewer: "r"},
+      %{patch: %{pr_xref: 2, title: "Beta", body: "b"}, reviewer: "s"}]
     patches2 = [
-      %{pr_xref: 2, title: "Beta"},
-      %{pr_xref: 1, title: "Alpha"}]
+      %{patch: %{pr_xref: 2, title: "Beta", body: "b"}, reviewer: "s"},
+      %{patch: %{pr_xref: 1, title: "Alpha", body: "a"}, reviewer: "r"}]
     actual_message = Message.generate_commit_message(patches)
     assert expected_message == actual_message
     actual_message2 = Message.generate_commit_message(patches2)

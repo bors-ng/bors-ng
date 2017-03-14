@@ -3,6 +3,8 @@ defmodule BorsNG.CommandTest do
 
   alias BorsNG.Command
 
+  doctest BorsNG.Command
+
   test "reject the empty string" do
     assert :nomatch == Command.parse("")
     assert :nomatch == Command.parse(nil)
