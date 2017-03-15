@@ -5,6 +5,8 @@
 # is restricted to this project.
 use Mix.Config
 
+config :bors_frontend, ecto_repos: []
+
 # General application configuration
 config :bors_frontend, BorsNG,
   activation_phrase: "bors r+",
