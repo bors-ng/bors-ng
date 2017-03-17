@@ -13,7 +13,9 @@ config :bors_frontend, BorsNG,
   activation_by_phrase: "bors r=",
   deactivation_phrase: "bors r-",
   home_url: "https://bors-ng.github.io/",
-  try_phrase: "bors try"
+  try_phrase: "bors try",
+  github_integration_url:
+    "https://github.com/integrations/bors/installations/new"
 
 # Configures the endpoint
 config :bors_frontend, BorsNG.Endpoint,

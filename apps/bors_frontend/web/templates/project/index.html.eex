@@ -16,6 +16,12 @@
 </div>
 <% end %>
 
+<div class=toolbar>
+  <a class=toolbar-item href="<%= Application.get_env(:bors_frontend, BorsNG)[:github_integration_url] %>">
+    Add / Remove Repositories
+  </a>
+</div>
+
 <table class="table">
   <tbody>
 <%= for project <- @projects do %>
