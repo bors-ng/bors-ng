@@ -24,7 +24,7 @@ defmodule BorsNG.GitHub.Mixfile do
     [ {:ex_link_header, "~> 0.0.5"},
       {:poison, "~> 2.0"},
       {:oauth2, [git: "git://github.com/bors-ng/oauth2.git"]},
-      {:httpoison, "~> 0.10.0"},
+      {:httpoison, "~> 0.11.0"},
       {:joken, "~> 1.4"} ]
   end
 end

@@ -6,9 +6,12 @@ defmodule BorsNG.Endpoint do
   This is what Cowboy calls into.
   """
 
+  @wobserver_url Application.get_env(:wobserver, :remote_url_prefix)
+
   use Phoenix.Endpoint, otp_app: :bors_frontend
 
   socket "/socket", BorsNG.UserSocket
+  socket @wobserver_url, Wobserver.Web.PhoenixSocket
 
   # Serve at "/" the static files from "priv/static" directory.
   #
