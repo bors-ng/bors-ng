@@ -153,7 +153,7 @@ The *webhook secret* should be a randomly generated string. The `mix phoenix.gen
 
 *Deployments*: No access.
 
-*Issues*: Must be set to *Read-only*, because pull requests are issues. *Issue comment* (Issue comment created, edited, or deleted) events must be enabled, to get the "bors r+" comments.
+*Issues*: Must be set to *Read & write*, because pull requests are issues. *Issue comment* (Issue comment created, edited, or deleted) events must be enabled, to get the "bors r+" comments. If this is set to Read-only, it will end up with pull requests that are marked as simultaneously merged and opened.
 
 *Pages*: No access.
 
