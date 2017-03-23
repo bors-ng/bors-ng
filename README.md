@@ -117,7 +117,7 @@ Note that you can watch this process running on the [dashboard page] if you want
 [Bors-NG]: https://github.com/integration/bors-ng
 [GitHub integration]: https://github.com/settings/installations
 [Travis CI]: https://travis-ci.org/
-[dashboard page]: https://bors-ng.herokuapp.com/
+[dashboard page]: https://bors-app.herokuapp.com/
 
 The original bors used a more simple system (it just tested one PR at a time all the time).
 The one-at-a-time strategy is O(N), where N is the total number of pull requests.
@@ -153,7 +153,7 @@ The *webhook secret* should be a randomly generated string. The `mix phoenix.gen
 
 *Deployments*: No access.
 
-*Issues*: Must be set to *Read-only*, because pull requests are issues. *Issue comment* (Issue comment created, edited, or deleted) events must be enabled, to get the "bors r+" comments.
+*Issues*: Must be set to *Read & write*, because pull requests are issues. *Issue comment* (Issue comment created, edited, or deleted) events must be enabled, to get the "bors r+" comments. If this is set to Read-only, it will end up with pull requests that are marked as simultaneously merged and opened.
 
 *Pages*: No access.
 
@@ -207,13 +207,13 @@ You can do it the easy way:
 
 Or you can do it manually:
 
-    $ heroku create --buildpack "https://github.com/HashNuke/heroku-buildpack-elixir.git" bors-ng
+    $ heroku create --buildpack "https://github.com/HashNuke/heroku-buildpack-elixir.git" bors-app
     $ heroku buildpacks:add https://github.com/gjaldon/heroku-buildpack-phoenix-static.git
     $ heroku addons:create heroku-postgresql:hobby-dev
     $ heroku config:set \
         MIX_ENV=prod \
         POOL_SIZE=18 \
-        PUBLIC_HOST=bors-ng.herokuapp.com \
+        PUBLIC_HOST=bors-app.herokuapp.com \
         SECRET_KEY_BASE=<SECRET1> \
         GITHUB_CLIENT_ID=<OAUTH_CLIENT_ID> \
         GITHUB_CLIENT_SECRET=<OAUTH_CLIENT_SECRET> \
