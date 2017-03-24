@@ -60,6 +60,9 @@ defmodule BorsNG.WebhookController do
 
   use BorsNG.Web, :controller
 
+  @allow_private_repos Application.get_env(
+    :bors_frontend, BorsNG)[:allow_private_repos]
+
   alias BorsNG.Attemptor
   alias BorsNG.Batcher
   alias BorsNG.Command
@@ -121,6 +124,7 @@ defmodule BorsNG.WebhookController do
     |> Enum.map(&from(p in Project, where: p.repo_xref == ^&1["id"]))
     |> Enum.each(&Repo.delete_all/1)
     payload["repositories_added"]
+    |> Enum.filter(&(@allow_private_repos || &1["public"]))
     |> Enum.map(&project_from_json(&1, installation.id))
     |> Enum.map(&Repo.insert!/1)
     |> Enum.map(&%LinkUserProject{user_id: sender.id, project_id: &1.id})
@@ -292,6 +296,7 @@ defmodule BorsNG.WebhookController do
     end
     {:installation, installation_xref}
     |> GitHub.get_installation_repos!()
+    |> Enum.filter(&(@allow_private_repos || &1.public))
     |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
     |> Enum.map(&Repo.insert!/1)
