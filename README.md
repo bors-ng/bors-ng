@@ -214,6 +214,7 @@ Or you can do it manually:
         MIX_ENV=prod \
         POOL_SIZE=18 \
         PUBLIC_HOST=bors-app.herokuapp.com \
+        ALLOW_PRIVATE_REPOS=true \
         SECRET_KEY_BASE=<SECRET1> \
         GITHUB_CLIENT_ID=<OAUTH_CLIENT_ID> \
         GITHUB_CLIENT_SECRET=<OAUTH_CLIENT_SECRET> \
