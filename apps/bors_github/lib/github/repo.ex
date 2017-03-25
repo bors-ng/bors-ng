@@ -6,6 +6,7 @@ defmodule BorsNG.GitHub.Repo do
   defstruct(
       id: 0,
       name: "",
+      private: false,
       owner: %{
         id: 0,
         login: "",
@@ -15,6 +16,7 @@ defmodule BorsNG.GitHub.Repo do
   @type t :: %BorsNG.GitHub.Repo{
       id: integer,
       name: bitstring,
+      private: boolean,
       owner: %{
         id: integer,
         login: bitstring,
@@ -32,6 +34,7 @@ defmodule BorsNG.GitHub.Repo do
   def from_json(%{
     "id" => id,
     "full_name" => name,
+    "private" => private,
     "owner" => %{
       "id" => owner_id,
       "login" => owner_login,
@@ -40,6 +43,7 @@ defmodule BorsNG.GitHub.Repo do
       {:ok, %BorsNG.GitHub.Repo{
         id: id,
         name: name,
+        private: private,
         owner: %{
           id: owner_id,
           login: owner_login,
