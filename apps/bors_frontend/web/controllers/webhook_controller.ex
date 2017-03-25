@@ -123,12 +123,20 @@ defmodule BorsNG.WebhookController do
     payload["repositories_removed"]
     |> Enum.map(&from(p in Project, where: p.repo_xref == ^&1["id"]))
     |> Enum.each(&Repo.delete_all/1)
-    payload["repositories_added"]
-    |> Enum.filter(&(@allow_private_repos || &1["public"]))
-    |> Enum.map(&project_from_json(&1, installation.id))
+    {:installation, installation_xref}
+    |> GitHub.get_installation_repos!()
+    |> Enum.filter(&(@allow_private_repos || !&1.private))
+    |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
+    |> Enum.map(&%Project{
+      repo_xref: &1.id,
+      name: &1.name,
+      installation_id: installation.id })
     |> Enum.map(&Repo.insert!/1)
     |> Enum.map(&%LinkUserProject{user_id: sender.id, project_id: &1.id})
-    |> Enum.each(&Repo.insert!/1)
+    |> Enum.map(&Repo.insert!/1)
+    |> Enum.each(fn %LinkUserProject{project_id: project_id} ->
+      Syncer.start_synchronize_project(project_id)
+    end)
     :ok
   end
 
@@ -296,7 +304,7 @@ defmodule BorsNG.WebhookController do
     end
     {:installation, installation_xref}
     |> GitHub.get_installation_repos!()
-    |> Enum.filter(&(@allow_private_repos || &1.public))
+    |> Enum.filter(&(@allow_private_repos || !&1.private))
     |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
     |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
     |> Enum.map(&Repo.insert!/1)
