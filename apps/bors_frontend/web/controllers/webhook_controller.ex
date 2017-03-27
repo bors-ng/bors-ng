@@ -217,7 +217,7 @@ defmodule BorsNG.WebhookController do
     url = conn.body_params["target_url"]
     repo_xref = conn.body_params["repository"]["id"]
     state = GitHub.map_state_to_status(conn.body_params["state"])
-    project = Repo.get_by(Project, repo_xref: repo_xref)
+    project = Repo.get_by!(Project, repo_xref: repo_xref)
     batcher = Batcher.Registry.get(project.id)
     Batcher.status(batcher, {commit, identifier, state, url})
   end
@@ -228,7 +228,7 @@ defmodule BorsNG.WebhookController do
     url = conn.body_params["target_url"]
     repo_xref = conn.body_params["repository"]["id"]
     state = GitHub.map_state_to_status(conn.body_params["state"])
-    project = Repo.get_by(Project, repo_xref: repo_xref)
+    project = Repo.get_by!(Project, repo_xref: repo_xref)
     attemptor = Attemptor.Registry.get(project.id)
     Attemptor.status(attemptor, {commit, identifier, state, url})
   end
