@@ -37,6 +37,10 @@
     },
     "GITHUB_WEBHOOK_SECRET": {
       "description": "Github Integration webhook secret"
+    },
+    "ALLOW_PRIVATE_REPOS": {
+      "description": "Allow non-OSS GitHub repos to be added",
+      "value": "true"
     }
   },
   "formation": {
