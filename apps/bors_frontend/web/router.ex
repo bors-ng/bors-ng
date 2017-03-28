@@ -35,6 +35,12 @@ defmodule BorsNG.Router do
     plug :force_current_user_admin
   end
 
+  pipeline :wobserver do
+    plug :fetch_session
+    plug :get_current_user
+    plug :force_current_user_admin
+  end
+
   pipeline :webhook do
     plug Plug.Parsers, parsers: [:json], json_decoder: Poison
   end
@@ -62,7 +68,10 @@ defmodule BorsNG.Router do
     delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
   end
 
-  forward @wobserver_url, Wobserver.Web.Router
+  scope @wobserver_url, Wobserver do
+    pipe_through :wobserver
+    forward "/", Web.Router
+  end
 
   scope "/admin", BorsNG do
     pipe_through :browser_page

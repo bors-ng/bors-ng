@@ -3,7 +3,7 @@ defmodule BorsNG.Mixfile do
 
   def project do
     [ app: :bors_frontend,
-      version: "0.0.3",
+      version: "0.0.4",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
@@ -36,9 +36,9 @@ defmodule BorsNG.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:oauth2, [git: "git://github.com/bors-ng/oauth2.git"]},
-      {:httpoison, "~> 0.10.0"},
+      {:httpoison, "~> 0.11.0"},
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
-      {:wobserver, "~> 0.1.5"},
+      {:wobserver, "~> 0.1.7"},
       {:bors_github, [in_umbrella: true]},
       {:bors_database, [in_umbrella: true]} ]
   end

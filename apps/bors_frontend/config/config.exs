@@ -29,7 +29,8 @@ config :bors_frontend, BorsNG.Endpoint,
 
 config :wobserver,
   mode: :plug,
-  remote_url_prefix: "/#{:base64.encode(:crypto.strong_rand_bytes(128))}"
+  remote_url_prefix: "/wobserver",
+  security_key: :crypto.strong_rand_bytes(128)
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
