@@ -242,8 +242,8 @@ However, there's no UI for adding admins; you'll have to go into Postgres yourse
 You can do it from the iex prompt, like this:
 
     shell$ iex -S mix # or `heroku run iex -S mix`
-    iex> me = Aelita2.Repo.get_by! Aelita2.User, login: "<your login>"
-    iex> Aelita2.Repo.update! Aelita2.User.changeset(me, %{is_admin: true})
+    iex> me = BorsNG.Database.Repo.get_by! BorsNG.Database.User, login: "<your login>"
+    iex> BorsNG.Database.Repo.update! BorsNG.Database.User.changeset(me, %{is_admin: true})
 
 You can do it from a PostgreSQL prompt like this:
 
