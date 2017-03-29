@@ -23,7 +23,7 @@ include:
 Examples of unacceptable behavior by participants include:
 
 * The use of sexualized language or imagery and unwelcome sexual attention or
-advances
+  advances
 * Trolling, insulting/derogatory comments, and personal or political attacks
 * Public or private harassment
 * Publishing others' private information, such as a physical or electronic
@@ -52,10 +52,20 @@ address, posting via an official social media account, or acting as an appointed
 representative at an online or offline event. Representation of a project may be
 further defined and clarified by project maintainers.
 
+Examples of project spaces include all repositories in the bors-ng GitHub
+organization, the `#bors` channel on the Mozilla IRC network, the blog,
+and any bors meetup.
+
+CONNECTING A GITHUB REPOSITORY TO THE PUBLIC BORS-NG INSTANCE DOES NOT MAKE IT
+A BORS-NG PROJECT SPACE. The public instance is governed by the
+[bors.io terms of service], a document with a narrower focus than this one.
+Different open source projects will have their own governance, and their queue
+is their space.
+
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at [INSERT EMAIL ADDRESS]. All
+reported by contacting the project team at <community@bors.io>. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
