@@ -121,10 +121,11 @@ Note that you can watch this process running on the [dashboard page] if you want
 [Travis CI]: https://travis-ci.org/
 [dashboard page]: https://bors-app.herokuapp.com/
 
-The original bors used a more simple system (it just tested one PR at a time all the time).
+The [original bors] used a more simple system (it just tested one PR at a time all the time).
 The one-at-a-time strategy is O(N), where N is the total number of pull requests.
 The batching strategy is O(E log N), where N is again the total number of pull requests and E is the number of pull requests that fail.
 
+[original bors]: https://bors-ng.github.io/guide/2017/04/26/whirlwind/
 
 # How to run it on your local machine
 
