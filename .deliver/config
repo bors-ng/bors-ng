@@ -1,7 +1,7 @@
 APP="bors_frontend"
 
 # Note: you'll need to change this stuff.
-# Also, your server will need esl-erlang, nodejs, elixir, build-essential, libtool, autoconf
+# Also, your server will need esl-erlang, nodejs, elixir, build-essential, libtool, autoconf, git
 
 BUILD_HOST="ec2-54-144-12-125.compute-1.amazonaws.com"
 BUILD_USER="bors-ng"
