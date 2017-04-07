@@ -131,12 +131,12 @@ defmodule BorsNG.Router do
   end
 
   defp force_current_user_admin(conn, _) do
-    if conn.assigns.user.is_admin do
-      conn
-    else
-      conn
-      |> Plug.Conn.send_resp(403, "Not allowed.")
-      |> halt
+    case conn do
+      %{assigns: %{user: %{is_admin: true}}} -> conn
+      _ ->
+        conn
+        |> Plug.Conn.send_resp(403, "Not allowed.")
+        |> halt
     end
   end
 end
