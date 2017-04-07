@@ -15,12 +15,14 @@ cache:
     - deps
 
 install:
-  - mix do local.rebar --force, local.hex --force, deps.get
+  - if [ $TYPE != script ]; then mix do local.rebar --force, local.hex --force, deps.get; fi
+  - if [ $TYPE = script ] && [ $TRAVIS_BRANCH != master ]; then sh script/setup; fi
 
 script:
   - if [ $TYPE = test ]; then mix test; fi
   - if [ $TYPE = dogma ]; then mix dogma; fi
   - if [ $TYPE = dialyzer ]; then mix dialyzer --halt-exit-status; fi
+  - if [ $TYPE = script ] && [ $TRAVIS_BRANCH != master ]; then sh script/test; fi
 
 env:
   - TYPE=test
@@ -29,3 +31,14 @@ env:
 
 matrix:
   fast_finish: true
+
+  include:
+    - env: TYPE=script
+      sudo: true
+      language: minimal
+      elixir: false
+      otp_release: false
+      cache: false
+
+notifications:
+  email: false

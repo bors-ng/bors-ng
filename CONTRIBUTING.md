@@ -71,34 +71,3 @@ you should mention that you're working on it in a GitHub comment
 If you're having trouble fixing the problem,
 go ahead and ask questions right in the issue's comments section,
 even if your question seems unrelated to the issue itself.
-
-
-Setting up a dev environment for working on the UI
---------------------------------------------------
-
-If you're working on a part that has to talk to GitHub,
-you're going to want to set up a full instance like the [README] says to do, so that you can actually try the whole system out.
-GitHub can't talk to bors if it's running on your box behind a firewall.
-For just development,
-I recommend Heroku,
-since it will run a small instance for free.
-Use the "manual" mode, so that you can push local changes without having to mess with GitHub.
-
-But if you're just doing a UI tweak,
-it's a lot faster to run it on your local computer.
-
-To do that, you're going to need to install a copy of PostgreSQL and Elixir.
-I use [Portable PostgreSQL] and the [Elixir package] from Chocolatey.
-
-[Portable PostgreSQL]: https://sourceforge.net/projects/postgresqlportable/
-[Elixir package]: https://chocolatey.org/packages/Elixir
-
-You can then just run it using `mix`:
-
-    $ mix ecto.create
-    $ mix ecto.migrate
-    $ mix phoenix.server
-
-And it'll run with the GitHub API mocked-out.
-
-[README]: README.md

@@ -8,6 +8,7 @@ It integrates GitHub pull requests with a tool like [Travis CI] that runs your t
 * [Getting started](https://bors-ng.github.io/getting-started/)
 * [Developer documentation](https://bors-ng.github.io/devdocs/bors-ng/hacking.html)
 
+
 # But don't GitHub's Protected Branches already do this?
 
 Travis and Jenkins both run the test suite on every branch after it's pushed to
@@ -57,6 +58,7 @@ bors actually tests them in batches (and bisects if a batch fails).
 
 Note that bors is not a replacement for Jenkins or Travis. It just implements
 this workflow.
+
 
 # How it works
 
@@ -123,9 +125,51 @@ The original bors used a more simple system (it just tested one PR at a time all
 The one-at-a-time strategy is O(N), where N is the total number of pull requests.
 The batching strategy is O(E log N), where N is again the total number of pull requests and E is the number of pull requests that fail.
 
-# How to set up your own instance
 
-Please read this whole guide before you start doing anything.
+# How to run it on your local machine
+
+`./scripts/setup && ./scripts/server` will set up a local instance,
+with a mocked-out GitHub instance, using Docker to pull in all the underlying dependencies.
+The web server ends up running on <http://localhost:4000/>.
+You can get an Elixir REPL running in the same context as the webserver by running
+`repl` instead of `server`.
+
+If you log in, it will log you in with the user "space."
+There won't be any repositories, and space will not have admin perms.
+You can use the [User model] to give space admin rights,
+and the [WebhookController] and [GitHub ServerMock] to create the repo.
+
+[User model]: https://bors-ng.github.io/devdocs/bors-ng/BorsNG.Database.User.html
+[WebhookController]: https://bors-ng.github.io/devdocs/bors-ng/BorsNG.WebhookController.html
+[GitHub ServerMock]: https://bors-ng.github.io/devdocs/bors-ng/BorsNG.GitHub.ServerMock.html
+
+## Setting it up without Docker, like on Windows home edition
+
+The main things you'll need to run Bors on your laptop are:
+
+  * Elixir, with a full installation of OTP (the `esl-erlang` package is sufficient)
+  * PostgreSQL; the configuration for it is in apps/bors_database/config/dev.exs
+  * Stock C compilation tools, because some of bors's dependencies use NIFs
+  * A git client, which you probably already have for downloading this repository
+  * NodeJS, to perform asset compilation
+
+I use [Portable PostgreSQL],
+the [Chocolatey] packages for Elixir, Git, and NodeJS,
+and the Visual C++ build tools from Microsoft.
+
+[Portable PostgreSQL]: https://sourceforge.net/projects/postgresqlportable/
+[Chocolatey]: https://chocolatey.org/packages/Elixir
+
+You can then just run it using `mix`:
+
+    $ mix ecto.create
+    $ mix ecto.migrate
+    $ mix phoenix.server
+
+And it'll run with the GitHub API mocked-out.
+
+
+# How to set up your own real instance
 
 ## Step 1: set up a GitHub integration
 
@@ -249,6 +293,7 @@ You can do it from a PostgreSQL prompt like this:
 
     postgres=# \c aelita2_dev -- or aelita2_prod
     aelita2_dev=# update users set is_admin = true where login = '<your login>';
+
 
 # Copyright license
 

@@ -1,0 +1,3 @@
+#!/bin/sh
+docker-compose -f script/docker-compose.yml run --rm web mix clean
+docker-compose -f script/docker-compose.yml rm -f

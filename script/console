@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+while [ ! -d script ] && [ `pwd` != / ]; do
+  cd ..
+done
+docker-compose -f script/docker-compose.yml run web bash
