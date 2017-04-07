@@ -29,6 +29,7 @@ config :bors_frontend, BorsNG.Endpoint,
 
 config :wobserver,
   mode: :plug,
+  security: BorsNG.WobserverSecurity,
   remote_url_prefix: "/wobserver",
   security_key: :crypto.strong_rand_bytes(128)
 
