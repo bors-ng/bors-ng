@@ -3,7 +3,7 @@ defmodule BorsNG.WobserverSecurity do
   An implementation of the wobserver security policy.
   This is necessary for one reason: Bors-NG runs on Heroku,
   which establishes every connection from a different load balancer IP.
-  The default security policy rejects connections from a different IP than 
+  The default security policy rejects connections from a different IP than
   """
 
   alias Plug.Conn

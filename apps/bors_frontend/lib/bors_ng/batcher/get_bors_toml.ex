@@ -16,15 +16,15 @@ defmodule BorsNG.Batcher.GetBorsToml do
     case toml do
       nil ->
         [
-          { ".travis.yml", "continuous-integration/travis-ci/push" },
-          { "appveyor.yml", "continuous-integration/appveyor/branch" },
+          {".travis.yml", "continuous-integration/travis-ci/push"},
+          {"appveyor.yml", "continuous-integration/appveyor/branch"},
         ]
-        |> Enum.filter(fn { file, _ } ->
+        |> Enum.filter(fn {file, _} ->
           not is_nil GitHub.get_file!(repo_conn, branch, file) end)
-        |> Enum.map(fn { _, status} -> status end)
+        |> Enum.map(fn {_, status} -> status end)
         |> case do
           [] -> {:error, :fetch_failed}
-          statuses -> {:ok, %BorsToml{ status: statuses }}
+          statuses -> {:ok, %BorsToml{status: statuses}}
         end
       toml ->
         BorsToml.new(toml)

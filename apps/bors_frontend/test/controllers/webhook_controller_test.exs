@@ -31,15 +31,15 @@ defmodule BorsNG.WebhookControllerTest do
       project_id: project.id
       })
     body_params = %{
-      "repository" => %{ "id" => 13 },
+      "repository" => %{"id" => 13},
       "action" => "edited",
       "pull_request" => %{
         "number" => 1,
         "title" => "U",
         "body" => "C",
         "state" => "open",
-        "base" => %{ "ref" => "N" },
-        "head" => %{ "sha" => "S" },
+        "base" => %{"ref" => "N"},
+        "head" => %{"sha" => "S"},
         "user" => %{
           "id" => 23,
           "login" => "ghost",

@@ -61,10 +61,10 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         comments: %{
-          1 => [ "# Canceled" ],
+          1 => ["# Canceled"],
           2 => []
           },
-        statuses: %{ "N" => %{ "bors" => :error }},
+        statuses: %{"N" => %{"bors" => :error}},
         files: %{}
       }}
     assert nil == Repo.get(LinkPatchBatch, link.id)
@@ -89,9 +89,9 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         comments: %{
-          1 => [ "# Canceled" ]
+          1 => ["# Canceled"]
           },
-        statuses: %{ "N" => %{ "bors" => :error }},
+        statuses: %{"N" => %{"bors" => :error}},
         files: %{}
       }}
     assert Batch.numberize_state(:canceled) == Repo.get(Batch, batch.id).state
@@ -134,7 +134,7 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         comments: %{
-          1 => [ "Not awaiting review" ]
+          1 => ["Not awaiting review"]
           },
         statuses: %{},
         files: %{}
@@ -145,11 +145,11 @@ defmodule BorsNG.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
-        comments: %{ 1 => [] },
-        labels: %{ 1 => ["no"] },
-        statuses: %{ "Z" => %{} },
-        files: %{ "Z" => %{ "bors.toml" =>
-          ~s/status = [ "ci" ]\nblock_labels = [ "no" ]/ }},
+        comments: %{1 => []},
+        labels: %{1 => ["no"]},
+        statuses: %{"Z" => %{}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s/status = [ "ci" ]\nblock_labels = [ "no" ]/}},
       }})
     patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "Z"}
     |> Repo.insert!()
@@ -159,11 +159,11 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         comments: %{
-          1 => [ ":-1: Rejected by label" ] },
-        labels: %{ 1 => ["no"] },
-        statuses: %{ "Z" => %{ "bors" => :error }},
-        files: %{ "Z" => %{ "bors.toml" =>
-          ~s/status = [ "ci" ]\nblock_labels = [ "no" ]/ }},
+          1 => [":-1: Rejected by label"]},
+        labels: %{1 => ["no"]},
+        statuses: %{"Z" => %{"bors" => :error}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s/status = [ "ci" ]\nblock_labels = [ "no" ]/}},
       }}
   end
 
@@ -171,10 +171,10 @@ defmodule BorsNG.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
-        comments: %{ 1 => [] },
-        statuses: %{ "Z" => %{ "cn" => :error }},
-        files: %{ "Z" => %{ "bors.toml" =>
-          ~s/status = [ "ci" ]\npr_status = [ "cn" ]/ }},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :error}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
       }})
     patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "Z"}
     |> Repo.insert!()
@@ -184,10 +184,10 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         comments: %{
-          1 => [ ":-1: Rejected by PR status" ] },
-        statuses: %{ "Z" => %{ "bors" => :error, "cn" => :error }},
-        files: %{ "Z" => %{ "bors.toml" =>
-          ~s/status = [ "ci" ]\npr_status = [ "cn" ]/ }},
+          1 => [":-1: Rejected by PR status"]},
+        statuses: %{"Z" => %{"bors" => :error, "cn" => :error}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
       }}
   end
 
@@ -195,8 +195,8 @@ defmodule BorsNG.BatcherTest do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
-        comments: %{ 1 => [] },
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => []},
         statuses: %{},
         files: %{}
       }})
@@ -208,9 +208,9 @@ defmodule BorsNG.BatcherTest do
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
-        comments: %{ 1 => [] },
-        statuses: %{ "N" => %{ "bors" => :running }},
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"N" => %{"bors" => :running}},
         files: %{}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
@@ -229,11 +229,10 @@ defmodule BorsNG.BatcherTest do
     assert batch.state == 3
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{
-          "master" => "ini",
-          "staging" => "iniN" },
-        comments: %{ 1 => [ "# Configuration problem\nbors.toml: not found" ] },
-        statuses: %{ "N" => %{ "bors" => :error } },
+        branches: %{"master" => "ini",
+          "staging" => "iniN"},
+        comments: %{1 => ["# Configuration problem\nbors.toml: not found"]},
+        statuses: %{"N" => %{"bors" => :error}},
         files: %{}
       }}
   end
@@ -242,10 +241,10 @@ defmodule BorsNG.BatcherTest do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => %{} },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => %{}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -255,10 +254,10 @@ defmodule BorsNG.BatcherTest do
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => %{}, "N" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
@@ -278,10 +277,10 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => %{}, "N" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "staging" => "iniN"},
+        comments: %{1 => []},
+        statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Polling again should change nothing.
     Batcher.handle_info({:poll, :once}, proj.id)
@@ -298,10 +297,10 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => %{}, "N" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "staging" => "iniN"},
+        comments: %{1 => []},
+        statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Mark the CI as having finished.
     # At this point, just running should still do nothing.
@@ -309,12 +308,12 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN" },
-        comments: %{ 1 => [] },
+          "staging" => "iniN"},
+        comments: %{1 => []},
         statuses: %{
-          "iniN" => %{ "ci" => :ok },
-          "N" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "iniN" => %{"ci" => :ok},
+          "N" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
@@ -323,12 +322,12 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN" },
-        comments: %{ 1 => [] },
+          "staging" => "iniN"},
+        comments: %{1 => []},
         statuses: %{
-          "iniN" => %{ "ci" => :ok },
-          "N" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "iniN" => %{"ci" => :ok},
+          "N" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Finally, an actual poll should finish it.
     batch
@@ -341,12 +340,12 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "iniN",
-          "staging" => "iniN" },
-        comments: %{ 1 => [ "# Build succeeded\n  * ci" ] },
+          "staging" => "iniN"},
+        comments: %{1 => ["# Build succeeded\n  * ci"]},
         statuses: %{
-          "iniN" => %{ "bors" => :ok, "ci" => :ok },
-          "N" => %{ "bors" => :ok } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "iniN" => %{"bors" => :ok, "ci" => :ok},
+          "N" => %{"bors" => :ok}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
   end
 
@@ -354,10 +353,10 @@ defmodule BorsNG.BatcherTest do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
-        comments: %{ 1 => [], 2 => [] },
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -372,10 +371,10 @@ defmodule BorsNG.BatcherTest do
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
-        comments: %{ 1 => [], 2 => [] },
-        statuses: %{ "N" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => [], 2 => []},
+        statuses: %{"N" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
@@ -391,10 +390,10 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN" },
-        comments: %{ 1 => [], 2 => [] },
-        statuses: %{ "N" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "staging" => "iniN"},
+        comments: %{1 => [], 2 => []},
+        statuses: %{"N" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Submit the second one.
     Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
@@ -402,12 +401,12 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "staging" => "iniN" },
-        comments: %{ 1 => [], 2 => [] },
+          "staging" => "iniN"},
+        comments: %{1 => [], 2 => []},
         statuses: %{
-          "N" => %{ "bors" => :running },
-          "O" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "N" => %{"bors" => :running},
+          "O" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Push the second one's timer, so it'll start now.
     {batch, batch2} = case Repo.all(Batch) do
@@ -429,23 +428,23 @@ defmodule BorsNG.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "iniN",
-          "staging" => "iniNO" },
-        comments: %{ 1 => [ "# Build succeeded\n  * ci" ], 2 => [] },
+          "staging" => "iniNO"},
+        comments: %{1 => ["# Build succeeded\n  * ci"], 2 => []},
         statuses: %{
-          "iniN" => %{ "bors" => :ok },
-          "N" => %{ "bors" => :ok },
-          "O" => %{ "bors" => :running } },
-        files: %{ "staging" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "iniN" => %{"bors" => :ok},
+          "N" => %{"bors" => :ok},
+          "O" => %{"bors" => :running}},
+        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
   end
 
   test "infer from .travis.yml", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "staging" => "", "staging.tmp" => "" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
-        files: %{ "staging" => %{ ".travis.yml" => "" } }
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"staging" => %{".travis.yml" => ""}}
       }})
     patch = %Patch{
       project_id: proj.id,
