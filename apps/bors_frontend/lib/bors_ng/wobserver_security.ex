@@ -20,7 +20,7 @@ defmodule BorsNG.WobserverSecurity do
   end
 
   @spec authenticated?(Conn.t) :: boolean
-  def authenticated?(conn = %Conn{}) do
+  def authenticated?(%Conn{} = conn) do
     conn = Conn.fetch_cookies(conn)
     verify(conn.cookies["conn_wobserver"])
   end
