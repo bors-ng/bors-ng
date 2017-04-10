@@ -22,7 +22,7 @@ script:
   - if [ $TYPE = test ]; then mix test; fi
   - if [ $TYPE = dogma ]; then mix dogma; fi
   - if [ $TYPE = dialyzer ]; then mix dialyzer --halt-exit-status; fi
-  - if [ $TYPE = script ] && [ $TRAVIS_BRANCH != master ]; then sh script/test; fi
+  - if [ $TYPE = script ] && [ $TRAVIS_BRANCH != master ]; then sh script/test --fast; fi
 
 env:
   - TYPE=test
