@@ -71,7 +71,7 @@ defmodule BorsNG.GitHub.Server do
 
   def do_handle_call(:push, repo_conn, {sha, to}) do
     repo_conn
-    |> patch!("git/refs/heads/#{to}", Poison.encode!(%{ "sha": sha }))
+    |> patch!("git/refs/heads/#{to}", Poison.encode!(%{"sha": sha}))
     |> case do
       %{body: _, status_code: 200} ->
         {:ok, sha}
@@ -103,7 +103,7 @@ defmodule BorsNG.GitHub.Server do
     from: from,
     to: to,
     commit_message: commit_message}}) do
-    msg = %{ "base": to, "head": from, "commit_message": commit_message }
+    msg = %{"base": to, "head": from, "commit_message": commit_message}
     repo_conn
     |> post!("merges", Poison.encode!(msg))
     |> case do
@@ -128,7 +128,7 @@ defmodule BorsNG.GitHub.Server do
     tree: tree,
     parents: parents,
     commit_message: commit_message}}) do
-    msg = %{ "parents": parents, "tree": tree, "message": commit_message }
+    msg = %{"parents": parents, "tree": tree, "message": commit_message}
     repo_conn
     |> post!("git/commits", Poison.encode!(msg))
     |> case do
@@ -145,7 +145,7 @@ defmodule BorsNG.GitHub.Server do
     |> get!("branches/#{to}")
     |> case do
       %{status_code: 404} ->
-        msg = %{ "ref": "refs/heads/#{to}", "sha": sha }
+        msg = %{"ref": "refs/heads/#{to}", "sha": sha}
         repo_conn
         |> post!("git/refs", Poison.encode!(msg))
         |> case do
@@ -156,7 +156,7 @@ defmodule BorsNG.GitHub.Server do
         end
       %{body: raw, status_code: 200} ->
         if sha != Poison.decode!(raw)["commit"]["sha"] do
-          msg = %{ "force": true, "sha": sha }
+          msg = %{"force": true, "sha": sha}
           repo_conn
           |> patch!("git/refs/heads/#{to}", Poison.encode!(msg))
           |> case do
@@ -195,7 +195,7 @@ defmodule BorsNG.GitHub.Server do
     |> case do
       %{body: raw, status_code: 200} ->
         res = Poison.decode!(raw)
-        |> Enum.map(fn %{ "name" => name } -> name end)
+        |> Enum.map(fn %{"name" => name} -> name end)
         {:ok, res}
       _ ->
         {:error, :get_labels}

@@ -130,7 +130,7 @@ defmodule BorsNG.WebhookController do
     |> Enum.map(&%Project{
       repo_xref: &1.id,
       name: &1.name,
-      installation_id: installation.id })
+      installation_id: installation.id})
     |> Enum.map(&Repo.insert!/1)
     |> Enum.map(&%LinkUserProject{user_id: sender.id, project_id: &1.id})
     |> Enum.map(&Repo.insert!/1)

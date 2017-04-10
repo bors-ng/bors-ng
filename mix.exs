@@ -32,10 +32,13 @@ defmodule BorsNg.Mixfile do
   # Dependencies listed here are available only for this project
   # and cannot be accessed from applications inside the apps folder
   defp deps do
-    [ {:dogma, "~> 0.1", only: [ :dev ], runtime: false},
+    [
+      {:dogma, "~> 0.1", only: [ :dev ], runtime: false},
       {:dialyxir, "~> 0.4", only: [ :dev ], runtime: false},
       {:distillery, "~> 1.0", runtime: false},
       {:edeliver, "~> 1.4.0", runtime: false},
-      {:ex_doc, "~> 0.14", only: :dev} ]
+      {:ex_doc, "~> 0.14", only: :dev},
+      {:credo, "~> 0.7", only: [:dev, :test]}
+    ]
   end
 end

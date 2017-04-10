@@ -87,7 +87,7 @@ defmodule BorsNG.Batcher do
             params = %{
               batch_id: batch.id,
               patch_id: patch.id,
-              reviewer: reviewer }
+              reviewer: reviewer}
             Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
             poll_at = (project.batch_delay_sec + 1) * 1000
             Process.send_after(self(), {:poll, :once}, poll_at)
@@ -215,7 +215,7 @@ defmodule BorsNG.Batcher do
         tree: base.tree,
         parents: [base.commit],
         commit_message: "[ci skip]"})
-    do_merge_patch = fn %{ patch: patch }, branch ->
+    do_merge_patch = fn %{patch: patch}, branch ->
       case branch do
         :conflict -> :conflict
         _ -> GitHub.merge_branch!(

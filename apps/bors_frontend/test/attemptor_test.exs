@@ -40,7 +40,7 @@ defmodule BorsNG.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         comments: %{
-          1 => [ "Not awaiting review" ]
+          1 => ["Not awaiting review"]
           },
         statuses: %{},
         files: %{}
@@ -50,10 +50,10 @@ defmodule BorsNG.AttemptorTest do
   test "infer from .travis.yml", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "trying" => "", "trying.tmp" => "" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
-        files: %{ "trying" => %{ ".travis.yml" => "" } }
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{".travis.yml" => ""}}
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -68,10 +68,10 @@ defmodule BorsNG.AttemptorTest do
   test "infer from .travis.yml and appveyor.yml", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "trying" => "", "trying.tmp" => "" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
-        files: %{ "trying" => %{ ".travis.yml" => "", "appveyor.yml" => "" } }
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{".travis.yml" => "", "appveyor.yml" => ""}}
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -90,10 +90,10 @@ defmodule BorsNG.AttemptorTest do
     # Attempts start running immediately
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
-        branches: %{ "master" => "ini", "trying" => "", "trying.tmp" => "" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
-        files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -105,10 +105,10 @@ defmodule BorsNG.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
-        files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "trying" => "iniN"},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     attempt = Repo.get_by! Attempt, patch_id: patch.id
     assert attempt.state == 1
@@ -118,10 +118,10 @@ defmodule BorsNG.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [] },
-        files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "trying" => "iniN"},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     attempt = Repo.get_by! Attempt, patch_id: patch.id
     assert attempt.state == 1
@@ -131,10 +131,10 @@ defmodule BorsNG.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [ {"ci", :ok}] },
-        files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "trying" => "iniN"},
+        comments: %{1 => []},
+        statuses: %{"iniN" => [{"ci", :ok}]},
+        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     Attemptor.handle_info(:poll, proj.id)
     attempt = Repo.get_by! Attempt, patch_id: patch.id
@@ -143,10 +143,10 @@ defmodule BorsNG.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN" },
-        comments: %{ 1 => [] },
-        statuses: %{ "iniN" => [ {"ci", :ok}] },
-        files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "trying" => "iniN"},
+        comments: %{1 => []},
+        statuses: %{"iniN" => [{"ci", :ok}]},
+        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Finally, an actual poll should finish it.
     attempt
@@ -159,10 +159,10 @@ defmodule BorsNG.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{
           "master" => "ini",
-          "trying" => "iniN" },
-        comments: %{ 1 => [ "# Build succeeded\n  * ci" ] },
-        statuses: %{ "iniN" => [ {"ci", :ok}] },
-        files: %{ "trying" => %{ "bors.toml" => ~s/status = [ "ci" ]/ } }
+          "trying" => "iniN"},
+        comments: %{1 => ["# Build succeeded\n  * ci"]},
+        statuses: %{"iniN" => [{"ci", :ok}]},
+        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
   end
 end

@@ -73,15 +73,15 @@ defmodule BorsNG.GitHub.ServerMock do
 
   @type tstate :: %{
     tconn => %{
-      branches: %{ tbranch => tcommit },
-      comments: %{ integer => [ bitstring ] },
-      statuses: %{ tbranch => %{ bitstring => :open | :closed | :running } },
-      files: %{ tbranch => %{ bitstring => bitstring } }
+      branches: %{tbranch => tcommit},
+      comments: %{integer => [bitstring]},
+      statuses: %{tbranch => %{bitstring => :open | :closed | :running}},
+      files: %{tbranch => %{bitstring => bitstring}}
     },
     {:installation, number} => %{
-      repos: [ trepo ]
+      repos: [trepo]
     },
-    :users => %{ bitstring => tuser }
+    :users => %{bitstring => tuser}
   }
 
   def put_state(state) do
@@ -142,9 +142,9 @@ defmodule BorsNG.GitHub.ServerMock do
   def do_handle_call(:push, repo_conn, {sha, to}, state) do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, branches} <- Map.fetch(repo, :branches) do
-      branches = %{ branches | to => sha }
-      repo = %{ repo | branches: branches }
-      state = %{ state | repo_conn => repo }
+      branches = %{branches | to => sha}
+      repo = %{repo | branches: branches}
+      state = %{state | repo_conn => repo}
       {{:ok, sha}, state}
     end
     |> case do
@@ -172,8 +172,8 @@ defmodule BorsNG.GitHub.ServerMock do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, branches} <- Map.fetch(repo, :branches) do
       branches = Map.delete(branches, branch)
-      repo = %{ repo | branches: branches }
-      state = %{ state | repo_conn => repo }
+      repo = %{repo | branches: branches}
+      state = %{state | repo_conn => repo}
       {:ok, state}
     end
     |> case do
@@ -194,9 +194,9 @@ defmodule BorsNG.GitHub.ServerMock do
         head -> head
       end
       nsha = base <> head
-      branches = %{ branches | to => nsha }
-      repo = %{ repo | branches: branches }
-      state = %{ state | repo_conn => repo }
+      branches = %{branches | to => nsha}
+      repo = %{repo | branches: branches}
+      state = %{state | repo_conn => repo}
       {{:ok, %{commit: nsha, tree: nsha}}, state}
     end
     |> case do
@@ -217,8 +217,8 @@ defmodule BorsNG.GitHub.ServerMock do
       |> Enum.reduce(&<>/2)
       ^nsha = tree
       branches = Map.put(branches, branch, nsha)
-      repo = %{ repo | branches: branches }
-      state = %{ state | repo_conn => repo }
+      repo = %{repo | branches: branches}
+      state = %{state | repo_conn => repo}
       {{:ok, nsha}, state}
     end
     |> case do
@@ -230,9 +230,9 @@ defmodule BorsNG.GitHub.ServerMock do
   def do_handle_call(:force_push, repo_conn, {sha, to}, state) do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, branches} <- Map.fetch(repo, :branches) do
-      branches = %{ branches | to => sha }
-      repo = %{ repo | branches: branches }
-      state = %{ state | repo_conn => repo }
+      branches = %{branches | to => sha}
+      repo = %{repo | branches: branches}
+      state = %{state | repo_conn => repo}
       {{:ok, sha}, state}
     end
     |> case do
@@ -277,8 +277,8 @@ defmodule BorsNG.GitHub.ServerMock do
          {:ok, c} <- Map.fetch(comments, number) do
       c = [body | c]
       comments = %{comments | number => c}
-      repo = %{ repo | comments: comments }
-      state = %{ state | repo_conn => repo }
+      repo = %{repo | comments: comments}
+      state = %{state | repo_conn => repo}
       {:ok, state}
     end
     |> case do
@@ -291,15 +291,15 @@ defmodule BorsNG.GitHub.ServerMock do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, statuses} <- Map.fetch(repo, :statuses) do
       sha_statuses = case Map.has_key?(statuses, sha) do
-        false -> %{ "bors" => status }
+        false -> %{"bors" => status}
         true ->
           statuses
           |> Map.fetch!(sha)
           |> Map.put("bors", status)
       end
       statuses = Map.put(statuses, sha, sha_statuses)
-      repo = %{ repo | statuses: statuses }
-      state = %{ state | repo_conn => repo }
+      repo = %{repo | statuses: statuses}
+      state = %{state | repo_conn => repo}
       {:ok, state}
     end
     |> case do

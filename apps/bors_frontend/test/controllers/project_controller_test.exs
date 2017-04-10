@@ -103,7 +103,7 @@ defmodule BorsNG.ProjectControllerTest do
   test "reject nil reviewer", %{conn: conn, project: project, user: user} do
     Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}
     GitHub.ServerMock.put_state(%{
-      users: %{ }
+      users: %{}
     })
     conn = conn
     |> login()
