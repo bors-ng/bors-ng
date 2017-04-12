@@ -33,7 +33,7 @@
       "description": "GitHub Integration ID"
     },
     "GITHUB_INTEGRATION_PEM": {
-      "description": "GitHub Integration private key (base64-encoded)"
+      "description": "GitHub Integration private key (download the file, encode it with base64, then paste the result here)"
     },
     "GITHUB_WEBHOOK_SECRET": {
       "description": "Github Integration webhook secret"
