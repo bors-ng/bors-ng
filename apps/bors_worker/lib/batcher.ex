@@ -1,4 +1,4 @@
-defmodule BorsNG.Batcher do
+defmodule BorsNG.Worker.Batcher do
   @moduledoc """
   A "Batcher" manages the backlog of batches a project has.
   It implements this set of rules:
@@ -21,7 +21,7 @@ defmodule BorsNG.Batcher do
   """
 
   use GenServer
-  alias BorsNG.Batcher
+  alias BorsNG.Worker.Batcher
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Batch
   alias BorsNG.Database.Patch
@@ -239,7 +239,7 @@ defmodule BorsNG.Batcher do
     batch
     |> Batch.changeset(%{state: state, commit: commit, last_polled: now})
     |> Repo.update!()
-    BorsNG.ProjectPingChannel.ping!(project.id)
+    Project.ping!(batch.project_id)
     status
   end
 
@@ -331,7 +331,7 @@ defmodule BorsNG.Batcher do
       batch.project
       |> get_repo_conn()
       |> send_status(batch, status)
-      BorsNG.ProjectPingChannel.ping!(batch.project_id)
+      Project.ping!(batch.project_id)
       complete_batch(status, batch, statuses)
       poll(batch.project_id)
     end
@@ -374,7 +374,7 @@ defmodule BorsNG.Batcher do
     batch
     |> Batch.changeset(%{state: err})
     |> Repo.update!()
-    BorsNG.ProjectPingChannel.ping!(project.id)
+    Project.ping!(project.id)
     project
     |> get_repo_conn()
     |> send_status(batch, :timeout)
@@ -384,7 +384,7 @@ defmodule BorsNG.Batcher do
 
   defp cancel_patch(batch, patch_id) do
     cancel_patch(batch, patch_id, Batch.atomize_state(batch.state))
-    BorsNG.ProjectPingChannel.ping!(batch.project_id)
+    Project.ping!(batch.project_id)
   end
 
   defp cancel_patch(batch, patch_id, :running) do

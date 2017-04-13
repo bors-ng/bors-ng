@@ -1,4 +1,4 @@
-defmodule BorsNG.Batcher.Message do
+defmodule BorsNG.Worker.Batcher.Message do
   @moduledoc """
   User-readable strings that go in commit messages and comments.
   """

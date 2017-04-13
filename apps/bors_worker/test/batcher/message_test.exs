@@ -1,7 +1,7 @@
-defmodule BorsNG.BatcherMessageTest do
+defmodule BorsNG.Worker.BatcherMessageTest do
   use ExUnit.Case, async: true
 
-  alias BorsNG.Batcher.Message
+  alias BorsNG.Worker.Batcher.Message
 
   test "generate configuration problem message" do
     expected_message = "# Configuration problem\nExample problem"

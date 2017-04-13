@@ -1,4 +1,4 @@
-defmodule BorsNG.Batcher.State do
+defmodule BorsNG.Worker.Batcher.State do
   @moduledoc """
   The batcher state machine.
   It takes a list of status states,

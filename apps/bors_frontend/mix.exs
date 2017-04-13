@@ -31,7 +31,6 @@ defmodule BorsNG.Mixfile do
   defp deps do
     [
       {:phoenix, "~> 1.2.1"},
-      {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.0"},
       {:phoenix_html, "~> 2.6"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
@@ -43,7 +42,8 @@ defmodule BorsNG.Mixfile do
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
       {:wobserver, "~> 0.1.7"},
       {:bors_github, [in_umbrella: true]},
-      {:bors_database, [in_umbrella: true]}
+      {:bors_database, [in_umbrella: true]},
+      {:bors_worker, [in_umbrella: true]},
     ]
   end
 end

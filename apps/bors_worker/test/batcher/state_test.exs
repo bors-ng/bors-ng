@@ -1,7 +1,7 @@
-defmodule BorsNG.BatcherStateTest do
+defmodule BorsNG.Worker.BatcherStateTest do
   use ExUnit.Case, async: true
 
-  alias BorsNG.Batcher.State
+  alias BorsNG.Worker.Batcher.State
 
   test "summarize" do
     assert State.summarize(:waiting, :waiting) == :waiting

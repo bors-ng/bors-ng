@@ -11,7 +11,7 @@ defmodule BorsNG.ProjectController do
 
   use BorsNG.Web, :controller
 
-  alias BorsNG.Batcher
+  alias BorsNG.Worker.Batcher
   alias BorsNG.Database.Repo
   alias BorsNG.Database.LinkUserProject
   alias BorsNG.Database.Project
@@ -19,7 +19,7 @@ defmodule BorsNG.ProjectController do
   alias BorsNG.Database.Patch
   alias BorsNG.Database.User
   alias BorsNG.GitHub
-  alias BorsNG.Syncer
+  alias BorsNG.Worker.Syncer
 
   # Auto-grab the project and check the permissions
 

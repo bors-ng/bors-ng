@@ -1,4 +1,4 @@
-defmodule BorsNG.Batcher.BorsToml do
+defmodule BorsNG.Worker.Batcher.BorsToml do
   @moduledoc """
   The format for `bors.toml`. It looks like this:
 
@@ -14,7 +14,7 @@ defmodule BorsNG.Batcher.BorsToml do
   defstruct status: [], block_labels: [], pr_status: [],
     timeout_sec: (60 * 60)
 
-  @type t :: %BorsNG.Batcher.BorsToml{
+  @type t :: %BorsNG.Worker.Batcher.BorsToml{
     status: bitstring,
     timeout_sec: integer}
 
@@ -22,7 +22,7 @@ defmodule BorsNG.Batcher.BorsToml do
     case :etoml.parse(str) do
       {:ok, toml} ->
         toml = Map.new(toml)
-        toml = %BorsNG.Batcher.BorsToml{
+        toml = %BorsNG.Worker.Batcher.BorsToml{
           status: Map.get(toml, "status", []),
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
