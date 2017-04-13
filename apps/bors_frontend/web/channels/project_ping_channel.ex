@@ -17,16 +17,11 @@ defmodule BorsNG.ProjectPingChannel do
 
   alias BorsNG.Database.Repo
   alias BorsNG.Database.User
-  alias BorsNG.Endpoint
 
   def join("project_ping:" <> project_id, _message, socket) do
     with(
       %{assigns: %{user: user}} <- socket,
       true <- User.has_perm(Repo, user, project_id),
       do: {:ok, socket})
-  end
-
-  def ping!(project_id) do
-    Endpoint.broadcast! "project_ping:#{project_id}", "new_msg", %{}
   end
 end

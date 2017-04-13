@@ -17,8 +17,8 @@ defmodule BorsNG.Command do
   to pull out the commands.
   """
 
-  alias BorsNG.Attemptor
-  alias BorsNG.Batcher
+  alias BorsNG.Worker.Attemptor
+  alias BorsNG.Worker.Batcher
   alias BorsNG.Command
   alias BorsNG.Database.LinkUserProject
   alias BorsNG.Database.Repo
@@ -26,7 +26,7 @@ defmodule BorsNG.Command do
   alias BorsNG.Database.Project
   alias BorsNG.Database.User
   alias BorsNG.GitHub
-  alias BorsNG.Syncer
+  alias BorsNG.Worker.Syncer
 
   defstruct(
     project: nil,

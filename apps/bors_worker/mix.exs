@@ -1,9 +1,9 @@
-defmodule BorsNG.Database.Mixfile do
+defmodule BorsNG.Worker.Mixfile do
   use Mix.Project
 
   def project do
     [
-      app: :bors_database,
+      app: :bors_worker,
       version: "0.0.4",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -12,14 +12,13 @@ defmodule BorsNG.Database.Mixfile do
       elixirc_paths: elixirc_paths(Mix.env),
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      aliases: aliases(),
       deps: deps()
     ]
   end
 
   # Configuration for the OTP application.
   def application do
-    [mod: {BorsNG.Database.Application, []},
+    [mod: {BorsNG.Worker.Application, []},
       extra_applications: [:logger]]
   end
 
@@ -30,23 +29,9 @@ defmodule BorsNG.Database.Mixfile do
   # Specifies your project dependencies.
   defp deps do
     [
-      {:phoenix_pubsub, "~> 1.0"},
-      {:postgrex, "~> 0.13.0"},
-      {:ecto, "~> 2.1"}
-    ]
-  end
-
-  # Aliases are shortcuts or tasks specific to the current project.
-  # For example, to create, migrate and run the seeds file at once:
-  #
-  #     $ mix ecto.setup
-  #
-  # See the documentation for `Mix` for more info on aliases.
-  defp aliases do
-    [
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      "test": ["ecto.create --quiet", "ecto.migrate", "test"]
+      {:etoml, [git: "git://github.com/kalta/etoml.git"]},
+      {:bors_github, [in_umbrella: true]},
+      {:bors_database, [in_umbrella: true]}
     ]
   end
 end

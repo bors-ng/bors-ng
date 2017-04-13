@@ -1,11 +1,11 @@
-defmodule BorsNG.Syncer do
+defmodule BorsNG.Worker.Syncer do
   @moduledoc """
   A background task that pulls a full list of opened pull requests from a repo.
   Patches that don't come up get closed,
   and patches that don't exist get created.
   """
 
-  alias BorsNG.Syncer
+  alias BorsNG.Worker.Syncer
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
@@ -25,7 +25,7 @@ defmodule BorsNG.Syncer do
     open_prs = GitHub.get_open_prs!(conn)
     deltas = synchronize_patches(open_patches, open_prs)
     Enum.each(deltas, &do_synchronize!(project_id, &1))
-    BorsNG.ProjectPingChannel.ping!(project_id)
+    Project.ping!(project_id)
   end
 
   @spec synchronize_patches([%Patch{}], [%GitHub.Pr{}]) ::

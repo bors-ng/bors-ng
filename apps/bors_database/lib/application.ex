@@ -5,6 +5,10 @@ defmodule BorsNG.Database.Application do
 
   use Application
 
+  @pubsub_adapter Application.get_env(:bors_database, :pubsub)[:adapter]
+  @pubsub_name Application.get_env(:bors_database, :pubsub)[:name]
+  @pubsub_params Application.get_env(:bors_database, :pubsub)[:opts]
+
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -14,6 +18,8 @@ defmodule BorsNG.Database.Application do
     children = [
       # Start the Ecto repository
       supervisor(BorsNG.Database.Repo, []),
+      # Start the pubsub registry
+      supervisor(@pubsub_adapter, [@pubsub_name, @pubsub_params])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

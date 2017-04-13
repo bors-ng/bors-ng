@@ -1,4 +1,4 @@
-defmodule BorsNG.SyncerTest do
+defmodule BorsNG.Worker.SyncerTest do
   use BorsNG.ConnCase
 
   alias BorsNG.GitHub
@@ -6,7 +6,7 @@ defmodule BorsNG.SyncerTest do
   alias BorsNG.Database.Installation
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
-  alias BorsNG.Syncer
+  alias BorsNG.Worker.Syncer
 
   setup do
     inst = %Installation{installation_xref: 91}

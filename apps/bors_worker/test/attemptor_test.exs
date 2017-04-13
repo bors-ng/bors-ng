@@ -1,7 +1,7 @@
-defmodule BorsNG.AttemptorTest do
+defmodule BorsNG.Worker.AttemptorTest do
   use BorsNG.ConnCase
 
-  alias BorsNG.Attemptor
+  alias BorsNG.Worker.Attemptor
   alias BorsNG.Database.Attempt
   alias BorsNG.Database.AttemptStatus
   alias BorsNG.Database.Installation

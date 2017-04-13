@@ -1,4 +1,4 @@
-defmodule BorsNG.Batcher.Registry do
+defmodule BorsNG.Worker.Batcher.Registry do
   @moduledoc """
   The "Batcher" manages the backlog of batches that each project has.
   This is the registry of each individual batcher.
@@ -12,11 +12,11 @@ defmodule BorsNG.Batcher.Registry do
 
   use GenServer
 
-  alias BorsNG.Batcher
+  alias BorsNG.Worker.Batcher
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
 
-  @name BorsNG.Batcher.Registry
+  @name BorsNG.Worker.Batcher.Registry
 
   # Public API
 

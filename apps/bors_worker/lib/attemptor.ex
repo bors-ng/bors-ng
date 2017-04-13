@@ -1,4 +1,4 @@
-defmodule BorsNG.Attemptor do
+defmodule BorsNG.Worker.Attemptor do
   @moduledoc """
   An "Attemptor" manages the set of running attempts (that is, "try jobs").
   It implements this set of rules:
@@ -15,7 +15,7 @@ defmodule BorsNG.Attemptor do
 
   use GenServer
 
-  alias BorsNG.Batcher
+  alias BorsNG.Worker.Batcher
   alias BorsNG.Database.Attempt
   alias BorsNG.Database.AttemptStatus
   alias BorsNG.Database.Repo

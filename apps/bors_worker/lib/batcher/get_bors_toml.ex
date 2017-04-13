@@ -1,4 +1,4 @@
-defmodule BorsNG.Batcher.GetBorsToml do
+defmodule BorsNG.Worker.Batcher.GetBorsToml do
   @moduledoc """
   Get the bors configuration from a repository.
   This will use `bors.toml`, if available,
@@ -6,7 +6,7 @@ defmodule BorsNG.Batcher.GetBorsToml do
   """
 
   alias BorsNG.GitHub
-  alias BorsNG.Batcher.BorsToml
+  alias BorsNG.Worker.Batcher.BorsToml
 
   @type terror :: :fetch_failed | :parse_failed | :status | :timeout_sec
 

@@ -52,7 +52,7 @@ defmodule BorsNG.WebhookController do
       "test/repo"
       iex> # This has also started a (background) sync of all attached patches.
       iex> # Watch it happen in the user interface.
-      iex> BorsNG.Syncer.wait_hot_spin(proj.id)
+      iex> BorsNG.Worker.Syncer.wait_hot_spin(proj.id)
       iex> patch = Database.Repo.get_by!(Database.Patch, pr_xref: 1)
       iex> patch.title
       "Test"
@@ -63,8 +63,8 @@ defmodule BorsNG.WebhookController do
   @allow_private_repos Application.get_env(
     :bors_frontend, BorsNG)[:allow_private_repos]
 
-  alias BorsNG.Attemptor
-  alias BorsNG.Batcher
+  alias BorsNG.Worker.Attemptor
+  alias BorsNG.Worker.Batcher
   alias BorsNG.Command
   alias BorsNG.Database.Installation
   alias BorsNG.Database.Patch
@@ -72,7 +72,7 @@ defmodule BorsNG.WebhookController do
   alias BorsNG.Database.Repo
   alias BorsNG.Database.LinkUserProject
   alias BorsNG.GitHub
-  alias BorsNG.Syncer
+  alias BorsNG.Worker.Syncer
 
   @doc """
   This action is reached via `/webhook/:provider`
@@ -250,18 +250,18 @@ defmodule BorsNG.WebhookController do
   end
 
   def do_webhook_pr(_conn, %{action: "opened", project: project}) do
-    BorsNG.ProjectPingChannel.ping!(project.id)
+    Project.ping!(project.id)
     :ok
   end
 
   def do_webhook_pr(_conn, %{action: "closed", project: project, patch: p}) do
-    BorsNG.ProjectPingChannel.ping!(project.id)
+    Project.ping!(project.id)
     Repo.update!(Patch.changeset(p, %{open: false}))
     :ok
   end
 
   def do_webhook_pr(_conn, %{action: "reopened", project: project, patch: p}) do
-    BorsNG.ProjectPingChannel.ping!(project.id)
+    Project.ping!(project.id)
     Repo.update!(Patch.changeset(p, %{open: true}))
     :ok
   end

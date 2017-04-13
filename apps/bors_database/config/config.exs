@@ -6,7 +6,10 @@
 use Mix.Config
 
 config :bors_database,
-  ecto_repos: [BorsNG.Database.Repo]
+  ecto_repos: [BorsNG.Database.Repo],
+  pubsub: [name: BorsNG.Database.PubSub,
+           adapter: Phoenix.PubSub.PG2,
+           opts: [pool_size: 4]]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

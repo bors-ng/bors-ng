@@ -15,12 +15,6 @@ defmodule BorsNG do
       # Start the endpoint when the application starts
       supervisor(BorsNG.Endpoint, []),
       # worker(BorsNG.Worker, [arg1, arg2, arg3]),
-      supervisor(BorsNG.Batcher.Supervisor, []),
-      worker(BorsNG.Batcher.Registry, []),
-      supervisor(BorsNG.Attemptor.Supervisor, []),
-      worker(BorsNG.Attemptor.Registry, []),
-      supervisor(Task.Supervisor, [[name: BorsNG.Syncer.Supervisor]]),
-      supervisor(Registry, [:unique, BorsNG.Syncer.Registry]),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

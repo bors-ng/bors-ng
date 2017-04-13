@@ -1,4 +1,4 @@
-defmodule BorsNG.Attemptor.Registry do
+defmodule BorsNG.Worker.Attemptor.Registry do
   @moduledoc """
   The "Attemptor" manages the project's try branch.
   This is the registry of each individual attemptor.
@@ -12,11 +12,11 @@ defmodule BorsNG.Attemptor.Registry do
 
   use GenServer
 
-  alias BorsNG.Attemptor
+  alias BorsNG.Worker.Attemptor
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
 
-  @name BorsNG.Attemptor.Registry
+  @name BorsNG.Worker.Attemptor.Registry
 
   # Public API
 

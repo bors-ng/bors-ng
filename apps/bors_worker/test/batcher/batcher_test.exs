@@ -1,7 +1,7 @@
-defmodule BorsNG.BatcherTest do
-  use BorsNG.ConnCase
+defmodule BorsNG.Worker.BatcherTest do
+  use BorsNG.Worker.TestCase
 
-  alias BorsNG.Batcher
+  alias BorsNG.Worker.Batcher
   alias BorsNG.Database.Batch
   alias BorsNG.Database.Installation
   alias BorsNG.Database.LinkPatchBatch
