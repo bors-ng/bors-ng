@@ -14,7 +14,6 @@ You'll also want to do some terminology mapping between what we say to users and
   * Attempt → Try: Try is a keyword in Elixir, and in a lot of other languages besides,
                    so the code calls a try an attempt.
   * Patch → PR: A Bors "Patch" corresponds to a GitHub "Pull Request."
-  * Aelita2 → Bors-NG: I renamed it without changing the name in the code.
 
 <!---->
 
@@ -22,25 +21,19 @@ The frontend
 ------------
 
 In the source tree, you'll find the frontend in the `bors_frontend` folder.
-There is a webhook controller in the `web/controllers` folder.
+There is also a webhook controller in the `web/controllers` folder.
 This isn't really part of the frontend, because the user won't be interacting with it,
 but rather GitHub will POST to it when comments are left, builds are completed,
 and new GitHub repositories are associated with our integration.
 The webhook controller is on a separate Plug pipeline for this reason.
 
-In `bors_github/lib`, you can find the implementation of oAuth2 authentication
-and the webhook parser plug that verifies incoming webhook notifications.
-
 
 The backend
 -----------
 
-In `bors_frontend/lib/bors_ng`, the worker GenServers are implemented.
-This is also where Phoenix's Web and Endpoint modules are
-(even though they're technically part of the web frontend, they can't go in
-`web/` because they're part of Phoenix's hot reload setup).
+In `bors_worker`, the worker GenServers are implemented.
 
-### Batcher and Attemptor
+### `Worker.Batcher` and `Worker.Attemptor`
 
 Batcher handles "r+"-ed patches, which the user is attempting to land in master.
 Attemptor handles "try"-ed patches.
@@ -56,6 +49,12 @@ and the server will poll GitHub every half-hour just in case.
 
 These servers also keep all their state written to Ecto,
 so bors can pick up where it left off if it's restarted.
+
+
+The GitHub glue
+---------------
+
+Found in the folder `bors_github`.
 
 ### GitHub.Server
 

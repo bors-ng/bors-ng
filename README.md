@@ -292,8 +292,8 @@ You can do it from the iex prompt, like this:
 
 You can do it from a PostgreSQL prompt like this:
 
-    postgres=# \c aelita2_dev -- or aelita2_prod
-    aelita2_dev=# update users set is_admin = true where login = '<your login>';
+    postgres=# \c bors_dev -- or bors_prod
+    bors_dev=# update users set is_admin = true where login = '<your login>';
 
 
 # Copyright license
