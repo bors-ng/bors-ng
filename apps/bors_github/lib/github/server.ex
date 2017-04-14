@@ -424,7 +424,7 @@ defmodule BorsNG.GitHub.Server do
   def raw_token!({:installation, installation_xref}, state) do
     now = Joken.current_time()
     case state[installation_xref] do
-      {token, issued} when issued < (now - 1) ->
+      {token, issued} when issued + @token_exp > now ->
         {{:raw, token}, state}
       _ ->
         token = get_installation_token!(installation_xref)
