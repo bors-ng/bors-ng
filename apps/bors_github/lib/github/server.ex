@@ -39,15 +39,15 @@ defmodule BorsNG.GitHub.Server do
   end
 
   def handle_call({type, {{_, _} = token, repo_xref}, args}, _from, state) do
-    {token, state} = raw_token!(token, state)
-    res = do_handle_call(type, {token, repo_xref}, args)
-    {:reply, res, state}
+    use_token! token, state, fn token ->
+      do_handle_call(type, {token, repo_xref}, args)
+    end
   end
 
   def handle_call({type, {_, _} = token, args}, _from, state) do
-    {token, state} = raw_token!(token, state)
-    res = do_handle_call(type, token, args)
-    {:reply, res, state}
+    use_token! token, state, fn token ->
+      do_handle_call(type, token, args)
+    end
   end
 
   def do_handle_call(:get_pr, repo_conn, {pr_xref}) do
@@ -390,6 +390,31 @@ defmodule BorsNG.GitHub.Server do
   end
 
   @doc """
+  Uses a token from the cache, or, if the request fails,
+  retry without using the cached token.
+  """
+  @spec use_token!(ttoken, ttokenreg, ((ttoken) -> term)) ::
+    {:reply, term, ttokenreg}
+  def use_token!({:installation, installation_xref} = token, state, fun) do
+    {token, state} = raw_token!(token, state)
+    result = fun.(token)
+    case result do
+      {:ok, _} -> {:reply, result, state}
+      :ok -> {:reply, result, state}
+      _ ->
+        state = Map.delete(state, installation_xref)
+        {token, state} = raw_token!(token, state)
+        result = fun.(token)
+        {:reply, result, state}
+    end
+  end
+  def use_token!(token, state, fun) do
+    {token, state} = raw_token!(token, state)
+    result = fun.(token)
+    {:reply, result, state}
+  end
+
+  @doc """
   Given an {:installation, installation_xref},
   look it up in the token cache.
   If it's there, and it's still usable, use it.
@@ -407,7 +432,6 @@ defmodule BorsNG.GitHub.Server do
         {{:raw, token}, state}
     end
   end
-
   def raw_token!({:raw, _} = raw, state) do
     {raw, state}
   end
