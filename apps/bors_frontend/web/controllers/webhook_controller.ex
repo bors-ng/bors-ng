@@ -314,11 +314,4 @@ defmodule BorsNG.WebhookController do
       Syncer.start_synchronize_project(project_id)
     end)
   end
-
-  defp project_from_json(json, installation_id) do
-    %Project{
-      repo_xref: json["id"],
-      name: json["full_name"],
-      installation_id: installation_id}
-  end
 end
