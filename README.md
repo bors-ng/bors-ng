@@ -129,7 +129,7 @@ The batching strategy is O(E log N), where N is again the total number of pull r
 
 # How to run it on your local machine
 
-`./scripts/setup && ./scripts/server` will set up a local instance,
+`./script/setup && ./script/server` will set up a local instance,
 with a mocked-out GitHub instance, using Docker to pull in all the underlying dependencies.
 The web server ends up running on <http://localhost:4000/>.
 You can get an Elixir REPL running in the same context as the webserver by running
@@ -303,4 +303,3 @@ It should be included with the source distribution in [LICENSE-APACHE].
 If it is missing, it is at <http://www.apache.org/licenses/LICENSE-2.0>.
 
 [LICENSE-APACHE]: LICENSE-APACHE
-
