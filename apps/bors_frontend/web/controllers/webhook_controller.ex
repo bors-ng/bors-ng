@@ -60,6 +60,8 @@ defmodule BorsNG.WebhookController do
 
   use BorsNG.Web, :controller
 
+  require Logger
+
   @allow_private_repos Application.get_env(
     :bors_frontend, BorsNG)[:allow_private_repos]
 
@@ -273,26 +275,14 @@ defmodule BorsNG.WebhookController do
     Repo.update!(Patch.changeset(p, %{commit: commit}))
   end
 
-  def do_webhook_pr(_conn, %{action: "assigned"}) do
-    :ok
-  end
-
-  def do_webhook_pr(_conn, %{action: "unassigned"}) do
-    :ok
-  end
-
-  def do_webhook_pr(_conn, %{action: "labeled"}) do
-    :ok
-  end
-
-  def do_webhook_pr(_conn, %{action: "unlabeled"}) do
-    :ok
-  end
-
   def do_webhook_pr(conn, %{action: "edited", patch: patch}) do
     title = conn.body_params["pull_request"]["title"]
     body = conn.body_params["pull_request"]["body"]
     Repo.update!(Patch.changeset(patch, %{title: title, body: body}))
+  end
+
+  def do_webhook_pr(_conn, %{action: action}) do
+    Logger.info(["WebhookController: Got unknown action: ", action])
   end
 
   def create_installation_by_xref(installation_xref, sender) do
