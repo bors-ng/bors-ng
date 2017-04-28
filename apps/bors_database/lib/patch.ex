@@ -13,6 +13,7 @@ defmodule BorsNG.Database.Patch do
 
   schema "patches" do
     belongs_to :project, Project
+    field :into_branch, :string
     field :pr_xref, :integer
     field :title, :string
     field :body, :string

@@ -80,7 +80,7 @@ defmodule BorsNG.Worker.Batcher do
         # Patch exists and is awaiting review
         # This will cause the PR to start after the patch's scheduled delay
         project = Repo.get!(Project, patch.project_id)
-        batch = get_new_batch(project_id)
+        batch = get_new_batch(project_id, patch.into_branch)
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
@@ -207,7 +207,7 @@ defmodule BorsNG.Worker.Batcher do
     stmp = "#{project.staging_branch}.tmp"
     base = GitHub.get_branch!(
       repo_conn,
-      project.master_branch)
+      batch.into_branch)
     tbase = GitHub.synthesize_commit!(
       repo_conn,
       %{
@@ -261,7 +261,7 @@ defmodule BorsNG.Worker.Batcher do
   defp start_waiting_merged_batch(batch, patch_links, _base, :conflict) do
     repo_conn = get_repo_conn(batch.project)
     patches = Enum.map(patch_links, &(&1.patch))
-    state = bisect(patches, batch.project)
+    state = bisect(patches, batch)
     send_message(repo_conn, patches, {:conflict, state})
     {:conflict, nil}
   end
@@ -343,7 +343,7 @@ defmodule BorsNG.Worker.Batcher do
     GitHub.push!(
       repo_conn,
       batch.commit,
-      project.master_branch)
+      batch.into_branch)
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
@@ -357,7 +357,7 @@ defmodule BorsNG.Worker.Batcher do
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
-    state = bisect(patches, project)
+    state = bisect(patches, batch)
     send_message(repo_conn, patches, {state, erred})
   end
 
@@ -366,7 +366,7 @@ defmodule BorsNG.Worker.Batcher do
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
-    state = bisect(patches, project)
+    state = bisect(patches, batch)
     project
     |> get_repo_conn()
     |> send_message(patches, {:timeout, state})
@@ -403,7 +403,7 @@ defmodule BorsNG.Worker.Batcher do
     if state == :retrying do
       patches
       |> Enum.filter(&(&1.id == patch_id))
-      |> make_batch(project.id)
+      |> make_batch(project.id, batch.into_branch)
     end
     repo_conn = get_repo_conn(project)
     send_status(repo_conn, batch, :canceled)
@@ -424,12 +424,12 @@ defmodule BorsNG.Worker.Batcher do
     send_message(repo_conn, [patch], {:canceled, :failed})
   end
 
-  defp bisect(patches, project) do
+  defp bisect(patches, %Batch{project: project, into_branch: into_branch}) do
     count = Enum.count(patches)
     if count > 1 do
       {patches_lo, patches_hi} = Enum.split(patches, div(count, 2))
-      make_batch(patches_lo, project.id)
-      make_batch(patches_hi, project.id)
+      make_batch(patches_lo, project.id, into_branch)
+      make_batch(patches_hi, project.id, into_branch)
       :retrying
     else
       :failed
@@ -465,8 +465,8 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  defp make_batch(patches, project_id) do
-    batch = Repo.insert!(Batch.new(project_id))
+  defp make_batch(patches, project_id, into_branch) do
+    batch = Repo.insert!(Batch.new(project_id, into_branch))
     patches
     |> Enum.map(&%{batch_id: batch.id, patch_id: &1.id})
     |> Enum.map(&LinkPatchBatch.changeset(%LinkPatchBatch{}, &1))
@@ -474,10 +474,15 @@ defmodule BorsNG.Worker.Batcher do
     batch
   end
 
-  def get_new_batch(project_id) do
+  def get_new_batch(project_id, into_branch) do
     waiting = Batch.numberize_state(:waiting)
-    case Repo.get_by(Batch, project_id: project_id, state: waiting) do
-      nil -> Repo.insert!(Batch.new(project_id))
+    Batch
+    |> Repo.get_by(
+      project_id: project_id,
+      state: waiting,
+      into_branch: into_branch)
+    |> case do
+      nil -> Repo.insert!(Batch.new(project_id, into_branch))
       batch -> batch
     end
   end

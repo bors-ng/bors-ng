@@ -67,6 +67,7 @@ defmodule BorsNG.Worker.Syncer do
     patch = case Repo.get_by(Patch, project_id: project_id, pr_xref: number) do
       nil -> Repo.insert!(%Patch{
         project_id: project_id,
+        into_branch: pr.base_ref,
         pr_xref: number,
         title: pr.title,
         body: pr.body,

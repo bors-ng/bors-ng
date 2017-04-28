@@ -17,18 +17,29 @@ defmodule BorsNG.Worker.BatcherTest do
     proj = %Project{
       installation_id: inst.id,
       repo_xref: 14,
-      master_branch: "master",
       staging_branch: "staging"}
     |> Repo.insert!()
     {:ok, inst: inst, proj: proj}
   end
 
   test "cancel all", %{proj: proj} do
-    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "N"}
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
     |> Repo.insert!()
-    patch2 = %Patch{project_id: proj.id, pr_xref: 2, commit: "O"}
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
     |> Repo.insert!()
-    batch = %Batch{project_id: proj.id, state: 0} |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 0,
+      into_branch: "master"}
+    |> Repo.insert!()
     link = %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
     |> Repo.insert!()
     link2 = %LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id}
@@ -46,11 +57,23 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{},
         files: %{}
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "N"}
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
     |> Repo.insert!()
-    patch2 = %Patch{project_id: proj.id, pr_xref: 2, commit: "O"}
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
     |> Repo.insert!()
-    batch = %Batch{project_id: proj.id, state: 0} |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 0,
+      into_branch: "master"}
+    |> Repo.insert!()
     link = %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
     |> Repo.insert!()
     link2 = %LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id}
@@ -79,9 +102,17 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{},
         files: %{}
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "N"}
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
     |> Repo.insert!()
-    batch = %Batch{project_id: proj.id, state: 1} |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
     %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id} |> Repo.insert!()
     Batcher.handle_cast({:cancel, patch.id}, proj.id)
     state = GitHub.ServerMock.get_state()
@@ -105,7 +136,11 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{},
         files: %{}
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1} |> Repo.insert!()
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
     Batcher.handle_cast({:cancel, patch.id}, proj.id)
     state = GitHub.ServerMock.get_state()
     assert state == %{
@@ -125,8 +160,16 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{},
         files: %{}
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1} |> Repo.insert!()
-    batch = %Batch{project_id: proj.id, state: 0} |> Repo.insert!()
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 0,
+      into_branch: "master"}
+    |> Repo.insert!()
     %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id} |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     state = GitHub.ServerMock.get_state()
@@ -151,7 +194,11 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"Z" => %{"bors.toml" =>
           ~s/status = [ "ci" ]\nblock_labels = [ "no" ]/}},
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "Z"}
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "Z",
+      into_branch: "master"}
     |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     state = GitHub.ServerMock.get_state()
@@ -176,7 +223,11 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"Z" => %{"bors.toml" =>
           ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1, commit: "Z"}
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "Z",
+      into_branch: "master"}
     |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     state = GitHub.ServerMock.get_state()
@@ -203,7 +254,8 @@ defmodule BorsNG.Worker.BatcherTest do
     patch = %Patch{
       project_id: proj.id,
       pr_xref: 1,
-      commit: "N"}
+      commit: "N",
+      into_branch: "master"}
     |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
@@ -249,7 +301,8 @@ defmodule BorsNG.Worker.BatcherTest do
     patch = %Patch{
       project_id: proj.id,
       pr_xref: 1,
-      commit: "N"}
+      commit: "N",
+      into_branch: "master"}
     |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
@@ -361,12 +414,14 @@ defmodule BorsNG.Worker.BatcherTest do
     patch = %Patch{
       project_id: proj.id,
       pr_xref: 1,
-      commit: "N"}
+      commit: "N",
+      into_branch: "master"}
     |> Repo.insert!()
     patch2 = %Patch{
       project_id: proj.id,
       pr_xref: 2,
-      commit: "O"}
+      commit: "O",
+      into_branch: "master"}
     |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
@@ -449,7 +504,8 @@ defmodule BorsNG.Worker.BatcherTest do
     patch = %Patch{
       project_id: proj.id,
       pr_xref: 1,
-      commit: "N"}
+      commit: "N",
+      into_branch: "master"}
     |> Repo.insert!()
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     Batcher.handle_info({:poll, :once}, proj.id)

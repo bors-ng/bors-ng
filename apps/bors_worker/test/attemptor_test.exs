@@ -1,5 +1,5 @@
 defmodule BorsNG.Worker.AttemptorTest do
-  use BorsNG.ConnCase
+  use BorsNG.Worker.TestCase
 
   alias BorsNG.Worker.Attemptor
   alias BorsNG.Database.Attempt
@@ -16,11 +16,24 @@ defmodule BorsNG.Worker.AttemptorTest do
     proj = %Project{
       installation_id: inst.id,
       repo_xref: 14,
-      master_branch: "master",
       staging_branch: "staging",
       trying_branch: "trying"}
     |> Repo.insert!()
     {:ok, inst: inst, proj: proj}
+  end
+
+  def new_patch(proj, pr_xref, commit \\ "N") do
+    %Patch{
+      project_id: proj.id,
+      pr_xref: pr_xref,
+      into_branch: "master",
+      commit: commit}
+    |> Repo.insert!()
+  end
+
+  def new_attempt(patch, state) do
+    %Attempt{patch_id: patch.id, state: state, into_branch: "master"}
+    |> Repo.insert!()
   end
 
   test "rejects running patches", %{proj: proj} do
@@ -31,9 +44,8 @@ defmodule BorsNG.Worker.AttemptorTest do
         statuses: %{},
         files: %{}
       }})
-    patch = %Patch{project_id: proj.id, pr_xref: 1} |> Repo.insert!()
-    _attempt = %Attempt{patch_id: patch.id, state: 0, patch_id: patch.id}
-    |> Repo.insert!()
+    patch = new_patch(proj, 1, nil)
+    _attempt = new_attempt(patch, 0)
     Attemptor.handle_cast({:tried, patch.id, ""}, proj.id)
     state = GitHub.ServerMock.get_state()
     assert state == %{
@@ -55,11 +67,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         statuses: %{"iniN" => []},
         files: %{"trying" => %{".travis.yml" => ""}}
       }})
-    patch = %Patch{
-      project_id: proj.id,
-      pr_xref: 1,
-      commit: "N"}
-    |> Repo.insert!()
+    patch = new_patch(proj, 1)
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
     [status] = Repo.all(AttemptStatus)
     assert status.identifier == "continuous-integration/travis-ci/push"
@@ -73,11 +81,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         statuses: %{"iniN" => []},
         files: %{"trying" => %{".travis.yml" => "", "appveyor.yml" => ""}}
       }})
-    patch = %Patch{
-      project_id: proj.id,
-      pr_xref: 1,
-      commit: "N"}
-    |> Repo.insert!()
+    patch = new_patch(proj, 1)
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
     statuses = Repo.all(AttemptStatus)
     assert Enum.any?(statuses,
@@ -95,11 +99,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
-    patch = %Patch{
-      project_id: proj.id,
-      pr_xref: 1,
-      commit: "N"}
-    |> Repo.insert!()
+    patch = new_patch(proj, 1)
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{

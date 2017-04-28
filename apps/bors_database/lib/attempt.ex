@@ -10,6 +10,7 @@ defmodule BorsNG.Database.Attempt do
 
   schema "attempts" do
     belongs_to :patch, Patch
+    field :into_branch, :string
     field :commit, :string
     field :state, :integer
     field :last_polled, :integer
@@ -17,9 +18,10 @@ defmodule BorsNG.Database.Attempt do
     timestamps()
   end
 
-  def new(patch_id) do
+  def new(%Patch{} = patch) do
     %Attempt{
-      patch_id: patch_id,
+      patch_id: patch.id,
+      into_branch: patch.into_branch,
       commit: nil,
       state: 0,
       last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)

@@ -28,7 +28,6 @@ defmodule BorsNG.Database.Project do
     field :repo_xref, :integer
     field :name, :string
     many_to_many :users, User, join_through: LinkUserProject
-    field :master_branch, :string, default: "master"
     field :staging_branch, :string, default: "staging"
     field :trying_branch, :string, default: "trying"
     field :batch_poll_period_sec, :integer, default: (60 * 30)
@@ -71,8 +70,8 @@ defmodule BorsNG.Database.Project do
   end
   def changeset_branches(struct, params \\ %{}) do
     struct
-    |> cast(params, [:master_branch, :staging_branch, :trying_branch])
-    |> validate_required([:master_branch, :staging_branch, :trying_branch])
+    |> cast(params, [:staging_branch, :trying_branch])
+    |> validate_required([:staging_branch, :trying_branch])
   end
 
   # Red flag queries
