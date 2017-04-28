@@ -36,7 +36,8 @@ defmodule BorsNG.Database.Patch do
       :author_id,
       :project_id,
       :author_id,
-      :open])
+      :open,
+      :into_branch])
     |> unique_constraint(:pr_xref, name: :patches_pr_xref_index)
   end
 

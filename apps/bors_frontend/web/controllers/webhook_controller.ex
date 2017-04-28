@@ -276,9 +276,17 @@ defmodule BorsNG.WebhookController do
   end
 
   def do_webhook_pr(conn, %{action: "edited", patch: patch}) do
-    title = conn.body_params["pull_request"]["title"]
-    body = conn.body_params["pull_request"]["body"]
-    Repo.update!(Patch.changeset(patch, %{title: title, body: body}))
+    %{
+      "pull_request" => %{
+        "title" => title,
+        "body" => body,
+        "base" => %{"ref" => base_ref},
+      },
+    } = conn.body_params
+    Repo.update!(Patch.changeset(patch, %{
+      title: title,
+      body: body,
+      into_branch: base_ref}))
   end
 
   def do_webhook_pr(_conn, %{action: action}) do
