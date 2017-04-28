@@ -7,5 +7,4 @@ config :bors_github, :oauth2, BorsNG.GitHub.OAuth2Mock
 
 config :bors_github, BorsNG.GitHub.OAuth2,
   client_id: "III",
-  client_secret: "YYY",
-  scope: "public_repo user"
+  client_secret: "YYY"

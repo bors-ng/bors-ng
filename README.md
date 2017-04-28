@@ -184,6 +184,8 @@ The *name*, *description*, and *homepage URL* are irrelevant, though I suggest p
 
 Leave the *callback URL* blank.
 
+The *user authorization callback URL* should be at `<dashboard url>/auth/github/callback`.
+
 The *webhook URL* should be at `<dashboard page>/webhook/github`.
 
 The *webhook secret* should be a randomly generated string. The `mix phoenix.gen.secret` command will work awesomely for this.
@@ -222,13 +224,7 @@ You'll need to jot down the Integration ID (it's between the "Install" button an
 
 You'll also need to generate the private key. Save the file, because you'll need it later.
 
-## Step 2: Set up the oAuth app
-
-To authenticate access to the dashboard page, you'll also need to [set up oAuth].
-
-The only important setting is *Authorization callback URL*, which is `<dashboard url>/auth/github/callback`.
-
-## Step 3: Set up the server
+## Step 2: Set up the server
 
 bors-ng is written in the [Elixir] programming language,
 and it uses [PostgreSQL] as the backend database.
@@ -276,7 +272,7 @@ If you need more throughput than one dyno can provide, you should deploy using a
 
 Your configuration can be done by modifying `config/prod.secret.exs`.
 
-## Optional step 4: make yourself an admin
+## Optional step 3: make yourself an admin
 
 bors-ng offers a number of special functions for "administrator" users, including diagnostics and the ability to open a repo dashboard without being a reviewer.
 
