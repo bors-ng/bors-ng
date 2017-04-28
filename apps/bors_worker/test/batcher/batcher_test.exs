@@ -548,7 +548,8 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Fetch the second batch.
-    # Also, set off its timer, so that it'll start once the first one is finished.
+    # Also, set off its timer,
+    # so that it'll start once the first one is finished.
     {batch, batch2} = case Repo.all(Batch) do
       [batch1, batch2] ->
         if batch1.id == batch.id do
