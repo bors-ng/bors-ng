@@ -65,8 +65,6 @@
 
 <h2 class=header>Branches</h2>
 <%= form_for @update_branches, project_path(@conn, :update_branches, @project), [as: :project], fn f -> %>
-  <label for=master_branch>master</label>
-  <%= text_input f, :master_branch, id: "master_branch" %>
   <label for=staging_branch>staging</label>
   <%= text_input f, :staging_branch, id: "staging_branch" %>
   <label for=trying_branch>trying</label>

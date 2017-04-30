@@ -13,6 +13,7 @@ defmodule BorsNG.Database.Patch do
 
   schema "patches" do
     belongs_to :project, Project
+    field :into_branch, :string
     field :pr_xref, :integer
     field :title, :string
     field :body, :string
@@ -35,7 +36,8 @@ defmodule BorsNG.Database.Patch do
       :author_id,
       :project_id,
       :author_id,
-      :open])
+      :open,
+      :into_branch])
     |> unique_constraint(:pr_xref, name: :patches_pr_xref_index)
   end
 

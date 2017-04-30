@@ -60,7 +60,7 @@ defmodule BorsNG.Worker.Attemptor do
       nil ->
         # There is no currently running attempt
         # Start one
-        patch_id
+        patch
         |> Attempt.new()
         |> Repo.insert!()
         |> start_attempt(project, patch, arguments)
@@ -122,7 +122,7 @@ defmodule BorsNG.Worker.Attemptor do
     repo_conn = get_repo_conn(project)
     base = GitHub.get_branch!(
       repo_conn,
-      project.master_branch)
+      attempt.into_branch)
     GitHub.synthesize_commit!(
       repo_conn,
       %{

@@ -9,6 +9,7 @@ defmodule BorsNG.Database.Batch do
 
   schema "batches" do
     belongs_to :project, Project
+    field :into_branch, :string
     field :commit, :string
     field :state, :integer
     field :last_polled, :integer
@@ -16,8 +17,9 @@ defmodule BorsNG.Database.Batch do
     timestamps()
   end
 
-  def new(project_id) do
+  def new(project_id, into_branch) do
     %Batch{
+      into_branch: into_branch,
       project_id: project_id,
       commit: nil,
       state: 0,

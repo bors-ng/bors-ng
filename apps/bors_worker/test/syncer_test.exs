@@ -1,5 +1,5 @@
 defmodule BorsNG.Worker.SyncerTest do
-  use BorsNG.ConnCase
+  use BorsNG.Worker.TestCase
 
   alias BorsNG.GitHub
   alias BorsNG.Database.Repo
@@ -14,7 +14,6 @@ defmodule BorsNG.Worker.SyncerTest do
     proj = %Project{
       installation_id: inst.id,
       repo_xref: 14,
-      master_branch: "master",
       staging_branch: "staging"}
     |> Repo.insert!()
     {:ok, inst: inst, proj: proj}
@@ -56,6 +55,7 @@ defmodule BorsNG.Worker.SyncerTest do
       project_id: proj.id,
       pr_xref: 1,
       title: "Test PR",
+      into_branch: "master",
       open: false}
     Syncer.synchronize_project(proj.id)
     p1 = Repo.get_by! Patch, pr_xref: 1, project_id: proj.id
@@ -98,13 +98,19 @@ defmodule BorsNG.Worker.SyncerTest do
           }
         }
       }})
-    Repo.insert! %Patch{project_id: proj.id, pr_xref: 1, title: "Test PR"}
+    %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      title: "Test PR",
+      into_branch: "master"}
+    |> Repo.insert!()
     Syncer.synchronize_project(proj.id)
     p1 = Repo.get_by! Patch, pr_xref: 1, project_id: proj.id
     assert p1.title == "Test PR"
     refute p1.open
     p2 = Repo.get_by! Patch, pr_xref: 2, project_id: proj.id
     assert p2.title == "Test PR X"
+    assert p2.into_branch == "master"
     assert p2.open
   end
 end

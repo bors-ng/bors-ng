@@ -198,16 +198,8 @@ defmodule BorsNG.Command do
     c = c
     |> fetch_pr()
     |> fetch_patch()
-    if c.pr.base_ref == c.project.master_branch do
-      batcher = Batcher.Registry.get(c.project.id)
-      Batcher.reviewed(batcher, c.patch.id, username)
-    else
-      c.project.repo_xref
-      |> Project.installation_connection(Repo)
-      |> GitHub.post_comment!(
-        c.pr_xref,
-        ":no_good: Pull request is not against the master branch")
-    end
+    batcher = Batcher.Registry.get(c.project.id)
+    Batcher.reviewed(batcher, c.patch.id, username)
   end
   def run(c, :deactivate, _) do
     c = fetch_patch(c)

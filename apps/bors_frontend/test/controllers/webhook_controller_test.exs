@@ -28,8 +28,8 @@ defmodule BorsNG.WebhookControllerTest do
       title: "T",
       body: "B",
       pr_xref: 1,
-      project_id: project.id
-      })
+      project_id: project.id,
+      into_branch: "SOME_BRANCH"})
     body_params = %{
       "repository" => %{"id" => 13},
       "action" => "edited",
@@ -38,7 +38,7 @@ defmodule BorsNG.WebhookControllerTest do
         "title" => "U",
         "body" => "C",
         "state" => "open",
-        "base" => %{"ref" => "N"},
+        "base" => %{"ref" => "OTHER_BRANCH"},
         "head" => %{"sha" => "S"},
         "user" => %{
           "id" => 23,
@@ -50,5 +50,6 @@ defmodule BorsNG.WebhookControllerTest do
     patch2 = Repo.get!(Patch, patch.id)
     assert "U" == patch2.title
     assert "C" == patch2.body
+    assert "OTHER_BRANCH" == patch2.into_branch
   end
 end
