@@ -33,7 +33,7 @@ defmodule BorsNG.Database.Repo.Migrations.Multibranch do
         SELECT master_branch
         FROM projects
         INNER JOIN patches ON (patches.project_id = projects.id)
-        WHERE projects.id = attempts.patch_id
+        WHERE patches.id = attempts.patch_id
       )
     """
     alter table(:projects) do
