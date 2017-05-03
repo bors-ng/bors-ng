@@ -18,10 +18,6 @@ defmodule BorsNG.GitHub.OAuth2 do
     |> Keyword.merge(cfg)
   end
 
-  defp params do
-    [scope: config()[:scope]]
-  end
-
   # Public API
 
   @type t :: OAuth2.Client.t
@@ -32,7 +28,7 @@ defmodule BorsNG.GitHub.OAuth2 do
 
   @spec authorize_url!() :: binary
   def authorize_url! do
-    OAuth2.Client.authorize_url!(client(), params())
+    OAuth2.Client.authorize_url!(client(), [])
   end
 
   @spec get_token!(keyword) :: t
