@@ -1,4 +1,5 @@
 defmodule BorsNG.WebhookController do
+  require Logger
   @moduledoc """
   The webhook controller responds to HTTP requests
   that are initiated from other services (currently, just GitHub).
@@ -79,11 +80,30 @@ defmodule BorsNG.WebhookController do
   @doc """
   This action is reached via `/webhook/:provider`
   """
-  def webhook(conn, %{"provider" => "github"}) do
-    event = hd(get_req_header(conn, "x-github-event"))
-    do_webhook conn, "github", event
-    conn
-    |> send_resp(200, "")
+  def webhook(conn, %{"provider" => provider}) do
+    case provider do
+      "github" ->
+        event = hd(get_req_header(conn, "x-github-event"))
+        do_webhook conn, "github", event
+
+      "bitbucket" ->
+        event = hd(get_req_header(conn, "x-event-key"))
+        Logger.info "Event: #{event}"
+        do_bitbucket_webhook conn, event
+
+        _ ->
+          conn |> send_resp(404, "")
+    end
+
+    conn |> send_resp(200, "")
+  end
+
+  def do_bitbucket_webhook(conn, "pullrequest:comment") do
+    comment = conn.body_params["comment"]
+    Logger.info "comment: #{comment}"
+     if String.contains?(comment, "bors") do
+       Logger.info "Start command: #{comment}"
+     end
   end
 
   def do_webhook(_conn, "github", "ping") do
