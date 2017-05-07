@@ -66,7 +66,7 @@ defmodule BorsNG.Worker.SyncerTest do
     assert p2.open
   end
 
-  test "close a patche", %{proj: proj} do
+  test "close a patch", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         pulls: %{
