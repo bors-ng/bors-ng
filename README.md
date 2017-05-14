@@ -263,7 +263,7 @@ Or you can do it manually:
         GITHUB_INTEGRATION_PEM=`base64 -w0 priv.pem` \
         GITHUB_WEBHOOK_SECRET=<SECRET2>
     $ git push heroku master
-    $ heroku run web 'POOL_SIZE=1 mix ecto.setup'
+    $ heroku run 'POOL_SIZE=1 mix ecto.setup'
 
 *WARNING*: bors-ng stores some short-term state inside the `web` dyno (it uses a sleeping process to implement delays, specifically).
 It can recover the information after restarting, but it will not work correctly with Heroku's replication system.
