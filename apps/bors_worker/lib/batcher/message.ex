@@ -89,6 +89,10 @@ defmodule BorsNG.Worker.Batcher.Message do
     "bors.toml: syntax error"
   end
 
+  def generate_bors_toml_error(:empty_config) do
+    "bors.toml: does not specify anything to gate on"
+  end
+
   def generate_bors_toml_error(:fetch_failed) do
     "bors.toml: not found"
   end

@@ -36,6 +36,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             {:error, :pr_status}
           %{timeout_sec: timeout_sec} when not is_integer timeout_sec ->
             {:error, :timeout_sec}
+          %{status: [], block_labels: [], pr_status: []} ->
+            {:error, :empty_config}
           toml -> {:ok, toml}
         end
       {:error, _error} -> {:error, :parse_failed}

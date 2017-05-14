@@ -3,6 +3,20 @@ defmodule BatcherBorsTomlTest do
 
   alias BorsNG.Worker.Batcher.BorsToml
 
+  test "does not accept an empty config file" do
+    r = BorsToml.new("")
+    assert r == {:error, :empty_config}
+  end
+
+  test "accepts a config file with just labels" do
+    {:ok, toml} = BorsToml.new(~s/block_labels = ["l1"]/)
+    assert toml == %BorsToml{
+      pr_status: [],
+      status: [],
+      block_labels: ["l1"],
+      timeout_sec: 3600}
+  end
+
   test "can parse a single status code" do
     {:ok, toml} = BorsToml.new(~s/status = ["exl"]/)
     assert toml.status == ["exl"]
@@ -11,11 +25,6 @@ defmodule BatcherBorsTomlTest do
   test "can parse two status codes" do
     {:ok, toml} = BorsToml.new(~s/status = ["exl", "exm"]/)
     assert toml.status == ["exl", "exm"]
-  end
-
-  test "default to no status codes" do
-    {:ok, toml} = BorsToml.new(~s//)
-    assert toml.status == []
   end
 
   test "has a default timeout" do
