@@ -38,7 +38,11 @@ defmodule BorsNg.Mixfile do
       {:distillery, "~> 1.0", runtime: false},
       {:edeliver, "~> 1.4.0", runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
-      {:credo, "~> 0.7", only: [:dev, :test]}
+      {:credo, "~> 0.7", only: [:dev, :test]},
+      # https://github.com/certifi/erlang-certifi/pull/13
+      {:certifi,
+        git: "https://github.com/bors-ng/erlang-certifi.git",
+        override: true},
     ]
   end
 end

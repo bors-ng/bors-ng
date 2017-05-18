@@ -32,6 +32,7 @@ defmodule BorsNG.Database.Mixfile do
     [
       {:phoenix_pubsub, "~> 1.0"},
       {:postgrex, "~> 0.13.0"},
+      {:mariaex, "~> 0.8"},
       {:ecto, "~> 2.1"}
     ]
   end

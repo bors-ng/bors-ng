@@ -26,8 +26,11 @@ script:
 
 env:
   - TYPE=test
-  - TYPE=dogma
   - TYPE=dialyzer
+  - TYPE=dogma
+  - TYPE=test BORS_TEST_DATABASE=mysql
+  - TYPE=dialyzer BORS_TEST_DATABASE=mysql
+  - TYPE=dogma BORS_TEST_DATABASE=mysql
 
 matrix:
   fast_finish: true

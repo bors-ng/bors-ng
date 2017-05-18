@@ -3,24 +3,22 @@ defmodule BorsNG.Repo.Migrations.Pr do
 
   def change do
     create table(:batches) do
-      add :project, references(:projects, on_delete: :delete_all)
-      add :commit, :text
+      add :project_id, references(:projects, on_delete: :delete_all)
+      add :commit, :varchar, size: 40
       add :state, :integer
       add :last_polled, :integer
       timestamps()
     end
     create table(:patches) do
-      add :project, references(:projects, on_delete: :delete_all)
-      add :batch, references(:batches, on_delete: :nilify_all)
+      add :project_id, references(:projects, on_delete: :delete_all)
       add :pr_xref, :integer
       add :title, :text
       add :body, :text
       add :commit, :text
-      add :author, references(:users, on_delete: :nilify_all)
+      add :author_id, references(:users, on_delete: :nilify_all)
       timestamps()
     end
     create table(:statuses) do
-      add :project, references(:projects, on_delete: :delete_all)
       add :identifier, :string
       add :url, :string
       add :state, :integer

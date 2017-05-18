@@ -3,14 +3,12 @@ defmodule BorsNG.Repo.Migrations.CreateProject do
 
   def change do
     create table(:projects) do
-      add :repo_id, :integer
+      add :repo_xref, :integer
       add :type, :string
       add :name, :string
-      add :owner, references(:users, on_delete: :nothing)
 
       timestamps()
     end
-    create index(:projects, [:owner])
 
   end
 end
