@@ -3,7 +3,7 @@ defmodule BorsNG.Repo.Migrations.CreateUser do
 
   def change do
     create table(:users) do
-      add :user_id, :integer
+      add :user_xref, :integer
       add :login, :string
       add :type, :string
 

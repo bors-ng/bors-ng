@@ -3,7 +3,7 @@ defmodule BorsNG.Repo.Migrations.RemoveType do
 
   def change do
     create table(:installations) do
-      add :installation_id, :integer
+      add :installation_xref, :integer
       timestamps()
     end
     create table(:link_user_project, primary_key: false) do
@@ -15,8 +15,7 @@ defmodule BorsNG.Repo.Migrations.RemoveType do
     end
     alter table(:projects) do
       remove :type
-      remove :owner
-      add :installation, references(:installations, on_delete: :delete_all)
+      add :installation_id, references(:installations, on_delete: :delete_all)
     end
   end
 end
