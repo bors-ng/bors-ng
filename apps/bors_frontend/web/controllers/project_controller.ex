@@ -28,7 +28,9 @@ defmodule BorsNG.ProjectController do
   end
 
   defp do_action(conn, action, %{"id" => id} = params) do
-    project = Repo.get! Project, id
+    project = Project
+    |> from(preload: [:installation])
+    |> Repo.get!(id)
     unless User.has_perm(Repo, conn.assigns.user, project.id) do
       raise "Permission denied"
     end
@@ -118,10 +120,9 @@ defmodule BorsNG.ProjectController do
   end
 
   def add_reviewer(conn, project, %{"reviewer" => %{"login" => login}}) do
-    token = {:raw, get_session(conn, :github_access_token)}
     user = case Repo.get_by(User, login: login) do
       nil ->
-        token
+        {:installation, project.installation.installation_xref}
         |> GitHub.get_user_by_login!(login)
         |> case do
           nil -> nil
