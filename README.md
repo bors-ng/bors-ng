@@ -62,9 +62,9 @@ this workflow.
 
 # How it works
 
-Bors is a [GitHub integration], so (assuming you already have Travis CI set up), getting bors set up requires two steps:
+Bors is a [GitHub Application], so (assuming you already have Travis CI set up), getting bors set up requires two steps:
 
- 1. Add the integration to your repo in GitHub.
+ 1. Add the app to your repo in GitHub.
  2. Commit a bors.toml with these contents:
 
         status = ["continuous-integration/travis-ci/push"]
@@ -116,7 +116,7 @@ When a batch cannot be bisected (because it only contains one PR), it gets kicke
 
 Note that you can watch this process running on the [dashboard page] if you want.
 
-[Bors-NG]: https://github.com/integration/bors-ng
+[Bors-NG]: https://bors-ng.github.io/
 [GitHub integration]: https://github.com/settings/installations
 [Travis CI]: https://travis-ci.org/
 [dashboard page]: https://bors-app.herokuapp.com/
@@ -172,13 +172,13 @@ And it'll run with the GitHub API mocked-out.
 
 # How to set up your own real instance
 
-## Step 1: set up a GitHub integration
+## Step 1: Register a new GitHub App
 
-The first step is to [create a GitHub integration] on the GitHub web site.
+The first step is to [register a new Github App] on the GitHub web site.
 
-[create a GitHub integration]: https://github.com/settings/integrations
+[Register a new GitHub App]: https://github.com/settings/apps
 
-### Integration settings
+### App settings
 
 The *name*, *description*, and *homepage URL* are irrelevant, though I suggest pointing the homepage at the dashboard page.
 
@@ -190,7 +190,7 @@ The *webhook URL* should be at `<dashboard page>/webhook/github`.
 
 The *webhook secret* should be a randomly generated string. The `mix phoenix.gen.secret` command will work awesomely for this.
 
-### Required GitHub integration permissions
+### Required GitHub App permissions
 
 *Repository metadata*: Will be read-only. Must be set to receive *Repository* (Repository created, deleted, publicized, or privatized) events. This is needed to automatically remove entries from our database when a repo is deleted.
 
@@ -234,7 +234,7 @@ Whatever machine you plan to run it on needs to have both of those installed.
 [PostgreSQL]: https://postgresql.org/
 [docs on how to deploy phoenix apps]: http://www.phoenixframework.org/docs/deployment
 
-bors-ng is built on the Phoenix web framework, and they have [docs on how to deploy phoenix apps] already. Where you deploy will determine the what the dashboard URL will be, which is needed in the previous steps, so this decision needs to be made before you can set up the Integration or the oAuth app.
+bors-ng is built on the Phoenix web framework, and they have [docs on how to deploy phoenix apps] already. Where you deploy will determine the what the dashboard URL will be, which is needed in the previous steps, so this decision needs to be made before you can set up the Github App or the oAuth app.
 
 You'll need to edit the configuration with a few bors-specific variables.
 
