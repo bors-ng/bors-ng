@@ -28,13 +28,15 @@ defmodule BorsNG.ProjectController do
   end
 
   defp do_action(conn, action, %{"id" => id} = params) do
+    allow_private_repos = Application.get_env(
+      :bors_frontend, BorsNG)[:allow_private_repos]
     project = Project
     |> from(preload: [:installation])
     |> Repo.get!(id)
-    mode = if User.has_perm(Repo, conn.assigns.user, project.id) do
-      :rw
-    else
-      :ro
+    mode = cond do
+      User.has_perm(Repo, conn.assigns.user, project.id) -> :rw
+      !allow_private_repos -> :ro
+      true -> raise RuntimeError, "Permission denied"
     end
     apply(__MODULE__, action, [conn, mode, project, params])
   end
