@@ -14,13 +14,16 @@
 
 <div class=tabs role=tabs>
   <span class="tab tab--active">Pull requests</span>
+  <%= if @mode == :rw do %>
   <%= link "Settings", to: project_path(@conn, :settings, @project), class: "tab" %>
+  <% end %>
 </div>
 
 </nav>
 
 <main role=main><div class=wrapper>
 
+<%= if @mode == :rw do %>
 <div class=toolbar aria-role=toolbar>
 <%= if @batches != [] do %>
   <%= link "Cancel all", to: project_path(@conn, :cancel_all, @project), method: :delete, class: "toolbar-item toolbar-item--remove", data: [confirm: "Commenting `bors r-` on a PR will cancel just the one. You asked to cancel all of them, which is a PITA to undo.\n\nAre you sure you want to cancel all running and waiting pull requests?"] %>
@@ -31,6 +34,7 @@
   <%= link "Sync pull requests", to: project_path(@conn, :synchronize, @project), method: :put, class: "toolbar-item" %>
 <% end %>
 </div>
+<% end %>
 
 <%= if not is_nil get_flash(@conn, :ok) do %>
 <div role="alert" class="alert alert--ok">
