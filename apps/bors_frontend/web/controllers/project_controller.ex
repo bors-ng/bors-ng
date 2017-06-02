@@ -31,10 +31,12 @@ defmodule BorsNG.ProjectController do
     project = Project
     |> from(preload: [:installation])
     |> Repo.get!(id)
-    unless User.has_perm(Repo, conn.assigns.user, project.id) do
-      raise "Permission denied"
+    mode = if User.has_perm(Repo, conn.assigns.user, project.id) do
+      :rw
+    else
+      :ro
     end
-    apply(__MODULE__, action, [conn, project, params])
+    apply(__MODULE__, action, [conn, mode, project, params])
   end
   defp do_action(conn, action, params) do
     apply(__MODULE__, action, [conn, params])
@@ -56,7 +58,7 @@ defmodule BorsNG.ProjectController do
       state: batch.state}
   end
 
-  def show(conn, project, _params) do
+  def show(conn, mode, project, _params) do
     batches = project.id
     |> Batch.all_for_project(:incomplete)
     |> Repo.all()
@@ -71,10 +73,12 @@ defmodule BorsNG.ProjectController do
       project: project,
       batches: batches,
       is_synchronizing: is_synchronizing,
-      unbatched_patches: unbatched_patches
+      unbatched_patches: unbatched_patches,
+      mode: mode
   end
 
-  def settings(conn, project, _params) do
+  def settings(_, :ro, _, _), do: raise RuntimeError, "Permission denied"
+  def settings(conn, :rw, project, _params) do
     reviewers = Repo.all(User.by_project(project.id))
     render conn, "settings.html",
       project: project,
@@ -83,7 +87,8 @@ defmodule BorsNG.ProjectController do
       update_branches: Project.changeset_branches(project)
   end
 
-  def cancel_all(conn, project, _params) do
+  def cancel_all(_, :ro, _, _), do: raise RuntimeError, "Permission denied"
+  def cancel_all(conn, :rw, project, _params) do
     project.id
     |> Batcher.Registry.get()
     |> Batcher.cancel_all()
@@ -92,7 +97,8 @@ defmodule BorsNG.ProjectController do
     |> redirect(to: project_path(conn, :show, project))
   end
 
-  def update_branches(conn, project, %{"project" => pdef}) do
+  def update_branches(_, :ro, _, _), do: raise RuntimeError, "Permission denied"
+  def update_branches(conn, :rw, project, %{"project" => pdef}) do
     result = project
     |> Project.changeset_branches(pdef)
     |> Repo.update()
@@ -113,13 +119,13 @@ defmodule BorsNG.ProjectController do
     end
   end
 
-  def add_reviewer(conn, project, %{"reviewer" => %{"login" => ""}}) do
+  def add_reviewer(_, :ro, _, _), do: raise RuntimeError, "Permission denied"
+  def add_reviewer(conn, :rw, project, %{"reviewer" => %{"login" => ""}}) do
     conn
     |> put_flash(:error, "Please enter a GitHub user's nickname")
     |> redirect(to: project_path(conn, :settings, project))
   end
-
-  def add_reviewer(conn, project, %{"reviewer" => %{"login" => login}}) do
+  def add_reviewer(conn, :rw, project, %{"reviewer" => %{"login" => login}}) do
     user = case Repo.get_by(User, login: login) do
       nil ->
         {:installation, project.installation.installation_xref}
@@ -153,7 +159,8 @@ defmodule BorsNG.ProjectController do
     |> redirect(to: project_path(conn, :settings, project))
   end
 
-  def remove_reviewer(conn, project, %{"user_id" => user_id}) do
+  def remove_reviewer(_, :ro, _, _), do: raise RuntimeError, "Permission denied"
+  def remove_reviewer(conn, :rw, project, %{"user_id" => user_id}) do
     link = Repo.get_by!(
       LinkUserProject,
       project_id: project.id,
@@ -164,7 +171,8 @@ defmodule BorsNG.ProjectController do
     |> redirect(to: project_path(conn, :settings, project))
   end
 
-  def synchronize(conn, project, _params) do
+  def synchronize(_, :ro, _, _), do: raise RuntimeError, "Permission denied"
+  def synchronize(conn, :rw, project, _params) do
     Syncer.start_synchronize_project(project.id)
     conn
     |> put_flash(:ok, "Started synchronizing")
