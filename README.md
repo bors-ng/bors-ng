@@ -117,7 +117,7 @@ When a batch cannot be bisected (because it only contains one PR), it gets kicke
 Note that you can watch this process running on the [dashboard page] if you want.
 
 [Bors-NG]: https://bors-ng.github.io/
-[GitHub integration]: https://github.com/settings/installations
+[GitHub Application]: https://github.com/settings/installations
 [Travis CI]: https://travis-ci.org/
 [dashboard page]: https://bors-app.herokuapp.com/
 
