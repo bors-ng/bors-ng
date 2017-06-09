@@ -38,6 +38,11 @@ defmodule BatcherBorsTomlTest do
     assert toml.timeout_sec == 1
   end
 
+  test "defaults cut_body_after to nil" do
+    {:ok, toml} = BorsToml.new(~s/status = ["exl"]/)
+    assert is_nil toml.cut_body_after
+  end
+
   test "recognizes a parse failure" do
     r = BorsToml.new(~s/status = "/)
     assert r == {:error, :parse_failed}
@@ -51,5 +56,10 @@ defmodule BatcherBorsTomlTest do
   test "recognizes an invalid status" do
     r = BorsToml.new(~s/status = "exl"/)
     assert r == {:error, :status}
+  end
+
+  test "recognizes an invalid cut_body_after" do
+    r = BorsToml.new(~s/cut_body_after = 13/)
+    assert r == {:error, :cut_body_after}
   end
 end

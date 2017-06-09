@@ -245,17 +245,29 @@ defmodule BorsNG.Worker.Batcher do
 
   defp start_waiting_merged_batch(batch, patch_links, base, %{tree: tree}) do
     repo_conn = get_repo_conn(batch.project)
-    parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
-    commit_message = Batcher.Message.generate_commit_message(patch_links)
-    head = GitHub.synthesize_commit!(
-      repo_conn,
-      %{
-        branch: batch.project.staging_branch,
-        tree: tree,
-        parents: parents,
-        commit_message: commit_message})
     patches = Enum.map(patch_links, &(&1.patch))
-    {setup_statuses(repo_conn, batch, patches), head}
+    repo_conn
+    |> Batcher.GetBorsToml.get("#{batch.project.staging_branch}.tmp")
+    |> case do
+      {:ok, toml} ->
+        parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
+        commit_message = Batcher.Message.generate_commit_message(
+          patch_links,
+          toml.cut_body_after)
+        head = GitHub.synthesize_commit!(
+          repo_conn,
+          %{
+            branch: batch.project.staging_branch,
+            tree: tree,
+            parents: parents,
+            commit_message: commit_message})
+        setup_statuses(batch, toml)
+        {:running, head}
+      {:error, message} ->
+        message = Batcher.Message.generate_bors_toml_error(message)
+        send_message(repo_conn, patches, {:config, message})
+        {:error, nil}
+    end
   end
 
   defp start_waiting_merged_batch(batch, patch_links, _base, :conflict) do
@@ -266,40 +278,18 @@ defmodule BorsNG.Worker.Batcher do
     {:conflict, nil}
   end
 
-  defp setup_statuses(repo_conn, batch, patches) do
-    toml = Batcher.GetBorsToml.get(
-      repo_conn,
-      batch.project.staging_branch)
-    case toml do
-      {:ok, toml} ->
-        toml.status
-        |> Enum.map(&%Status{
-            batch_id: batch.id,
-            identifier: &1,
-            url: nil,
-            state: Status.numberize_state(:running)})
-        |> Enum.each(&Repo.insert!/1)
-        now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-        batch
-        |> Batch.changeset(%{timeout_at: now + toml.timeout_sec})
-        |> Repo.update!()
-        :running
-      {:error, message} ->
-        setup_statuses_error(repo_conn,
-          batch,
-          patches,
-          message)
-        :error
-    end
-  end
-
-  defp setup_statuses_error(repo_conn, batch, patches, message) do
-    message = Batcher.Message.generate_bors_toml_error(message)
-    err = Batch.numberize_state(:error)
+  defp setup_statuses(batch, toml) do
+    toml.status
+    |> Enum.map(&%Status{
+        batch_id: batch.id,
+        identifier: &1,
+        url: nil,
+        state: Status.numberize_state(:running)})
+    |> Enum.each(&Repo.insert!/1)
+    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     batch
-    |> Batch.changeset(%{state: err})
+    |> Batch.changeset(%{timeout_at: now + toml.timeout_sec})
     |> Repo.update!()
-    send_message(repo_conn, patches, {:config, message})
   end
 
   defp poll_running_batch(batch) do

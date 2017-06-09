@@ -282,7 +282,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini",
-          "staging" => "iniN"},
+          "staging" => ""},
         comments: %{1 => ["# Configuration problem\nbors.toml: not found"]},
         statuses: %{"N" => %{"bors" => :error}},
         files: %{}
@@ -296,7 +296,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -310,7 +310,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
@@ -333,7 +333,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "staging" => "iniN"},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Polling again should change nothing.
     Batcher.handle_info({:poll, :once}, proj.id)
@@ -353,7 +353,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "staging" => "iniN"},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Mark the CI as having finished.
     # At this point, just running should still do nothing.
@@ -366,7 +366,7 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{
           "iniN" => %{"ci" => :ok},
           "N" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
@@ -380,7 +380,7 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{
           "iniN" => %{"ci" => :ok},
           "N" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Finally, an actual poll should finish it.
     batch
@@ -398,7 +398,7 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{
           "iniN" => %{"bors" => :ok, "ci" => :ok},
           "N" => %{"bors" => :ok}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
   end
 
@@ -409,7 +409,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
         comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -429,7 +429,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == 0
@@ -448,7 +448,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "staging" => "iniN"},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Submit the second one.
     Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
@@ -461,7 +461,7 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Push the second one's timer, so it'll start now.
     {batch, batch2} = case Repo.all(Batch) do
@@ -489,7 +489,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniN" => %{"bors" => :ok},
           "N" => %{"bors" => :ok},
           "O" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
   end
 
@@ -500,7 +500,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
         comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -523,7 +523,7 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id, into_branch: "master"
     assert batch.state == 0
@@ -545,7 +545,7 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Fetch the second batch.
     # Also, set off its timer,
@@ -576,7 +576,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniN" => %{"bors" => :ok},
           "N" => %{"bors" => :ok},
           "O" => %{"bors" => :running}},
-        files: %{"staging" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
   end
 
@@ -586,7 +586,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"staging" => %{".travis.yml" => ""}}
+        files: %{"staging.tmp" => %{".travis.yml" => ""}}
       }})
     patch = %Patch{
       project_id: proj.id,

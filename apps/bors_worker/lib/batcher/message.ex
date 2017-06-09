@@ -71,18 +71,27 @@ defmodule BorsNG.Worker.Batcher.Message do
     "#{acc}\n  * #{status_link}"
   end
 
-  def generate_commit_message(patch_links) do
+  def generate_commit_message(patch_links, cut_body_after) do
     patch_links = Enum.sort_by(patch_links, &(&1.patch.pr_xref))
     commit_title = Enum.reduce(patch_links,
       "Merge", &"#{&2} \##{&1.patch.pr_xref}")
     commit_body = Enum.reduce(patch_links, "", fn link, acc ->
+      body = cut_body(link.patch.body, cut_body_after)
       """
       #{acc}
       #{link.patch.pr_xref}: #{link.patch.title} r=#{link.reviewer}
-      #{link.patch.body}
+
+      #{body}
       """
     end)
     "#{commit_title}\n#{commit_body}"
+  end
+
+  def cut_body(body, nil), do: body
+  def cut_body(body, cut) do
+    body
+    |> String.splitter(cut)
+    |> Enum.at(0)
   end
 
   def generate_bors_toml_error(:parse_failed) do
