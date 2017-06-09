@@ -34,7 +34,9 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
   def new(str) when is_binary(str) do
     case :etoml.parse(str) do
       {:ok, toml} ->
-        toml = Map.new(toml)
+        toml = toml
+        |> Enum.map(fn {key, val} -> {String.replace(key, "-", "_"), val} end)
+        |> Map.new()
         toml = %BorsNG.Worker.Batcher.BorsToml{
           status: Map.get(toml, "status", []),
           block_labels: Map.get(toml, "block_labels", []),

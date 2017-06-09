@@ -38,6 +38,12 @@ defmodule BatcherBorsTomlTest do
     assert toml.timeout_sec == 1
   end
 
+  test "can parse a custom timeout with hyphen" do
+    {:ok, toml} = BorsToml.new(
+      ~s/status = ["exl"]\ntimeout-sec = 2/)
+    assert toml.timeout_sec == 2
+  end
+
   test "defaults cut_body_after to nil" do
     {:ok, toml} = BorsToml.new(~s/status = ["exl"]/)
     assert is_nil toml.cut_body_after
