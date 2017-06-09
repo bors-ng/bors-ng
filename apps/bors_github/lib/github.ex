@@ -62,7 +62,7 @@ defmodule BorsNG.GitHub do
     from: bitstring,
     to: bitstring,
     commit_message: bitstring,
-    }) :: %{commit: bitstring, tree: binary} | :conflict
+    }) :: %{commit: binary, tree: binary} | :conflict
   def merge_branch!(repo_conn, info) do
     {:ok, commit} = GenServer.call(
       BorsNG.GitHub,

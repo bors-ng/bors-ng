@@ -10,7 +10,7 @@ defmodule BorsNG.Worker.Batcher.GetBorsToml do
 
   @type terror :: :fetch_failed | :parse_failed | :status | :timeout_sec
 
-  @spec get(GitHub.tconn, bitstring) :: {:ok, BorsToml.t} | {:error, terror}
+  @spec get(GitHub.tconn, binary) :: {:ok, BorsToml.t} | {:error, terror}
   def get(repo_conn, branch) do
     toml = GitHub.get_file!(repo_conn, branch, "bors.toml")
     case toml do
