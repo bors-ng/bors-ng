@@ -28,6 +28,8 @@ defmodule BorsNG.Command do
   alias BorsNG.GitHub
   alias BorsNG.Worker.Syncer
 
+  import BorsNG.Router.Helpers
+
   defstruct(
     project: nil,
     commenter: nil,
@@ -185,11 +187,21 @@ defmodule BorsNG.Command do
   end
   @spec run(t, cmd, term | nil) :: :ok
   def run(c, _, nil) do
+    login = c.commenter.login
+    url = project_url(
+      BorsNG.Endpoint,
+      :confirm_add_reviewer,
+      c.project,
+      login)
     c.project.repo_xref
     |> Project.installation_connection(Repo)
     |> GitHub.post_comment!(
       c.pr_xref,
-      ":lock: Permission denied")
+      """
+      :lock: Permission denied.
+
+      Existing reviewers: [click here to make #{login} a reviewer](#{url}).
+      """)
   end
   def run(c, :activate, link) do
     run(c, {:activate_by, c.commenter.login}, link)

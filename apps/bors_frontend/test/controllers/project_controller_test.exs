@@ -80,7 +80,7 @@ defmodule BorsNG.ProjectControllerTest do
 
   test "do not show an unlinked project", %{conn: conn, project: project} do
     conn = login conn
-    assert_raise RuntimeError, ~r/Permission denied/, fn ->
+    assert_raise BorsNG.PermissionDeniedError, fn ->
      get conn, project_path(conn, :settings, project)
    end
   end
