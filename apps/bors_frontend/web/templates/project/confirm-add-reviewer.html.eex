@@ -1,0 +1,44 @@
+<nav>
+
+<div class=wrapper>
+  <a href="<%= project_path(@conn, :index) %>">
+    Repositories
+  </a>
+  ›
+  <a href="https://github.com/<%= @project.name %>/">
+    <%= @project.name %>
+  </a>
+  ›
+  <a href="<%= project_path(@conn, :settings, @project) %>">
+    Settings
+  </a>
+  <h1>
+  Add reviewer
+  </h1>
+</div>
+
+</nav>
+
+<main role=main><div class=wrapper>
+
+<%= if not is_nil get_flash(@conn, :ok) do %>
+<div role="alert" class="alert alert--ok">
+<%= get_flash(@conn, :ok) %>
+</div>
+<% end %>
+
+<%= if not is_nil get_flash(@conn, :error) do %>
+<div role="alert" class="alert alert--error">
+<%= get_flash(@conn, :error) %>
+</div>
+<% end %>
+
+<h2 class=header><%= @login %></h2>
+
+<%= form_for @conn, project_path(@conn, :add_reviewer, @project.id), [as: :reviewer, class: "toolbar"], fn f -> %>
+<%= hidden_input f, :login, value: @login %>
+<%= submit "OK", class: "toolbar-item toolbar-item--add" %>
+<%= link "Cancel", to: project_path(@conn, :settings, @project), class: "toolbar-item toolbar-item--remove" %>
+<% end %>
+
+</div></main>

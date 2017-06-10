@@ -161,6 +161,14 @@ defmodule BorsNG.ProjectController do
     |> redirect(to: project_path(conn, :settings, project))
   end
 
+  def confirm_add_reviewer(_, :ro, _, _), do: raise RuntimeError, "Permission denied"
+  def confirm_add_reviewer(conn, :rw, project, %{"login" => login}) do
+    render conn, "confirm-add-reviewer.html",
+      project: project,
+      current_user_id: conn.assigns.user.id,
+      login: login
+  end
+
   def remove_reviewer(_, :ro, _, _), do: raise RuntimeError, "Permission denied"
   def remove_reviewer(conn, :rw, project, %{"user_id" => user_id}) do
     link = Repo.get_by!(
