@@ -9,11 +9,8 @@ config :bors_frontend, ecto_repos: []
 
 # General application configuration
 config :bors_frontend, BorsNG,
-  activation_phrase: "bors r+",
-  activation_by_phrase: "bors r=",
-  deactivation_phrase: "bors r-",
+  command_trigger: "bors ",
   home_url: "https://bors-ng.github.io/",
-  try_phrase: "bors try",
   github_integration_url:
     "https://github.com/integrations/bors/installations/new",
   allow_private_repos: System.get_env("ALLOW_PRIVATE_REPOS") == "true"

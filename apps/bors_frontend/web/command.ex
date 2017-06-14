@@ -38,14 +38,8 @@ defmodule BorsNG.Command do
     patch: nil,
     comment: "")
 
-  @activation_phrase(
-    Application.get_env(:bors_frontend, BorsNG)[:activation_phrase])
-  @activation_by_phrase(
-    Application.get_env(:bors_frontend, BorsNG)[:activation_by_phrase])
-  @deactivation_phrase(
-    Application.get_env(:bors_frontend, BorsNG)[:deactivation_phrase])
-  @try_phrase(
-    Application.get_env(:bors_frontend, BorsNG)[:try_phrase])
+  @command_trigger(
+    Application.get_env(:bors_frontend, BorsNG)[:command_trigger])
 
   @type t :: %BorsNG.Command{
     project: Project.t,
@@ -96,39 +90,37 @@ defmodule BorsNG.Command do
     {:activate_by, binary} |
     :activate |
     :deactivate |
-    :nomatch
+    {:autocorrect, binary}
 
   @doc """
   Parse a comment for bors commands.
   """
-  @spec parse(binary | nil) :: cmd
-  def parse(@try_phrase <> arguments) do
-    {:try, arguments}
-  end
-  def parse(@activation_phrase <> _) do
-    :activate
-  end
-  def parse(@activation_by_phrase <> arguments) do
-    arguments = parse_activation_args("", arguments)
-    case arguments do
-      "" -> :nomatch
-      arguments -> {:activate_by, arguments}
-    end
-  end
-  def parse(@deactivation_phrase <> _) do
-    :deactivate
-  end
-  def parse(<<_, rest :: binary>>) do
-    parse(rest)
-  end
-  def parse(<<>>) do
-    :nomatch
-  end
+  @spec parse(nil) :: []
   def parse(nil) do
-    :nomatch
+    []
+  end
+  @spec parse(binary) :: [cmd]
+  def parse(comment) do
+    comment
+    |> String.splitter("\n")
+    |> Enum.flat_map(fn
+      @command_trigger <> cmd ->
+        cmd
+        |> String.trim()
+        |> parse_cmd()
+      _ -> []
+    end)
   end
 
-  @doc ~S{
+  def parse_cmd("try" <> arguments), do: [{:try, arguments}]
+  def parse_cmd("r+" <> _), do: [:activate]
+  def parse_cmd("r-" <> _), do: [:deactivate]
+  def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
+  def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}, :activate]
+  def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}, :deactivate]
+  def parse_cmd(_), do: []
+
+  @doc ~S"""
   The username part of an activation-by command is defined like this:
 
     * It may start with whitespace
@@ -145,7 +137,15 @@ defmodule BorsNG.Command do
       "trimmed"
       iex> Command.parse_activation_args("", "what\never")
       "what"
-  }
+      iex> Command.parse_activation_args("", "")
+      ""
+      iex> Command.parse_activation_args("somebody")
+      [{:activate_by, "somebody"}]
+      iex> Command.parse_activation_args("")
+      []
+      iex> Command.parse_activation_args("  ")
+      []
+  """
   def parse_activation_args("", " " <> rest) do
     parse_activation_args("", rest)
   end
@@ -167,18 +167,24 @@ defmodule BorsNG.Command do
   def parse_activation_args(args, <<c :: 8, rest :: binary>>) do
     parse_activation_args(<<args :: binary, c :: 8>>, rest)
   end
+  def parse_activation_args(arguments) do
+    arguments = parse_activation_args("", arguments)
+    case arguments do
+      "" -> []
+      arguments -> [{:activate_by, arguments}]
+    end
+  end
 
   @doc """
   Given a populated struct, run everything.
   """
   @spec run(t) :: :ok
   def run(c) do
-    run(c, parse(c.comment))
+    c.comment
+    |> parse()
+    |> Enum.each(&run(c, &1))
   end
   @spec run(t, cmd) :: :ok
-  def run(_, :nomatch) do
-    :ok
-  end
   def run(c, cmd) do
     link = Repo.get_by(LinkUserProject,
       project_id: c.project.id,
@@ -222,5 +228,11 @@ defmodule BorsNG.Command do
     c = fetch_patch(c)
     attemptor = Attemptor.Registry.get(c.project.id)
     Attemptor.tried(attemptor, c.patch.id, arguments)
+  end
+  def run(c, {:autocorrect, command}, _) do
+    c.project.repo_xref
+    |> Project.installation_connection(Repo)
+    |> GitHub.post_comment!(
+      c.pr_xref, ~s/Auto-corrected to "#{command}"/)
   end
 end
