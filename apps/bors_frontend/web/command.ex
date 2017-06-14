@@ -116,8 +116,8 @@ defmodule BorsNG.Command do
   def parse_cmd("r+" <> _), do: [:activate]
   def parse_cmd("r-" <> _), do: [:deactivate]
   def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
-  def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}, :activate]
-  def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}, :deactivate]
+  def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
+  def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
   def parse_cmd(_), do: []
 
   @doc ~S"""
@@ -233,6 +233,6 @@ defmodule BorsNG.Command do
     c.project.repo_xref
     |> Project.installation_connection(Repo)
     |> GitHub.post_comment!(
-      c.pr_xref, ~s/Auto-corrected to "#{command}"/)
+      c.pr_xref, ~s/Did you mean "#{command}"?/)
   end
 end
