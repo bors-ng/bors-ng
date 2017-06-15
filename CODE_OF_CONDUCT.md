@@ -62,6 +62,8 @@ A BORS-NG PROJECT SPACE. The public instance is governed by the
 Different open source projects will have their own governance, and their queue
 is their space.
 
+[bors.io terms of service]: https://bors.io/tos/
+
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
