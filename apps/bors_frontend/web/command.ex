@@ -20,7 +20,7 @@ defmodule BorsNG.Command do
   alias BorsNG.Worker.Attemptor
   alias BorsNG.Worker.Batcher
   alias BorsNG.Command
-  alias BorsNG.Database.LinkUserProject
+  alias BorsNG.Database.Context.Permission
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
@@ -180,19 +180,19 @@ defmodule BorsNG.Command do
   """
   @spec run(t) :: :ok
   def run(c) do
-    c.comment
-    |> parse()
-    |> Enum.each(&run(c, &1))
+    c = c
+    |> fetch_pr()
+    |> fetch_patch()
+    if Permission.user_has_permission_to_approve_patch(c.commenter, c.patch) do
+      c.comment
+      |> parse()
+      |> Enum.each(&run(c, &1))
+    else
+      permission_denied(c)
+    end
   end
   @spec run(t, cmd) :: :ok
-  def run(c, cmd) do
-    link = Repo.get_by(LinkUserProject,
-      project_id: c.project.id,
-      user_id: c.commenter.id)
-    run(c, cmd, link)
-  end
-  @spec run(t, cmd, term | nil) :: :ok
-  def run(c, _, nil) do
+  def permission_denied(c) do
     login = c.commenter.login
     url = project_url(
       BorsNG.Endpoint,
@@ -209,27 +209,24 @@ defmodule BorsNG.Command do
       Existing reviewers: [click here to make #{login} a reviewer](#{url}).
       """)
   end
-  def run(c, :activate, link) do
-    run(c, {:activate_by, c.commenter.login}, link)
+  def run(c, :activate) do
+    run(c, {:activate_by, c.commenter.login})
   end
-  def run(c, {:activate_by, username}, _) do
-    c = c
-    |> fetch_pr()
-    |> fetch_patch()
+  def run(c, {:activate_by, username}) do
     batcher = Batcher.Registry.get(c.project.id)
     Batcher.reviewed(batcher, c.patch.id, username)
   end
-  def run(c, :deactivate, _) do
+  def run(c, :deactivate) do
     c = fetch_patch(c)
     batcher = Batcher.Registry.get(c.project.id)
     Batcher.cancel(batcher, c.patch.id)
   end
-  def run(c, {:try, arguments}, _) do
+  def run(c, {:try, arguments}) do
     c = fetch_patch(c)
     attemptor = Attemptor.Registry.get(c.project.id)
     Attemptor.tried(attemptor, c.patch.id, arguments)
   end
-  def run(c, {:autocorrect, command}, _) do
+  def run(c, {:autocorrect, command}) do
     c.project.repo_xref
     |> Project.installation_connection(Repo)
     |> GitHub.post_comment!(
