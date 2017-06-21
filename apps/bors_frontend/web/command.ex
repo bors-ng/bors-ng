@@ -90,6 +90,8 @@ defmodule BorsNG.Command do
     {:activate_by, binary} |
     :activate |
     :deactivate |
+    :delegate |
+    {:delegate_to, binary} |
     {:autocorrect, binary}
 
   @doc """
@@ -116,6 +118,8 @@ defmodule BorsNG.Command do
   def parse_cmd("r+" <> _), do: [:activate]
   def parse_cmd("r-" <> _), do: [:deactivate]
   def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
+  def parse_cmd("delegate+" <> _), do: [:delegate]
+  def parse_cmd("delegate=" <> arguments), do: parse_delegation_args(arguments)
   def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
   def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
   def parse_cmd(_), do: []
@@ -175,6 +179,68 @@ defmodule BorsNG.Command do
     end
   end
 
+  @doc ~S"""
+  The username part of a delegate-to command is defined like this:
+
+    * It may start with whitespace
+    * @-signs are stripped
+    * ", " is converted to ","
+    * Otherwise, whitespace ends it.
+    * It's split on comma.
+
+      iex> alias BorsNG.Command
+      iex> Command.parse_delegation_args(" this, is, whitespace heavy")
+      [
+        {:delegate_to, "this"},
+        {:delegate_to, "is"},
+        {:delegate_to, "whitespace"}]
+      iex> Command.parse_delegation_args(" @this, @has, @ats")
+      [{:delegate_to, "this"}, {:delegate_to, "has"}, {:delegate_to, "ats"}]
+      iex> Command.parse_delegation_args(" trimmed ")
+      [{:delegate_to, "trimmed"}]
+      iex> Command.parse_delegation_args("what\never")
+      [{:delegate_to, "what"}]
+      iex> Command.parse_delegation_args("somebody")
+      [{:delegate_to, "somebody"}]
+      iex> Command.parse_delegation_args("")
+      []
+      iex> Command.parse_delegation_args("  ")
+      []
+  """
+  def parse_delegation_args([], "", " " <> rest) do
+    parse_delegation_args([], "", rest)
+  end
+  def parse_delegation_args(l, nick, "@" <> rest) do
+    parse_delegation_args(l, nick, rest)
+  end
+  def parse_delegation_args(l, nick, ", " <> rest) do
+    parse_delegation_args([nick | l], "", rest)
+  end
+  def parse_delegation_args(l, nick, "," <> rest) do
+    parse_delegation_args([nick | l], "", rest)
+  end
+  def parse_delegation_args(l, nick, "\n" <> _) do
+    [nick | l]
+  end
+  def parse_delegation_args(l, nick, "") do
+    [nick | l]
+  end
+  def parse_delegation_args(l, nick, " " <> _) do
+    [nick | l]
+  end
+  def parse_delegation_args(l, nick, <<c :: 8, rest :: binary>>) do
+    parse_delegation_args(l, <<nick :: binary, c :: 8>>, rest)
+  end
+  def parse_delegation_args(arguments) do
+    []
+    |> parse_delegation_args("", arguments)
+    |> :lists.reverse()
+    |> Enum.flat_map(fn
+      "" -> []
+      nick -> [{:delegate_to, nick}]
+    end)
+  end
+
   @doc """
   Given a populated struct, run everything.
   """
@@ -183,12 +249,14 @@ defmodule BorsNG.Command do
     c = c
     |> fetch_pr()
     |> fetch_patch()
-    if Permission.user_has_permission_to_approve_patch(c.commenter, c.patch) do
-      c.comment
-      |> parse()
-      |> Enum.each(&run(c, &1))
-    else
-      permission_denied(c)
+    cmd_list = parse(c.comment)
+    cond do
+      cmd_list == [] ->
+        :ok
+      Permission.user_has_permission_to_approve_patch(c.commenter, c.patch) ->
+        Enum.each(cmd_list, &run(c, &1))
+      true ->
+        permission_denied(c)
     end
   end
   @spec run(t, cmd) :: :ok
@@ -204,9 +272,9 @@ defmodule BorsNG.Command do
     |> GitHub.post_comment!(
       c.pr_xref,
       """
-      :lock: Permission denied.
+      :lock: Permission denied
 
-      Existing reviewers: [click here to make #{login} a reviewer](#{url}).
+      Existing reviewers: [click here to make #{login} a reviewer](#{url})
       """)
   end
   def run(c, :activate) do
@@ -231,5 +299,28 @@ defmodule BorsNG.Command do
     |> Project.installation_connection(Repo)
     |> GitHub.post_comment!(
       c.pr_xref, ~s/Did you mean "#{command}"?/)
+  end
+  def run(c, :delegate) do
+    delegate_to(c, c.patch.author)
+  end
+  def run(c, {:delegate_to, login}) do
+    delegatee = case Repo.get_by(User, login: login) do
+      nil ->
+        gh_user = GitHub.get_user_by_login!(
+          {:installation, c.project.installation.installation_xref},
+          login)
+        Repo.insert!(%User{
+          login: gh_user.login,
+          user_xref: gh_user.id})
+      user -> user
+    end
+    delegate_to(c, delegatee)
+  end
+  def delegate_to(c, delegatee) do
+    Permission.delegate(delegatee, c.patch)
+    c.project.repo_xref
+    |> Project.installation_connection(Repo)
+    |> GitHub.post_comment!(
+      c.pr_xref, ~s/:v: #{delegatee.login} can now approve this pull request/)
   end
 end

@@ -19,4 +19,10 @@ defmodule BorsNG.Database.Context.Permission do
     |> Repo.one()
     (not is_nil linked) or (not is_nil delegated)
   end
+
+  def delegate(user, patch) do
+    Repo.insert!(%UserPatchDelegation{
+      user: user,
+      patch: patch})
+  end
 end
