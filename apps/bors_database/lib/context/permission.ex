@@ -15,7 +15,7 @@ defmodule BorsNG.Database.Context.Permission do
       patch_delegated_reviewer?(user_id, patch_id)
   end
 
-  def project_reviewer?(user_id, project_id) do
+  defp project_reviewer?(user_id, project_id) do
     LinkUserProject
     |> where([l], l.user_id == ^user_id and l.project_id == ^project_id)
     |> Repo.one()
@@ -24,7 +24,7 @@ defmodule BorsNG.Database.Context.Permission do
     |> Kernel.not()
   end
 
-  def patch_delegated_reviewer?(user_id, patch_id) do
+  defp patch_delegated_reviewer?(user_id, patch_id) do
     UserPatchDelegation
     |> where([d], d.user_id == ^user_id and d.patch_id == ^patch_id)
     |> Repo.one()
