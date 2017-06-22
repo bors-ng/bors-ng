@@ -1,4 +1,4 @@
-defmodule BorsNG.Database.Model do
+defmodule BorsNG.Database.Context do
   @moduledoc """
   A module that keeps using definitions for models.
 
@@ -14,8 +14,6 @@ defmodule BorsNG.Database.Model do
   """
   defmacro __using__(_) do
     quote do
-      use Ecto.Schema
-
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
@@ -29,6 +27,7 @@ defmodule BorsNG.Database.Model do
       alias BorsNG.Database.LinkUserProject
       alias BorsNG.Database.Patch
       alias BorsNG.Database.Project
+      alias BorsNG.Database.Repo
       alias BorsNG.Database.Status
       alias BorsNG.Database.User
       alias BorsNG.Database.UserPatchDelegation
