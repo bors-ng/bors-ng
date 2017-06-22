@@ -253,7 +253,7 @@ defmodule BorsNG.Command do
     cond do
       cmd_list == [] ->
         :ok
-      Permission.user_has_permission_to_approve_patch(c.commenter, c.patch) ->
+      Permission.permission_to_approve_patch?(c.commenter, c.patch) ->
         Enum.each(cmd_list, &run(c, &1))
       true ->
         permission_denied(c)

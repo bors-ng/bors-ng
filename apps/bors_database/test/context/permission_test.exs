@@ -29,18 +29,18 @@ defmodule BorsNG.Database.Context.PermissionTest do
 
   test "user does not have permission by default", params do
     %{patch: patch, user: user} = params
-    refute Permission.user_has_permission_to_approve_patch(user, patch)
+    refute Permission.permission_to_approve_patch?(user, patch)
   end
 
   test "reviewers have permission", params do
     %{project: project, patch: patch, user: user} = params
     Repo.insert!(%LinkUserProject{user: user, project: project})
-    assert Permission.user_has_permission_to_approve_patch(user, patch)
+    assert Permission.permission_to_approve_patch?(user, patch)
   end
 
   test "delegated users have permission", params do
     %{patch: patch, user: user} = params
     Repo.insert!(%UserPatchDelegation{user: user, patch: patch})
-    assert Permission.user_has_permission_to_approve_patch(user, patch)
+    assert Permission.permission_to_approve_patch?(user, patch)
   end
 end
