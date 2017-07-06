@@ -605,4 +605,30 @@ defmodule BorsNG.Worker.BatcherTest do
     [status] = Repo.all(Status)
     assert status.identifier == "continuous-integration/travis-ci/push"
   end
+
+  test "infer from .github/bors.toml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"staging.tmp" => %{"./github/bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 0
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    [status] = Repo.all(Status)
+    assert status.identifier == "ci"
+  end
 end

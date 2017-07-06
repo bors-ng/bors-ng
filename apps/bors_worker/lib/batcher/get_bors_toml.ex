@@ -12,7 +12,13 @@ defmodule BorsNG.Worker.Batcher.GetBorsToml do
 
   @spec get(GitHub.tconn, binary) :: {:ok, BorsToml.t} | {:error, terror}
   def get(repo_conn, branch) do
-    toml = GitHub.get_file!(repo_conn, branch, "bors.toml")
+    toml = case GitHub.get_file!(repo_conn, branch, "bors.toml") do
+      nil ->
+        GitHub.get_file!(repo_conn, branch, "./github/bors.toml")
+      toml ->
+        toml
+    end
+    
     case toml do
       nil ->
         [
