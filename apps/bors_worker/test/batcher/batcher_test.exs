@@ -612,7 +612,8 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"staging.tmp" => %{"./github/bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" =>
+        %{"./github/bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     patch = %Patch{
       project_id: proj.id,

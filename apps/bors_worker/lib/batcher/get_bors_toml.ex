@@ -18,7 +18,7 @@ defmodule BorsNG.Worker.Batcher.GetBorsToml do
       toml ->
         toml
     end
-    
+
     case toml do
       nil ->
         [
