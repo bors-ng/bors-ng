@@ -14,7 +14,7 @@ defmodule BorsNG.Worker.Batcher.GetBorsToml do
   def get(repo_conn, branch) do
     toml = case GitHub.get_file!(repo_conn, branch, "bors.toml") do
       nil ->
-        GitHub.get_file!(repo_conn, branch, "./github/bors.toml")
+        GitHub.get_file!(repo_conn, branch, ".github/bors.toml")
       toml ->
         toml
     end
