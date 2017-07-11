@@ -46,7 +46,7 @@ defmodule BorsNG.WebhookController do
       ...>       "id" => 6,
       ...>       "login" => "bors-fanboi",
       ...>       "avatar_url" => "" },
-      ...>     "action" => "created" }}, "github", "integration_installation")
+      ...>     "action" => "created" }}, "github", "installation")
       iex> proj = Database.Repo.get_by!(Database.Project, repo_xref: 14)
       iex> proj.name
       "test/repo"
@@ -90,7 +90,7 @@ defmodule BorsNG.WebhookController do
     :ok
   end
 
-  def do_webhook(conn, "github", "integration_installation") do
+  def do_webhook(conn, "github", "installation") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
     sender = payload["sender"]
@@ -109,7 +109,7 @@ defmodule BorsNG.WebhookController do
     :ok
   end
 
-  def do_webhook(conn, "github", "integration_installation_repositories") do
+  def do_webhook(conn, "github", "installation_repositories") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
     installation = Repo.get_by!(
