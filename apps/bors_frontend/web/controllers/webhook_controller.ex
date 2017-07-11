@@ -155,7 +155,9 @@ defmodule BorsNG.WebhookController do
   end
 
   def do_webhook(conn, "github", "issue_comment") do
-    if Map.has_key?(conn.body_params["issue"], "pull_request") do
+    is_created = conn.body_params["action"] == "created"
+    is_pr = Map.has_key?(conn.body_params["issue"], "pull_request")
+    if is_created and is_pr do
       project = Repo.get_by!(Project,
         repo_xref: conn.body_params["repository"]["id"])
       commenter = conn.body_params["comment"]["user"]
@@ -172,39 +174,45 @@ defmodule BorsNG.WebhookController do
   end
 
   def do_webhook(conn, "github", "pull_request_review_comment") do
-    project = Repo.get_by!(Project,
-      repo_xref: conn.body_params["repository"]["id"])
-    commenter = conn.body_params["comment"]["user"]
-    |> GitHub.User.from_json!()
-    |> Syncer.sync_user()
-    comment = conn.body_params["comment"]["body"]
-    pr = GitHub.Pr.from_json!(conn.body_params["pull_request"])
-    %Command{
-      project: project,
-      commenter: commenter,
-      comment: comment,
-      pr_xref: conn.body_params["pull_request"]["number"],
-      pr: pr,
-      patch: Syncer.sync_patch(project.id, pr)}
-    |> Command.run()
+    is_created = conn.body_params["action"] == "created"
+    if is_created do
+      project = Repo.get_by!(Project,
+        repo_xref: conn.body_params["repository"]["id"])
+      commenter = conn.body_params["comment"]["user"]
+      |> GitHub.User.from_json!()
+      |> Syncer.sync_user()
+      comment = conn.body_params["comment"]["body"]
+      pr = GitHub.Pr.from_json!(conn.body_params["pull_request"])
+      %Command{
+        project: project,
+        commenter: commenter,
+        comment: comment,
+        pr_xref: conn.body_params["pull_request"]["number"],
+        pr: pr,
+        patch: Syncer.sync_patch(project.id, pr)}
+      |> Command.run()
+    end
   end
 
   def do_webhook(conn, "github", "pull_request_review") do
-    project = Repo.get_by!(Project,
-      repo_xref: conn.body_params["repository"]["id"])
-    commenter = conn.body_params["review"]["user"]
-    |> GitHub.User.from_json!()
-    |> Syncer.sync_user()
-    comment = conn.body_params["review"]["body"]
-    pr = GitHub.Pr.from_json!(conn.body_params["pull_request"])
-    %Command{
-      project: project,
-      commenter: commenter,
-      comment: comment,
-      pr_xref: conn.body_params["pull_request"]["number"],
-      pr: pr,
-      patch: Syncer.sync_patch(project.id, pr)}
-    |> Command.run()
+    is_submitted = conn.body_params["action"] == "submitted"
+    if is_submitted do
+      project = Repo.get_by!(Project,
+        repo_xref: conn.body_params["repository"]["id"])
+      commenter = conn.body_params["review"]["user"]
+      |> GitHub.User.from_json!()
+      |> Syncer.sync_user()
+      comment = conn.body_params["review"]["body"]
+      pr = GitHub.Pr.from_json!(conn.body_params["pull_request"])
+      %Command{
+        project: project,
+        commenter: commenter,
+        comment: comment,
+        pr_xref: conn.body_params["pull_request"]["number"],
+        pr: pr,
+        patch: Syncer.sync_patch(project.id, pr)}
+      |> Command.run()
+    end
   end
 
   def do_webhook(conn, "github", "status") do
