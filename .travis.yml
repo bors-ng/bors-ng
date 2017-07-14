@@ -1,8 +1,9 @@
 language: elixir
 elixir:
-  - 1.4.1
+  - 1.4.5
 otp_release:
   - 19.1
+  - 20.0
 branches:
     only:
       - master
