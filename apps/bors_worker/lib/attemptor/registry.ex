@@ -13,6 +13,7 @@ defmodule BorsNG.Worker.Attemptor.Registry do
   use GenServer
 
   alias BorsNG.Worker.Attemptor
+  alias BorsNG.Database.Crash
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
 
@@ -60,9 +61,15 @@ defmodule BorsNG.Worker.Attemptor.Registry do
     {:reply, pid, {names, refs}}
   end
 
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, {names, refs}) do
+  def handle_info({:DOWN, ref, :process, _pid, reason}, {names, refs}) do
     {project_id, refs} = Map.pop(refs, ref)
     names = Map.delete(names, project_id)
+    if reason != :normal do
+      Repo.insert(%Crash{
+        project_id: project_id,
+        component: "try",
+        crash: inspect(reason, pretty: true)})
+    end
     {:noreply, {names, refs}}
   end
 

@@ -14,6 +14,7 @@ defmodule BorsNG.Database.Batch do
     field :state, :integer
     field :last_polled, :integer
     field :timeout_at, :integer
+    has_many :patches, LinkPatchBatch
     timestamps()
   end
 
