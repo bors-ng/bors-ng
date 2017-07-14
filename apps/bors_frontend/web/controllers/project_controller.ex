@@ -16,6 +16,7 @@ defmodule BorsNG.ProjectController do
   alias BorsNG.Database.LinkUserProject
   alias BorsNG.Database.Project
   alias BorsNG.Database.Batch
+  alias BorsNG.Database.Crash
   alias BorsNG.Database.Patch
   alias BorsNG.Database.User
   alias BorsNG.GitHub
@@ -87,6 +88,25 @@ defmodule BorsNG.ProjectController do
       reviewers: reviewers,
       current_user_id: conn.assigns.user.id,
       update_branches: Project.changeset_branches(project)
+  end
+
+  def log(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
+  def log(conn, :rw, project, _params) do
+    batches = project.id
+    |> Batch.all_for_project()
+    |> Repo.all()
+    |> Enum.map(fn
+      %Batch{id: id} = batch ->
+        %{batch | patches: Repo.all(Patch.all_for_batch(id))}
+    end)
+    crashes = Repo.all(Crash.all_for_project(project.id))
+    entries = crashes ++ batches
+    |> Enum.sort_by(fn %{inserted_at: at} -> Date.to_erl(at) end)
+    |> Enum.reverse()
+    render conn, "log.html",
+      project: project,
+      current_user_id: conn.assigns.user.id,
+      entries: entries
   end
 
   def cancel_all(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError

@@ -1,0 +1,62 @@
+<nav>
+
+<div class=wrapper>
+  <a href="<%= project_path(@conn, :index) %>">
+    Repositories
+  </a>
+  ›
+  <h1>
+    <a href="https://github.com/<%= @project.name %>/">
+      <%= @project.name %>
+    </a>
+  </h1>
+</div>
+
+<div class=tabs role=tabs>
+  <%= link "Pull requests", to: project_path(@conn, :show, @project), class: "tab" %>
+  <span class="tab tab--active">History</span>
+  <%= link "Settings", to: project_path(@conn, :settings, @project), class: "tab" %>
+</div>
+
+</nav>
+
+<main role=main><div class=wrapper>
+
+<%= if not is_nil get_flash(@conn, :ok) do %>
+<div role="alert" class="alert alert--ok">
+<%= get_flash(@conn, :ok) %>
+</div>
+<% end %>
+
+<%= if not is_nil get_flash(@conn, :error) do %>
+<div role="alert" class="alert alert--error">
+<%= get_flash(@conn, :error) %>
+</div>
+<% end %>
+
+<table class="table">
+  <tbody>
+<%= for entry <- @entries do %>
+    <tr role=row>
+  <%= case entry do %>
+    <% %BorsNG.Database.Crash{component: component, crash: crash} -> %>
+      <td>Crash</td>
+      <td><%= component %></td>
+      <td><pre><code><%= crash %></code></pre></td>
+    <% %BorsNG.Database.Batch{state: state, patches: patches} -> %>
+      <td>Batch</td>
+      <td><%= stringify_state(state) %></td>
+      <td>
+      <%= for patch <- patches do %>
+        <a href="https://github.com/<%= @project.name %>/pull/<%= patch.pr_xref %>">
+          #<%= patch.pr_xref %>
+        </a>
+      <% end %>
+      </td>
+  <% end %>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+</div></main>

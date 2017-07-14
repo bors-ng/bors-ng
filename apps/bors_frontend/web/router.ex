@@ -66,6 +66,7 @@ defmodule BorsNG.Router do
     post "/:id/reviewer", ProjectController, :add_reviewer
     get "/:id/add-reviewer/:login", ProjectController, :confirm_add_reviewer
     put "/:id/synchronize", ProjectController, :synchronize
+    get "/:id/log", ProjectController, :log
     delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
   end
 
