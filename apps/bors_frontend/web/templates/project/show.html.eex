@@ -15,6 +15,7 @@
 <div class=tabs role=tabs>
   <span class="tab tab--active">Pull requests</span>
   <%= if @mode == :rw do %>
+  <%= link "History", to: project_path(@conn, :log, @project), class: "tab" %>
   <%= link "Settings", to: project_path(@conn, :settings, @project), class: "tab" %>
   <% end %>
 </div>

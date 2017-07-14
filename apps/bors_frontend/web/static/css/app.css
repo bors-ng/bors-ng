@@ -248,3 +248,7 @@ footer {
   margin-bottom: 7px;
   padding-bottom: 8px;
 }
+/* Allow preformatted text to wrap (crash reports) */
+pre {
+  white-space: pre-wrap;
+}

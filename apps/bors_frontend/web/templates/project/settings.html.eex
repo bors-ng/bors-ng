@@ -14,6 +14,7 @@
 
 <div class=tabs role=tabs>
   <%= link "Pull requests", to: project_path(@conn, :show, @project), class: "tab" %>
+  <%= link "History", to: project_path(@conn, :log, @project), class: "tab" %>
   <span class="tab tab--active">Settings</span>
 </div>
 

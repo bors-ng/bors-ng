@@ -14,6 +14,10 @@ defmodule BorsNG.ProjectView do
     case state do
       0 -> "Waiting to run"
       1 -> "Running"
+      2 -> "Succeeded"
+      3 -> "Failed"
+      4 -> "Canceled"
+      _ -> "Invalid"
     end
   end
 end

@@ -13,6 +13,7 @@ defmodule BorsNG.Worker.Batcher.Registry do
   use GenServer
 
   alias BorsNG.Worker.Batcher
+  alias BorsNG.Database.Crash
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
 
@@ -70,10 +71,14 @@ defmodule BorsNG.Worker.Batcher.Registry do
     {:noreply, {names, refs}}
   end
 
-  def handle_info({:DOWN, ref, :process, _, _reason}, {_, refs} = state) do
+  def handle_info({:DOWN, ref, :process, _, reason}, {_, refs} = state) do
     project_id = refs[ref]
     {pid, state} = start_and_insert(project_id, state)
     Batcher.cancel_all(pid)
+    Repo.insert(%Crash{
+      project_id: project_id,
+      component: "batch",
+      crash: inspect(reason, pretty: true, width: 60)})
     {:noreply, state}
   end
 
