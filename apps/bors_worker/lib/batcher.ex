@@ -273,7 +273,7 @@ defmodule BorsNG.Worker.Batcher do
   defp start_waiting_merged_batch(batch, patch_links, _base, :conflict) do
     repo_conn = get_repo_conn(batch.project)
     patches = Enum.map(patch_links, &(&1.patch))
-    state = bisect(patches, batch)
+    state = bisect(patch_links, batch)
     send_message(repo_conn, patches, {:conflict, state})
     {:conflict, nil}
   end
@@ -344,19 +344,21 @@ defmodule BorsNG.Worker.Batcher do
     project = batch.project
     repo_conn = get_repo_conn(project)
     erred = Enum.filter(statuses, &(&1.state == Status.numberize_state(:error)))
-    patches = batch.id
-    |> Patch.all_for_batch()
+    patch_links = batch.id
+    |> LinkPatchBatch.from_batch()
     |> Repo.all()
-    state = bisect(patches, batch)
+    patches = Enum.map(patch_links, &(&1.patch))
+    state = bisect(patch_links, batch)
     send_message(repo_conn, patches, {state, erred})
   end
 
   defp timeout_batch(batch) do
     project = batch.project
-    patches = batch.id
-    |> Patch.all_for_batch()
+    patch_links = batch.id
+    |> LinkPatchBatch.from_batch()
     |> Repo.all()
-    state = bisect(patches, batch)
+    patches = Enum.map(patch_links, &(&1.patch))
+    state = bisect(patch_links, batch)
     project
     |> get_repo_conn()
     |> send_message(patches, {:timeout, state})
@@ -379,10 +381,11 @@ defmodule BorsNG.Worker.Batcher do
 
   defp cancel_patch(batch, patch_id, :running) do
     project = batch.project
-    patches = batch.id
-    |> Patch.all_for_batch()
+    patch_links = batch.id
+    |> LinkPatchBatch.from_batch()
     |> Repo.all()
-    state = case tl(patches) do
+    patches = Enum.map(patch_links, &(&1.patch))
+    state = case tl(patch_links) do
       [] -> :failed
       _ -> :retrying
     end
@@ -391,9 +394,9 @@ defmodule BorsNG.Worker.Batcher do
     |> Batch.changeset(%{state: canceled})
     |> Repo.update!()
     if state == :retrying do
-      patches
-      |> Enum.filter(&(&1.id == patch_id))
-      |> make_batch(project.id, batch.into_branch)
+      patch_links
+      |> Enum.filter(&(&1.patch_id == patch_id))
+      |> clone_batch(project.id, batch.into_branch)
     end
     repo_conn = get_repo_conn(project)
     send_status(repo_conn, batch, :canceled)
@@ -414,12 +417,12 @@ defmodule BorsNG.Worker.Batcher do
     send_message(repo_conn, [patch], {:canceled, :failed})
   end
 
-  defp bisect(patches, %Batch{project: project, into_branch: into_branch}) do
-    count = Enum.count(patches)
+  defp bisect(patch_links, %Batch{project: project, into_branch: into}) do
+    count = Enum.count(patch_links)
     if count > 1 do
-      {patches_lo, patches_hi} = Enum.split(patches, div(count, 2))
-      make_batch(patches_lo, project.id, into_branch)
-      make_batch(patches_hi, project.id, into_branch)
+      {lo, hi} = Enum.split(patch_links, div(count, 2))
+      clone_batch(lo, project.id, into)
+      clone_batch(hi, project.id, into)
       :retrying
     else
       :failed
@@ -455,10 +458,13 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  defp make_batch(patches, project_id, into_branch) do
+  defp clone_batch(patch_links, project_id, into_branch) do
     batch = Repo.insert!(Batch.new(project_id, into_branch))
-    patches
-    |> Enum.map(&%{batch_id: batch.id, patch_id: &1.id})
+    patch_links
+    |> Enum.map(&%{
+      batch_id: batch.id,
+      patch_id: &1.patch_id,
+      reviewer: &1.reviewer})
     |> Enum.map(&LinkPatchBatch.changeset(%LinkPatchBatch{}, &1))
     |> Enum.each(&Repo.insert!/1)
     batch
