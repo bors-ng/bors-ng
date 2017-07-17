@@ -493,6 +493,163 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+  test "full runthrough with test failure", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => [], 2 => []},
+        statuses: %{},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => [], 2 => []},
+        statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 0
+    # Polling at a later time (yeah, I'm setting the clock back to do it)
+    # kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 1
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniNO"},
+        comments: %{1 => [], 2 => []},
+        statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Tell the batcher that the test suite failed.
+    # It should send out an error, and start retrying.
+    Batcher.do_handle_cast({:status, {"iniNO", "ci", :error, nil}}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == 3
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniNO"},
+        comments: %{
+          1 => ["# Build failed (retrying...)\n  * ci"],
+          2 => ["# Build failed (retrying...)\n  * ci"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "N" => %{"bors" => :error},
+          "O" => %{"bors" => :error}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Kick off the new, replacement batch.
+    [batch_lo, batch_hi] = Repo.all(Batch.all_for_project(proj.id, :waiting))
+    batch_lo
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch_lo = Repo.get_by! Batch, id: batch_lo.id
+    assert batch_lo.state == 1
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN"},
+        comments: %{
+          1 => ["# Build failed (retrying...)\n  * ci"],
+          2 => ["# Build failed (retrying...)\n  * ci"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "N" => %{"bors" => :running},
+          "O" => %{"bors" => :error}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Tell the batcher that the test suite failed.
+    # It should out an error, and not retry (because the batch has one item in it).
+    Batcher.do_handle_cast({:status, {"iniN", "ci", :error, nil}}, proj.id)
+    batch_lo = Repo.get! Batch, batch_lo.id
+    assert batch_lo.state == 3
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN"},
+        comments: %{
+          1 => ["# Build failed\n  * ci", "# Build failed (retrying...)\n  * ci"],
+          2 => ["# Build failed (retrying...)\n  * ci"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "iniN" => %{"bors" => :error},
+          "N" => %{"bors" => :error},
+          "O" => %{"bors" => :error}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Kick off the other replacement batch.
+    batch_hi
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch_hi = Repo.get_by! Batch, id: batch_hi.id
+    assert batch_hi.state == 1
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniO"},
+        comments: %{
+          1 => ["# Build failed\n  * ci", "# Build failed (retrying...)\n  * ci"],
+          2 => ["# Build failed (retrying...)\n  * ci"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "iniN" => %{"bors" => :error},
+          "N" => %{"bors" => :error},
+          "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Tell the batcher that the test suite failed.
+    # It should send out an error, and not retry (because the batch has one item in it).
+    Batcher.do_handle_cast({:status, {"iniO", "ci", :error, nil}}, proj.id)
+    batch_hi = Repo.get! Batch, batch_hi.id
+    assert batch_hi.state == 3
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniO"},
+        comments: %{
+          1 => ["# Build failed\n  * ci", "# Build failed (retrying...)\n  * ci"],
+          2 => ["# Build failed\n  * ci", "# Build failed (retrying...)\n  * ci"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "iniN" => %{"bors" => :error},
+          "iniO" => %{"bors" => :error},
+          "N" => %{"bors" => :error},
+          "O" => %{"bors" => :error}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # There should be no more items in the queue now
+    [] = Repo.all(Batch.all_for_project(proj.id, :waiting))
+  end
+
   test "full with differing branches", %{proj: proj} do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{
@@ -578,6 +735,172 @@ defmodule BorsNG.Worker.BatcherTest do
           "O" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
+  end
+
+  test "full runthrough with test timeout", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => [], 2 => []},
+        statuses: %{},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => [], 2 => []},
+        statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 0
+    # Polling at a later time (yeah, I'm setting the clock back to do it)
+    # kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 1
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniNO"},
+        comments: %{1 => [], 2 => []},
+        statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Polling at a later time causes the test to time out.
+    # It should send out an error, and start retrying.
+    batch
+    |> Batch.changeset(%{timeout_at: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == 3
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniNO"},
+        comments: %{
+          1 => ["# Timed out (retrying...)"],
+          2 => ["# Timed out (retrying...)"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "N" => %{"bors" => :error},
+          "O" => %{"bors" => :error}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Kick off the new, replacement batch.
+    [batch_lo, batch_hi] = Repo.all(Batch.all_for_project(proj.id, :waiting))
+    batch_lo
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch_lo = Repo.get_by! Batch, id: batch_lo.id
+    assert batch_lo.state == 1
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN"},
+        comments: %{
+          1 => ["# Timed out (retrying...)"],
+          2 => ["# Timed out (retrying...)"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "N" => %{"bors" => :running},
+          "O" => %{"bors" => :error}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Polling at a later time causes the test to time out.
+    # It should out an error, and not retry (because the batch has one item in it).
+    batch_lo
+    |> Batch.changeset(%{timeout_at: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch_lo = Repo.get! Batch, batch_lo.id
+    assert batch_lo.state == 3
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN"},
+        comments: %{
+          1 => ["# Timed out", "# Timed out (retrying...)"],
+          2 => ["# Timed out (retrying...)"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "iniN" => %{"bors" => :error},
+          "N" => %{"bors" => :error},
+          "O" => %{"bors" => :error}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Kick off the other replacement batch.
+    batch_hi
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch_hi = Repo.get_by! Batch, id: batch_hi.id
+    assert batch_hi.state == 1
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniO"},
+        comments: %{
+          1 => ["# Timed out", "# Timed out (retrying...)"],
+          2 => ["# Timed out (retrying...)"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "iniN" => %{"bors" => :error},
+          "N" => %{"bors" => :error},
+          "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Polling at a later time causes the test to time out.
+    # It should send out an error, and not retry (because the batch has one item in it).
+    batch_hi
+    |> Batch.changeset(%{timeout_at: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch_hi = Repo.get! Batch, batch_hi.id
+    assert batch_hi.state == 3
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniO"},
+        comments: %{
+          1 => ["# Timed out", "# Timed out (retrying...)"],
+          2 => ["# Timed out", "# Timed out (retrying...)"]},
+        statuses: %{
+          "iniNO" => %{"bors" => :error},
+          "iniN" => %{"bors" => :error},
+          "iniO" => %{"bors" => :error},
+          "N" => %{"bors" => :error},
+          "O" => %{"bors" => :error}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # There should be no more items in the queue now
+    [] = Repo.all(Batch.all_for_project(proj.id, :waiting))
   end
 
   test "infer from .travis.yml", %{proj: proj} do
