@@ -584,7 +584,8 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Tell the batcher that the test suite failed.
-    # It should out an error, and not retry (because the batch has one item in it).
+    # It should out an error, and not retry
+    # (because the batch has one item in it).
     Batcher.do_handle_cast({:status, {"iniN", "ci", :error, nil}}, proj.id)
     batch_lo = Repo.get! Batch, batch_lo.id
     assert batch_lo.state == 3
@@ -594,7 +595,9 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         comments: %{
-          1 => ["# Build failed\n  * ci", "# Build failed (retrying...)\n  * ci"],
+          1 => [
+            "# Build failed\n  * ci",
+            "# Build failed (retrying...)\n  * ci"],
           2 => ["# Build failed (retrying...)\n  * ci"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
@@ -616,7 +619,9 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniO"},
         comments: %{
-          1 => ["# Build failed\n  * ci", "# Build failed (retrying...)\n  * ci"],
+          1 => [
+            "# Build failed\n  * ci",
+            "# Build failed (retrying...)\n  * ci"],
           2 => ["# Build failed (retrying...)\n  * ci"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
@@ -626,7 +631,8 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Tell the batcher that the test suite failed.
-    # It should send out an error, and not retry (because the batch has one item in it).
+    # It should send out an error, and not retry
+    # (because the batch has one item in it).
     Batcher.do_handle_cast({:status, {"iniO", "ci", :error, nil}}, proj.id)
     batch_hi = Repo.get! Batch, batch_hi.id
     assert batch_hi.state == 3
@@ -636,8 +642,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniO"},
         comments: %{
-          1 => ["# Build failed\n  * ci", "# Build failed (retrying...)\n  * ci"],
-          2 => ["# Build failed\n  * ci", "# Build failed (retrying...)\n  * ci"]},
+          1 => [
+            "# Build failed\n  * ci",
+            "# Build failed (retrying...)\n  * ci"],
+          2 => [
+            "# Build failed\n  * ci",
+            "# Build failed (retrying...)\n  * ci"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "iniN" => %{"bors" => :error},
@@ -831,7 +841,8 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Polling at a later time causes the test to time out.
-    # It should out an error, and not retry (because the batch has one item in it).
+    # It should out an error, and not retry
+    # (because the batch has one item in it).
     batch_lo
     |> Batch.changeset(%{timeout_at: 0})
     |> Repo.update!()
@@ -876,7 +887,8 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Polling at a later time causes the test to time out.
-    # It should send out an error, and not retry (because the batch has one item in it).
+    # It should send out an error, and not retry
+    # (because the batch has one item in it).
     batch_hi
     |> Batch.changeset(%{timeout_at: 0})
     |> Repo.update!()

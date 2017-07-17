@@ -417,12 +417,12 @@ defmodule BorsNG.Worker.Batcher do
     send_message(repo_conn, [patch], {:canceled, :failed})
   end
 
-  defp bisect(patch_links, %Batch{project: project, into_branch: into_branch}) do
+  defp bisect(patch_links, %Batch{project: project, into_branch: into}) do
     count = Enum.count(patch_links)
     if count > 1 do
       {lo, hi} = Enum.split(patch_links, div(count, 2))
-      clone_batch(lo, project.id, into_branch)
-      clone_batch(hi, project.id, into_branch)
+      clone_batch(lo, project.id, into)
+      clone_batch(hi, project.id, into)
       :retrying
     else
       :failed
@@ -461,7 +461,10 @@ defmodule BorsNG.Worker.Batcher do
   defp clone_batch(patch_links, project_id, into_branch) do
     batch = Repo.insert!(Batch.new(project_id, into_branch))
     patch_links
-    |> Enum.map(&%{batch_id: batch.id, patch_id: &1.patch_id, reviewer: &1.reviewer})
+    |> Enum.map(&%{
+      batch_id: batch.id,
+      patch_id: &1.patch_id,
+      reviewer: &1.reviewer})
     |> Enum.map(&LinkPatchBatch.changeset(%LinkPatchBatch{}, &1))
     |> Enum.each(&Repo.insert!/1)
     batch
