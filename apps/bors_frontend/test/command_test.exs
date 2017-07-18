@@ -24,6 +24,10 @@ defmodule BorsNG.CommandTest do
     assert [:deactivate] == Command.parse("bors r-")
   end
 
+  test "accept command with colon after it" do
+    assert [{:try, ""}] == Command.parse("bors: try")
+  end
+
   test "accept the try command with an argument" do
     assert [{:try, "-layout"}] == Command.parse("bors try-layout")
   end
