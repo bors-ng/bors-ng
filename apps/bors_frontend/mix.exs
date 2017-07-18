@@ -43,10 +43,7 @@ defmodule BorsNG.Mixfile do
       {:bors_github, [in_umbrella: true]},
       {:bors_database, [in_umbrella: true]},
       {:bors_worker, [in_umbrella: true]},
-      # https://github.com/benoitc/hackney/pull/410
-      {:hackney,
-        git: "https://github.com/notriddle/hackney",
-        override: true}
+      {:hackney, "~> 1.8.6"},
     ]
   end
 end

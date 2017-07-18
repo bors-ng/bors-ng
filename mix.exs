@@ -39,10 +39,6 @@ defmodule BorsNg.Mixfile do
       {:edeliver, "~> 1.4.0", runtime: false},
       {:ex_doc, "~> 0.14", only: :dev},
       {:credo, "~> 0.7", only: [:dev, :test]},
-      # https://github.com/benoitc/hackney/pull/410
-      {:hackney,
-        git: "https://github.com/notriddle/hackney",
-        override: true}
     ]
   end
 end

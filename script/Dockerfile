@@ -1,4 +1,4 @@
-FROM elixir
+FROM elixir:1.4.5
 ENV LC_ALL=C.UTF-8
 ENV MIX_ENV=dev
 ADD https://deb.nodesource.com/gpgkey/nodesource.gpg.key /tmp/dockerfile/nodesource.gpg.key
