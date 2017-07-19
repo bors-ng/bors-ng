@@ -107,28 +107,28 @@ defmodule BorsNG.Command do
     |> String.splitter("\n")
     |> Enum.flat_map(fn
       @command_trigger <> " " <> cmd ->
-        _parse(cmd)
+        parse_cmd(cmd)
       @command_trigger <> ": " <> cmd ->
-        _parse(cmd)
+        parse_cmd(cmd)
       _ -> []
     end)
   end
 
-  def _parse(cmd) do
+  def parse_cmd(cmd) do
     cmd
     |> String.trim()
-    |> parse_cmd()
+    |> parse_trimmed_cmd()
   end
 
-  def parse_cmd("try" <> arguments), do: [{:try, arguments}]
-  def parse_cmd("r+" <> _), do: [:activate]
-  def parse_cmd("r-" <> _), do: [:deactivate]
-  def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
-  def parse_cmd("delegate+" <> _), do: [:delegate]
-  def parse_cmd("delegate=" <> arguments), do: parse_delegation_args(arguments)
-  def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
-  def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
-  def parse_cmd(_), do: []
+  def parse_trimmed_cmd("try" <> arguments), do: [{:try, arguments}]
+  def parse_trimmed_cmd("r+" <> _), do: [:activate]
+  def parse_trimmed_cmd("r-" <> _), do: [:deactivate]
+  def parse_trimmed_cmd("r=" <> arguments), do: parse_activation_args(arguments)
+  def parse_trimmed_cmd("delegate+" <> _), do: [:delegate]
+  def parse_trimmed_cmd("delegate=" <> arguments), do: parse_delegation_args(arguments)
+  def parse_trimmed_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
+  def parse_trimmed_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
+  def parse_trimmed_cmd(_), do: []
 
   @doc ~S"""
   The username part of an activation-by command is defined like this:
