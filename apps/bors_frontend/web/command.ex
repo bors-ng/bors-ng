@@ -106,12 +106,18 @@ defmodule BorsNG.Command do
     comment
     |> String.splitter("\n")
     |> Enum.flat_map(fn
-      @command_trigger <> cmd ->
-        cmd
-        |> String.trim()
-        |> parse_cmd()
+      @command_trigger <> " " <> cmd ->
+        trim_and_parse_cmd(cmd)
+      @command_trigger <> ": " <> cmd ->
+        trim_and_parse_cmd(cmd)
       _ -> []
     end)
+  end
+
+  def trim_and_parse_cmd(cmd) do
+    cmd
+    |> String.trim()
+    |> parse_cmd()
   end
 
   def parse_cmd("try" <> arguments), do: [{:try, arguments}]

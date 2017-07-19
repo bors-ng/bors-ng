@@ -9,7 +9,7 @@ config :bors_frontend, ecto_repos: []
 
 # General application configuration
 config :bors_frontend, BorsNG,
-  command_trigger: "bors ",
+  command_trigger: "bors",
   home_url: "https://bors-ng.github.io/",
   github_integration_url:
     "https://github.com/integrations/bors/installations/new",
