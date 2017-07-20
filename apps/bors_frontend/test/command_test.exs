@@ -73,7 +73,7 @@ defmodule BorsNG.CommandTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
-        comments: %{1 => ["bors ping"]},
+        comments: %{1 => []},
         statuses: %{}
       }
     })
@@ -88,7 +88,7 @@ defmodule BorsNG.CommandTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
-        comments: %{1 => ["pong", "bors ping"]},
+        comments: %{1 => ["pong"]},
         statuses: %{}
       }
     }
