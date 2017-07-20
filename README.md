@@ -83,7 +83,7 @@ To run a batch, bors creates a merge commit, merging master with all the pull re
     7: Call `bifurcate()` in the `onland` event handler
     8: Fix crash in `drive()`
 
-If the build passes, the master branch gets fast-forwarded to meed the staging branch. Since the master branch contains the exact contents that were just tested, bit-for-bit, it's not broken. (at least, not in any way that the automated tests are able to detect)
+If the build passes, the master branch gets fast-forwarded to meet the staging branch. Since the master branch contains the exact contents that were just tested, bit-for-bit, it's not broken. (at least, not in any way that the automated tests are able to detect)
 
 If the build fails, bors will follow a strategy called "bisecting". Namely, it splits the batch into two batches, and pushes those to the queue. In this example, the first batch will look like this:
 
