@@ -1,9 +1,26 @@
 defmodule BorsNG.CommandTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   alias BorsNG.Command
+  alias BorsNG.Database.Installation
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
+  alias BorsNG.GitHub
 
   doctest BorsNG.Command
+
+  setup do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+
+    inst = %Installation{installation_xref: 91}
+    |> Repo.insert!()
+    proj = %Project{
+      installation_id: inst.id,
+      repo_xref: 14,
+      staging_branch: "staging"}
+    |> Repo.insert!()
+    {:ok, inst: inst, proj: proj}
+  end
 
   test "reject the empty string" do
     assert [] == Command.parse("")
@@ -50,5 +67,30 @@ defmodule BorsNG.CommandTest do
 
   test "do not accept the command with a prefix" do
     assert [] == Command.parse("Xbors tryZ")
+  end
+
+  test "running ping command should post comment", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => ["bors ping"]},
+        statuses: %{}
+      }
+    })
+
+    c = %Command{
+      project: proj,
+      commenter: "commenter",
+      comment: "bors ping",
+      pr_xref: 1
+    }
+    Command.run(c, :ping)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => ["pong", "bors ping"]},
+        statuses: %{}
+      }
+    }
   end
 end
