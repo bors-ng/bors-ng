@@ -58,16 +58,16 @@ and any bors meetup.
 
 CONNECTING A GITHUB REPOSITORY TO THE PUBLIC BORS-NG INSTANCE DOES NOT MAKE IT
 A BORS-NG PROJECT SPACE. The public instance is governed by the
-[bors.io terms of service], a document with a narrower focus than this one.
+[bors.tech terms of service], a document with a narrower focus than this one.
 Different open source projects will have their own governance, and their queue
 is their space.
 
-[bors.io terms of service]: https://bors.io/tos/
+[bors.tech terms of service]: https://bors.tech/tos/
 
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at <community@bors.io>. All
+reported by contacting the project team at <community@bors.tech>. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
