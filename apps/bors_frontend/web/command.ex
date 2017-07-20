@@ -92,7 +92,8 @@ defmodule BorsNG.Command do
     :deactivate |
     :delegate |
     {:delegate_to, binary} |
-    {:autocorrect, binary}
+    {:autocorrect, binary} |
+    :ping
 
   @doc """
   Parse a comment for bors commands.
@@ -128,6 +129,7 @@ defmodule BorsNG.Command do
   def parse_cmd("delegate=" <> arguments), do: parse_delegation_args(arguments)
   def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
   def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
+  def parse_cmd("ping" <> _), do: [:ping]
   def parse_cmd(_), do: []
 
   @doc ~S"""
@@ -305,6 +307,12 @@ defmodule BorsNG.Command do
     |> Project.installation_connection(Repo)
     |> GitHub.post_comment!(
       c.pr_xref, ~s/Did you mean "#{command}"?/)
+  end
+  def run(c, :ping) do
+    c.project.repo_xref
+    |> Project.installation_connection(Repo)
+    |> GitHub.post_comment!(
+      c.pr_xref, "pong")
   end
   def run(c, :delegate) do
     delegate_to(c, c.patch.author)
