@@ -8,7 +8,7 @@ defmodule BorsNg.Mixfile do
       start_permanent: Mix.env == :prod,
       deps: deps(),
       source_url: "https://github.com/bors-ng/bors-ng",
-      homepage_url: "https://bors-ng.github.io/",
+      homepage_url: "https://bors.tech/",
       docs: [
         main: "hacking",
         extras: [ "HACKING.md", "CONTRIBUTING.md", "README.md" ] ],
