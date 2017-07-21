@@ -39,7 +39,13 @@ defmodule BorsNG.WebhookControllerTest do
         "body" => "C",
         "state" => "open",
         "base" => %{"ref" => "OTHER_BRANCH", "repo" => %{"id" => 456}},
-        "head" => %{"sha" => "S", "ref" => "BAR_BRANCH", "repo" => %{"id" => 345}},
+        "head" => %{
+          "sha" => "S",
+          "ref" => "BAR_BRANCH",
+          "repo" => %{
+            "id" => 345
+          }
+        },
         "user" => %{
           "id" => 23,
           "login" => "ghost",
