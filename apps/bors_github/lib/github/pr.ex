@@ -21,6 +21,9 @@ defmodule BorsNG.GitHub.Pr do
     base_ref: "",
     head_sha: "",
     user: nil,
+    head_ref: "",
+    head_repo_id: 0,
+    base_repo_id: 0
     )
 
   @doc """
@@ -43,9 +46,16 @@ defmodule BorsNG.GitHub.Pr do
     "state" => state,
     "base" => %{
       "ref" => base_ref,
+      "repo" => %{
+        "id" => base_repo_id
+      }
     },
     "head" => %{
-      "sha" => head_sha
+      "sha" => head_sha,
+      "ref" => head_ref,
+      "repo" => %{
+        "id" => head_repo_id
+      }
     },
     "user" => %{
       "id" => user_id,
@@ -69,6 +79,9 @@ defmodule BorsNG.GitHub.Pr do
       end),
       base_ref: base_ref,
       head_sha: head_sha,
+      head_ref: head_ref,
+      head_repo_id: head_repo_id,
+      base_repo_id: base_repo_id,
       user: %BorsNG.GitHub.User{
         id: user_id,
         login: user_login,

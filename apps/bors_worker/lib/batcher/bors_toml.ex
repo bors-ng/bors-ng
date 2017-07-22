@@ -13,14 +13,16 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   defstruct status: [], block_labels: [], pr_status: [],
     timeout_sec: (60 * 60),
-    cut_body_after: nil
+    cut_body_after: nil,
+    delete_merged_branches: false
 
   @type t :: %BorsNG.Worker.Batcher.BorsToml{
     status: [binary],
     block_labels: [binary],
     pr_status: [binary],
     timeout_sec: integer,
-    cut_body_after: binary | nil}
+    cut_body_after: binary | nil,
+    delete_merged_branches: boolean}
 
   @type err :: :status |
     :block_labels |
@@ -42,7 +44,11 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
-          cut_body_after: Map.get(toml, "cut_body_after", nil)}
+          cut_body_after: Map.get(toml, "cut_body_after", nil),
+          delete_merged_branches: Map.get(toml,
+                                          "delete_merged_branches",
+                                          false)
+        }
         case toml do
           %{status: status} when not is_list status ->
             {:error, :status}
