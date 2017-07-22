@@ -13,8 +13,7 @@ config :bors_frontend, BorsNG,
   home_url: "https://bors-ng.github.io/",
   github_integration_url:
     "https://github.com/integrations/bors/installations/new",
-  allow_private_repos: System.get_env("ALLOW_PRIVATE_REPOS") == "true",
-  delete_merged_branches: false
+  allow_private_repos: System.get_env("ALLOW_PRIVATE_REPOS") == "true"
 
 # Configures the endpoint
 config :bors_frontend, BorsNG.Endpoint,

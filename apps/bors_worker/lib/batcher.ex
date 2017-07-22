@@ -32,8 +32,6 @@ defmodule BorsNG.Worker.Batcher do
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
-  @delete_merged_branches(
-    Application.get_env(:bors_frontend, BorsNG)[:delete_merged_branches])
 
   # Public API
 
@@ -526,25 +524,29 @@ defmodule BorsNG.Worker.Batcher do
 
 
   defp maybe_delete_branch(batch_id, project_id) do
-    if @delete_merged_branches do
-      repo_conn = Project
-      |> Repo.get!(project_id)
-      |> get_repo_conn()
+    repo_conn = Project
+    |> Repo.get!(project_id)
+    |> get_repo_conn()
 
-      patches = batch_id
-      |> Patch.all_for_batch()
-      |> Repo.all()
+    patches = batch_id
+    |> Patch.all_for_batch()
+    |> Repo.all()
 
-      uniq_pr_xrefs_count = patches
-      |> Enum.uniq_by(fn p -> p.pr_xref end)
-      |> Enum.count
-      if uniq_pr_xrefs_count == 1 do
-        [ patch | _ ] = patches
-        pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
+    uniq_pr_xrefs_count = patches
+    |> Enum.uniq_by(fn p -> p.pr_xref end)
+    |> Enum.count
+    if uniq_pr_xrefs_count == 1 do
+      [ patch | _ ] = patches
+      pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
 
-        if pr.head_repo_id > 0 && pr.head_repo_id == pr.base_repo_id do
-          GitHub.delete_branch!(repo_conn, pr.head_ref)
-        end
+      pr_in_same_repo = pr.head_repo_id > 0 && pr.head_repo_id == pr.base_repo_id
+      delete_merged_branches = case Batcher.GetBorsToml.get(repo_conn, pr.head_ref) do
+        {:ok, toml} -> toml.delete_merged_branches
+        _ -> false
+      end
+
+      if pr_in_same_repo && delete_merged_branches do
+        GitHub.delete_branch!(repo_conn, pr.head_ref)
       end
     end
   end
