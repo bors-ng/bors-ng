@@ -342,7 +342,7 @@ defmodule BorsNG.Worker.Batcher do
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
-    Process.send_after(self(), {:maybe_delete_branch, batch.id}, 0)
+    send(self(), {:maybe_delete_branch, batch.id})
     send_message(repo_conn, patches, {:succeeded, statuses})
   end
 

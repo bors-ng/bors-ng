@@ -968,7 +968,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert status.identifier == "ci"
   end
 
-  test "deletes branch if delete_merged_branches set in .github/bors.toml", %{proj: proj} do
+  test "deletes branch if delete_merged_branches is set", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "update" => "foo"},
@@ -989,18 +989,19 @@ defmodule BorsNG.Worker.BatcherTest do
         },
         files: %{
           "master" => %{
-            ".github/bors.toml" => ~s/status = [ "ci" ]\ndelete_merged_branches = true/
+            ".github/bors.toml" => ~s"""
+              status = [ "ci" ]
+              delete_merged_branches = true
+            """
           },
           "update" => %{
-            ".github/bors.toml" => ~s/status = [ "ci" ]\ndelete_merged_branches = true/
+            ".github/bors.toml" => ~s"""
+              status = [ "ci" ]
+              delete_merged_branches = true
+            """
           }
         }
       }})
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 91}, 14})
-    |> Map.get(:branches)
-    |> Map.keys
-    assert branches == ["master", "update"]
 
     patch = %Patch{
       project_id: proj.id,
@@ -1024,7 +1025,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert branches == ["master"]
   end
 
-  test "doesnt delete branch if delete_merged_branches is unset", %{proj: proj} do
+  test "doesnt delete branch if delete_merged_branches==false", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "update" => "foo"},
@@ -1045,15 +1046,13 @@ defmodule BorsNG.Worker.BatcherTest do
         },
         files: %{
           "master" => %{
-            ".github/bors.toml" => ~s/status = [ "ci" ]\ndelete_merged_branches = true/
+            ".github/bors.toml" => ~s"""
+              status = [ "ci" ]
+              delete_merged_branches = true
+            """
           }
         }
       }})
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 91}, 14})
-    |> Map.get(:branches)
-    |> Map.keys
-    assert branches == ["master", "update"]
 
     patch = %Patch{
       project_id: proj.id,
@@ -1075,5 +1074,55 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Map.get(:branches)
     |> Map.keys
     assert branches == ["master", "update"]
+  end
+
+  test "complete_batch should send :maybe_delete_batch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => %{}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 1
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN"},
+        comments: %{1 => []},
+        statuses: %{
+          "iniN" => %{"ci" => :ok},
+          "N" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+
+    Batcher.handle_info({:poll, :once}, proj.id)
+
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 2
+    batch_id = batch.id
+
+    assert_receive {:maybe_delete_branch, ^batch_id}, 100
   end
 end
