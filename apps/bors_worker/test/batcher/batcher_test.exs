@@ -967,4 +967,113 @@ defmodule BorsNG.Worker.BatcherTest do
     [status] = Repo.all(Status)
     assert status.identifier == "ci"
   end
+
+  test "deletes branch if delete_merged_branches set in .github/bors.toml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "update" => "foo"},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        pulls: %{
+          1 => %GitHub.Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 1,
+            head_repo_id: 1
+          }
+        },
+        files: %{
+          "master" => %{
+            ".github/bors.toml" => ~s/status = [ "ci" ]\ndelete_merged_branches = true/
+          },
+          "update" => %{
+            ".github/bors.toml" => ~s/status = [ "ci" ]\ndelete_merged_branches = true/
+          }
+        }
+      }})
+    branches = GitHub.ServerMock.get_state()
+    |> Map.get({{:installation, 91}, 14})
+    |> Map.get(:branches)
+    |> Map.keys
+    assert branches == ["master", "update"]
+
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 0,
+      into_branch: "master"}
+    |> Repo.insert!()
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+    Batcher.handle_info({:maybe_delete_branch, batch.id}, proj.id)
+
+    branches = GitHub.ServerMock.get_state()
+    |> Map.get({{:installation, 91}, 14})
+    |> Map.get(:branches)
+    |> Map.keys
+    assert branches == ["master"]
+  end
+
+  test "doesnt delete branch if delete_merged_branches is unset", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "update" => "foo"},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        pulls: %{
+          1 => %GitHub.Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 1,
+            head_repo_id: 1
+          }
+        },
+        files: %{
+          "master" => %{
+            ".github/bors.toml" => ~s/status = [ "ci" ]\ndelete_merged_branches = true/
+          }
+        }
+      }})
+    branches = GitHub.ServerMock.get_state()
+    |> Map.get({{:installation, 91}, 14})
+    |> Map.get(:branches)
+    |> Map.keys
+    assert branches == ["master", "update"]
+
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 0,
+      into_branch: "master"}
+    |> Repo.insert!()
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+    Batcher.handle_info({:maybe_delete_branch, batch.id}, proj.id)
+
+    branches = GitHub.ServerMock.get_state()
+    |> Map.get({{:installation, 91}, 14})
+    |> Map.get(:branches)
+    |> Map.keys
+    assert branches == ["master", "update"]
+  end
 end
