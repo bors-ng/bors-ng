@@ -45,7 +45,10 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
           cut_body_after: Map.get(toml, "cut_body_after", nil),
-          delete_merged_branches: Map.get(toml, "delete_merged_branches", false)}
+          delete_merged_branches: Map.get(toml,
+                                          "delete_merged_branches",
+                                          false)
+        }
         case toml do
           %{status: status} when not is_list status ->
             {:error, :status}

@@ -539,8 +539,11 @@ defmodule BorsNG.Worker.Batcher do
       [ patch | _ ] = patches
       pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
 
-      pr_in_same_repo = pr.head_repo_id > 0 && pr.head_repo_id == pr.base_repo_id
-      delete_merged_branches = case Batcher.GetBorsToml.get(repo_conn, pr.head_ref) do
+      pr_in_same_repo = pr.head_repo_id > 0 &&
+                        pr.head_repo_id == pr.base_repo_id
+
+      toml_result = Batcher.GetBorsToml.get(repo_conn, pr.head_ref)
+      delete_merged_branches = case toml_result do
         {:ok, toml} -> toml.delete_merged_branches
         _ -> false
       end
