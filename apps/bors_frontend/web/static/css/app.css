@@ -42,6 +42,9 @@ header, nav {
 .drop-down-menu--right > .drop-down-menu {
   direction: ltr;
 }
+#footer-version {
+  float: right;
+}
 nav {
   background-color: #EEE;
 }

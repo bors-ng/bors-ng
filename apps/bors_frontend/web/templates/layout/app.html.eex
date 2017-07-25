@@ -40,7 +40,15 @@
     <%= render @view_module, @view_template, assigns %>
 
     <footer role="note">
-      <p class=wrapper>This service is provided for free on a best-effort basis.</p>
+      <p class=wrapper>
+        <span id=footer-version>
+          Build:
+          <a href="https://github.com/bors-ng/bors-ng/tree/<%= get_version() %>">
+            <%= get_version() %>
+          </a>
+        </span>
+        This service is provided for free on a best-effort basis.
+      </p>
     </footer>
 
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
