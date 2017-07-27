@@ -10,14 +10,16 @@ defmodule BorsNG.Worker.BranchDeleter do
 
   use GenServer
   alias BorsNG.Worker.Batcher
-  alias BorsNG.GitHub.Pr
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
   alias BorsNG.GitHub
 
-  # 5 minutes
-  @retry_delay 5 * 60 * 1000
+  # 1 minute between tries
+  @retry_delay 60 * 1000
+
+  # keep trying for one hour
+  @retries 60
 
   # Public API
 
@@ -25,12 +27,8 @@ defmodule BorsNG.Worker.BranchDeleter do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  def delete(%Pr{} = pr) do
-    GenServer.cast(__MODULE__, {:delete, pr})
-  end
-
   def delete(%Patch{} = patch) do
-    GenServer.cast(__MODULE__, {:delete_by_patch, patch, 0})
+    GenServer.cast(__MODULE__, {:delete, patch, 0})
   end
 
   # Server callbacks
@@ -39,33 +37,23 @@ defmodule BorsNG.Worker.BranchDeleter do
     {:ok, :ok}
   end
 
-  def handle_cast({:delete, pr}, state) do
-    conn = Project.installation_connection(pr.head_repo_id, Repo)
-    delete_branch(conn, pr)
-    {:noreply, state}
-  end
-
-  def handle_cast({:delete_by_patch, patch, attempt}, state) do
+  def handle_cast({:delete, patch, attempt}, state) do
     patch = Repo.preload(patch, :project)
     conn = Project.installation_connection(patch.project.repo_xref, Repo)
     case GitHub.get_pr(conn, patch.pr_xref) do
-      {:ok, pr} ->
-        case pr.merged do
-          true ->
-            delete_branch(conn, pr)
-          false ->
-            Process.send_after(self(),
-              {:retry_delete, patch, attempt + 1},
-              attempt_delay(attempt)
-            )
-        end
+      {:ok, %{merged: true} = pr} ->
+        delete_branch(conn, pr)
+      {:ok, %{state: :open}} when attempt < @retries ->
+        Process.send_after(self(),
+          {:retry_delete, patch, attempt + 1},
+          attempt_delay(attempt))
       _ -> nil
     end
     {:noreply, state}
   end
 
   def handle_info({:retry_delete, patch, attempt}) do
-    GenServer.cast(__MODULE__, {:delete_by_patch, patch, attempt})
+    GenServer.cast(__MODULE__, {:delete, patch, attempt})
   end
 
   defp delete_branch(conn, pr) do

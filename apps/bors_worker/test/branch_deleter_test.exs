@@ -10,8 +10,6 @@ defmodule BorsNG.Worker.BranchDeleterTest do
   alias BorsNG.Database.Repo
 
   setup do
-    {:ok, deleter} = BranchDeleter.start_link()
-
     inst = %Installation{installation_xref: 91}
     |> Repo.insert!()
     proj = %Project{
@@ -20,65 +18,7 @@ defmodule BorsNG.Worker.BranchDeleterTest do
       staging_branch: "staging"}
     |> Repo.insert!()
 
-    %{deleter: deleter, proj: proj, inst: inst}
-  end
-
-  test "deletes by pull request" do
-    GitHub.ServerMock.put_state(%{
-      {{:installation, 91}, 14} => %{
-        branches: %{"master" => "ini", "update" => "foo"},
-        comments: %{1 => []},
-        statuses: %{},
-        pulls: %{
-          1 => %Pr{
-            number: 1,
-            title: "Test",
-            body: "Mess",
-            state: :open,
-            base_ref: "master",
-            head_sha: "00000001",
-            head_ref: "update",
-            base_repo_id: 14,
-            head_repo_id: 14,
-            merged: true
-          }
-        },
-        files: %{
-          "master" => %{
-            ".github/bors.toml" => ~s"""
-              status = [ "ci" ]
-              delete_merged_branches = true
-            """
-          },
-          "update" => %{
-            ".github/bors.toml" => ~s"""
-              status = [ "ci" ]
-              delete_merged_branches = true
-            """
-          }
-        }
-      }})
-
-    pr = %Pr{
-      number: 1,
-      title: "Test",
-      body: "Mess",
-      state: :open,
-      base_ref: "master",
-      head_sha: "00000001",
-      head_ref: "update",
-      base_repo_id: 14,
-      head_repo_id: 14,
-      merged: true
-    }
-
-    BranchDeleter.handle_cast({:delete, pr}, :ok)
-
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 91}, 14})
-    |> Map.get(:branches)
-    |> Map.keys
-    assert branches == ["master"]
+    %{proj: proj, inst: inst}
   end
 
   test "deletes by patch", %{proj: proj} do
@@ -124,7 +64,7 @@ defmodule BorsNG.Worker.BranchDeleterTest do
       into_branch: "master"}
     |> Repo.insert!()
 
-    BranchDeleter.handle_cast({:delete_by_patch, patch, 0}, :ok)
+    BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
 
     branches = GitHub.ServerMock.get_state()
     |> Map.get({{:installation, 91}, 14})
@@ -176,7 +116,9 @@ defmodule BorsNG.Worker.BranchDeleterTest do
       into_branch: "master"}
     |> Repo.insert!()
 
-    BranchDeleter.handle_cast({:delete_by_patch, patch, 0}, :ok)
+    BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
+
+    assert_receive {:retry_delete, _patch, 1}
 
     branches = GitHub.ServerMock.get_state()
     |> Map.get({{:installation, 91}, 14})
@@ -228,7 +170,7 @@ defmodule BorsNG.Worker.BranchDeleterTest do
       into_branch: "master"}
     |> Repo.insert!()
 
-    BranchDeleter.handle_cast({:delete_by_patch, patch, 0}, :ok)
+    BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
 
     branches = GitHub.ServerMock.get_state()
     |> Map.get({{:installation, 91}, 14})

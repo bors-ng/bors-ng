@@ -62,12 +62,12 @@ defmodule BorsNG.WebhookController do
 
   require Logger
 
-  @branch_deleter Application.get_env(:bors_worker, :branch_deleter)
   @allow_private_repos Application.get_env(
     :bors_frontend, BorsNG)[:allow_private_repos]
 
   alias BorsNG.Worker.Attemptor
   alias BorsNG.Worker.Batcher
+  alias BorsNG.Worker.BranchDeleter
   alias BorsNG.Command
   alias BorsNG.Database.Installation
   alias BorsNG.Database.Patch
@@ -278,7 +278,7 @@ defmodule BorsNG.WebhookController do
   def do_webhook_pr(_conn, %{action: "closed", project: project, patch: p}) do
     Project.ping!(project.id)
     Repo.update!(Patch.changeset(p, %{open: false}))
-    :ok
+    BranchDeleter.delete(p)
   end
 
   def do_webhook_pr(_conn, %{action: "reopened", project: project, patch: p}) do
@@ -306,10 +306,6 @@ defmodule BorsNG.WebhookController do
       title: title,
       body: body,
       into_branch: base_ref}))
-  end
-
-  def do_webhook_pr(_conn, %{action: "closed", pr: pr}) do
-    @branch_deleter.delete(pr)
   end
 
   def do_webhook_pr(_conn, %{action: action}) do

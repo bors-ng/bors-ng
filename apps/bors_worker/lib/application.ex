@@ -5,8 +5,6 @@ defmodule BorsNG.Worker.Application do
 
   use Application
 
-  @branch_deleter Application.get_env(:bors_worker, :branch_deleter)
-
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -20,7 +18,7 @@ defmodule BorsNG.Worker.Application do
       worker(BorsNG.Worker.Attemptor.Registry, []),
       supervisor(Task.Supervisor, [[name: BorsNG.Worker.Syncer.Supervisor]]),
       supervisor(Registry, [:unique, BorsNG.Worker.Syncer.Registry]),
-      worker(@branch_deleter, []),
+      worker(BorsNG.Worker.BranchDeleter, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

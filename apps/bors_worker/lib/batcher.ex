@@ -30,8 +30,6 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
 
-  @branch_deleter Application.get_env(:bors_worker, :branch_deleter)
-
   # Every half-hour
   @poll_period 30 * 60 * 1000
 
@@ -339,16 +337,6 @@ defmodule BorsNG.Worker.Batcher do
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
-
-    uniq_pr_xrefs_count = patches
-    |> Enum.uniq_by(fn p -> p.pr_xref end)
-    |> Enum.count
-
-    if uniq_pr_xrefs_count == 1 do
-      patches
-      |> List.first
-      |> @branch_deleter.delete
-    end
 
     send_message(repo_conn, patches, {:succeeded, statuses})
   end
