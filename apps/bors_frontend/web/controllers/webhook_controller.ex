@@ -62,6 +62,7 @@ defmodule BorsNG.WebhookController do
 
   require Logger
 
+  @branch_deleter Application.get_env(:bors_worker, :branch_deleter)
   @allow_private_repos Application.get_env(
     :bors_frontend, BorsNG)[:allow_private_repos]
 
@@ -160,7 +161,8 @@ defmodule BorsNG.WebhookController do
       action: conn.body_params["action"],
       project: project,
       patch: patch,
-      author: patch.author})
+      author: patch.author,
+      pr: pr})
   end
 
   def do_webhook(conn, "github", "issue_comment") do
@@ -304,6 +306,10 @@ defmodule BorsNG.WebhookController do
       title: title,
       body: body,
       into_branch: base_ref}))
+  end
+
+  def do_webhook_pr(_conn, %{action: "closed", pr: pr}) do
+    @branch_deleter.delete(pr)
   end
 
   def do_webhook_pr(_conn, %{action: action}) do

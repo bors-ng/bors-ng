@@ -30,6 +30,8 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
 
+  @branch_deleter Application.get_env(:bors_worker, :branch_deleter)
+
   # Every half-hour
   @poll_period 30 * 60 * 1000
 
@@ -150,11 +152,6 @@ defmodule BorsNG.Worker.Batcher do
       {:ok, :again} ->
         {:noreply, project_id}
     end
-  end
-
-  def handle_info({:maybe_delete_branch, batch_id}, project_id) do
-    maybe_delete_branch(batch_id, project_id)
-    {:noreply, project_id}
   end
 
   # Private implementation details
@@ -342,7 +339,17 @@ defmodule BorsNG.Worker.Batcher do
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
-    send(self(), {:maybe_delete_branch, batch.id})
+
+    uniq_pr_xrefs_count = patches
+    |> Enum.uniq_by(fn p -> p.pr_xref end)
+    |> Enum.count
+
+    if uniq_pr_xrefs_count == 1 do
+      patches
+      |> List.first
+      |> @branch_deleter.delete
+    end
+
     send_message(repo_conn, patches, {:succeeded, statuses})
   end
 
@@ -520,37 +527,5 @@ defmodule BorsNG.Worker.Batcher do
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}
   defp get_repo_conn(project) do
     Project.installation_connection(project.repo_xref, Repo)
-  end
-
-
-  defp maybe_delete_branch(batch_id, project_id) do
-    repo_conn = Project
-    |> Repo.get!(project_id)
-    |> get_repo_conn()
-
-    patches = batch_id
-    |> Patch.all_for_batch()
-    |> Repo.all()
-
-    uniq_pr_xrefs_count = patches
-    |> Enum.uniq_by(fn p -> p.pr_xref end)
-    |> Enum.count
-    if uniq_pr_xrefs_count == 1 do
-      [ patch | _ ] = patches
-      pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
-
-      pr_in_same_repo = pr.head_repo_id > 0 &&
-                        pr.head_repo_id == pr.base_repo_id
-
-      toml_result = Batcher.GetBorsToml.get(repo_conn, pr.head_ref)
-      delete_merged_branches = case toml_result do
-        {:ok, toml} -> toml.delete_merged_branches
-        _ -> false
-      end
-
-      if pr_in_same_repo && delete_merged_branches do
-        GitHub.delete_branch!(repo_conn, pr.head_ref)
-      end
-    end
   end
 end

@@ -44,8 +44,9 @@ defmodule BorsNG.WebhookControllerTest do
           "ref" => "BAR_BRANCH",
           "repo" => %{
             "id" => 345
-          }
+          },
         },
+        "merged" => false,
         "user" => %{
           "id" => 23,
           "login" => "ghost",
