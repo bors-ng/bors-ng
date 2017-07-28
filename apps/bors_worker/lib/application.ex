@@ -18,6 +18,7 @@ defmodule BorsNG.Worker.Application do
       worker(BorsNG.Worker.Attemptor.Registry, []),
       supervisor(Task.Supervisor, [[name: BorsNG.Worker.Syncer.Supervisor]]),
       supervisor(Registry, [:unique, BorsNG.Worker.Syncer.Registry]),
+      worker(BorsNG.Worker.BranchDeleter, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

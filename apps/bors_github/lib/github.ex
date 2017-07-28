@@ -24,8 +24,14 @@ defmodule BorsNG.GitHub do
 
   @spec get_pr!(tconn, integer | bitstring) :: BorsNG.GitHub.Pr.t
   def get_pr!(repo_conn, pr_xref) do
-    {:ok, pr} = GenServer.call(BorsNG.GitHub, {:get_pr, repo_conn, {pr_xref}})
+    {:ok, pr} = get_pr(repo_conn, pr_xref)
     pr
+  end
+
+  @spec get_pr(tconn, integer | bitstring) ::
+    {:ok, BorsNG.GitHub.Pr.t} | {:error, term}
+  def get_pr(repo_conn, pr_xref) do
+    GenServer.call(BorsNG.GitHub, {:get_pr, repo_conn, {pr_xref}})
   end
 
   @spec get_open_prs!(tconn) :: [tpr]

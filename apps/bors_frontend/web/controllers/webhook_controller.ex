@@ -67,6 +67,7 @@ defmodule BorsNG.WebhookController do
 
   alias BorsNG.Worker.Attemptor
   alias BorsNG.Worker.Batcher
+  alias BorsNG.Worker.BranchDeleter
   alias BorsNG.Command
   alias BorsNG.Database.Installation
   alias BorsNG.Database.Patch
@@ -160,7 +161,8 @@ defmodule BorsNG.WebhookController do
       action: conn.body_params["action"],
       project: project,
       patch: patch,
-      author: patch.author})
+      author: patch.author,
+      pr: pr})
   end
 
   def do_webhook(conn, "github", "issue_comment") do
@@ -276,7 +278,7 @@ defmodule BorsNG.WebhookController do
   def do_webhook_pr(_conn, %{action: "closed", project: project, patch: p}) do
     Project.ping!(project.id)
     Repo.update!(Patch.changeset(p, %{open: false}))
-    :ok
+    BranchDeleter.delete(p)
   end
 
   def do_webhook_pr(_conn, %{action: "reopened", project: project, patch: p}) do
