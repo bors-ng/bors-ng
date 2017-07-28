@@ -10,7 +10,7 @@ config :bors_frontend, ecto_repos: []
 # General application configuration
 config :bors_frontend, BorsNG,
   command_trigger: "bors",
-  home_url: "https://bors-ng.github.io/",
+  home_url: "https://bors.tech/",
   github_integration_url:
     "https://github.com/integrations/bors/installations/new",
   allow_private_repos: System.get_env("ALLOW_PRIVATE_REPOS") == "true"
