@@ -12,7 +12,8 @@ config :bors_frontend, BorsNG,
   command_trigger: "bors",
   home_url: "https://bors.tech/",
   github_integration_url:
-    "https://github.com/integrations/bors/installations/new",
+    "#{System.get_env("GITHUB_APP_PUBLIC_LINK") ||
+       "https://github.com/apps/bors"}/installations/new",
   allow_private_repos: System.get_env("ALLOW_PRIVATE_REPOS") == "true"
 
 # Configures the endpoint

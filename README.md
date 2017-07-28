@@ -220,7 +220,7 @@ The *webhook secret* should be a randomly generated string. The `mix phoenix.gen
 
 GitHub will send a "ping" notification to your webhook endpoint. Since bors is not actually running yet, that will fail. This is expected.
 
-You'll need to jot down the Integration ID (it's between the "Install" button and the "Transfer ownership" button).
+You'll need to jot down the Integration ID (it's between the "Install" button and the "Transfer ownership" button). You'll also need the Public link; this is on your Github App's General settings page and will look like `https://github.com/apps/your-app-name`. There should be a convenient "copy to clipboard" button next to it.
 
 You'll also need to generate the private key. Save the file, because you'll need it later.
 
