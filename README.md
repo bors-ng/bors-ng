@@ -133,7 +133,7 @@ The batching strategy is O(E log N), where N is again the total number of pull r
 with a mocked-out GitHub instance, using Docker to pull in all the underlying dependencies.
 The web server ends up running on <http://localhost:4000/>.
 You can get an Elixir REPL running in the same context as the webserver by running
-`repl` instead of `server`.
+`repl` instead of `server`. To run the tests, run `test` instead of `server`.
 
 If you log in, it will log you in with the user "space."
 There won't be any repositories, and space will not have admin perms.
@@ -169,6 +169,11 @@ You can then just run it using `mix`:
 
 And it'll run with the GitHub API mocked-out.
 
+To run tests, run:
+
+    $ mix test
+    $ mix dogma
+    $ mix dialyzer --halt-exit-status
 
 # How to set up your own real instance
 
