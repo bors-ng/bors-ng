@@ -192,29 +192,41 @@ The *webhook secret* should be a randomly generated string. The `mix phoenix.gen
 
 ### Required GitHub App permissions
 
-*Repository metadata*: Will be read-only. Must be set to receive *Repository* (Repository created, deleted, publicized, or privatized) events. This is needed to automatically remove entries from our database when a repo is deleted.
+####  Permission summary
 
-*Repository administration*: No access.
+For each of these sections, set the following overall section permissions and check the following webhook event checkboxes. Explanations for why bors-ng needs each of these permissions are below.
 
-*Commit statuses*: Must be set to *Read & write*, to report a testing status. Also must get *Status* (Commit status updated from the API) events, to integrate with CI systems that report their status via GitHub.
+- *Repository metadata*: Read-only (no choice)
+  - *Repository* (Repository created, deleted, publicized, or privatized)
+- *Repository administration*: No access
+- *Commit statuses*: Read & write
+  - *Status* (Commit status updated from the API)
+- *Deployments*: No access
+- *Issues*: Read & write
+  - *Issue comment* (Issue comment created, edited, or deleted)
+- *Pages*: No access
+- *Pull requests*: Read & write
+  - *Pull request* (Pull request opened, closed, reopened, edited, assigned, unassigned, review requested, review request removed, labeled, unlabeled, or synchronized)
+  - *Pull request review* (Pull request review submitted, edited, or dismissed)
+  - *Pull request review comment* (Pull request diff comment created, edited, or deleted)
+- *Repository contents*: Read & write
+  - (no checkboxes)
+- *Single file*: No access
+- *Repository projects*: No access
+- *Organization members*: No access
+- *Organization projects*: No access
 
-*Deployments*: No access.
+#### Permission explanations
 
-*Issues*: Must be set to *Read & write*, because pull requests are issues. *Issue comment* (Issue comment created, edited, or deleted) events must be enabled, to get the "bors r+" comments. If this is set to Read-only, it will end up with pull requests that are marked as simultaneously merged and opened.
+*Repository metadata* will be read-only. Must be set to receive *Repository* events to automatically remove entries from our database when a repo is deleted.
 
-*Pages*: No access.
+*Commit statuses* must be set to *Read & write* to report a testing status. Also must get *Status* events to integrate with CI systems that report their status via GitHub.
 
-*Pull requests*: Must be set to *Read & write*, to be able to post pull request comments. Also, must receive *Pull request* (Pull request opened, closed, reopened, edited, assigned, unassigned, labeled, unlabeled, or synchronized) events to be able to keep the dashboard working, and must get *Pull request review* (pull request review submitted) and *Pull request review comment* (pull request diff comment created, edited, or deleted) events to get those kinds of comments.
+*Issues* must be set to *Read & write* because pull requests are issues. *Issue comment* events must be enabled to get the "bors r+" comments. If *Issues* is set to Read-only, repos will end up with pull requests that are marked as simultaneously merged and opened.
 
-*Repository contents*: Must be set to *Read-write*, to be able to create merge commits.
+*Pull requests* must be set to *Read & write* to be able to post pull request comments. Also, must receive *Pull request* events to be able to keep the dashboard working, and must get *Pull request review* and *Pull request review comment* events to get those kinds of comments.
 
-*Single file*: No.
-
-*Repository projects*: No.
-
-*Organization members*: No.
-
-*Organization projects*: No.
+*Repository contents*: Must be set to *Read-write* to be able to create merge commits.
 
 ### After you click the "Create" button
 
