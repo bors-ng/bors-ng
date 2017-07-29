@@ -180,15 +180,15 @@ The first step is to [register a new Github App] on the GitHub web site.
 
 ### App settings
 
-The *name*, *description*, and *homepage URL* are irrelevant, though I suggest pointing the homepage at the dashboard page.
-
-Leave the *callback URL* blank.
+The *Github App name*, *description*, and *homepage URL* are irrelevant, though I suggest pointing the homepage at the dashboard page.
 
 The *user authorization callback URL* should be at `<dashboard url>/auth/github/callback`.
 
+Leave the *setup URL* blank.
+
 The *webhook URL* should be at `<dashboard page>/webhook/github`.
 
-The *webhook secret* should be a randomly generated string. The `mix phoenix.gen.secret` command will work awesomely for this.
+The *webhook secret* should be a randomly generated string. The `mix phoenix.gen.secret` command will work awesomely for this. Keep this handy to specify the same value in the bors configuration (you can also edit this value later if you need to).
 
 ### Required GitHub App permissions
 
@@ -220,9 +220,12 @@ The *webhook secret* should be a randomly generated string. The `mix phoenix.gen
 
 GitHub will send a "ping" notification to your webhook endpoint. Since bors is not actually running yet, that will fail. This is expected.
 
-You'll need to jot down the Integration ID (it's between the "Install" button and the "Transfer ownership" button). You'll also need the Public link; this is on your Github App's General settings page and will look like `https://github.com/apps/your-app-name`. There should be a convenient "copy to clipboard" button next to it.
+You'll need the following values from your GitHub App for configuring bors-ng:
 
-You'll also need to generate the private key. Save the file, because you'll need it later.
+- Private key (generate one and download the file)
+- OAuth credentials
+- Public link (looks like `https://github.com/apps/your-app-name`; should be a convenient "copy to clipboard" button next to it in the right hand column)
+- ID (appears beneath the Public link and "Owned by" in the right hand column)
 
 ## Step 2: Set up the server
 
