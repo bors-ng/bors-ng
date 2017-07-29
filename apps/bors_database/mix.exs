@@ -34,7 +34,15 @@ defmodule BorsNG.Database.Mixfile do
       {:postgrex, "~> 0.13.0"},
       {:mariaex, "~> 0.8"},
       {:ecto, "~> 2.1"}
-    ]
+    ] ++ (
+      if System.get_env("SCOUT_KEY") do
+        [
+          {:scout_apm, "~> 0.0"},
+        ]
+      else
+        []
+      end
+    )
   end
 
   defp aliases do
