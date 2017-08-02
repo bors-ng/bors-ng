@@ -63,7 +63,7 @@ defmodule BorsNG.GitHub.Pr do
       "login" => user_login,
       "avatar_url" => user_avatar_url,
     },
-    "merged" => merged,
+    "merged_at" => merged_at,
   }) when is_integer(number) do
     {:ok, %BorsNG.GitHub.Pr{
       number: number,
@@ -89,7 +89,7 @@ defmodule BorsNG.GitHub.Pr do
         login: user_login,
         avatar_url: user_avatar_url,
       },
-      merged: merged
+      merged: not is_nil merged_at
     }}
   end
 
