@@ -145,9 +145,9 @@ defmodule BorsNG.Worker.Batcher do
       Process.send_after(self(), {:poll, repetition}, @poll_period)
     end
     case poll(project_id) do
-      {:ok, :stop} ->
+      :stop ->
         {:stop, :normal, project_id}
-      {:ok, :again} ->
+      :again ->
         {:noreply, project_id}
     end
   end
