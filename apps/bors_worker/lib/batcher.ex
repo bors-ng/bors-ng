@@ -42,6 +42,9 @@ defmodule BorsNG.Worker.Batcher do
   def reviewed(pid, patch_id, reviewer) when is_integer(patch_id) do
     GenServer.cast(pid, {:reviewed, patch_id, reviewer})
   end
+  def reviewed(pid, patch_id, reviewer, priority) when is_integer(patch_id) do
+    GenServer.cast(pid, {:reviewed, patch_id, reviewer, priority})
+  end
 
   def status(pid, stat) do
     GenServer.cast(pid, {:status, stat})

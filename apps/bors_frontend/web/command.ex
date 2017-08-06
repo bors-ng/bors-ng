@@ -88,6 +88,7 @@ defmodule BorsNG.Command do
   @type cmd ::
     {:try, binary} |
     {:activate_by, binary} |
+    {:activate_by, binary, %{p: integer()}} |
     :activate |
     :deactivate |
     :delegate |
@@ -157,32 +158,42 @@ defmodule BorsNG.Command do
       []
       iex> Command.parse_activation_args("  ")
       []
+      iex> Command.parse_activation_args("somebody p=10")
+      [{:activate_by, "somebody", %{p: 10}}]
   """
-  def parse_activation_args("", " " <> rest) do
-    parse_activation_args("", rest)
+  def parse_activation_args("", string) do
+    {rest, mentions} = string
+    |> String.trim()
+    |> String.replace(~r/, */, ",")
+    |> String.split("\n", parts: 2)
+    |> List.first()
+    |> String.trim()
+    |> String.split(~r/, */)
+    |> Enum.map(fn s -> String.replace(s, "@", "") end)
+    |> List.pop_at(-1)
+
+    [last_mention | rest_list] = rest |> String.trim() |> String.split(~r/\s+/, parts: 2)
+    mentions = mentions ++ [last_mention]
+    mentions = Enum.join(mentions, ",")
+
+    params = case rest_list do
+      [] -> nil
+      [rest] -> rest |> String.trim() |> String.split("=", parts: 2) |> Enum.map(&String.trim(&1))
+    end
+
+    case params do
+      ["p", priority_s] ->
+        {priority_i, _} = Integer.parse(priority_s)
+        { mentions, %{p: priority_i}}
+      _ -> mentions
+    end
   end
-  def parse_activation_args(args, "@" <> rest) do
-    parse_activation_args(args, rest)
-  end
-  def parse_activation_args(args, ", " <> rest) do
-    parse_activation_args(args <> ",", rest)
-  end
-  def parse_activation_args(args, "\n" <> _) do
-    args
-  end
-  def parse_activation_args(args, "") do
-    args
-  end
-  def parse_activation_args(args, " " <> _) do
-    args
-  end
-  def parse_activation_args(args, <<c :: 8, rest :: binary>>) do
-    parse_activation_args(<<args :: binary, c :: 8>>, rest)
-  end
+
   def parse_activation_args(arguments) do
     arguments = parse_activation_args("", arguments)
     case arguments do
       "" -> []
+      {mentions, other} -> [{:activate_by, mentions, other}]
       arguments -> [{:activate_by, arguments}]
     end
   end
@@ -291,6 +302,10 @@ defmodule BorsNG.Command do
   def run(c, {:activate_by, username}) do
     batcher = Batcher.Registry.get(c.project.id)
     Batcher.reviewed(batcher, c.patch.id, username)
+  end
+  def run(c, {:activate_by, username, %{p: priority}}) do
+    batcher = Batcher.Registry.get(c.project.id)
+    Batcher.reviewed(batcher, c.patch.id, username, priority)
   end
   def run(c, :deactivate) do
     c = fetch_patch(c)
