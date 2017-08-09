@@ -71,6 +71,10 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
+    do_handle_cast({:reviewed, patch_id, reviewer, 0}, project_id)
+  end
+
+  def do_handle_cast({:reviewed, patch_id, reviewer, priority}, project_id) do
     case Repo.get(Patch.all(:awaiting_review), patch_id) do
       nil ->
         # Patch exists (otherwise, no ID), but is not awaiting review
@@ -82,8 +86,19 @@ defmodule BorsNG.Worker.Batcher do
       patch ->
         # Patch exists and is awaiting review
         # This will cause the PR to start after the patch's scheduled delay
+        if patch.priority != priority do
+          patch
+          |> Patch.changeset(%{priority: priority})
+          |> Repo.update!()
+        end
+
         project = Repo.get!(Project, patch.project_id)
-        batch = get_new_batch(project_id, patch.into_branch)
+        {batch, is_new_batch} = get_new_batch(
+          project_id,
+          patch.into_branch,
+          priority
+        )
+
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
@@ -174,9 +189,14 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def sort_batches(batches) do
-    sorted_batches = Enum.sort_by(batches, &{-&1.state, &1.last_polled})
+    sorted_batches = Enum.sort_by(batches, &{
+      -&1.state,
+      -&1.priority,
+      &1.last_polled
+    })
     new_batches = Enum.dedup_by(sorted_batches, &(&1.id))
-    state = if new_batches != [] and hd(new_batches).state == 1 do
+    running_state = Batch.numberize_state(:running)
+    state = if new_batches != [] and hd(new_batches).state == running_state do
       :running
     else
       Enum.each(new_batches, fn batch -> 0 = batch.state end)
@@ -474,16 +494,17 @@ defmodule BorsNG.Worker.Batcher do
     batch
   end
 
-  def get_new_batch(project_id, into_branch) do
+  def get_new_batch(project_id, into_branch, priority) do
     waiting = Batch.numberize_state(:waiting)
     Batch
     |> Repo.get_by(
       project_id: project_id,
       state: waiting,
-      into_branch: into_branch)
+      into_branch: into_branch,
+      priority: priority)
     |> case do
-      nil -> Repo.insert!(Batch.new(project_id, into_branch))
-      batch -> batch
+      nil -> {Repo.insert!(Batch.new(project_id, into_branch)), true}
+      batch -> {batch, false}
     end
   end
 

@@ -172,13 +172,20 @@ defmodule BorsNG.Command do
     |> Enum.map(fn s -> String.replace(s, "@", "") end)
     |> List.pop_at(-1)
 
-    [last_mention | rest_list] = rest |> String.trim() |> String.split(~r/\s+/, parts: 2)
+    [last_mention | rest_list] = rest
+    |> String.trim()
+    |> String.split(~r/\s+/, parts: 2)
+
     mentions = mentions ++ [last_mention]
     mentions = Enum.join(mentions, ",")
 
     params = case rest_list do
       [] -> nil
-      [rest] -> rest |> String.trim() |> String.split("=", parts: 2) |> Enum.map(&String.trim(&1))
+      [rest] ->
+        rest
+        |> String.trim()
+        |> String.split("=", parts: 2)
+        |> Enum.map(&String.trim(&1))
     end
 
     case params do
