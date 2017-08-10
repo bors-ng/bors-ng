@@ -29,6 +29,7 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.Status
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
+  import Ecto.Query, only: [where: 3]
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
@@ -98,6 +99,10 @@ defmodule BorsNG.Worker.Batcher do
           patch.into_branch,
           priority
         )
+
+        if is_new_batch do
+          put_incomplete_on_hold(batch)
+        end
 
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
@@ -503,7 +508,7 @@ defmodule BorsNG.Worker.Batcher do
       into_branch: into_branch,
       priority: priority)
     |> case do
-      nil -> {Repo.insert!(Batch.new(project_id, into_branch)), true}
+      nil -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
       batch -> {batch, false}
     end
   end
@@ -539,5 +544,12 @@ defmodule BorsNG.Worker.Batcher do
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}
   defp get_repo_conn(project) do
     Project.installation_connection(project.repo_xref, Repo)
+  end
+
+  defp put_incomplete_on_hold(batch) do
+    batch.project_id
+    |> Batch.all_for_project(:incomplete)
+    |> where([b], b.id != ^batch.id and b.priority < ^batch.priority)
+    |> Repo.update_all(set: [state: Batch.numberize_state(:waiting)])
   end
 end

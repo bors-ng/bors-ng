@@ -967,4 +967,61 @@ defmodule BorsNG.Worker.BatcherTest do
     [status] = Repo.all(Status)
     assert status.identifier == "ci"
   end
+
+  test "sets batch & patch priorities", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch.id, "rvr", 10}, proj.id)
+    assert Repo.one!(Batch).priority == 10
+    assert Repo.one!(Patch).priority == 10
+  end
+
+  test "puts batches with lower priorities on hold", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+
+      patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr", 10}, proj.id)
+
+    assert Repo.one!(from b in Batch, where: b.id == ^batch.id).state == 0
+    assert Repo.one!(from b in Batch, where: b.id == ^batch.id).priority == 0
+    assert Repo.one!(from b in Patch, where: b.id == ^patch.id).priority == 0
+    assert Repo.one!(from b in Batch, where: b.id != ^batch.id).priority == 10
+  end
 end

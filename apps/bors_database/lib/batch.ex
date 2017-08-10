@@ -19,13 +19,14 @@ defmodule BorsNG.Database.Batch do
     timestamps()
   end
 
-  def new(project_id, into_branch) do
+  def new(project_id, into_branch, priority \\ 0) do
     %Batch{
       into_branch: into_branch,
       project_id: project_id,
       commit: nil,
       state: 0,
-      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
+      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds),
+      priority: priority
     }
   end
 
