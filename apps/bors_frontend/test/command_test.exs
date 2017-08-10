@@ -93,4 +93,49 @@ defmodule BorsNG.CommandTest do
       }
     }
   end
+
+  test "running ping when commenter is not reviewer", %{proj: proj} do
+    pr = %BorsNG.GitHub.Pr{
+      number: 1,
+      title: "Test",
+      body: "Mess",
+      state: :open,
+      base_ref: "master",
+      head_sha: "00000001",
+      head_ref: "update",
+      base_repo_id: 13,
+      head_repo_id: 13,
+      user: %{
+        id: 1,
+        login: "user"
+      }
+    }
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => ["bors ping"]},
+        statuses: %{},
+        pulls: %{
+          1 => pr,
+        },
+      }
+    })
+
+    {:ok, _} = Repo.insert(%BorsNG.Database.Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"
+    })
+
+    c = %Command{
+      project: proj,
+      commenter: "commenter",
+      comment: "bors ping",
+      pr_xref: 1
+    }
+
+    Command.run(c)
+  end
 end
