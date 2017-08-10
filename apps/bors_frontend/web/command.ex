@@ -261,6 +261,8 @@ defmodule BorsNG.Command do
     cond do
       cmd_list == [] ->
         :ok
+      cmd_list == [:ping] ->
+        run(c, :ping)
       Permission.permission_to_approve_patch?(c.commenter, c.patch) ->
         Enum.each(cmd_list, &run(c, &1))
       true ->
