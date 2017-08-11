@@ -123,7 +123,7 @@ defmodule BorsNG.Command do
   end
 
   def parse_cmd("try" <> arguments), do: [{:try, arguments}]
-  def parse_cmd("r+ p=" <> rest), do: [parse_priority(rest), :activate]
+  def parse_cmd("r+ p=" <> rest), do: parse_priority(rest) ++ [:activate]
   def parse_cmd("r+" <> _), do: [:activate]
   def parse_cmd("r-" <> _), do: [:deactivate]
   def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
