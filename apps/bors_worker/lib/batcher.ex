@@ -29,7 +29,7 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.Status
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
-  import Ecto.Query, only: [where: 3]
+  import Ecto.Query
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
@@ -552,9 +552,13 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   defp put_incomplete_on_hold(batch) do
-    batch.project_id
+    batches_query = batch.project_id
     |> Batch.all_for_project(:incomplete)
     |> where([b], b.id != ^batch.id and b.priority < ^batch.priority)
-    |> Repo.update_all(set: [state: Batch.numberize_state(:waiting)])
+    Repo.update_all(batches_query,
+      set: [state: Batch.numberize_state(:waiting)])
+    Status
+    |> join(:inner, [s], b in ^batches_query, s.batch_id == b.id)
+    |> Repo.delete_all()
   end
 end
