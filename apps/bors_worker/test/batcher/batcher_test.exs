@@ -968,7 +968,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert status.identifier == "ci"
   end
 
-  test "sets batch & patch priorities", %{proj: proj} do
+  test "sets patch priorities", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
@@ -982,8 +982,7 @@ defmodule BorsNG.Worker.BatcherTest do
       into_branch: "master"}
     |> Repo.insert!()
 
-    Batcher.handle_cast({:reviewed, patch.id, "rvr", 10}, proj.id)
-    assert Repo.one!(Batch).priority == 10
+    Batcher.handle_call({:set_priority, patch.id, 10}, nil, nil)
     assert Repo.one!(Patch).priority == 10
   end
 
@@ -1017,7 +1016,8 @@ defmodule BorsNG.Worker.BatcherTest do
     %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
     |> Repo.insert!()
 
-    Batcher.handle_cast({:reviewed, patch2.id, "rvr", 10}, proj.id)
+    Batcher.handle_call({:set_priority, patch2.id, 10}, nil, nil)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
 
     assert Repo.one!(from b in Batch, where: b.id == ^batch.id).state == 0
     assert Repo.one!(from b in Batch, where: b.id == ^batch.id).priority == 0

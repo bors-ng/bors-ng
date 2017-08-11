@@ -43,8 +43,9 @@ defmodule BorsNG.Worker.Batcher do
   def reviewed(pid, patch_id, reviewer) when is_integer(patch_id) do
     GenServer.cast(pid, {:reviewed, patch_id, reviewer})
   end
-  def reviewed(pid, patch_id, reviewer, priority) when is_integer(patch_id) do
-    GenServer.cast(pid, {:reviewed, patch_id, reviewer, priority})
+
+  def set_priority(pid, patch_id, priority) when is_integer(patch_id) do
+    GenServer.call(pid, {:set_priority, patch_id, priority})
   end
 
   def status(pid, stat) do
@@ -71,11 +72,21 @@ defmodule BorsNG.Worker.Batcher do
     {:noreply, project_id}
   end
 
-  def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
-    do_handle_cast({:reviewed, patch_id, reviewer, 0}, project_id)
+  def handle_call({:set_priority, patch_id, priority}, _from, state) do
+    case Repo.get(Patch.all(:awaiting_review), patch_id) do
+      nil -> nil
+      patch ->
+        if patch.priority != priority do
+          patch
+          |> Patch.changeset(%{priority: priority})
+          |> Repo.update!()
+        end
+    end
+
+    {:noreply, state}
   end
 
-  def do_handle_cast({:reviewed, patch_id, reviewer, priority}, project_id) do
+  def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
     case Repo.get(Patch.all(:awaiting_review), patch_id) do
       nil ->
         # Patch exists (otherwise, no ID), but is not awaiting review
@@ -87,17 +98,11 @@ defmodule BorsNG.Worker.Batcher do
       patch ->
         # Patch exists and is awaiting review
         # This will cause the PR to start after the patch's scheduled delay
-        if patch.priority != priority do
-          patch
-          |> Patch.changeset(%{priority: priority})
-          |> Repo.update!()
-        end
-
         project = Repo.get!(Project, patch.project_id)
         {batch, is_new_batch} = get_new_batch(
           project_id,
           patch.into_branch,
-          priority
+          patch.priority
         )
 
         if is_new_batch do

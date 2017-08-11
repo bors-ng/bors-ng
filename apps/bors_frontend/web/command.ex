@@ -88,7 +88,7 @@ defmodule BorsNG.Command do
   @type cmd ::
     {:try, binary} |
     {:activate_by, binary} |
-    {:activate_by, binary, %{p: integer()}} |
+    {:set_priority, integer()} |
     :activate |
     :deactivate |
     :delegate |
@@ -131,6 +131,7 @@ defmodule BorsNG.Command do
   def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
   def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
   def parse_cmd("ping" <> _), do: [:ping]
+  def parse_cmd("p=" <> p), do: [:set_priority, Integer.parse(p)]
   def parse_cmd(_), do: []
 
   @doc ~S"""
@@ -159,7 +160,7 @@ defmodule BorsNG.Command do
       iex> Command.parse_activation_args("  ")
       []
       iex> Command.parse_activation_args("somebody p=10")
-      [{:activate_by, "somebody", %{p: 10}}]
+      [{:set_priority, 10}, {:activate_by, "somebody"}]
   """
   def parse_activation_args("", string) do
     {rest, mentions} = string
@@ -200,7 +201,7 @@ defmodule BorsNG.Command do
     arguments = parse_activation_args("", arguments)
     case arguments do
       "" -> []
-      {mentions, other} -> [{:activate_by, mentions, other}]
+      {mentions, %{p: p}} -> [{:set_priority, p}, {:activate_by, mentions}]
       arguments -> [{:activate_by, arguments}]
     end
   end
@@ -310,9 +311,9 @@ defmodule BorsNG.Command do
     batcher = Batcher.Registry.get(c.project.id)
     Batcher.reviewed(batcher, c.patch.id, username)
   end
-  def run(c, {:activate_by, username, %{p: priority}}) do
+  def run(c, {:set_priority, priority}) do
     batcher = Batcher.Registry.get(c.project.id)
-    Batcher.reviewed(batcher, c.patch.id, username, priority)
+    Batcher.set_priority(batcher, c.patch.id, priority)
   end
   def run(c, :deactivate) do
     c = fetch_patch(c)
