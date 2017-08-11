@@ -123,6 +123,7 @@ defmodule BorsNG.Command do
   end
 
   def parse_cmd("try" <> arguments), do: [{:try, arguments}]
+  def parse_cmd("r+ p=" <> rest), do: [parse_priority(rest), :activate]
   def parse_cmd("r+" <> _), do: [:activate]
   def parse_cmd("r-" <> _), do: [:deactivate]
   def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
@@ -131,7 +132,7 @@ defmodule BorsNG.Command do
   def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
   def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
   def parse_cmd("ping" <> _), do: [:ping]
-  def parse_cmd("p=" <> p), do: [:set_priority, Integer.parse(p)]
+  def parse_cmd("p=" <> rest), do: parse_priority(rest)
   def parse_cmd(_), do: []
 
   @doc ~S"""
@@ -266,6 +267,12 @@ defmodule BorsNG.Command do
       "" -> []
       nick -> [{:delegate_to, nick}]
     end)
+  end
+
+  def parse_priority(binary) do
+    {p, _} = Integer.parse(binary)
+
+    [{:set_priority, p}]
   end
 
   @doc """
