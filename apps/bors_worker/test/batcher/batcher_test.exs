@@ -493,6 +493,142 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+  test "full runthrough with priority putting one on hold", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => [], 2 => []},
+        statuses: %{},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => [], 2 => []},
+        statuses: %{"N" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 0
+    # Polling at a later time (yeah, I'm setting the clock back to do it)
+    # kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == 1
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN"},
+        comments: %{1 => [], 2 => []},
+        statuses: %{"N" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Submit the second one, with a higher priority.
+    Batcher.handle_call({:set_priority, patch2.id, 10}, nil, proj.id)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+    # Push the second one's timer, so it'll start now.
+    {batch, batch2} = case Repo.all(Batch) do
+      [batch1, batch2] ->
+        if batch1.id == batch.id do
+          {batch1, batch2}
+        else
+          {batch2, batch1}
+        end
+    end
+    batch2
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    # The second one should now be the one running,
+    # with the first one pushed back to the backlog.
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniO"},
+        comments: %{1 => [], 2 => []},
+        statuses: %{
+          "N" => %{"bors" => :running},
+          "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Finally, finish the higher-priority, second batch.
+    Batcher.do_handle_cast({:status, {"iniO", "ci", :ok, nil}}, proj.id)
+    batch2 = Repo.get! Batch, batch2.id
+    assert batch2.state == 2
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "iniO",
+          "staging" => "iniO"},
+        comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
+        statuses: %{
+          "iniO" => %{"bors" => :ok},
+          "O" => %{"bors" => :ok},
+          "N" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Poll again, so that the first, lower-priority batch is started again.
+    batch2
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "iniO",
+          "staging" => "iniON"},
+        comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
+        statuses: %{
+          "iniN" => %{"bors" => :running}, # TODO #263 make this :error
+          "iniO" => %{"bors" => :ok},
+          "O" => %{"bors" => :ok},
+          "N" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Finish the first one, since the higher-priority item is past it now
+    Batcher.do_handle_cast({:status, {"iniON", "ci", :ok, nil}}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == 2
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "iniON",
+          "staging" => "iniON"},
+        comments: %{
+          2 => ["# Build succeeded\n  * ci"],
+          1 => ["# Build succeeded\n  * ci"]},
+        statuses: %{
+          "iniN" => %{"bors" => :running}, # TODO #263 make this :error
+          "iniON" => %{"bors" => :ok},
+          "iniO" => %{"bors" => :ok},
+          "O" => %{"bors" => :ok},
+          "N" => %{"bors" => :ok}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+  end
+
   test "full runthrough with test failure", %{proj: proj} do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{
