@@ -41,6 +41,25 @@ defmodule BorsNG.CommandTest do
     assert [:deactivate] == Command.parse("bors r-")
   end
 
+  test "accept priority" do
+    assert [{:set_priority, 1}, :activate] == Command.parse("bors r+ p=1")
+    assert [{:set_priority, 1}, {:activate_by, "me"}] ==
+      Command.parse("bors r=me p=1")
+    assert [{:set_priority, 1}] == Command.parse("bors p=1")
+  end
+
+  test "accept negative priority" do
+    assert [{:set_priority, -1}, :activate] == Command.parse("bors r+ p=-1")
+    assert [{:set_priority, -1}, {:activate_by, "me"}] ==
+      Command.parse("bors r=me p=-1")
+    assert [{:set_priority, -1}] == Command.parse("bors p=-1")
+  end
+
+  test "do not parse priority after try command" do
+    assert [{:try, " p=1"}] == Command.parse("bors try p=1")
+    assert [{:try, " p=screwy"}] == Command.parse("bors try p=screwy")
+  end
+
   test "accept command with colon after it" do
     assert [{:try, ""}] == Command.parse("bors: try")
   end

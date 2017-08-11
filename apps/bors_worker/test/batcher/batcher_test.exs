@@ -967,4 +967,93 @@ defmodule BorsNG.Worker.BatcherTest do
     [status] = Repo.all(Status)
     assert status.identifier == "ci"
   end
+
+  test "sets patch priorities", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    Batcher.handle_call({:set_priority, patch.id, 10}, nil, nil)
+    assert Repo.one!(Patch).priority == 10
+  end
+
+  test "puts batches with lower priorities on hold", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+
+      patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+
+    Batcher.handle_call({:set_priority, patch2.id, 10}, nil, nil)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+
+    assert Repo.one!(from b in Batch, where: b.id == ^batch.id).state == 0
+    assert Repo.one!(from b in Batch, where: b.id == ^batch.id).priority == 0
+    assert Repo.one!(from b in Patch, where: b.id == ^patch.id).priority == 0
+    assert Repo.one!(from b in Batch, where: b.id != ^batch.id).priority == 10
+  end
+
+  test "sort_batches() handles priorities too", %{proj: proj} do
+    t1 = ~N[2000-01-01 23:00:07]
+    |> DateTime.from_naive!("Etc/UTC")
+    |> DateTime.to_unix
+    t2 = ~N[2000-01-10 23:00:07]
+    |> DateTime.from_naive!("Etc/UTC")
+    |> DateTime.to_unix
+    batch = %Batch{
+      project_id: proj.id,
+      state: 0,
+      into_branch: "master",
+      last_polled: t1}
+    |> Repo.insert!()
+
+    batch2 = %Batch{
+      project_id: proj.id,
+      state: 0,
+      into_branch: "master",
+      last_polled: t2}
+    |> Repo.insert!()
+
+    batch3 = %Batch{
+      project_id: proj.id,
+      state: 0,
+      into_branch: "master",
+      priority: 10}
+    |> Repo.insert!()
+
+    sorted = Batcher.sort_batches([batch, batch2, batch3])
+    assert sorted == {:waiting, [batch3, batch, batch2]}
+  end
 end

@@ -29,6 +29,7 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.Status
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
+  import Ecto.Query, only: [where: 3]
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
@@ -41,6 +42,10 @@ defmodule BorsNG.Worker.Batcher do
 
   def reviewed(pid, patch_id, reviewer) when is_integer(patch_id) do
     GenServer.cast(pid, {:reviewed, patch_id, reviewer})
+  end
+
+  def set_priority(pid, patch_id, priority) when is_integer(patch_id) do
+    GenServer.call(pid, {:set_priority, patch_id, priority})
   end
 
   def status(pid, stat) do
@@ -67,6 +72,20 @@ defmodule BorsNG.Worker.Batcher do
     {:noreply, project_id}
   end
 
+  def handle_call({:set_priority, patch_id, priority}, _from, state) do
+    case Repo.get(Patch.all(:awaiting_review), patch_id) do
+      nil -> nil
+      patch ->
+        if patch.priority != priority do
+          patch
+          |> Patch.changeset(%{priority: priority})
+          |> Repo.update!()
+        end
+    end
+
+    {:noreply, state}
+  end
+
   def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
     case Repo.get(Patch.all(:awaiting_review), patch_id) do
       nil ->
@@ -80,7 +99,16 @@ defmodule BorsNG.Worker.Batcher do
         # Patch exists and is awaiting review
         # This will cause the PR to start after the patch's scheduled delay
         project = Repo.get!(Project, patch.project_id)
-        batch = get_new_batch(project_id, patch.into_branch)
+        {batch, is_new_batch} = get_new_batch(
+          project_id,
+          patch.into_branch,
+          patch.priority
+        )
+
+        if is_new_batch do
+          put_incomplete_on_hold(batch)
+        end
+
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
@@ -171,9 +199,14 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def sort_batches(batches) do
-    sorted_batches = Enum.sort_by(batches, &{-&1.state, &1.last_polled})
+    sorted_batches = Enum.sort_by(batches, &{
+      -&1.state,
+      -&1.priority,
+      &1.last_polled
+    })
     new_batches = Enum.dedup_by(sorted_batches, &(&1.id))
-    state = if new_batches != [] and hd(new_batches).state == 1 do
+    running_state = Batch.numberize_state(:running)
+    state = if new_batches != [] and hd(new_batches).state == running_state do
       :running
     else
       Enum.each(new_batches, fn batch -> 0 = batch.state end)
@@ -471,16 +504,17 @@ defmodule BorsNG.Worker.Batcher do
     batch
   end
 
-  def get_new_batch(project_id, into_branch) do
+  def get_new_batch(project_id, into_branch, priority) do
     waiting = Batch.numberize_state(:waiting)
     Batch
     |> Repo.get_by(
       project_id: project_id,
       state: waiting,
-      into_branch: into_branch)
+      into_branch: into_branch,
+      priority: priority)
     |> case do
-      nil -> Repo.insert!(Batch.new(project_id, into_branch))
-      batch -> batch
+      nil -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
+      batch -> {batch, false}
     end
   end
 
@@ -515,5 +549,12 @@ defmodule BorsNG.Worker.Batcher do
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}
   defp get_repo_conn(project) do
     Project.installation_connection(project.repo_xref, Repo)
+  end
+
+  defp put_incomplete_on_hold(batch) do
+    batch.project_id
+    |> Batch.all_for_project(:incomplete)
+    |> where([b], b.id != ^batch.id and b.priority < ^batch.priority)
+    |> Repo.update_all(set: [state: Batch.numberize_state(:waiting)])
   end
 end

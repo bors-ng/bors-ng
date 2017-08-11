@@ -14,17 +14,19 @@ defmodule BorsNG.Database.Batch do
     field :state, :integer
     field :last_polled, :integer
     field :timeout_at, :integer
+    field :priority, :integer, default: 0
     has_many :patches, LinkPatchBatch
     timestamps()
   end
 
-  def new(project_id, into_branch) do
+  def new(project_id, into_branch, priority \\ 0) do
     %Batch{
       into_branch: into_branch,
       project_id: project_id,
       commit: nil,
       state: 0,
-      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
+      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds),
+      priority: priority
     }
   end
 
@@ -137,6 +139,13 @@ defmodule BorsNG.Database.Batch do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:project_id, :commit, :state, :last_polled, :timeout_at])
+    |> cast(params, [
+      :project_id,
+      :commit,
+      :state,
+      :last_polled,
+      :timeout_at,
+      :priority
+    ])
   end
 end

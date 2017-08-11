@@ -88,6 +88,7 @@ defmodule BorsNG.Command do
   @type cmd ::
     {:try, binary} |
     {:activate_by, binary} |
+    {:set_priority, integer()} |
     :activate |
     :deactivate |
     :delegate |
@@ -122,6 +123,7 @@ defmodule BorsNG.Command do
   end
 
   def parse_cmd("try" <> arguments), do: [{:try, arguments}]
+  def parse_cmd("r+ p=" <> rest), do: parse_priority(rest) ++ [:activate]
   def parse_cmd("r+" <> _), do: [:activate]
   def parse_cmd("r-" <> _), do: [:deactivate]
   def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
@@ -130,6 +132,7 @@ defmodule BorsNG.Command do
   def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
   def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
   def parse_cmd("ping" <> _), do: [:ping]
+  def parse_cmd("p=" <> rest), do: parse_priority(rest)
   def parse_cmd(_), do: []
 
   @doc ~S"""
@@ -157,32 +160,49 @@ defmodule BorsNG.Command do
       []
       iex> Command.parse_activation_args("  ")
       []
+      iex> Command.parse_activation_args("somebody p=10")
+      [{:set_priority, 10}, {:activate_by, "somebody"}]
   """
-  def parse_activation_args("", " " <> rest) do
-    parse_activation_args("", rest)
+  def parse_activation_args("", string) do
+    {rest, mentions} = string
+    |> String.trim()
+    |> String.replace(~r/, */, ",")
+    |> String.split("\n", parts: 2)
+    |> List.first()
+    |> String.trim()
+    |> String.split(~r/, */)
+    |> Enum.map(fn s -> String.replace(s, "@", "") end)
+    |> List.pop_at(-1)
+
+    [last_mention | rest_list] = rest
+    |> String.trim()
+    |> String.split(~r/\s+/, parts: 2)
+
+    mentions = mentions ++ [last_mention]
+    mentions = Enum.join(mentions, ",")
+
+    params = case rest_list do
+      [] -> nil
+      [rest] ->
+        rest
+        |> String.trim()
+        |> String.split("=", parts: 2)
+        |> Enum.map(&String.trim(&1))
+    end
+
+    case params do
+      ["p", priority_s] ->
+        {priority_i, _} = Integer.parse(priority_s)
+        { mentions, %{p: priority_i}}
+      _ -> mentions
+    end
   end
-  def parse_activation_args(args, "@" <> rest) do
-    parse_activation_args(args, rest)
-  end
-  def parse_activation_args(args, ", " <> rest) do
-    parse_activation_args(args <> ",", rest)
-  end
-  def parse_activation_args(args, "\n" <> _) do
-    args
-  end
-  def parse_activation_args(args, "") do
-    args
-  end
-  def parse_activation_args(args, " " <> _) do
-    args
-  end
-  def parse_activation_args(args, <<c :: 8, rest :: binary>>) do
-    parse_activation_args(<<args :: binary, c :: 8>>, rest)
-  end
+
   def parse_activation_args(arguments) do
     arguments = parse_activation_args("", arguments)
     case arguments do
       "" -> []
+      {mentions, %{p: p}} -> [{:set_priority, p}, {:activate_by, mentions}]
       arguments -> [{:activate_by, arguments}]
     end
   end
@@ -249,6 +269,12 @@ defmodule BorsNG.Command do
     end)
   end
 
+  def parse_priority(binary) do
+    {p, _} = Integer.parse(binary)
+
+    [{:set_priority, p}]
+  end
+
   @doc """
   Given a populated struct, run everything.
   """
@@ -293,6 +319,10 @@ defmodule BorsNG.Command do
   def run(c, {:activate_by, username}) do
     batcher = Batcher.Registry.get(c.project.id)
     Batcher.reviewed(batcher, c.patch.id, username)
+  end
+  def run(c, {:set_priority, priority}) do
+    batcher = Batcher.Registry.get(c.project.id)
+    Batcher.set_priority(batcher, c.patch.id, priority)
   end
   def run(c, :deactivate) do
     c = fetch_patch(c)
