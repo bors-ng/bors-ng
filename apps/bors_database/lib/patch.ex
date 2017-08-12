@@ -82,4 +82,12 @@ defmodule BorsNG.Database.Patch do
       join: lu in LinkUserProject, on: lu.project_id == p.project_id,
       where: lu.user_id == ^user_id
   end
+
+  @spec ci_skip?(%Patch{}) :: boolean()
+  def ci_skip?(patch) do
+    rexp =  ~r/\[ci skip\]/
+    title = patch.title || ""
+    body = patch.body || ""
+    String.match?(title, rexp) or String.match?(body, rexp)
+  end
 end

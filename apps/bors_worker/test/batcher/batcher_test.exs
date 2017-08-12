@@ -1131,7 +1131,7 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{}
       }})
 
-      patch = %Patch{
+    patch = %Patch{
       project_id: proj.id,
       pr_xref: 1,
       commit: "N",
