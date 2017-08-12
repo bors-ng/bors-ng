@@ -99,30 +99,37 @@ defmodule BorsNG.Worker.Batcher do
         # Patch exists and is awaiting review
         # This will cause the PR to start after the patch's scheduled delay
         project = Repo.get!(Project, patch.project_id)
-        {batch, is_new_batch} = get_new_batch(
-          project_id,
-          patch.into_branch,
-          patch.priority
-        )
+        if Patch.ci_skip?(patch) do
+          project
+          |> get_repo_conn()
+          |> send_message([patch], :ci_skip)
+        else
 
-        if is_new_batch do
-          put_incomplete_on_hold(batch)
-        end
+          {batch, is_new_batch} = get_new_batch(
+            project_id,
+            patch.into_branch,
+            patch.priority
+          )
 
-        repo_conn = get_repo_conn(project)
-        case patch_preflight(repo_conn, patch) do
-          :ok ->
-            params = %{
-              batch_id: batch.id,
-              patch_id: patch.id,
-              reviewer: reviewer}
-            Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
-            poll_at = (project.batch_delay_sec + 1) * 1000
-            Process.send_after(self(), {:poll, :once}, poll_at)
-            send_status(repo_conn, [patch], :waiting)
-          {:error, message} ->
-            send_message(repo_conn, [patch], {:preflight, message})
-            send_status(repo_conn, [patch], :error)
+          if is_new_batch do
+            put_incomplete_on_hold(batch)
+          end
+
+          repo_conn = get_repo_conn(project)
+          case patch_preflight(repo_conn, patch) do
+            :ok ->
+              params = %{
+                batch_id: batch.id,
+                patch_id: patch.id,
+                reviewer: reviewer}
+              Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
+              poll_at = (project.batch_delay_sec + 1) * 1000
+              Process.send_after(self(), {:poll, :once}, poll_at)
+              send_status(repo_conn, [patch], :waiting)
+            {:error, message} ->
+              send_message(repo_conn, [patch], {:preflight, message})
+              send_status(repo_conn, [patch], :error)
+          end
         end
     end
   end

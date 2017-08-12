@@ -55,6 +55,9 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message({:canceled, :retrying}) do
     "# Canceled (will resume)"
   end
+  def generate_message(:ci_skip) do
+    "Has [ci skip], bors build will time out"
+  end
   def generate_message({state, statuses}) do
     msg = case state do
       :succeeded -> "Build succeeded"

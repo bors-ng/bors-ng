@@ -60,10 +60,16 @@ defmodule BorsNG.Worker.Attemptor do
       nil ->
         # There is no currently running attempt
         # Start one
-        patch
-        |> Attempt.new()
-        |> Repo.insert!()
-        |> start_attempt(project, patch, arguments)
+        if Patch.ci_skip?(patch) do
+          project
+          |> get_repo_conn()
+          |> send_message(patch, :ci_skip)
+        else
+          patch
+          |> Attempt.new()
+          |> Repo.insert!()
+          |> start_attempt(project, patch, arguments)
+        end
       _attempt ->
         # There is already a running attempt
         project
