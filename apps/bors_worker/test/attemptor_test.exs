@@ -179,4 +179,26 @@ defmodule BorsNG.Worker.AttemptorTest do
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
   end
+
+  test "posts message if patch has ci skip", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{"circle.yml" => ""}}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      title: "[ci skip]",
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    comments = state[{{:installation, 91}, 14}].comments[1]
+    assert comments == ["Has [ci skip], bors build will time out"]
+  end
 end

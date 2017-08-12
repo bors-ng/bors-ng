@@ -18,7 +18,7 @@ defmodule BorsNG.Worker.BatcherMessageTest do
 
   test "generate retry message w/ url" do
     expected_message = "# Build failed (retrying...)\n  * [stat](x)"
-    example_statuses = [%{url: nil, identifier: "stat", url: "x"}]
+    example_statuses = [%{url: "x", identifier: "stat"}]
     actual_message = Message.generate_message({:retrying, example_statuses})
     assert expected_message == actual_message
   end
@@ -86,13 +86,13 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     title = "Synchronize background and foreground processing"
     body = """
     Fixes that annoying bug.
-    
+
     <!-- boilerplate follows -->
-    
+
     Thank you for contributing to my awesome OSS project!
     To make sure your PR is accepted ASAP, make sure all of this
     stuff is done:
-    
+
     - [ ] Run the linter
     - [ ] Run any new or changed tests
     - [ ] This PR fixes #___ (fill in if it exists)

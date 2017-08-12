@@ -1192,4 +1192,28 @@ defmodule BorsNG.Worker.BatcherTest do
     sorted = Batcher.sort_batches([batch, batch2, batch3])
     assert sorted == {:waiting, [batch3, batch, batch2]}
   end
+
+  test "posts message if patch has ci skip", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => %{}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+      }})
+
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      title: "[ci skip]",
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+
+    state = GitHub.ServerMock.get_state()
+    comments = state[{{:installation, 91}, 14}].comments[1]
+    assert comments == ["Has [ci skip], bors build will time out"]
+  end
 end

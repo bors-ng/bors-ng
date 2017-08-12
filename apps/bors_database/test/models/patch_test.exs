@@ -227,4 +227,14 @@ defmodule BorsNG.Database.PatchTest do
     }
     assert Patch.ci_skip?(p)
   end
+
+  test "ci_skip? returns false if ci skip is absent" do
+    p = %Patch{
+      pr_xref: 9,
+      title: "title",
+      body: "this is body",
+      commit: "C"
+    }
+    refute Patch.ci_skip?(p)
+  end
 end
