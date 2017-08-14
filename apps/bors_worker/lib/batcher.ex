@@ -68,7 +68,7 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def handle_cast(args, project_id) do
-    Repo.transaction(fn -> do_handle_cast(args, project_id) end)
+    do_handle_cast(args, project_id)
     {:noreply, project_id}
   end
 
@@ -179,10 +179,10 @@ defmodule BorsNG.Worker.Batcher do
     if repetition != :once do
       Process.send_after(self(), {:poll, repetition}, @poll_period)
     end
-    case Repo.transaction(fn -> poll(project_id) end) do
-      {:ok, :stop} ->
+    case poll(project_id) do
+      :stop ->
         {:stop, :normal, project_id}
-      {:ok, :again} ->
+      :again ->
         {:noreply, project_id}
     end
   end
