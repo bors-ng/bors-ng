@@ -42,13 +42,13 @@ This list is out of date. <a href="">Reload</a>
 <table class="table">
 <%= if @unbatched_patches != [] do %>
   <thead>
-    <tr role=heading><td aria-role=presentation colspan=2>
+    <tr role=heading><td aria-role=presentation colspan=4>
       <h2 class=header>
         Awaiting review
         <span class=header-count><%= Enum.count(@unbatched_patches) %></span>
       </h2>
     </td></tr>
-    <tr role=row><th>#</th><th>Title</th></tr>
+    <tr role=row><th>#</th><th>Title</th><th>Priority</th><th>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- @unbatched_patches do %>
@@ -61,19 +61,25 @@ This list is out of date. <a href="">Reload</a>
           <%= patch.title %>
         </a>
       </td>
+      <td>
+        <%= patch.priority %>
+      </td>
+      <td>
+        <%= truncate_commit(patch.commit) %>
+      </td>
     </tr>
   <% end %>
   </tbody>
 <% end %>
 <%= for batch <- @batches do %>
   <thead>
-    <tr role=heading><td aria-role=presentation colspan=2>
+    <tr role=heading><td aria-role=presentation colspan=4>
       <h2 class=header>
         <%= stringify_state batch.state %>
         <span class=header-count><%= Enum.count(batch.patches) %></span>
       </h2>
     </td></tr>
-    <tr role=row><th>#</th><th>Title</th></tr>
+    <tr role=row><th>#</th><th>Title</th><th>Priority</th><th>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- batch.patches do %>
@@ -85,6 +91,12 @@ This list is out of date. <a href="">Reload</a>
         <a href="https://github.com/<%= @project.name %>/pull/<%= patch.pr_xref %>">
           <%= patch.title %>
         </a>
+      </td>
+      <td>
+        <%= patch.priority %>
+      </td>
+      <td>
+        <%= truncate_commit(patch.commit) %>
       </td>
     </tr>
   <% end %>

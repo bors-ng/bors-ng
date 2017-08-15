@@ -20,4 +20,9 @@ defmodule BorsNG.ProjectView do
       _ -> "Invalid"
     end
   end
+
+  def truncate_commit(<<t :: binary - size(7), _ :: binary>>), do: t
+  def truncate_commit(t) when is_binary(t), do: t
+  def truncate_commit(nil), do: "[nil]"
+  def truncate_commit(_), do: "[invalid]"
 end
