@@ -14,7 +14,7 @@
   <body>
     <header role="banner">
       <div class="wrapper wrapper--mini">
-        <a href="<%= page_url(@conn, :index) %>"><img alt="bors" src='<%= static_path(@conn, "/images/a.svg") %>' width="90" height="25"></a>
+        <a id=header-logo href="<%= page_url(@conn, :index) %>"><img alt="bors" src='<%= static_path(@conn, "/images/a.svg") %>' width="90" height="25"></a>
         <span id=header-user>
 <%= if is_nil @conn.assigns[:user] do %>
           <a href='<%= auth_url(@conn, :index, "github") %>'>Log in with GitHub</a>

@@ -1,3 +1,5 @@
+/* always show the scrollbar on the side; avoids ugly jumping */
+html{overflow-y:scroll}
 /* Should be used inside of the header, main, and footer */
 .wrapper {
   max-width: 1000px;
@@ -11,10 +13,13 @@
 header, nav {
   border-bottom: solid 1px #CCC;
 }
+header {
+  line-height: 1.62;
+}
 #header-user {
   float: right;
 }
-#header-user > a, #header-user img {
+#header-user > a, #header-user img, #header-logo {
   vertical-align: middle;
   line-height: 25px;
   height: 25px;
@@ -150,6 +155,9 @@ footer {
 }
 .table tr[role="row"] th, .table tr[role="row"] td {
   padding: 8px 10px;
+}
+.table tbody + thead td {
+  padding-top: 16px;
 }
 .fill-link {
   overflow: hidden;
