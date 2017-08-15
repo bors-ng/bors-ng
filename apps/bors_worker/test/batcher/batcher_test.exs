@@ -11,6 +11,8 @@ defmodule BorsNG.Worker.BatcherTest do
   alias BorsNG.Database.Status
   alias BorsNG.GitHub
 
+  import Ecto.Query
+
   setup do
     inst = %Installation{installation_xref: 91}
     |> Repo.insert!()
@@ -698,7 +700,8 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Kick off the new, replacement batch.
-    [batch_lo, batch_hi] = Repo.all(Batch.all_for_project(proj.id, :waiting))
+    [batch_lo, batch_hi] = ordered_batches(proj)
+
     batch_lo
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
@@ -955,7 +958,8 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Kick off the new, replacement batch.
-    [batch_lo, batch_hi] = Repo.all(Batch.all_for_project(proj.id, :waiting))
+    [batch_lo, batch_hi] = ordered_batches(proj)
+
     batch_lo
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
@@ -1215,5 +1219,14 @@ defmodule BorsNG.Worker.BatcherTest do
     state = GitHub.ServerMock.get_state()
     comments = state[{{:installation, 91}, 14}].comments[1]
     assert comments == ["Has [ci skip], bors build will time out"]
+  end
+
+  defp ordered_batches(proj) do
+    Batch.all_for_project(proj.id, :waiting)
+    |> join(:inner, [b], l in assoc(b, :patches))
+    |> join(:inner, [_, l], patch in assoc(l, :patch))
+    |> order_by([_, _, p], p.commit)
+    |> preload([b, l, p], [patches: {l, patch: p}])
+    |> Repo.all()
   end
 end
