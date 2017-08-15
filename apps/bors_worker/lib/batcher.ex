@@ -83,7 +83,7 @@ defmodule BorsNG.Worker.Batcher do
         end
     end
 
-    {:noreply, state}
+    {:reply, :ok, state}
   end
 
   def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
