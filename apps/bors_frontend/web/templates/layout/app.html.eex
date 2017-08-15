@@ -5,6 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>bors</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/svg+xml" title="bors eye" href="/images/i.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/manifest.json">
+    <link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="theme-color" content="#eeeeee">
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
 <%= if not is_nil(@conn.assigns[:user]) do %>
     <meta name="bors-current-user" content="<%= @conn.assigns.user.id %>">
