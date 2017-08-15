@@ -259,6 +259,19 @@ footer {
   margin-bottom: 7px;
   padding-bottom: 8px;
 }
+.header-count {
+  float: right;
+  display: inline-block;
+  text-align: center;
+  line-height: 24px;
+  font-weight: bold;
+  height: 24px;
+  min-width: 24px;
+  color: #FFF;
+  background: #000;
+  border-radius: 16px;
+  font-size: 16px;
+}
 /* Allow preformatted text to wrap (crash reports) */
 pre {
   white-space: pre-wrap;

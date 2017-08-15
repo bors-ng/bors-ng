@@ -42,7 +42,12 @@ This list is out of date. <a href="">Reload</a>
 <table class="table">
 <%= if @unbatched_patches != [] do %>
   <thead>
-    <tr role=heading><td aria-role=presentation colspan=2><h2 class=header>Awaiting review</h2></td></tr>
+    <tr role=heading><td aria-role=presentation colspan=2>
+      <h2 class=header>
+        Awaiting review
+        <span class=header-count><%= Enum.count(@unbatched_patches) %></span>
+      </h2>
+    </td></tr>
     <tr role=row><th>#</th><th>Title</th></tr>
   </thead>
   <tbody>
@@ -62,7 +67,12 @@ This list is out of date. <a href="">Reload</a>
 <% end %>
 <%= for batch <- @batches do %>
   <thead>
-    <tr role=heading><td aria-role=presentation colspan=2><h2 class=header><%= stringify_state batch.state %></h2></td></tr>
+    <tr role=heading><td aria-role=presentation colspan=2>
+      <h2 class=header>
+        <%= stringify_state batch.state %>
+        <span class=header-count><%= Enum.count(batch.patches) %></span>
+      </h2>
+    </td></tr>
     <tr role=row><th>#</th><th>Title</th></tr>
   </thead>
   <tbody>
