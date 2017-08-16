@@ -1,5 +1,4 @@
 <nav>
-
 <div class=wrapper>
   <a href="<%= project_path(@conn, :index) %>">
     Repositories
@@ -11,7 +10,6 @@
     </a>
   </h1>
 </div>
-
 <div class=tabs role=tabs>
   <span class="tab tab--active">Pull requests</span>
   <%= if @mode == :rw do %>
@@ -19,23 +17,9 @@
   <%= link "Settings", to: project_path(@conn, :settings, @project), class: "tab" %>
   <% end %>
 </div>
-
 </nav>
 
 <main role=main><div class=wrapper>
-
-<%= if @mode == :rw do %>
-<div class=toolbar aria-role=toolbar>
-<%= if @batches != [] do %>
-  <%= link "Cancel all", to: project_path(@conn, :cancel_all, @project), method: :delete, class: "toolbar-item toolbar-item--remove", data: [confirm: "Commenting `bors r-` on a PR will cancel just the one. You asked to cancel all of them, which is a PITA to undo.\n\nAre you sure you want to cancel all running and waiting pull requests?"] %>
-<% end %>
-<%= if @is_synchronizing do %>
-  <span class="toolbar-item toolbar-item--disabled">Synchronizing...</span>
-<% else %>
-  <%= link "Sync pull requests", to: project_path(@conn, :synchronize, @project), method: :put, class: "toolbar-item" %>
-<% end %>
-</div>
-<% end %>
 
 <%= if not is_nil get_flash(@conn, :ok) do %>
 <div role="alert" class="alert alert--ok">
@@ -58,8 +42,13 @@ This list is out of date. <a href="">Reload</a>
 <table class="table">
 <%= if @unbatched_patches != [] do %>
   <thead>
-    <tr role=heading><td aria-role=presentation colspan=2><h2 class=header>Awaiting review</h2></td></tr>
-    <tr role=row><th>#</th><th>Title</th></tr>
+    <tr role=heading><td aria-role=presentation colspan=4>
+      <h2 class=header>
+        Awaiting review
+        <span class=header-count><%= Enum.count(@unbatched_patches) %></span>
+      </h2>
+    </td></tr>
+    <tr role=row><th>#</th><th>Title</th><th>Priority</th><th>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- @unbatched_patches do %>
@@ -72,14 +61,25 @@ This list is out of date. <a href="">Reload</a>
           <%= patch.title %>
         </a>
       </td>
+      <td>
+        <%= patch.priority %>
+      </td>
+      <td>
+        <%= truncate_commit(patch.commit) %>
+      </td>
     </tr>
   <% end %>
   </tbody>
 <% end %>
 <%= for batch <- @batches do %>
   <thead>
-    <tr role=heading><td aria-role=presentation colspan=2><h2 class=header><%= stringify_state batch.state %></h2></td></tr>
-    <tr role=row><th>#</th><th>Title</th></tr>
+    <tr role=heading><td aria-role=presentation colspan=4>
+      <h2 class=header>
+        <%= stringify_state batch.state %>
+        <span class=header-count><%= Enum.count(batch.patches) %></span>
+      </h2>
+    </td></tr>
+    <tr role=row><th>#</th><th>Title</th><th>Priority</th><th>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- batch.patches do %>
@@ -92,6 +92,12 @@ This list is out of date. <a href="">Reload</a>
           <%= patch.title %>
         </a>
       </td>
+      <td>
+        <%= patch.priority %>
+      </td>
+      <td>
+        <%= truncate_commit(patch.commit) %>
+      </td>
     </tr>
   <% end %>
   </tbody>
@@ -99,3 +105,16 @@ This list is out of date. <a href="">Reload</a>
 </table>
 
 </div></main>
+
+<%= if @mode == :rw do %>
+<div class="wrapper wrapper--mini" role=toolbar><div class=toolbar>
+<%= if @is_synchronizing do %>
+  <span class="toolbar-item toolbar-item--disabled">Synchronizing...</span>
+<% else %>
+  <%= link "Sync pull requests", to: project_path(@conn, :synchronize, @project), method: :put, class: "toolbar-item" %>
+<% end %>
+<%= if @batches != [] do %>
+  <%= link "Cancel all", to: project_path(@conn, :cancel_all, @project), method: :delete, class: "toolbar-item toolbar-item--remove", data: [confirm: "Commenting `bors r-` on a PR will cancel just the one. You asked to cancel all of them, which is a PITA to undo.\n\nAre you sure you want to cancel all running and waiting pull requests?"] %>
+<% end %>
+</div></div>
+<% end %>
