@@ -17,7 +17,7 @@ defmodule BorsNG.Database.LinkPatchBatch do
 
   def from_batch(batch_id) do
     from l in LinkPatchBatch,
-      preload: [:patch],
+      preload: [:patch, {:patch, :author}],
       where: l.batch_id == ^batch_id
   end
 
