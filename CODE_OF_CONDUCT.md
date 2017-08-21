@@ -53,7 +53,7 @@ representative at an online or offline event. Representation of a project may be
 further defined and clarified by project maintainers.
 
 Examples of project spaces include all repositories in the bors-ng GitHub
-organization, the `#bors` channel on the Mozilla IRC network, the blog,
+organization, the https://forum.bors.tech/ community site, the blog,
 and any bors meetup.
 
 CONNECTING A GITHUB REPOSITORY TO THE PUBLIC BORS-NG INSTANCE DOES NOT MAKE IT
