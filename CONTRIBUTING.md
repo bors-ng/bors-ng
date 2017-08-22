@@ -4,6 +4,17 @@ Getting started for contributors
 Thanks for wanting to help out with Bors-NG!
 
 
+Answering support questions
+---------------------------
+
+If you've been using bors a lot,
+you can help other people use it by answering questions on the [support forum].
+You can log in with your GitHub account,
+and people who post more get the ability to do more stuff (like editing a post's categories).
+
+[support forum]: https://forum.bors.tech/
+
+
 Submitting bug reports
 ----------------------
 
