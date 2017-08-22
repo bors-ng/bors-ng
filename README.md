@@ -4,9 +4,10 @@ A merge bot for GitHub pull requests
 [Bors-NG] implements a continuous-testing workflow where the master branch never breaks.
 It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
 
-* [Home page](https://bors-ng.github.io/)
-* [Getting started](https://bors-ng.github.io/getting-started/)
-* [Developer documentation](https://bors-ng.github.io/devdocs/bors-ng/hacking.html)
+* [Home page](https://bors.tech/)
+* [Getting started](https://bors.tech/getting-started/)
+* [Developer documentation](https://bors.tech/devdocs/bors-ng/hacking.html)
+* [Support forum](https://forum.bors.tech/)
 
 
 # But don't GitHub's Protected Branches already do this?
