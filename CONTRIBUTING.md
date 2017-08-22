@@ -8,11 +8,12 @@ Answering support questions
 ---------------------------
 
 If you've been using bors a lot,
-you can help other people use it by answering questions on the [support forum].
-You can log in with your GitHub account,
-and people who post more get the ability to do more stuff (like editing a post's categories).
+you can help other people use it by answering questions on the [support forum] and the [gitter room].
+You can log in to either of them with your GitHub account,
+and the forum gives people who post more the ability to do more stuff (like fixing other people's categories).
 
 [support forum]: https://forum.bors.tech/
+[gitter room]: https://gitter.im/bors-ng/Lobby
 
 
 Submitting bug reports
