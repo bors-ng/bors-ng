@@ -80,9 +80,13 @@ defmodule BorsNG.Worker.Batcher.Message do
       "Merge", &"#{&2} \##{&1.patch.pr_xref}")
     commit_body = Enum.reduce(patch_links, "", fn link, acc ->
       body = cut_body(link.patch.body, cut_body_after)
+      author = link.patch.author[:login]
+      reviewer = link.reviewer
+      title = link.patch.title
+      number = link.patch.pr_xref
       """
       #{acc}
-      #{link.patch.pr_xref}: #{link.patch.title} r=#{link.reviewer}
+      #{number}: #{title} r=#{reviewer} a=#{author}
 
       #{body}
       """

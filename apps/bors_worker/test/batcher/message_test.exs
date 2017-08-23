@@ -50,13 +50,47 @@ defmodule BorsNG.Worker.BatcherMessageTest do
   end
 
   test "generate commit message" do
-    expected_message = "Merge #1 #2\n\n1: Alpha r=r\n\na\n\n2: Beta r=s\n\nb\n"
+    expected_message = """
+    Merge #1 #2
+
+    1: Alpha r=r a=lag
+
+    a
+
+    2: Beta r=s a=leg
+
+    b
+    """
     patches = [
-      %{patch: %{pr_xref: 1, title: "Alpha", body: "a"}, reviewer: "r"},
-      %{patch: %{pr_xref: 2, title: "Beta", body: "b"}, reviewer: "s"}]
+      %{
+        patch: %{
+          pr_xref: 1,
+          title: "Alpha",
+          body: "a",
+          author: %{login: "lag"}},
+        reviewer: "r"},
+      %{
+        patch: %{
+          pr_xref: 2,
+          title: "Beta",
+          body: "b",
+          author: %{login: "leg"}},
+        reviewer: "s"}]
     patches2 = [
-      %{patch: %{pr_xref: 2, title: "Beta", body: "b"}, reviewer: "s"},
-      %{patch: %{pr_xref: 1, title: "Alpha", body: "a"}, reviewer: "r"}]
+      %{
+        patch: %{
+          pr_xref: 2,
+          title: "Beta",
+          body: "b",
+          author: %{login: "leg"}},
+        reviewer: "s"},
+      %{
+        patch: %{
+          pr_xref: 1,
+          title: "Alpha",
+          body: "a",
+          author: %{login: "lag"}},
+        reviewer: "r"}]
     actual_message = Message.generate_commit_message(patches, nil)
     assert expected_message == actual_message
     actual_message2 = Message.generate_commit_message(patches2, nil)
@@ -79,7 +113,7 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     expected_message = """
     Merge #1
 
-    1: Synchronize background and foreground processing r=bill
+    1: Synchronize background and foreground processing r=bill a=pea
 
     Fixes that annoying bug.
     """
@@ -99,7 +133,13 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     - [ ] Make sure your commit messages make sense
     """
     patches = [
-      %{patch: %{pr_xref: 1, title: title, body: body}, reviewer: "bill"} ]
+      %{
+        patch: %{
+          pr_xref: 1,
+          title: title,
+          body: body,
+          author: %{login: "pea"}},
+      reviewer: "bill"} ]
     actual_message = Message.generate_commit_message(
       patches,
       "\n\n<!-- boilerplate follows -->")
