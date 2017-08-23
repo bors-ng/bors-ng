@@ -1,6 +1,6 @@
 use Mix.Config
 
-case System.get_env("BORS_TEST_DATABASE_MYSQL") do
+case System.get_env("BORS_TEST_DATABASE") do
   "mysql" ->
     config :bors_database, BorsNG.Database.Repo,
       adapter: Ecto.Adapters.MySQL,
