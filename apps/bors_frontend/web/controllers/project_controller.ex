@@ -155,8 +155,15 @@ defmodule BorsNG.ProjectController do
         |> case do
           nil -> nil
           gh_user ->
-            %User{user_xref: gh_user.id, login: gh_user.login}
-            |> Repo.insert!()
+            case Repo.get_by(User, user_xref: gh_user.id) do
+              nil ->
+                User.changeset(%User{}, %{
+                  user_xref: gh_user.id,
+                  login: gh_user.login
+                })
+                |> Repo.insert!()
+              user -> user
+            end
         end
       user -> user
     end
