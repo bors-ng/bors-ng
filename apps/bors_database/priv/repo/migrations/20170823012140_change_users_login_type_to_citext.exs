@@ -1,19 +1,29 @@
 defmodule BorsNG.Database.Repo.Migrations.ChangeUsersLoginTypeToCitext do
   use Ecto.Migration
 
-  def up do
-    execute "CREATE EXTENSION IF NOT EXISTS citext"
+  @adapter Application.get_env(:bors_database, BorsNG.Database.Repo)[:adapter]
 
-    alter table(:users) do
-      modify :login, :citext
+  def up do
+    case @adapter do
+      Ecto.Adapters.Postgres ->
+        execute "CREATE EXTENSION IF NOT EXISTS citext"
+        alter table(:users) do
+          modify :login, :citext
+        end
+      Ecto.Adapters.MySQL ->
+        :ok
     end
   end
 
   def down do
-    alter table(:users) do
-      modify :login, :string
+    case @adapter do
+      Ecto.Adapters.Postgres ->
+        alter table(:users) do
+          modify :login, :string
+        end
+        execute "DROP EXTENSION citext"
+      Ecto.Adapters.MySQL ->
+        :ok
     end
-
-    execute "DROP EXTENSION citext"
   end
 end
