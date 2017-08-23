@@ -39,5 +39,6 @@ defmodule BorsNG.Database.User do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:user_xref, :login, :is_admin])
+    |> unique_constraint(:user_xref, name: :users_user_xref_index)
   end
 end
