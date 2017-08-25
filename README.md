@@ -188,11 +188,11 @@ The first step is to [register a new Github App] on the GitHub web site.
 
 The *Github App name*, *description*, and *homepage URL* are irrelevant, though I suggest pointing the homepage at the dashboard page.
 
-The *user authorization callback URL* should be at `<dashboard url>/auth/github/callback`.
+The *user authorization callback URL* should be at `<<DASHBOARD URL>>/auth/github/callback`.
 
 Leave the *setup URL* blank.
 
-The *webhook URL* should be at `<dashboard page>/webhook/github`.
+The *webhook URL* should be at `<<DASHBOARD URL>>/webhook/github`.
 
 The *webhook secret* should be a randomly generated string. The `mix phoenix.gen.secret` command will work awesomely for this. Keep this handy to specify the same value in the bors configuration (you can also edit this value later if you need to).
 
@@ -242,8 +242,22 @@ You'll need the following values from your GitHub App for configuring bors-ng:
 
 - Private key (generate one and download the file)
 - OAuth credentials
-- Public link (looks like `https://github.com/apps/your-app-name`; should be a convenient "copy to clipboard" button next to it in the right hand column)
+- Public link (looks like `https://github.com/apps/<<APP NAME>>`; should be a convenient "copy to clipboard" button next to it in the right hand column)
 - ID (appears beneath the Public link and "Owned by" in the right hand column)
+
+### Internal app?
+
+GitHub Apps can be set as "Internal" or "External."
+When the App is set to be internal,
+then whichever organization/user it belongs to will be the only one allowed to install it.
+
+This setting can be chosen while first creating the app, or it can be changed afterward at one of these URLs (the switch is on the bottom of the page):
+
+* If the app is owned by an organization: `https://github.com/organizations/<<ORGANIZATION>>/settings/apps/<<APP NAME>>/advanced`
+* If the app is owned by a user: `https://github.com/settings/apps/<<APP NAME>>/advanced`
+
+If an "External" app is installed on any external repositories,
+then the "Make Internal" button will be grayed out.
 
 ## Step 2: Set up the server
 
@@ -300,8 +314,6 @@ bors-ng offers a number of special functions for "administrator" users, includin
 
 However, there's no UI for adding admins; you'll have to go into Postgres yourself to do it. There's two ways to do that:
 
-### From an iex prompt
-
 You can do it from the iex prompt, like this:
 
     shell$ iex -S mix # or `heroku run iex -S mix`
@@ -312,7 +324,6 @@ You can do it from a PostgreSQL prompt like this:
 
     postgres=# \c bors_dev -- or bors_prod
     bors_dev=# update users set is_admin = true where login = '<your login>';
-
 
 # Copyright license
 
