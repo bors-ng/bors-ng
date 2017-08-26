@@ -113,4 +113,36 @@ defmodule BorsNG.Worker.SyncerTest do
     assert p2.into_branch == "master"
     assert p2.open
   end
+
+  test "update commit on changed patch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        pulls: %{
+          1 => %GitHub.Pr{
+            number: 1,
+            title: "Test PR",
+            body: "test pr body",
+            state: :open,
+            base_ref: "master",
+            head_sha: "B",
+            user: %GitHub.User{
+              login: "maya",
+              id: 1,
+              avatar_url: "whatevs",
+            },
+          },
+        },
+      }})
+    Repo.insert! %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      title: "Test PR",
+      into_branch: "master",
+      commit: "A",
+      open: true}
+    Syncer.synchronize_project(proj.id)
+    p1 = Repo.get_by! Patch, pr_xref: 1, project_id: proj.id
+    assert p1.commit == "B"
+    assert p1.open
+  end
 end

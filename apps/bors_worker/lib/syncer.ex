@@ -28,25 +28,25 @@ defmodule BorsNG.Worker.Syncer do
     Project.ping!(project_id)
   end
 
+  @doc """
+  Returns a list of all patches that should be synchronized.
+
+  Note: This will return a list of all opened pull requests,
+  as well as a list of patches that should be closed.
+  It does not perform any filtering on open PRs, because those
+  still need to have their metadata synced.
+  """
   @spec synchronize_patches([%Patch{}], [%GitHub.Pr{}]) ::
     [{:open, %GitHub.Pr{}} | {:close, %Patch{}}]
   def synchronize_patches(open_patches, open_prs) do
-    open_patches = open_patches
-    |> Enum.map(&{&1.pr_xref, &1})
-    |> Map.new()
-    open_prs = open_prs
+    open_prs_map = open_prs
     |> Enum.map(&{&1.number, &1})
     |> Map.new()
-    openings = open_prs
-    |> Enum.filter(fn {pr_xref, _} ->
-      not Map.has_key?(open_patches, pr_xref) end)
-    |> Enum.map(fn {_, pr} ->
-      {:open, pr} end)
     closings = open_patches
-    |> Enum.filter(fn {pr_xref, _} ->
-      not Map.has_key?(open_prs, pr_xref) end)
-    |> Enum.map(fn {_, patch} ->
-      {:close, patch} end)
+    |> Enum.filter(fn %{pr_xref: pr_xref} ->
+      not Map.has_key?(open_prs_map, pr_xref) end)
+    |> Enum.map(&{:close, &1})
+    openings = Enum.map(open_prs, &{:open, &1})
     openings ++ closings
   end
 
@@ -64,27 +64,24 @@ defmodule BorsNG.Worker.Syncer do
   def sync_patch(project_id, pr) do
     number = pr.number
     author = sync_user(pr.user)
-    patch = case Repo.get_by(Patch, project_id: project_id, pr_xref: number) do
-      nil -> Repo.insert!(%Patch{
-        project_id: project_id,
-        into_branch: pr.base_ref,
-        pr_xref: number,
-        title: pr.title,
-        body: pr.body,
-        commit: pr.head_sha,
-        author_id: author.id,
-        open: pr.state == :open
-      })
+    data = %{
+      project_id: project_id,
+      into_branch: pr.base_ref,
+      pr_xref: number,
+      title: pr.title,
+      body: pr.body,
+      commit: pr.head_sha,
+      author_id: author.id,
+      open: pr.state == :open,
+      author: author,
+    }
+    case Repo.get_by(Patch, project_id: project_id, pr_xref: number) do
+      nil -> Repo.insert!(struct(Patch, data))
       patch ->
-        if patch.open != (pr.state == :open) do
-          patch
-          |> Patch.changeset(%{open: pr.state == :open})
-          |> Repo.update!()
-        else
-          patch
-        end
+        patch
+        |> Patch.changeset(data)
+        |> Repo.update!()
     end
-    %Patch{patch | author: author}
   end
 
   @spec sync_user(GitHub.User.t) :: %User{}
