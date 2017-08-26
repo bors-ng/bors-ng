@@ -247,7 +247,7 @@ You'll need the following values from your GitHub App for configuring bors-ng:
 
 ### Internal app?
 
-GitHub Apps can be set as "Internal" or "External."
+GitHub Apps can be set as "Internal" or "External".
 When the App is set to be internal,
 then whichever organization/user it belongs to will be the only one allowed to install it.
 
