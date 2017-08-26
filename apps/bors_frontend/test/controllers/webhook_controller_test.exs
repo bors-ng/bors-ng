@@ -62,6 +62,44 @@ defmodule BorsNG.WebhookControllerTest do
     assert "OTHER_BRANCH" == patch2.into_branch
   end
 
+  test "sync PR on reopen", %{conn: conn, project: project} do
+    patch = Repo.insert!(%Patch{
+      title: "T",
+      body: "B",
+      pr_xref: 1,
+      project_id: project.id,
+      commit: "A",
+      open: false,
+      into_branch: "SOME_BRANCH"})
+    body_params = %{
+      "repository" => %{"id" => 13},
+      "action" => "reopened",
+      "pull_request" => %{
+        "number" => 1,
+        "title" => "T",
+        "body" => "B",
+        "state" => "open",
+        "base" => %{"ref" => "OTHER_BRANCH", "repo" => %{"id" => 456}},
+        "head" => %{
+          "sha" => "B",
+          "ref" => "BAR_BRANCH",
+          "repo" => %{
+            "id" => 345
+          },
+        },
+        "merged_at" => nil,
+        "user" => %{
+          "id" => 23,
+          "login" => "ghost",
+          "avatar_url" => "U"}}}
+    conn
+    |> put_req_header("x-github-event", "pull_request")
+    |> post(webhook_path(conn, :webhook, "github"), body_params)
+    patch2 = Repo.get!(Patch, patch.id)
+    assert "B" == patch2.commit
+    assert patch2.open
+  end
+
   test "deletes by patch", %{conn: conn, project: proj} do
     pr = %Pr{
       number: 1,
