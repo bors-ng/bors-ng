@@ -281,10 +281,10 @@ defmodule BorsNG.WebhookController do
     BranchDeleter.delete(p)
   end
 
-  def do_webhook_pr(_conn, %{action: "reopened", project: project, patch: p}) do
+  def do_webhook_pr(conn, %{action: "reopened", project: project, patch: p}) do
     Project.ping!(project.id)
-    Repo.update!(Patch.changeset(p, %{open: true}))
-    :ok
+    commit = conn.body_params["pull_request"]["head"]["sha"]
+    Repo.update!(Patch.changeset(p, %{open: true, commit: commit}))
   end
 
   def do_webhook_pr(conn, %{action: "synchronize", project: pro, patch: p}) do
