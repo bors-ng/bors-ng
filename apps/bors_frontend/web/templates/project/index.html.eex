@@ -17,7 +17,7 @@
 <% end %>
 
 <div class=toolbar>
-  <a class=toolbar-item href="<%= Application.get_env(:bors_frontend, BorsNG)[:github_integration_url] %>">
+  <a class=toolbar-item href="<%= BorsNG.Attrs.get_github_integration_url() %>">
     Add / Remove Repositories
   </a>
 </div>

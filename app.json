@@ -29,9 +29,6 @@
     "GITHUB_CLIENT_SECRET": {
       "description": "GitHub oAuth client secret"
     },
-    "GITHUB_APP_PUBLIC_LINK": {
-      "description": "Github App Public Link"
-    },
     "GITHUB_INTEGRATION_ID": {
       "description": "GitHub Integration ID"
     },

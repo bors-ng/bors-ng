@@ -13,6 +13,7 @@ defmodule BorsNG.GitHub.Application do
     # Define workers and child supervisors to be supervised
     children = [
       worker(Application.get_env(:bors_github, :server), []),
+      worker(BorsNG.Attrs, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

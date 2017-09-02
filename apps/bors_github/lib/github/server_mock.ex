@@ -109,6 +109,10 @@ defmodule BorsNG.GitHub.ServerMock do
     {:reply, res, state}
   end
 
+  def handle_call(:get_app, _from, state) do
+    {:reply, {:ok, "https://github.com/apps/bors-foobar"}, state}
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, pulls} <- Map.fetch(repo, :pulls),
