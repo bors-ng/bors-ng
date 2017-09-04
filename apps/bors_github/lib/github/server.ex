@@ -50,6 +50,23 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
+  def handle_call(:get_app, _from, state) do
+    result = "#{site()}/app"
+    |> HTTPoison.get!([
+      {"Authorization", "Bearer #{get_jwt_token()}"},
+      {"Accept", @installation_content_type}])
+    |> case do
+      %{body: raw, status_code: 200} ->
+        app_link = raw
+        |> Poison.decode!()
+        |> Map.get("html_url")
+        {:ok, app_link}
+      _ ->
+        {:error, :get_app}
+    end
+    {:reply, result, state}
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}) do
     case get!(repo_conn, "pulls/#{pr_xref}") do
       %{body: raw, status_code: 200} ->
@@ -370,16 +387,7 @@ defmodule BorsNG.GitHub.Server do
 
   @spec get_installation_token!(number) :: binary
   def get_installation_token!(installation_xref) do
-    import Joken
-    cfg = config()
-    pem = JOSE.JWK.from_pem(cfg[:pem])
-    jwt_token = %{
-      "iat" => current_time(),
-      "exp" => current_time() + @token_exp,
-      "iss" => cfg[:iss]}
-    |> token()
-    |> sign(rs256(pem))
-    |> get_compact()
+    jwt_token = get_jwt_token()
     %{body: raw, status_code: 201} = HTTPoison.post!(
       "#{site()}/installations/#{installation_xref}/access_tokens",
       "",
@@ -387,6 +395,19 @@ defmodule BorsNG.GitHub.Server do
         {"Authorization", "Bearer #{jwt_token}"},
         {"Accept", @installation_content_type}])
     Poison.decode!(raw)["token"]
+  end
+
+  def get_jwt_token do
+    import Joken
+    cfg = config()
+    pem = JOSE.JWK.from_pem(cfg[:pem])
+    %{
+      "iat" => current_time(),
+      "exp" => current_time() + @token_exp,
+      "iss" => cfg[:iss]}
+    |> token()
+    |> sign(rs256(pem))
+    |> get_compact()
   end
 
   @doc """

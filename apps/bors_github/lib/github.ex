@@ -145,6 +145,12 @@ defmodule BorsNG.GitHub do
     user
   end
 
+  @spec get_app!() :: String.t()
+  def get_app! do
+    {:ok, app_link} = GenServer.call(BorsNG.GitHub, :get_app)
+    app_link
+  end
+
   @spec get_installation_repos!(ttoken) :: [trepo]
   def get_installation_repos!(token) do
     {:ok, repos} = GenServer.call(

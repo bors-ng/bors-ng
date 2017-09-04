@@ -242,8 +242,7 @@ You'll need the following values from your GitHub App for configuring bors-ng:
 
 - Private key (generate one and download the file)
 - OAuth credentials
-- Public link (looks like `https://github.com/apps/<APP NAME>`; should be a convenient "copy to clipboard" button next to it in the right hand column)
-- ID (appears beneath the Public link and "Owned by" in the right hand column)
+- ID (appears beneath the app logo and "Owned by" in the right hand column)
 
 ### Internal app?
 
