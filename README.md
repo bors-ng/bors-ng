@@ -315,7 +315,7 @@ However, there's no UI for adding admins; you'll have to go into Postgres yourse
 
 You can do it from the iex prompt, like this:
 
-    shell$ iex -S mix # or `heroku run iex -S mix`
+    shell$ iex -S mix # or `heroku run bash -c "POOL_SIZE=1 iex -S mix"`
     iex> me = BorsNG.Database.Repo.get_by! BorsNG.Database.User, login: "<your login>"
     iex> BorsNG.Database.Repo.update! BorsNG.Database.User.changeset(me, %{is_admin: true})
 
