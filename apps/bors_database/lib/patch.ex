@@ -34,7 +34,6 @@ defmodule BorsNG.Database.Patch do
       :title,
       :body,
       :commit,
-      :author_id,
       :project_id,
       :author_id,
       :open,

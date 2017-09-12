@@ -284,6 +284,7 @@ defmodule BorsNG.Command do
     |> fetch_pr()
     |> fetch_patch()
     cmd_list = parse(c.comment)
+
     cond do
       cmd_list == [] ->
         :ok
@@ -347,7 +348,8 @@ defmodule BorsNG.Command do
       c.pr_xref, "pong")
   end
   def run(c, :delegate) do
-    delegate_to(c, c.patch.author)
+    patch = Repo.preload(c.patch, :author)
+    delegate_to(c, patch.author)
   end
   def run(c, {:delegate_to, login}) do
     delegatee = case Repo.get_by(User, login: login) do
