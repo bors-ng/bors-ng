@@ -157,4 +157,64 @@ defmodule BorsNG.CommandTest do
 
     Command.run(c)
   end
+
+  test "delegate+ delegates to patch creator", %{proj: proj} do
+    pr = %BorsNG.GitHub.Pr{
+      number: 1,
+      title: "Test",
+      body: "Mess",
+      state: :open,
+      base_ref: "master",
+      head_sha: "00000001",
+      head_ref: "update",
+      base_repo_id: 13,
+      head_repo_id: 13,
+      user: %{
+        id: 2,
+        login: "pr_author"
+      }
+    }
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => ["bors delegate+"]},
+        statuses: %{},
+        pulls: %{
+          1 => pr,
+        },
+      }
+    })
+
+    {:ok, user} = Repo.insert(%BorsNG.Database.User{
+      user_xref: 1,
+      is_admin: true,
+      login: "repo_owner"
+    })
+
+    {:ok, _} = Repo.insert(%BorsNG.Database.Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"
+    })
+
+    Repo.insert(%BorsNG.Database.LinkUserProject{
+      user_id: user.id,
+      project_id: proj.id
+    })
+
+    c = %Command{
+      project: proj,
+      commenter: user,
+      comment: "bors delegate+",
+      pr_xref: 1
+    }
+
+    Command.run(c)
+
+    [p] = Repo.all(BorsNG.Database.UserPatchDelegation)
+    p = Repo.preload(p, :user)
+    assert p.user.user_xref == 2
+  end
 end
