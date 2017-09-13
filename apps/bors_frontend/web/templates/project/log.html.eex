@@ -39,11 +39,13 @@
 <%= for entry <- @entries do %>
     <tr role=row>
   <%= case entry do %>
-    <% %BorsNG.Database.Crash{component: component, crash: crash} -> %>
+    <% %BorsNG.Database.Crash{component: component, crash: crash, updated_at: updated_at} -> %>
+      <td><%= htmlify_naive_datetime(updated_at) %></td>
       <td>Crash</td>
       <td><%= component %></td>
       <td><pre><code><%= crash %></code></pre></td>
-    <% %BorsNG.Database.Batch{state: state, patches: patches} -> %>
+    <% %BorsNG.Database.Batch{state: state, patches: patches, updated_at: updated_at} -> %>
+      <td><%= htmlify_naive_datetime(updated_at) %></td>
       <td>Batch</td>
       <td><%= stringify_state(state) %></td>
       <td>
