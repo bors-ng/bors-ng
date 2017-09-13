@@ -276,3 +276,7 @@ footer {
 pre {
   white-space: pre-wrap;
 }
+/* Timestamps that show local time inline and UTC on hover */
+time[title] {
+  border-bottom: dotted 1px #999;
+}

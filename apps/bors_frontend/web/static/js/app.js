@@ -20,3 +20,4 @@ import "phoenix_html"
 
 import "./socket"
 import "./drop-down-menu"
+import "./time-convert"
