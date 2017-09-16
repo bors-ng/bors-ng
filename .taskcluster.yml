@@ -1,0 +1,88 @@
+version: 0
+allowPullRequests: public
+tasks:
+
+  # The bors build queue (test suite)
+  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
+    workerType: '{{ taskcluster.docker.workerType }}'
+    extra:
+      github:
+        events:
+          - push
+        branches:
+          - staging
+          - trying
+    payload:
+      maxRunTime: 3600
+      image: "notriddle/docker-phoenix-elixir-test@sha256:3ce1bf137ee89c4c8f9391442781d44e97c39dbc0c9446586aded299966b3c71"
+      command:
+        - /bin/bash
+        - '--login'
+        - '-c'
+        - >-
+          git clone {{event.head.repo.url}} repo && cd repo &&
+          git config advice.detachedHead false && git checkout {{event.head.sha}} &&
+          bash script/ci
+    metadata:
+      name: Bors-NG test suite
+      description: 'Run unit and integration tests with no browser and a mock GitHub API'
+      owner: '{{ event.head.user.email }}'
+      source: '{{ event.head.repo.url }}'
+
+  # The bors build queue (static analysis)
+  # TODO: cache the PLT files that dialyzer uses
+  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
+    workerType: '{{ taskcluster.docker.workerType }}'
+    extra:
+      github:
+        events:
+          - push
+        branches:
+          - staging
+          - trying
+    payload:
+      maxRunTime: 3600
+      image: notriddle/docker-phoenix-elixir-test
+      command:
+        - /bin/bash
+        - '--login'
+        - '-c'
+        - >-
+          git clone {{event.head.repo.url}} repo && cd repo &&
+          git config advice.detachedHead false && git checkout {{event.head.sha}} &&
+          mix deps.get &&
+          mix dogma && mix dialyzer
+    metadata:
+      name: Bors-NG static analysis
+      description: 'Run static analysis (dogma and dialyzer)'
+      owner: '{{ event.head.user.email }}'
+      source: '{{ event.head.repo.url }}'
+
+  # The pull request builder (dogma)
+  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
+    workerType: '{{ taskcluster.docker.workerType }}'
+    extra:
+      github:
+        events:
+          - pull_request.opened
+          - pull_request.synchronize
+          - pull_request.reopened
+        branches:
+          - master
+    payload:
+      maxRunTime: 3600
+      image: notriddle/docker-phoenix-elixir-test
+      command:
+        - /bin/bash
+        - '--login'
+        - '-c'
+        - >-
+          git clone {{event.head.repo.url}} repo && cd repo &&
+          git config advice.detachedHead false && git checkout {{event.head.sha}} &&
+          mix deps.get &&
+          mix dogma
+    metadata:
+      name: Bors-NG style checker
+      description: 'Run "dogma" against a pull request'
+      owner: '{{ event.head.user.email }}'
+      source: '{{ event.head.repo.url }}'
