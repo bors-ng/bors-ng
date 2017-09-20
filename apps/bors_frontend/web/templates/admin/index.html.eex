@@ -8,18 +8,6 @@
 <a class=toolbar-item href="<%= @wobserver_url %>/">Observer</a>
 </div>
 
-<%= if not is_nil get_flash(@conn, :ok) do %>
-<div role="alert" class="alert alert--ok">
-<%= get_flash(@conn, :ok) %>
-</div>
-<% end %>
-
-<%= if not is_nil get_flash(@conn, :error) do %>
-<div role="alert" class="alert alert--error">
-<%= get_flash(@conn, :error) %>
-</div>
-<% end %>
-
 <h2 class=header>Open any repository</h2>
 <%= form_for @conn, admin_path(@conn, :project_by_name), [as: :project, method: :get], fn f -> %>
   <%= text_input f, :name, placeholder: "Repository name" %>

@@ -18,6 +18,7 @@ import "phoenix_html"
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
+import "./alert"
 import "./socket"
 import "./drop-down-menu"
 import "./time-convert"

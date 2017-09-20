@@ -8,18 +8,6 @@
 
 <main role=main><div class=wrapper>
 
-<%= if not is_nil get_flash(@conn, :ok) do %>
-<div role="alert" class="alert alert--ok">
-<%= get_flash(@conn, :ok) %>
-</div>
-<% end %>
-
-<%= if not is_nil get_flash(@conn, :error) do %>
-<div role="alert" class="alert alert--error">
-<%= get_flash(@conn, :error) %>
-</div>
-<% end %>
-
 <table class=table>
   <tbody>
 <%= for orphan <- @orphans do %>

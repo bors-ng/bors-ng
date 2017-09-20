@@ -60,12 +60,25 @@ footer {
   border-top: solid 1px #CCC;
 }
 /* An alert box */
+#alert-container {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
 .alert {
   background: #d9edf7;
   border: solid 1px #d9edf7;
   color: #31708f;
+  margin: 8px 8px 0 0;
   padding: 8px 10px;
-  margin-bottom: 8px;
+  box-shadow: 0 1px 2px #666;
+  display: inline-block;
+  white-space: nowrap;
+}
+.alert[hidden] {
+  display: none;
 }
 .alert--ok {
   color: #3c763d;
@@ -76,6 +89,18 @@ footer {
   color: #a94442;
   border-color: #ebccd1;
   background-color: #f2dede;
+}
+.close-button {
+  color: #666;
+  border: none;
+  padding: none;
+  margin: none;
+  background: none;
+}
+.close-button:hover,
+.close-button:active,
+.close-button:focus {
+  color: #df3600;
 }
 /* Use underline-on-hover for links.
    This is used for consistency, since fill-link breaks outlines. */

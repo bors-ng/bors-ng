@@ -57,8 +57,7 @@ if (reload_template !== null) {
 }
 // Pop up the project reload dialog.
 function popupProjectPingDialog() {
-  let dialog = document.importNode(reload_template.content, true);
-  reload_template.parentNode.insertBefore(dialog, reload_template);
+  reload_template.removeAttribute("hidden");
 }
 // If this is the project page, pop up the reload dialog.
 function setupProjectPingChannel(socket, project_id) {
