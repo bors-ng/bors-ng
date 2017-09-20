@@ -26,7 +26,7 @@ tasks:
     metadata:
       name: Bors-NG test suite
       description: 'Run unit and integration tests with no browser and a mock GitHub API'
-      owner: '{{ event.head.user.email }}'
+      owner: 'infra@bors.tech'
       source: '{{ event.head.repo.url }}'
 
   # The bors build queue (static analysis)
@@ -55,7 +55,7 @@ tasks:
     metadata:
       name: Bors-NG static analysis
       description: 'Run static analysis (dogma and dialyzer)'
-      owner: '{{ event.head.user.email }}'
+      owner: 'infra@bors.tech'
       source: '{{ event.head.repo.url }}'
 
   # The pull request builder (dogma)
