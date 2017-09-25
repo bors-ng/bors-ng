@@ -50,7 +50,7 @@ different than what you run against PRs. A possible example is running unit
 tests in PRs and running EOE tests in staging. That's up to you.
 
 After the build is finished, CI will notify github through the
-[Status API] (https://github.com/blog/1227-commit-status-api)
+[Status API](https://github.com/blog/1227-commit-status-api).
 
 The reason all communication is done through github is to make sure bors supports
 as many CI clients as possible. Right now, Travis, AppVeyor, and Jenkins are used
