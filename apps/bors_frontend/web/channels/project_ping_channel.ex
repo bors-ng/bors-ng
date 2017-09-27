@@ -24,4 +24,9 @@ defmodule BorsNG.ProjectPingChannel do
       true <- User.has_perm(Repo, user, project_id),
       do: {:ok, socket})
   end
+
+  def handle_out(topic, msg, socket) do
+    push(socket, topic, msg)
+    {:noreply, socket}
+  end
 end

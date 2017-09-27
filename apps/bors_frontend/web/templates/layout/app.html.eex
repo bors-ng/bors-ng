@@ -19,6 +19,23 @@
   </head>
 
   <body>
+    <div id=alert-container>
+      <%= if assigns[:project] do %>
+      <div hidden="hidden" id="js--on-project-ping" data-bors-project-id="<%= @project.id %>" role="alert" class="alert js--closable">
+      This page is out of date. <a href="">Reload</a>
+      </div>
+      <% end %>
+      <%= if not is_nil get_flash(@conn, :ok) do %>
+      <div role="alert" class="alert alert--ok js--closable">
+      <%= get_flash(@conn, :ok) %>
+      </div>
+      <% end %>
+      <%= if not is_nil get_flash(@conn, :error) do %>
+      <div role="alert" class="alert alert--error js--closable">
+      <%= get_flash(@conn, :error) %>
+      </div>
+      <% end %>
+    </div>
     <header role="banner">
       <div class="wrapper wrapper--mini">
         <a id=header-logo href="<%= page_path(@conn, :index) %>"><img alt="bors" src='<%= static_path(@conn, "/images/a.svg") %>' width="90" height="25"></a>

@@ -19,7 +19,7 @@ config :bors_frontend, BorsNG.Endpoint,
   secret_key_base:
   "RflEtl3q2wkPracTsiqJXfJwu+PtZ6P65kd5rcA7da8KR5Abc/YjB8aZHE4DBxMG",
   render_errors: [view: BorsNG.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: BorsNG.Database.PubSub]
+  pubsub: [name: BorsNG.PubSub, adapter: Phoenix.PubSub.PG2]
 
 config :wobserver,
   mode: :plug,

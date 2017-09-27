@@ -9,8 +9,6 @@ defmodule BorsNG.Database.Project do
 
   @type t :: %Project{}
 
-  @pubsub_name Application.get_env(:bors_database, :pubsub)[:name]
-
   @doc """
   After modifying the underlying model,
   call this to notify the UI.
@@ -19,8 +17,7 @@ defmodule BorsNG.Database.Project do
     ping!(to_string(project_id))
   end
   def ping!(project_id) do
-    @pubsub_name
-    |> Phoenix.PubSub.broadcast!("project_ping:" <> project_id, "new_msg")
+    BorsNG.Endpoint.broadcast!("project_ping:1", "new_msg", %{})
   end
 
   schema "projects" do
