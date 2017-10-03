@@ -21,6 +21,9 @@
 
 <main role=main><div class=wrapper>
 
+<%= if empty?(@unbatched_patches) and empty?(@batches) do %>
+  Nothing to see here
+<%= else %>
 <table class="table">
 <%= if @unbatched_patches != [] do %>
   <thead>
@@ -85,6 +88,7 @@
   </tbody>
 <% end %>
 </table>
+<% end %>
 
 </div></main>
 
