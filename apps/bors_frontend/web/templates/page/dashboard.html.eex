@@ -7,6 +7,9 @@
     <tr role=row><th>#</th><th>Title</th><th>Repository</th></tr>
   </thead>
   <tbody>
+<%= if empty? @patches do %>
+  Nothing to see here
+<%= else %>
 <%= for patch <- @patches do %>
     <tr role=row>
       <td>
@@ -21,6 +24,7 @@
         <%= link patch.project.name, to: project_path(@conn, :show, patch.project) %>
       </td>
     </tr>
+<% end %>
 <% end %>
   </tbody>
 </table>
