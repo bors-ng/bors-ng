@@ -9,7 +9,7 @@
   <tbody>
 <%= if empty? @patches do %>
   Nothing to see here
-<%= else %>
+<% else %>
 <%= for patch <- @patches do %>
     <tr role=row>
       <td>
