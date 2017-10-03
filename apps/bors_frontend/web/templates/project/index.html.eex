@@ -9,6 +9,9 @@
     Add / Remove Repositories
   </a>
 </div>
+  <%= if empty? @projects do %>
+    Nothing to see here!
+  <% else %>
 
 <table class="table">
   <tbody>
@@ -18,6 +21,7 @@
         <%= link project.name, to: project_path(@conn, :show, project) %>
       </td>
     </tr>
+<% end %>
 <% end %>
   </tbody>
 </table>
