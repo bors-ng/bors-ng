@@ -85,3 +85,73 @@ you should mention that you're working on it in a GitHub comment
 If you're having trouble fixing the problem,
 go ahead and ask questions right in the issue's comments section,
 even if your question seems unrelated to the issue itself.
+
+
+What do the tags in the issue tracker mean?
+-------------------------------------------
+
+### A: area tags
+
+These refer to the component that the issue is in.
+
+* [A-testing]: The test suite
+* [A-frontend]: The dashboard page
+* [A-backend]: The backend task running stuff
+* [A-docs]: Incorrect or missing documentation
+
+[A-testing]: https://github.com/bors-ng/bors-ng/labels/A-testing
+[A-frontend]: https://github.com/bors-ng/bors-ng/labels/A-frontend
+[A-backend]: https://github.com/bors-ng/bors-ng/labels/A-backend
+[A-docs]: https://github.com/bors-ng/bors-ng/labels/A-docs
+
+### E: entry-level issues
+
+If you want to get started hacking on Bors-NG, these are the issues to pick up. Whoever filed it knows how to fix it (they might've even already done it), and is willing to guide someone else through it. If you're working on it, and have a question, ask please. We want to help.
+
+* [E-easy]: Good first bugs. The filer should already know how to fix it; they may even have already fixed it in a private branch. Whichever it is, the point of working on a bug like this is to learn how to edit, deploy, and test an instance of bors-ng, and to file the pull request, get it reviewed, and merged. E-easy issues should be things that actually need done, but nothing is too easy for E-easy.
+* [E-medium]: This tag exists to provide a gradual path from "fixing typos and minor appearance glitches" to "taking an active role in the ongoing development in bors-ng." E-medium changes should be "good second bugs," meaning they require the contributor to learn how stuff works under the hood. As before, the filer should know how to fix it.
+* [E-hard]: The filer should have an idea about how it should be fixed, but an E-hard issue should require the contributor to know how bors-ng works.
+
+[E-easy]: https://github.com/bors-ng/bors-ng/labels/E-easy
+[E-medium]: https://github.com/bors-ng/bors-ng/labels/E-medium
+[E-hard]: https://github.com/bors-ng/bors-ng/labels/E-hard
+
+### C: do not work on this issue
+
+C-tags are "partially closed"; either there's already somebody working on it, or it's not possible right now.
+
+* [C-assigned]: A contributor, who does not have write access to the repo itself, is working on the issue. This is not needed if it's assigned within GitHub itself (but that's not always possible, unfortunately).
+* [C-blocked-on-external]: Something else needs to change before this issue can be completed.
+* [C-has-pr]: There exists an open pull request for this issue.
+
+[C-assigned]: https://github.com/bors-ng/bors-ng/labels/C-assigned
+[C-blocked-on-external]: https://github.com/bors-ng/bors-ng/labels/C-blocked-on-external
+[C-has-pr]: https://github.com/bors-ng/bors-ng/labels/C-has-pr
+
+### I: issue description
+
+I-tags describe the kind of issue.
+
+* [I-crash]: Internal server error, etc
+* [I-unsound]: bors-ng is merging pull requests that break master!
+* [I-ux]: Human factor failures
+* [I-enhancement]: Features that would be nice to have
+* [I-perf]: Always too slow
+* [I-intermittent]: an issue that only happens sometimes
+
+[I-crash]: https://github.com/bors-ng/bors-ng/labels/I-crash
+[I-unsound]: https://github.com/bors-ng/bors-ng/labels/I-unsound
+[I-ux]: https://github.com/bors-ng/bors-ng/labels/I-ux
+[I-enhancement]: https://github.com/bors-ng/bors-ng/labels/I-enhancement
+[I-perf]: https://github.com/bors-ng/bors-ng/labels/I-perf
+[I-intermittent]: https://github.com/bors-ng/bors-ng/labels/I-intermittent
+
+### L: language
+
+The primary programming language this will need to be implemented in. If none is specified, it's Elixir.
+
+### S: pull request status
+
+This is the only type of tag that is added to pull requests.
+
+* S-do-not-merge-yet: Do not merge this pull request.
