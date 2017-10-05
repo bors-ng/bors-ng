@@ -354,15 +354,17 @@ defmodule BorsNG.Worker.Batcher do
     status = Batcher.State.summary_database_statuses(statuses)
     state = Batch.numberize_state(status)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-    batch
-    |> Batch.changeset(%{state: state, last_polled: now})
-    |> Repo.update!()
     if status != :running do
       batch.project
       |> get_repo_conn()
       |> send_status(batch, status)
       Project.ping!(batch.project_id)
       complete_batch(status, batch, statuses)
+    end
+    batch
+    |> Batch.changeset(%{state: state, last_polled: now})
+    |> Repo.update!()
+    if status != :running do
       poll(batch.project_id)
     end
   end
