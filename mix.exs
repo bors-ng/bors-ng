@@ -33,7 +33,7 @@ defmodule BorsNg.Mixfile do
   # and cannot be accessed from applications inside the apps folder
   defp deps do
     [
-      {:dogma, "~> 0.1", only: [ :dev, :text ], runtime: false},
+      {:dogma, "~> 0.1", only: [ :dev, :test ], runtime: false},
       {:dialyxir, "~> 0.4", only: [ :dev ], runtime: false},
       {:distillery, "~> 1.0", runtime: false},
       {:edeliver, "~> 1.4.0", runtime: false},
