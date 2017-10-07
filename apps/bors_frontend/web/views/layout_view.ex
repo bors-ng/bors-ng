@@ -7,7 +7,8 @@ defmodule BorsNG.LayoutView do
   use BorsNG.Web, :view
 
   def get_version do
-    get_heroku_commit() || get_git_commit() || get_release_version()
+    hash = get_heroku_commit() || get_git_commit() || get_release_version()
+    {String.slice(hash, 0..6), hash}
   end
 
   def get_heroku_commit do
