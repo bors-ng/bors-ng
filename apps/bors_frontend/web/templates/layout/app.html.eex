@@ -67,8 +67,8 @@
       <p class=wrapper>
         <span id=footer-version>
           Build:
-          <a href="https://github.com/bors-ng/bors-ng/tree/<%= get_version() %>">
-            <%= get_version() %>
+          <a href="https://github.com/bors-ng/bors-ng/tree/<%= elem(get_version(), 1) %>">
+            <%= elem(get_version(), 0) %>
           </a>
         </span>
         This service is provided for free on a best-effort basis.
