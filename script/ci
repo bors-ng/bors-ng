@@ -1,5 +1,6 @@
 #!/bin/bash
 set -ex
+export MIX_ENV=test
 mix deps.get
 runuser postgres -c "psql -c \"ALTER USER postgres WITH PASSWORD 'Postgres1234'\""
 runuser postgres -c "psql -c \"UPDATE pg_database SET datistemplate = FALSE WHERE datname = 'template1'\""
