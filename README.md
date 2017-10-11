@@ -5,8 +5,7 @@ A merge bot for GitHub pull requests
 It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
 
 * [Home page](https://bors.tech/)
-* [Getting started](https://bors.tech/getting-started/)
-* [Developer documentation](https://bors.tech/devdocs/bors-ng/hacking.html)
+* [Documentation](https://bors.tech/documentation/)
 * [Support forum](https://forum.bors.tech/)
 
 
