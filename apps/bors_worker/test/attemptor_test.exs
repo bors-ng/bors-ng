@@ -104,6 +104,62 @@ defmodule BorsNG.Worker.AttemptorTest do
     assert status.identifier == "ci/circleci"
   end
 
+  test "infer from jet-steps.yml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{"jet-steps.yml" => ""}}
+      }})
+    patch = new_patch(proj, 1, "N")
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    [status] = Repo.all(AttemptStatus)
+    assert status.identifier == "continuous-integration/codeship"
+  end
+
+  test "infer from jet-steps.json", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{"jet-steps.json" => ""}}
+      }})
+    patch = new_patch(proj, 1, "N")
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    [status] = Repo.all(AttemptStatus)
+    assert status.identifier == "continuous-integration/codeship"
+  end
+
+  test "infer from codeship-steps.yml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{"codeship-steps.yml" => ""}}
+      }})
+    patch = new_patch(proj, 1, "N")
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    [status] = Repo.all(AttemptStatus)
+    assert status.identifier == "continuous-integration/codeship"
+  end
+
+  test "infer from codeship-steps.json", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying" => %{"codeship-steps.json" => ""}}
+      }})
+    patch = new_patch(proj, 1, "N")
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    [status] = Repo.all(AttemptStatus)
+    assert status.identifier == "continuous-integration/codeship"
+  end
+
   test "full runthrough (with polling fallback)", %{proj: proj} do
     # Attempts start running immediately
     GitHub.ServerMock.put_state(%{

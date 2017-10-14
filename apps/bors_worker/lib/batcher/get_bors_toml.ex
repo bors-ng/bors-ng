@@ -25,6 +25,10 @@ defmodule BorsNG.Worker.Batcher.GetBorsToml do
           {".travis.yml", "continuous-integration/travis-ci/push"},
           {"appveyor.yml", "continuous-integration/appveyor/branch"},
           {"circle.yml", "ci/circleci"},
+          {"jet-steps.yml", "continuous-integration/codeship"},
+          {"jet-steps.json", "continuous-integration/codeship"},
+          {"codeship-steps.yml", "continuous-integration/codeship"},
+          {"codeship-steps.json", "continuous-integration/codeship"},
         ]
         |> Enum.filter(fn {file, _} ->
           not is_nil GitHub.get_file!(repo_conn, branch, file) end)
