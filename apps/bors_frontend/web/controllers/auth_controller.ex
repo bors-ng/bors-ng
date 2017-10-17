@@ -95,7 +95,6 @@ defmodule BorsNG.AuthController do
     end
 
     conn
-    |> put_flash(:ok, "Successfully logged in")
     |> put_session(:current_user, user_model.id)
     |> put_session(:avatar_url, avatar)
     |> put_session(:github_access_token, client.token.access_token)
