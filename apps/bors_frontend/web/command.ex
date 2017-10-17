@@ -107,20 +107,19 @@ defmodule BorsNG.Command do
   def parse(comment) do
     comment
     |> String.splitter("\n")
-    |> Enum.flat_map(fn
-      @command_trigger <> " " <> cmd ->
-        trim_and_parse_cmd(cmd)
-      @command_trigger <> ": " <> cmd ->
-        trim_and_parse_cmd(cmd)
-      _ -> []
+    |> Enum.flat_map(fn(string) ->
+      trim_and_parse_cmd(Regex.named_captures(regex(), string))
     end)
   end
 
-  def trim_and_parse_cmd(cmd) do
+  def regex, do: ~r/^#{@command_trigger}:?\s(?<command>.+)/i
+
+  def trim_and_parse_cmd(%{"command" => cmd}) do
     cmd
     |> String.trim()
     |> parse_cmd()
   end
+  def trim_and_parse_cmd(_), do: []
 
   def parse_cmd("try" <> arguments), do: [{:try, arguments}]
   def parse_cmd("r+ p=" <> rest), do: parse_priority(rest) ++ [:activate]

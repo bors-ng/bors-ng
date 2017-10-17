@@ -41,11 +41,24 @@ defmodule BorsNG.CommandTest do
     assert [:deactivate] == Command.parse("bors r-")
   end
 
+  test "accept the case insensity bare command" do
+    assert [{:try, ""}] == Command.parse("Bors try")
+    assert [:activate] == Command.parse("Bors r+")
+    assert [:deactivate] == Command.parse("Bors r-")
+  end
+
   test "accept priority" do
     assert [{:set_priority, 1}, :activate] == Command.parse("bors r+ p=1")
     assert [{:set_priority, 1}, {:activate_by, "me"}] ==
       Command.parse("bors r=me p=1")
     assert [{:set_priority, 1}] == Command.parse("bors p=1")
+  end
+
+  test "accept priority case insensity" do
+    assert [{:set_priority, 1}, :activate] == Command.parse("Bors r+ p=1")
+    assert [{:set_priority, 1}, {:activate_by, "me"}] ==
+      Command.parse("Bors r=me p=1")
+    assert [{:set_priority, 1}] == Command.parse("Bors p=1")
   end
 
   test "accept negative priority" do
