@@ -1,9 +1,5 @@
 <nav>
 <div class=wrapper>
-  <a href="<%= project_path(@conn, :index) %>">
-    Repositories
-  </a>
-  ›
   <h1>
     <a href="https://github.com/<%= @project.name %>/">
       <%= @project.name %>
@@ -23,7 +19,7 @@
 
 <%= if empty?(@unbatched_patches) and empty?(@batches) do %>
   Nothing to see here
-<%= else %>
+<% else %>
 <table class="table">
 <%= if @unbatched_patches != [] do %>
   <thead>

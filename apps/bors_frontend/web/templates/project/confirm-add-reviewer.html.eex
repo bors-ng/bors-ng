@@ -1,10 +1,6 @@
 <nav>
 
 <div class=wrapper>
-  <a href="<%= project_path(@conn, :index) %>">
-    Repositories
-  </a>
-  ›
   <a href="https://github.com/<%= @project.name %>/">
     <%= @project.name %>
   </a>
