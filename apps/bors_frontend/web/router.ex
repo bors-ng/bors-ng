@@ -64,10 +64,12 @@ defmodule BorsNG.Router do
     put "/:id/settings/branches", ProjectController, :update_branches
     delete "/:id/batches/incomplete", ProjectController, :cancel_all
     post "/:id/reviewer", ProjectController, :add_reviewer
+    post "/:id/member", ProjectController, :add_member
     get "/:id/add-reviewer/:login", ProjectController, :confirm_add_reviewer
     put "/:id/synchronize", ProjectController, :synchronize
     get "/:id/log", ProjectController, :log
     delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
+    delete "/:id/member/:user_id", ProjectController, :remove_member
   end
 
   scope @wobserver_url, Wobserver do

@@ -8,6 +8,19 @@ defmodule BorsNG.Database.Context.Permission do
 
   use BorsNG.Database.Context
 
+  def list_users_for_project(:member, project_id) do
+    Repo.all(from u in User,
+      join: l in LinkMemberProject,
+      where: l.project_id == ^project_id,
+      where: u.id == l.user_id)
+  end
+  def list_users_for_project(:reviewer, project_id) do
+    Repo.all(from u in User,
+      join: l in LinkUserProject,
+      where: l.project_id == ^project_id,
+      where: u.id == l.user_id)
+  end
+
   def has_permission?(:member, user, patch) do
     %User{id: user_id} = user
     %Patch{project_id: project_id} = patch

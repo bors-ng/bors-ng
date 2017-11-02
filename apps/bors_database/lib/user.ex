@@ -17,13 +17,6 @@ defmodule BorsNG.Database.User do
     timestamps()
   end
 
-  def by_project(project_id) do
-    from u in User,
-      join: l in LinkUserProject,
-      where: l.project_id == ^project_id,
-      where: u.id == l.user_id
-  end
-
   def has_perm(_repo, %User{is_admin: true}, _project_id) do
     true
   end

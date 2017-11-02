@@ -16,9 +16,13 @@
 
 </nav>
 
-<main role=main><div class=wrapper>
+<main role=main>
 
+<div class=wrapper><section class=split>
+
+<section class=split-item>
 <h2 class=header>Reviewers</h2>
+<p>permission to run any command, and to change repository settings</p>
 <table class="table">
   <tbody>
 <%= for reviewer <- @reviewers do %>
@@ -29,7 +33,7 @@
       <%= form_for @conn, project_path(@conn, :remove_reviewer, @project.id, reviewer.id), [as: :reviewer, method: :delete], fn _ -> %>
       <td class="fill-link">
   <%= if reviewer.id != @current_user_id do %>
-          <%= submit "Remove", class: "table-button table-button--remove" %>
+          <%= submit "Remove", title: "Remove reviewer", class: "table-button table-button--remove" %>
   <% end %>
       </td>
       <% end %>
@@ -41,14 +45,49 @@
         <%= text_input f, :login, placeholder: "GitHub login" %>
       </td>
       <td class="fill-link table-button-col">
-        <%= submit "Add", class: "table-button table-button--add" %>
+        <%= submit "Add", title: "Add reviewer", class: "table-button table-button--add" %>
       </td>
       <% end %>
     </tr>
   </tbody>
 </table>
+</section> <!-- class=split-item -->
 
-<h2 class=header>Branches</h2>
+<section class=split-item>
+<h2 class=header>Members</h2>
+<p>permission to run "bors try", and, in the future, to run "bors retry"</p>
+<table class="table">
+  <tbody>
+<%= for member <- @members do %>
+    <tr role=row>
+      <td>
+        <%= member.login %>
+      </td>
+      <%= form_for @conn, project_path(@conn, :remove_member, @project.id, member.id), [as: :member, method: :delete], fn _ -> %>
+      <td class="fill-link">
+        <%= submit "Remove", title: "Remove member", class: "table-button table-button--remove" %>
+      </td>
+      <% end %>
+    </tr>
+<% end %>
+    <tr role=row>
+      <%= form_for @conn, project_path(@conn, :add_member, @project.id), [as: :member], fn f -> %>
+      <td>
+        <%= text_input f, :login, placeholder: "GitHub login" %>
+      </td>
+      <td class="fill-link table-button-col">
+        <%= submit "Add", title: "Add member", class: "table-button table-button--add" %>
+      </td>
+      <% end %>
+    </tr>
+  </tbody>
+</table>
+</section> <!-- class=split-item -->
+
+</section></div> <!-- class=split -->
+
+<div class=wrapper>
+  <h2 class=header>Branches</h2>
 <%= form_for @update_branches, project_path(@conn, :update_branches, @project), [as: :project], fn f -> %>
   <label for=staging_branch>staging</label>
   <%= text_input f, :staging_branch, id: "staging_branch" %>
@@ -56,5 +95,6 @@
   <%= text_input f, :trying_branch, id: "trying_branch" %>
   <div class=toolbar><%= submit "Update", class: "toolbar-item" %></div>
 <% end %>
+</div>
 
-</div></main>
+</main>

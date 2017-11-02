@@ -29,6 +29,18 @@ html{overflow-y:scroll}
 .wrapper--mini {
   padding: 8px 20px;
 }
+/* split-screen effect, sizing things to not get any narrower than reasonable */
+.split {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: -16px -20px;
+}
+.split-item {
+  margin: 16px 20px;
+  width: 400px;
+  flex-grow: 1;
+}
 /* The header, nav bar, and footer */
 header, nav {
   border-bottom: solid 1px #CCC;
