@@ -4,6 +4,7 @@ defmodule BorsNG.Database.Context.PermissionTest do
   alias BorsNG.Database.Context.Permission
   alias BorsNG.Database.Installation
   alias BorsNG.Database.LinkUserProject
+  alias BorsNG.Database.LinkMemberProject
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.User
@@ -29,18 +30,28 @@ defmodule BorsNG.Database.Context.PermissionTest do
 
   test "user does not have permission by default", params do
     %{patch: patch, user: user} = params
-    refute Permission.permission_to_approve_patch?(user, patch)
+    refute Permission.has_permission?(:reviewer, user, patch)
+    refute Permission.has_permission?(:member, user, patch)
   end
 
   test "reviewers have permission", params do
     %{project: project, patch: patch, user: user} = params
     Repo.insert!(%LinkUserProject{user: user, project: project})
-    assert Permission.permission_to_approve_patch?(user, patch)
+    assert Permission.has_permission?(:reviewer, user, patch)
+    assert Permission.has_permission?(:member, user, patch)
   end
 
   test "delegated users have permission", params do
     %{patch: patch, user: user} = params
     Repo.insert!(%UserPatchDelegation{user: user, patch: patch})
-    assert Permission.permission_to_approve_patch?(user, patch)
+    assert Permission.has_permission?(:reviewer, user, patch)
+    assert Permission.has_permission?(:member, user, patch)
+  end
+
+  test "members have partial permission", params do
+    %{project: project, patch: patch, user: user} = params
+    Repo.insert!(%LinkMemberProject{user: user, project: project})
+    refute Permission.has_permission?(:reviewer, user, patch)
+    assert Permission.has_permission?(:member, user, patch)
   end
 end
