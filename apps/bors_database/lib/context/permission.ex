@@ -21,19 +21,19 @@ defmodule BorsNG.Database.Context.Permission do
       where: u.id == l.user_id)
   end
 
-  def has_permission?(:member, user, patch) do
+  def permission?(:member, user, patch) do
     %User{id: user_id} = user
     %Patch{project_id: project_id} = patch
     project_member?(user_id, project_id) or
-      has_permission?(:reviewer, user, patch)
+      permission?(:reviewer, user, patch)
   end
-  def has_permission?(:reviewer, user, patch) do
+  def permission?(:reviewer, user, patch) do
     %User{id: user_id} = user
     %Patch{id: patch_id, project_id: project_id} = patch
     project_reviewer?(user_id, project_id) or
       patch_delegated_reviewer?(user_id, patch_id)
   end
-  def has_permission?(:none, _, _) do
+  def permission?(:none, _, _) do
     true
   end
 

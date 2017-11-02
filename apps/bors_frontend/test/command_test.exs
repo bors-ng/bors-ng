@@ -106,8 +106,10 @@ defmodule BorsNG.CommandTest do
     assert :none == Command.required_permission_level([:ping])
     assert :member == Command.required_permission_level([{:try, ""}])
     assert :member == Command.required_permission_level([{:try, ""}, :ping])
-    assert :reviewer == Command.required_permission_level([:approve, {:try, ""}])
-    assert :reviewer == Command.required_permission_level([{:try, ""}, :approve])
+    assert :reviewer ==
+      Command.required_permission_level([:approve, {:try, ""}])
+    assert :reviewer ==
+      Command.required_permission_level([{:try, ""}, :approve])
   end
 
   test "running ping command should post comment", %{proj: proj} do

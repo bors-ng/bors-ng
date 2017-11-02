@@ -286,7 +286,7 @@ defmodule BorsNG.Command do
 
     cmd_list
     |> required_permission_level()
-    |> Permission.has_permission?(c.commenter, c.patch)
+    |> Permission.permission?(c.commenter, c.patch)
     |> if do
       Enum.each(cmd_list, &run(c, &1))
     else

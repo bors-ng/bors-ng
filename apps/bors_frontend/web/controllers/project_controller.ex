@@ -134,12 +134,14 @@ defmodule BorsNG.ProjectController do
         |> put_flash(:ok, "Successfully updated branches")
         |> redirect(to: project_path(conn, :settings, project))
       {:error, changeset} ->
-        reviewers = Repo.all(User.by_project(project.id))
+        reviewers = Permission.list_users_for_project(:reviewer, project.id)
+        members = Permission.list_users_for_project(:member, project.id)
         conn
         |> put_flash(:error, "Cannot update branches")
         |> render("settings.html",
           project: project,
           reviewers: reviewers,
+          members: members,
           current_user_id: conn.assigns.user.id,
           update_branches: changeset)
     end
