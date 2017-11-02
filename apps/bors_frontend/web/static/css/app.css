@@ -1,5 +1,25 @@
 /* always show the scrollbar on the side; avoids ugly jumping */
 html{overflow-y:scroll}
+/* Use underline-on-hover for links.
+   This is used for consistency, since fill-link breaks outlines. */
+:link, :visited {
+  text-decoration: none;
+  color: #4d76ae;
+}
+:link:focus {
+  color: #33b5e5;
+}
+:visited {
+  color: #ae3d96;
+}
+:visited:focus {
+  color: #b533e5;
+}
+:link:hover, :link:focus,
+:visited:hover, :visited:focus {
+  text-decoration: underline;
+  outline: none;
+}
 /* Should be used inside of the header, main, and footer */
 .wrapper {
   max-width: 1000px;
@@ -19,18 +39,47 @@ header {
 #header-user {
   float: right;
 }
-#header-user > a, #header-user img, #header-logo {
+.header-link, #header-user img, #header-logo {
   vertical-align: middle;
   line-height: 25px;
   height: 25px;
   display: inline-block;
 }
+#header-sections {
+  padding-left: 8px;
+}
+.header-link, .drop-down-menu > a {
+  color: #333;
+  padding: 0 8px;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+.header-link + .header-link-container {
+  margin-left: 8px;
+}
+a.header-link-container:hover,
+a.header-link-container:active,
+a.header-link-container:focus {
+  text-decoration: none;
+}
+a.header-link:hover,
+a.header-link:active,
+a.header-link:focus,
+a.header-link-container:hover .header-link,
+a.header-link-container:active .header-link,
+a.header-link-container:focus .header-link,
+.drop-down-menu > a:hover,
+.drop-down-menu > a:active,
+.drop-down-menu > a:focus {
+  color: #fff;
+  background: #000;
+  text-decoration: none;
+}
 .drop-down-menu {
   display: none;
   position: fixed;
   background: #fff;
-  border: solid 1px #CCC;
   padding: 8px 0;
+  box-shadow: 0 1px 4px #666;
 }
 .drop-down-menu:target, .drop-down-menu--open {
   display: block;
@@ -101,29 +150,6 @@ footer {
 .close-button:active,
 .close-button:focus {
   color: #df3600;
-}
-/* Use underline-on-hover for links.
-   This is used for consistency, since fill-link breaks outlines. */
-:link, :visited {
-  text-decoration: none;
-  color: #4d76ae;
-}
-:link:focus {
-  color: #33b5e5;
-}
-:visited {
-  color: #ae3d96;
-}
-:visited:focus {
-  color: #b533e5;
-}
-:link:hover, :link:focus,
-:visited:hover, :visited:focus {
-  text-decoration: underline;
-  outline: none;
-}
-:link:focus img, :visited:focus img {
-  outline: dotted;
 }
 /* The tab bar. */
 .tabs {
@@ -304,4 +330,15 @@ pre {
 /* Timestamps that show local time inline and UTC on hover */
 time[title] {
   border-bottom: dotted 1px #999;
+}
+.show-on-narrow {
+  display: none !important;
+}
+@media (max-width: 800px) {
+  .hide-on-narrow {
+    display: none !important;
+  }
+  .show-on-narrow {
+    display: block !important;
+  }
 }

@@ -39,13 +39,24 @@
     <header role="banner">
       <div class="wrapper wrapper--mini">
         <a id=header-logo href="<%= page_path(@conn, :index) %>"><img alt="bors" src='<%= static_path(@conn, "/images/a.svg") %>' width="90" height="25"></a>
+        <span id=header-sections class=hide-on-narrow>
+          <a class=header-link href="https://bors.tech">Home</a>
+          <a class=header-link href="https://forum.bors.tech">Forum</a>
+          <a class=header-link href="https://bors.tech/documentation/getting-started/">Docs</a>
+          <b class=header-link>Dashboard</b>
+        </span>
         <span id=header-user>
 <%= if is_nil @conn.assigns[:user] do %>
-          <a href='<%= auth_path(@conn, :index, "github") %>'>Log in with GitHub</a>
+          <a class=header-link href='<%= auth_path(@conn, :index, "github") %>'>Log in with GitHub</a>
 <% else %>
-          <a href="#user-dropdown" class=drop-down-menu--toggler>
+  <%= if @conn.path_info == ["repositories"] do %>
+          <b class="header-link hide-on-narrow">Repositories</b>
+  <% else %>
+          <a class="header-link hide-on-narrow" href="<%= project_path(@conn, :index) %>">Repositories</a>
+  <% end %>
+          <a href="#user-dropdown" class="header-link-container drop-down-menu--toggler">
             <img width=25 height=25 src="<%= @conn.assigns.avatar_url %>" alt="" role="presentation">
-            <%= @conn.assigns.user.login %> ▾
+            <span class=header-link><%= @conn.assigns.user.login %> ▾</span>
           </a>
 <% end %>
 <%= if not is_nil @conn.assigns[:user] do %>
@@ -53,7 +64,7 @@
   <%= if @conn.assigns.user.is_admin do %>
             <a href="<%= admin_path(@conn, :index) %>">Admin</a>
   <% end %>
-            <a href="<%= project_path(@conn, :index) %>">Repositories</a>
+            <a class=show-on-narrow href="<%= project_path(@conn, :index) %>">Repositories</a>
             <a href="<%= auth_path(@conn, :logout) %>">Log out</a>
 <% end %>
           </div></div>
@@ -63,7 +74,15 @@
 
     <%= render @view_module, @view_template, assigns %>
 
-    <footer role="note">
+    <footer role=navigation class=show-on-narrow>
+      <div class=wrapper>
+        <a class=header-link href="https://bors.tech">Home</a>
+        <a class=header-link href="https://forum.bors.tech">Forum</a>
+        <a class=header-link href="https://bors.tech/documentation/getting-started/">Docs</a>
+        <b class=header-link>Dashboard</b>
+      </div>
+    </footer>
+    <footer role=note>
       <p class=wrapper>
         <span id=footer-version>
           Build:
