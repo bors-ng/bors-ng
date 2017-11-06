@@ -7,17 +7,25 @@ defmodule BorsNG.LayoutView do
   use BorsNG.Web, :view
 
   def get_version do
-    hash = get_heroku_commit() || get_git_commit() || get_release_version()
-    {String.slice(hash, 0..6), hash}
+    get_commit() || get_tag()
+  end
+
+  def get_commit do
+    hash = get_heroku_commit() || get_git_commit()
+    if hash do
+      {String.slice(hash, 0..6), hash}
+    else
+      nil
+    end
+  end
+
+  def get_tag do
+    v = get_release_version()
+    {v, "v#{v}"}
   end
 
   def get_heroku_commit do
-    "HEROKU_SLUG_COMMIT"
-    |> System.get_env()
-    |> case do
-      nil -> nil
-      commit -> String.slice(commit, 0..10)
-    end
+    System.get_env("HEROKU_SLUG_COMMIT")
   end
 
   def get_git_commit do
@@ -33,15 +41,11 @@ defmodule BorsNG.LayoutView do
       {:ok, commit} -> String.trim(commit)
       _ -> nil
     end
-    |> case do
-      nil -> nil
-      commit -> String.slice(commit, 0..10)
-    end
   end
 
   def get_release_version do
     case :application.get_key(:vsn) do
-      {:ok, vsn} -> List.to_string('v' ++ vsn)
+      {:ok, vsn} -> List.to_string(vsn)
       _ -> nil
     end
   end
