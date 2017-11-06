@@ -25,6 +25,7 @@ defmodule BorsNG.Database.Context do
       alias BorsNG.Database.Installation
       alias BorsNG.Database.LinkPatchBatch
       alias BorsNG.Database.LinkUserProject
+      alias BorsNG.Database.LinkMemberProject
       alias BorsNG.Database.Patch
       alias BorsNG.Database.Project
       alias BorsNG.Database.Repo

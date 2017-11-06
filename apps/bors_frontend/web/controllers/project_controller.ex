@@ -12,7 +12,9 @@ defmodule BorsNG.ProjectController do
   use BorsNG.Web, :controller
 
   alias BorsNG.Worker.Batcher
+  alias BorsNG.Database.Context.Permission
   alias BorsNG.Database.Repo
+  alias BorsNG.Database.LinkMemberProject
   alias BorsNG.Database.LinkUserProject
   alias BorsNG.Database.Project
   alias BorsNG.Database.Batch
@@ -82,10 +84,12 @@ defmodule BorsNG.ProjectController do
 
   def settings(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
   def settings(conn, :rw, project, _params) do
-    reviewers = Repo.all(User.by_project(project.id))
+    reviewers = Permission.list_users_for_project(:reviewer, project.id)
+    members = Permission.list_users_for_project(:member, project.id)
     render conn, "settings.html",
       project: project,
       reviewers: reviewers,
+      members: members,
       current_user_id: conn.assigns.user.id,
       update_branches: Project.changeset_branches(project)
   end
@@ -130,16 +134,19 @@ defmodule BorsNG.ProjectController do
         |> put_flash(:ok, "Successfully updated branches")
         |> redirect(to: project_path(conn, :settings, project))
       {:error, changeset} ->
-        reviewers = Repo.all(User.by_project(project.id))
+        reviewers = Permission.list_users_for_project(:reviewer, project.id)
+        members = Permission.list_users_for_project(:member, project.id)
         conn
         |> put_flash(:error, "Cannot update branches")
         |> render("settings.html",
           project: project,
           reviewers: reviewers,
+          members: members,
           current_user_id: conn.assigns.user.id,
           update_branches: changeset)
     end
   end
+
 
   def add_reviewer(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
   def add_reviewer(conn, :rw, project, %{"reviewer" => %{"login" => ""}}) do
@@ -188,6 +195,53 @@ defmodule BorsNG.ProjectController do
     |> redirect(to: project_path(conn, :settings, project))
   end
 
+  def add_member(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
+  def add_member(conn, :rw, project, %{"member" => %{"login" => ""}}) do
+    conn
+    |> put_flash(:error, "Please enter a GitHub user's nickname")
+    |> redirect(to: project_path(conn, :settings, project))
+  end
+  def add_member(conn, :rw, project, %{"member" => %{"login" => login}}) do
+    user = case Repo.get_by(User, login: login) do
+      nil ->
+        {:installation, project.installation.installation_xref}
+        |> GitHub.get_user_by_login!(login)
+        |> case do
+          nil -> nil
+          gh_user ->
+            case Repo.get_by(User, user_xref: gh_user.id) do
+              nil ->
+                User.changeset(%User{}, %{
+                  user_xref: gh_user.id,
+                  login: gh_user.login
+                })
+                |> Repo.insert!()
+              user -> user
+            end
+        end
+      user -> user
+    end
+    {state, msg} = case user do
+      nil ->
+        {:error, "GitHub user not found; maybe you typo-ed?"}
+      user ->
+        %LinkMemberProject{}
+        |> LinkMemberProject.changeset(%{
+          user_id: user.id,
+          project_id: project.id})
+        |> Repo.insert()
+        |> case do
+          {:error, _} ->
+            {:error, "This user is already a member"}
+          {:ok, _login} ->
+            {:ok, "Successfully added #{user.login} as a member"}
+        end
+    end
+    conn
+    |> put_flash(state, msg)
+    |> redirect(to: project_path(conn, :settings, project))
+  end
+
   def confirm_add_reviewer(_, :ro, _, _) do
     raise BorsNG.PermissionDeniedError
   end
@@ -207,6 +261,18 @@ defmodule BorsNG.ProjectController do
     Repo.delete!(link)
     conn
     |> put_flash(:ok, "Removed reviewer")
+    |> redirect(to: project_path(conn, :settings, project))
+  end
+
+  def remove_member(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
+  def remove_member(conn, :rw, project, %{"user_id" => user_id}) do
+    link = Repo.get_by!(
+      LinkMemberProject,
+      project_id: project.id,
+      user_id: user_id)
+    Repo.delete!(link)
+    conn
+    |> put_flash(:ok, "Removed member")
     |> redirect(to: project_path(conn, :settings, project))
   end
 

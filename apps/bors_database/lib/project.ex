@@ -17,7 +17,7 @@ defmodule BorsNG.Database.Project do
     ping!(to_string(project_id))
   end
   def ping!(project_id) do
-    BorsNG.Endpoint.broadcast!("project_ping:1", "new_msg", %{})
+    BorsNG.Endpoint.broadcast!("project_ping:#{project_id}", "new_msg", %{})
   end
 
   schema "projects" do

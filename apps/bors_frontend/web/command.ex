@@ -284,18 +284,43 @@ defmodule BorsNG.Command do
     |> fetch_patch()
     cmd_list = parse(c.comment)
 
-    cond do
-      cmd_list == [] ->
-        :ok
-      cmd_list == [:ping] ->
-        run(c, :ping)
-      Permission.permission_to_approve_patch?(c.commenter, c.patch) ->
-        Enum.each(cmd_list, &run(c, &1))
-      true ->
-        permission_denied(c)
+    cmd_list
+    |> required_permission_level()
+    |> Permission.permission?(c.commenter, c.patch)
+    |> if do
+      Enum.each(cmd_list, &run(c, &1))
+    else
+      permission_denied(c)
     end
   end
-  @spec run(t, cmd) :: :ok
+
+  def required_permission_level_cmd(:ping) do
+    :none
+  end
+  def required_permission_level_cmd({:autocorrect, _}) do
+    :none
+  end
+  def required_permission_level_cmd({:try, _}) do
+    :member
+  end
+  def required_permission_level_cmd(_) do
+    :reviewer
+  end
+
+  def required_permission_level(cmd_list) do
+    cmd_list
+    |> Enum.reduce(:none, fn cmd, perm ->
+      new_perm = cmd |> required_permission_level_cmd()
+      case {perm, new_perm} do
+        {:none, new_perm} -> new_perm
+        {perm, :none} -> perm
+        {_, :reviewer} -> :reviewer
+        {:reviewer, _} -> :reviewer
+        {p, p} -> p
+      end
+    end)
+  end
+
   def permission_denied(c) do
     login = c.commenter.login
     url = project_url(
@@ -313,6 +338,8 @@ defmodule BorsNG.Command do
       Existing reviewers: [click here to make #{login} a reviewer](#{url})
       """)
   end
+
+  @spec run(t, cmd) :: :ok
   def run(c, :activate) do
     run(c, {:activate_by, c.commenter.login})
   end
@@ -363,6 +390,7 @@ defmodule BorsNG.Command do
     end
     delegate_to(c, delegatee)
   end
+
   def delegate_to(c, delegatee) do
     Permission.delegate(delegatee, c.patch)
     c.project.repo_xref
