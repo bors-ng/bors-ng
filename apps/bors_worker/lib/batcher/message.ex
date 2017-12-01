@@ -24,6 +24,9 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_status(:conflict) do
     {"Merge conflict", :error}
   end
+  def generate_status(:delayed) do
+    {"Delayed for higher-priority pull requests", :running}
+  end
 
   def generate_message({:preflight, :blocked_labels}) do
     ":-1: Rejected by label"

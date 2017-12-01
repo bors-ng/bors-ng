@@ -568,6 +568,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "staging" => "iniO"},
         comments: %{1 => [], 2 => []},
         statuses: %{
+          "iniN" => %{"bors" => :running},
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -583,6 +584,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "staging" => "iniO"},
         comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
         statuses: %{
+          "iniN" => %{"bors" => :running},
           "iniO" => %{"bors" => :ok},
           "O" => %{"bors" => :ok},
           "N" => %{"bors" => :running}},
@@ -603,7 +605,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "staging" => "iniON"},
         comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
         statuses: %{
-          "iniN" => %{"bors" => :running}, # TODO #263 make this :error
+          "iniN" => %{"bors" => :running},
           "iniO" => %{"bors" => :ok},
           "O" => %{"bors" => :ok},
           "N" => %{"bors" => :running}},
@@ -622,7 +624,7 @@ defmodule BorsNG.Worker.BatcherTest do
           2 => ["# Build succeeded\n  * ci"],
           1 => ["# Build succeeded\n  * ci"]},
         statuses: %{
-          "iniN" => %{"bors" => :running}, # TODO #263 make this :error
+          "iniN" => %{"bors" => :running},
           "iniON" => %{"bors" => :ok},
           "iniO" => %{"bors" => :ok},
           "O" => %{"bors" => :ok},
