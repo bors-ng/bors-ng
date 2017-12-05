@@ -270,7 +270,7 @@ defmodule BorsNG.Worker.Attemptor do
     GitHub.post_comment!(
       repo_conn,
       patch.pr_xref,
-      body)
+      "## try\n\n#{body}")
   end
 
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}

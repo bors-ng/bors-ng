@@ -52,7 +52,7 @@ defmodule BorsNG.Worker.AttemptorTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         comments: %{
-          1 => ["Not awaiting review"]
+          1 => ["## try\n\nNot awaiting review"]
           },
         statuses: %{},
         files: %{}
@@ -230,7 +230,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         branches: %{
           "master" => "ini",
           "trying" => "iniN"},
-        comments: %{1 => ["# Build succeeded\n  * ci"]},
+        comments: %{1 => ["## try\n\n# Build succeeded\n  * ci"]},
         statuses: %{"iniN" => [{"ci", :ok}]},
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
@@ -255,6 +255,6 @@ defmodule BorsNG.Worker.AttemptorTest do
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
     state = GitHub.ServerMock.get_state()
     comments = state[{{:installation, 91}, 14}].comments[1]
-    assert comments == ["Has [ci skip], bors build will time out"]
+    assert comments == ["## try\n\nHas [ci skip], bors build will time out"]
   end
 end
