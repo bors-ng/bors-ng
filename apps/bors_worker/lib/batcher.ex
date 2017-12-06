@@ -112,7 +112,7 @@ defmodule BorsNG.Worker.Batcher do
           )
 
           if is_new_batch do
-            put_incomplete_on_hold(batch)
+            put_incomplete_on_hold(get_repo_conn(project), batch)
           end
 
           repo_conn = get_repo_conn(project)
@@ -560,14 +560,17 @@ defmodule BorsNG.Worker.Batcher do
     Project.installation_connection(project.repo_xref, Repo)
   end
 
-  defp put_incomplete_on_hold(batch) do
+  defp put_incomplete_on_hold(repo_conn, batch) do
     batches_query = batch.project_id
-    |> Batch.all_for_project(:incomplete)
+    |> Batch.all_for_project(:running)
     |> where([b], b.id != ^batch.id and b.priority < ^batch.priority)
-    Repo.update_all(batches_query,
-      set: [state: Batch.numberize_state(:waiting)])
     Status
     |> join(:inner, [s], b in ^batches_query, s.batch_id == b.id)
     |> Repo.delete_all()
+    batches_query
+    |> Repo.all()
+    |> Enum.each(&send_status(repo_conn, &1, :delayed))
+    Repo.update_all(batches_query,
+      set: [state: Batch.numberize_state(:waiting)])
   end
 end
