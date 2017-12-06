@@ -256,6 +256,22 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
+  def do_handle_call(:get_admins_by_repo, repo_conn, {}) do
+    repo_conn
+    |> get!("collaborators")
+    |> case do
+      %{body: raw, status_code: 200} ->
+        users = raw
+        |> Poison.decode!()
+        |> Enum.filter(fn user -> user["permissions"]["admin"] end)
+        |> Enum.map(&BorsNG.GitHub.User.from_json!/1)
+        {:ok, users}
+      error ->
+        IO.inspect(error)
+        {:error, :get_admins_by_repo}
+    end
+  end
+
   def do_handle_call(
     :get_user_by_login, {:raw, token}, {login}
   ) do

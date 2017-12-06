@@ -312,6 +312,10 @@ defmodule BorsNG.GitHub.ServerMock do
     end
   end
 
+  def do_handle_call(:get_admins_by_repo, _repo_conn, {}, state) do
+    {{:ok, []}, state}
+  end
+
   def do_handle_call(
     :get_user_by_login, _token, {login}, state
   ) do
