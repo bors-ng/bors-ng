@@ -6,11 +6,14 @@ defmodule BorsNG.Worker.Syncer do
   """
 
   alias BorsNG.Worker.Syncer
-  alias BorsNG.Database.Repo
+  alias BorsNG.Database.LinkUserProject
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
+  alias BorsNG.Database.Repo
   alias BorsNG.Database.User
   alias BorsNG.GitHub
+
+  require Logger
 
   def start_synchronize_project(project_id) do
     {:ok, _} = Task.Supervisor.start_child(
@@ -25,7 +28,27 @@ defmodule BorsNG.Worker.Syncer do
     open_prs = GitHub.get_open_prs!(conn)
     deltas = synchronize_patches(open_patches, open_prs)
     Enum.each(deltas, &do_synchronize!(project_id, &1))
+    sync_admins_as_reviewers(conn, project_id)
     Project.ping!(project_id)
+  end
+
+  def sync_admins_as_reviewers(repo_conn, project_id) do
+    case GitHub.get_admins_by_repo(repo_conn) do
+      {:ok, admins} ->
+        Enum.each(admins, fn user ->
+          user = Syncer.sync_user(user)
+          existing_link = Repo.get_by(LinkUserProject,
+            user_id: user.id,
+            project_id: project_id)
+          if is_nil existing_link do
+            link = %LinkUserProject{user_id: user.id, project_id: project_id}
+            Repo.insert!(link)
+          end
+          :ok
+        end)
+      error ->
+        Logger.warn(["Syncer: Error pulling repo admins: ", error])
+    end
   end
 
   @doc """

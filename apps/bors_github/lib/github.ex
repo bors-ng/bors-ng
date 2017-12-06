@@ -145,6 +145,13 @@ defmodule BorsNG.GitHub do
     user
   end
 
+  @spec get_admins_by_repo(tconn) :: {:ok, [tuser]} | :error
+  def get_admins_by_repo(repo_conn) do
+    GenServer.call(
+      BorsNG.GitHub,
+      {:get_admins_by_repo, repo_conn, {}})
+  end
+
   @spec get_app!() :: String.t()
   def get_app! do
     {:ok, app_link} = GenServer.call(BorsNG.GitHub, :get_app)
