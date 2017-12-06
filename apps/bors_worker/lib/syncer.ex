@@ -37,7 +37,9 @@ defmodule BorsNG.Worker.Syncer do
       {:ok, admins} ->
         Enum.each(admins, fn user ->
           user = Syncer.sync_user(user)
-          existing_link = Repo.get_by(LinkUserProject, user_id: user.id, project_id: project_id)
+          existing_link = Repo.get_by(LinkUserProject,
+            user_id: user.id,
+            project_id: project_id)
           if is_nil existing_link do
             link = %LinkUserProject{user_id: user.id, project_id: project_id}
             Repo.insert!(link)
