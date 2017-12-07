@@ -17,6 +17,7 @@ defmodule BorsNG.GitHub.Server do
   @type tconn :: BorsNG.GitHub.tconn
   @type ttoken :: BorsNG.GitHub.ttoken
   @type trepo :: BorsNG.GitHub.trepo
+  @type tuser :: BorsNG.GitHub.tuser
   @type tpr :: BorsNG.GitHub.tpr
 
   @typedoc """
@@ -256,20 +257,11 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:get_admins_by_repo, repo_conn, {}) do
-    repo_conn
-    |> get!("collaborators")
-    |> case do
-      %{body: raw, status_code: 200} ->
-        users = raw
-        |> Poison.decode!()
-        |> Enum.filter(fn user -> user["permissions"]["admin"] end)
-        |> Enum.map(&BorsNG.GitHub.User.from_json!/1)
-        {:ok, users}
-      error ->
-        IO.inspect(error)
-        {:error, :get_admins_by_repo}
-    end
+  def do_handle_call(:get_admins_by_repo, {{:raw, token}, repo_xref}, {}) do
+    get_admins_by_repo_(
+      token,
+      "#{site()}/repositories/#{repo_xref}/collaborators",
+      [])
   end
 
   def do_handle_call(
@@ -304,10 +296,7 @@ defmodule BorsNG.GitHub.Server do
   end
 
   defp get_installation_repos_!(token, url, append) do
-    params = case URI.parse(url).query do
-      nil -> []
-      qry -> URI.query_decoder(qry) |> Enum.to_list()
-    end
+    params = get_url_params(url)
     %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
       url,
       [
@@ -317,10 +306,7 @@ defmodule BorsNG.GitHub.Server do
     repositories = Poison.decode!(raw)["repositories"]
     |> Enum.map(&BorsNG.GitHub.Repo.from_json!/1)
     |> Enum.concat(append)
-    next_headers = headers
-    |> Enum.filter(&(elem(&1, 0) == "Link"))
-    |> Enum.map(&(ExLinkHeader.parse!(elem(&1, 1))))
-    |> Enum.filter(&!is_nil(&1.next))
+    next_headers = get_next_headers(headers)
     case next_headers do
       [] -> repositories
       [next] -> get_installation_repos_!(token, next.next.url, repositories)
@@ -329,7 +315,7 @@ defmodule BorsNG.GitHub.Server do
 
   @spec get_open_prs_!(binary, binary, [tpr]) :: [tpr]
   defp get_open_prs_!(token, url, append) do
-    params = URI.parse(url).query |> URI.query_decoder() |> Enum.to_list()
+    params = get_url_params(url)
     %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
       url,
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
@@ -337,13 +323,36 @@ defmodule BorsNG.GitHub.Server do
     prs = Poison.decode!(raw)
     |> Enum.map(&BorsNG.GitHub.Pr.from_json!/1)
     |> Enum.concat(append)
-    next_headers = headers
-    |> Enum.filter(&(elem(&1, 0) == "Link"))
-    |> Enum.map(&(ExLinkHeader.parse!(elem(&1, 1))))
-    |> Enum.filter(&!is_nil(&1.next))
+    next_headers = get_next_headers(headers)
     case next_headers do
       [] -> prs
       [next] -> get_open_prs_!(token, next.next.url, prs)
+    end
+  end
+
+  @spec get_admins_by_repo_(binary, binary, [tuser]) ::
+    {:ok, [tuser]} | {:error, :get_admins_by_repo_}
+  def get_admins_by_repo_(token, url, append) do
+    params = get_url_params(url)
+    url
+    |> HTTPoison.get(
+      [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
+      [params: params])
+    |> case do
+      {:ok, %{body: raw, status_code: 200, headers: headers}} ->
+        users = raw
+        |> Poison.decode!()
+        |> Enum.filter(fn user -> user["permissions"]["admin"] end)
+        |> Enum.map(&BorsNG.GitHub.User.from_json!/1)
+        |> Enum.concat(append)
+        next_headers = get_next_headers(headers)
+        case next_headers do
+          [] -> {:ok, users}
+          [next] -> get_admins_by_repo_(token, next.next.url, users)
+        end
+      error ->
+        IO.inspect(error)
+        {:error, :get_admins_by_repo}
     end
   end
 
@@ -397,6 +406,20 @@ defmodule BorsNG.GitHub.Server do
       "#{site()}/repositories/#{repo_xref}/#{path}",
       [{"Authorization", "token #{token}"}] ++ headers,
       params)
+  end
+
+  defp get_next_headers(headers) do
+    headers
+    |> Enum.filter(&(elem(&1, 0) == "Link"))
+    |> Enum.map(&(ExLinkHeader.parse!(elem(&1, 1))))
+    |> Enum.filter(&!is_nil(&1.next))
+  end
+
+  defp get_url_params(url) do
+    case URI.parse(url).query do
+      nil -> []
+      qry -> URI.query_decoder(qry) |> Enum.to_list()
+    end
   end
 
   @token_exp 60
