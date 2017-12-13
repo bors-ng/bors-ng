@@ -270,9 +270,28 @@ defmodule BorsNG.WebhookController do
     :ok
   end
 
-  def do_webhook_pr(_conn, %{action: "opened", project: project}) do
+  def do_webhook_pr(conn, %{
+    action: "opened",
+    project: project,
+    author: author,
+    pr: pr,
+    patch: patch
+  }) do
     Project.ping!(project.id)
-    :ok
+    %{
+      "pull_request" => %{
+        "body" => body,
+        "number" => number,
+      },
+    } = conn.body_params
+    %Command{
+      project: project,
+      commenter: author,
+      comment: body,
+      pr_xref: number,
+      pr: pr,
+      patch: patch}
+    |> Command.run()
   end
 
   def do_webhook_pr(_conn, %{action: "closed", project: project, patch: p}) do
