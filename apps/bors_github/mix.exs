@@ -30,7 +30,8 @@ defmodule BorsNG.GitHub.Mixfile do
       {:poison, "~> 2.0"},
       {:oauth2, "~> 0.9.1"},
       {:httpoison, "~> 0.11.0"},
-      {:joken, "~> 1.4"}
+      {:joken, "~> 1.4"},
+      {:confex, "~> 3.3.1"},
     ]
   end
 end

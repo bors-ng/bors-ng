@@ -8,4 +8,8 @@ defmodule BorsNG.Database.Repo do
   """
 
   use Ecto.Repo, otp_app: :bors_database
+
+  def init(_, config) do
+    {:ok, Confex.Resolver.resolve!(config)}
+  end
 end

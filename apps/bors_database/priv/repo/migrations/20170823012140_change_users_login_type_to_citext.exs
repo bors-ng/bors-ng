@@ -1,7 +1,7 @@
 defmodule BorsNG.Database.Repo.Migrations.ChangeUsersLoginTypeToCitext do
   use Ecto.Migration
 
-  @adapter Application.get_env(:bors_database, BorsNG.Database.Repo)[:adapter]
+  @adapter Confex.fetch_env!(:bors_database, BorsNG.Database.Repo)[:adapter]
 
   def up do
     case @adapter do

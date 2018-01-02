@@ -16,7 +16,7 @@ defmodule BorsNG.AuthController do
   alias BorsNG.Database.Repo
   alias BorsNG.Database.User
 
-  @github_api Application.get_env(:bors_github, :oauth2)
+  @github_api Confex.fetch_env!(:bors_github, :oauth2)
 
   @doc """
   This action is reached via `/auth/:provider`
@@ -46,7 +46,7 @@ defmodule BorsNG.AuthController do
   end
 
   def logout(conn, _params) do
-    home_url = Application.get_env(:bors_frontend, BorsNG)[:home_url]
+    home_url = Confex.fetch_env!(:bors_frontend, BorsNG)[:home_url]
     conn
     |> configure_session(drop: true)
     |> redirect(external: home_url)

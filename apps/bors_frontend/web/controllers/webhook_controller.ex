@@ -62,7 +62,7 @@ defmodule BorsNG.WebhookController do
 
   require Logger
 
-  @allow_private_repos Application.get_env(
+  @allow_private_repos Confex.fetch_env!(
     :bors_frontend, BorsNG)[:allow_private_repos]
 
   alias BorsNG.Worker.Attemptor

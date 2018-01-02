@@ -8,13 +8,13 @@ defmodule BorsNG.GitHub.OAuth2 do
 
   defp config do
     cfg = [
-      site: Application.get_env(:bors_github, :site),
+      site: Confex.fetch_env!(:bors_github, :site),
       strategy: BorsNG.GitHub.OAuth2,
       authorize_url: "https://github.com/login/oauth/authorize",
       token_url: "https://github.com/login/oauth/access_token"
     ]
     :bors_github
-    |> Application.get_env(BorsNG.GitHub.OAuth2)
+    |> Confex.fetch_env!(BorsNG.GitHub.OAuth2)
     |> Keyword.merge(cfg)
   end
 

@@ -24,7 +24,7 @@ defmodule BorsNG.AdminController do
     [orphan_count] = Repo.all(orphan_count)
     render conn, "index.html",
       orphan_count: orphan_count,
-      wobserver_url: Application.get_env(:wobserver, :remote_url_prefix)
+      wobserver_url: Confex.fetch_env!(:wobserver, :remote_url_prefix)
   end
 
   def orphans(conn, _params) do

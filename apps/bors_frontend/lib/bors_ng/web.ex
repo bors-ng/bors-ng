@@ -27,7 +27,7 @@ defmodule BorsNG.Web do
       import BorsNG.Gettext
 
       unquote do
-        if Application.get_env(:scout_apm, :key) do
+        if Confex.get_env(:scout_apm, :key) do
           quote do
             use ScoutApm.Instrumentation
           end

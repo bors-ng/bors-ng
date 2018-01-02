@@ -6,7 +6,7 @@ defmodule BorsNG.Router do
   and user authentication part of the session.
   """
 
-  @wobserver_url Application.get_env(:wobserver, :remote_url_prefix)
+  @wobserver_url Confex.fetch_env!(:wobserver, :remote_url_prefix)
 
   use BorsNG.Web, :router
   alias BorsNG.Database
