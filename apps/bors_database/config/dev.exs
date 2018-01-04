@@ -5,5 +5,5 @@ config :bors_database, BorsNG.Database.Repo,
   username: "postgres",
   password: "Postgres1234",
   database: "bors_dev",
-  hostname: System.get_env("POSTGRES_HOST") || "localhost",
+  hostname: {:system, "POSTGRES_HOST", "localhost"},
   pool_size: 10

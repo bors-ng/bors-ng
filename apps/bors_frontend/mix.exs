@@ -44,6 +44,7 @@ defmodule BorsNG.Mixfile do
       {:bors_database, [in_umbrella: true]},
       {:bors_worker, [in_umbrella: true]},
       {:hackney, "~> 1.8.6"},
+      {:confex, "~> 3.3.1"},
     ]
   end
 end

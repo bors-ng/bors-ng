@@ -27,12 +27,12 @@ defmodule BorsNG.GitHub.Server do
 
   @spec config() :: keyword
   defp config do
-    Application.get_env(:bors_github, BorsNG.GitHub.Server)
+    Confex.fetch_env!(:bors_github, BorsNG.GitHub.Server)
   end
 
   @spec site() :: bitstring
   defp site do
-    Application.get_env(:bors_github, :site)
+    Confex.fetch_env!(:bors_github, :site)
   end
 
   def init(:ok) do

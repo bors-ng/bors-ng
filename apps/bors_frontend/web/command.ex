@@ -39,7 +39,7 @@ defmodule BorsNG.Command do
     comment: "")
 
   @command_trigger(
-    Application.get_env(:bors_frontend, BorsNG)[:command_trigger])
+    Confex.fetch_env!(:bors_frontend, BorsNG)[:command_trigger])
 
   @type t :: %BorsNG.Command{
     project: Project.t,

@@ -12,7 +12,7 @@ defmodule BorsNG.GitHub.Application do
 
     # Define workers and child supervisors to be supervised
     children = [
-      worker(Application.get_env(:bors_github, :server), []),
+      worker(Confex.fetch_env!(:bors_github, :server), []),
       worker(BorsNG.Attrs, [])
     ]
 

@@ -11,7 +11,7 @@ config :bors_frontend, ecto_repos: []
 config :bors_frontend, BorsNG,
   command_trigger: "bors",
   home_url: "https://bors.tech/",
-  allow_private_repos: System.get_env("ALLOW_PRIVATE_REPOS") == "true"
+  allow_private_repos: {:system, :boolean, "ALLOW_PRIVATE_REPOS", false}
 
 # Configures the endpoint
 config :bors_frontend, BorsNG.Endpoint,

@@ -31,7 +31,8 @@ defmodule BorsNG.Worker.Mixfile do
     [
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
       {:bors_github, [in_umbrella: true]},
-      {:bors_database, [in_umbrella: true]}
+      {:bors_database, [in_umbrella: true]},
+      {:confex, "~> 3.3.1"},
     ]
   end
 end

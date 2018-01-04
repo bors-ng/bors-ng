@@ -6,7 +6,7 @@ defmodule BorsNG.Endpoint do
   This is what Cowboy calls into.
   """
 
-  @wobserver_url Application.get_env(:wobserver, :remote_url_prefix)
+  @wobserver_url Confex.get_env(:wobserver, :remote_url_prefix)
 
   use Phoenix.Endpoint, otp_app: :bors_frontend
 
@@ -33,7 +33,7 @@ defmodule BorsNG.Endpoint do
   plug Plug.Logger
 
   plug BorsNG.WebhookParserPlug,
-    secret: Application.get_env(
+    secret: Confex.get_env(
       :bors_frontend,
       BorsNG.WebhookParserPlug)[:webhook_secret]
 
@@ -54,4 +54,8 @@ defmodule BorsNG.Endpoint do
     signing_salt: "EQvC5key"
 
   plug BorsNG.Router
+
+  def init(_type, config) do
+    {:ok, Confex.Resolver.resolve!(config)}
+  end
 end

@@ -33,7 +33,8 @@ defmodule BorsNG.Database.Mixfile do
       {:phoenix_pubsub, "~> 1.0"},
       {:postgrex, "~> 0.13.0"},
       {:mariaex, "~> 0.8"},
-      {:ecto, "~> 2.1"}
+      {:ecto, "~> 2.1"},
+      {:confex, "~> 3.3.1"},
     ] ++ (
       if System.get_env("SCOUT_KEY") do
         [

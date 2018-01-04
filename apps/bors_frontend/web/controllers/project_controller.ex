@@ -31,7 +31,7 @@ defmodule BorsNG.ProjectController do
   end
 
   defp do_action(conn, action, %{"id" => id} = params) do
-    allow_private_repos = Application.get_env(
+    allow_private_repos = Confex.fetch_env!(
       :bors_frontend, BorsNG)[:allow_private_repos]
     project = Project
     |> from(preload: [:installation])
