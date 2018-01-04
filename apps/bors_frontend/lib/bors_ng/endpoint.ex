@@ -56,6 +56,6 @@ defmodule BorsNG.Endpoint do
   plug BorsNG.Router
 
   def init(_type, config) do
-    {:ok, Confex.Resolver.resolve!(config)}
+    Confex.Resolver.resolve(config)
   end
 end
