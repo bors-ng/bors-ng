@@ -381,6 +381,7 @@ defmodule BorsNG.Worker.Batcher do
     |> Repo.all()
 
     send_message(repo_conn, patches, {:succeeded, statuses})
+    close_prs(repo_conn, patches)
   end
 
   defp complete_batch(:error, batch, statuses) do
@@ -553,6 +554,12 @@ defmodule BorsNG.Worker.Batcher do
       &1.commit,
       status,
       msg))
+  end
+
+  defp close_prs(repo_conn, patches) do
+    Enum.each(patches, &GitHub.close_pr!(
+      repo_conn,
+      &1.pr_xref))
   end
 
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}

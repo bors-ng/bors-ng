@@ -42,6 +42,12 @@ defmodule BorsNG.GitHub do
     prs
   end
 
+  @spec close_pr(tconn, integer | bitstring) ::
+    {:ok} | {:error, term}
+  def close_pr(repo_conn, pr_xref) do
+    GenServer.call(BorsNG.GitHub, {:close_pr, repo_conn, {pr_xref}})
+  end
+
   @spec push!(tconn, binary, binary) :: binary
   def push!(repo_conn, sha, to) do
     {:ok, sha} = GenServer.call(BorsNG.GitHub, {:push, repo_conn, {sha, to}})
