@@ -12,5 +12,4 @@ config :bors_database, BorsNG.Database.Repo,
   adapter: Ecto.Adapters.Postgres,
   url: {:system, "DATABASE_URL"},
   pool_size: {:system, :integer, "POOL_SIZE", 10},
-  ssl: true,
   loggers:  loggers
