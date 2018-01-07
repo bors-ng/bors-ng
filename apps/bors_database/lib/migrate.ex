@@ -1,6 +1,12 @@
 defmodule BorsNG.Database.Migrate do
   def repos, do: Application.get_env(:bors_database, :ecto_repos, [])
 
+  def run_standalone do
+    up()
+
+    :init.stop()
+  end
+
   def up do
     {:ok, _} = Application.ensure_all_started(:bors_database, :permanent)
 
@@ -13,9 +19,6 @@ defmodule BorsNG.Database.Migrate do
           run_migrations_for(repo)
       end
     end
-
-    # Signal shutdown
-    :init.stop()
   end
 
   def create_storage_for(repo) do
