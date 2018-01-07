@@ -305,12 +305,14 @@ If you need more throughput than one dyno can provide, you should deploy using a
 
 ### Deploying using Docker (and compatible container orchestration systems)
 
-A Dockerfile is provided, which can be used to build a self-contained Bors-NG image with all the required assets.
+Pre-built Docker images are available at [Docker Hub](https://hub.docker.com/r/borsng/bors-ng/) for tags and the current `master` (as `bors-ng:latest`).
+
+The Dockerfile in the project root can be used to build the image yourself.
 It relies on [multi-stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/) as introduced in Docker 17.05,
 to generate a slim image without the Erlang, Elixir and NodeJS development tools.
 
 Most of the important configuration options should be set at runtime using environment variables, not unlike the Heroku instructions.
-All the same recommendations apply, with some extra nodes:
+All the same recommendations apply, with some extra notes:
 
 - `ELIXIR_VERSION` can be set as a build-time argument, and defaults to `1.4.5`
 - `ALLOW_PRIVATE_REPOS` must be set at both build and run times to take effect. It is set to ` true` by default.
