@@ -302,6 +302,27 @@ Or you can do it manually:
 It can recover the information after restarting, but it will not work correctly with Heroku's replication system.
 If you need more throughput than one dyno can provide, you should deploy using a system that allows Erlang clustering to work.
 
+
+### Deploying using Docker (and compatible container orchestration systems)
+
+A Dockerfile is provided, which can be used to build a self-contained Bors-NG image with all the required assets.
+It relies on [multi-stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/) as introduced in Docker 17.05,
+to generate a slim image without the Erlang, Elixir and NodeJS development tools.
+
+Most of the important configuration options should be set at runtime using environment variables, not unlike the Heroku instructions.
+All the same recommendations apply, with some extra nodes:
+
+- `ELIXIR_VERSION` can be set as a build-time argument, and defaults to `1.4.5`
+- `ALLOW_PRIVATE_REPOS` must be set at both build and run times to take effect. It is set to ` true` by default.
+- `DATABASE_URL` *must* contain the database port, as it will be used at container startup to wait until the database is reachable.
+- The database schema will be automatically created and migrated at container startup, unless the ` DATABASE_AUTO_MIGRATE`  env. var.
+  is set to `false`. Make that change if the database state is managed externally, or if you are using a database that cannot safely handle
+  concurrent schema changes (such as older MariaDB/MySQL versions).
+- Database migrations can be manually applied from a container using the `migrate` release command. Example:
+  `docker run borsng:latest /app/bors_frontend/bin/bors_frontend migrate`.
+  Unfortunately other `mix` tasks are not available, as they cannot be run from compiled releases.
+- The `PORT` environment variable is set to `4000` by default.
+
 ### Deploying on your own cluster
 
 Your configuration can be done by modifying `config/prod.secret.exs`.
