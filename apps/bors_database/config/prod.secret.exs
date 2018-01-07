@@ -13,4 +13,4 @@ config :bors_database, BorsNG.Database.Repo,
   url: {:system, "DATABASE_URL"},
   pool_size: {:system, :integer, "POOL_SIZE", 10},
   loggers:  loggers,
-  ssl: {:system, :boolean, "DATABASE_USE_SSL", :true}
+  ssl: {:system, :boolean, "DATABASE_USE_SSL", true}
