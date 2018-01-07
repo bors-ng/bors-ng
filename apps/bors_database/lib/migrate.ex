@@ -1,14 +1,26 @@
 defmodule BorsNG.Database.Migrate do
+  @moduledoc """
+  Custom Ecto database migration task to be used in compiled releases.
+
+  Since Mix tasks are not available after compiling, implement our own version
+  of `mix ecto.create` and `mix ecto.migrate`.
+
+  `BorsNG.Database.Migrate.run_standalone` should be called from external
+  scripts to perform the required work and exit afterwards.
+  `BorsNG.Database.Migrate.up` should be called to run the migrations but
+  continue running normally afterwards.
+  """
+
   def repos, do: Application.get_env(:bors_database, :ecto_repos, [])
 
   def run_standalone do
-    up()
+    up(:permanent)
 
     :init.stop()
   end
 
-  def up do
-    {:ok, _} = Application.ensure_all_started(:bors_database, :permanent)
+  def up(type \\ :temporary) do
+    {:ok, _} = Application.ensure_all_started(:bors_database, type)
 
     Enum.each repos(), fn(repo) ->
       case create_storage_for(repo) do
@@ -26,9 +38,11 @@ defmodule BorsNG.Database.Migrate do
       :ok -> :seed
       {:error, :already_up} -> :migrate
       {:error, term} when is_binary(term) ->
-        raise RuntimeError, "The database for #{inspect repo} couldn't be created: #{term}"
+        raise RuntimeError, "The database for #{inspect repo} couldn't be " <>
+                            "created: #{term}"
       {:error, term} ->
-        raise RuntimeError, "The database for #{inspect repo} couldn't be created: #{inspect term}"
+        raise RuntimeError, "The database for #{inspect repo} couldn't be " <>
+                            "created: #{inspect term}"
     end
   end
 
@@ -54,7 +68,7 @@ defmodule BorsNG.Database.Migrate do
 
   def seeds_path(repo), do: priv_path_for(repo, "seeds.exs")
 
-  def priv_dir(app), do: "#{:code.priv_dir(app)}"
+  def priv_dir(app), do: :code.priv_dir(app)
 
   def priv_path_for(repo, filename) do
     app = Keyword.get(repo.config, :otp_app)
