@@ -45,4 +45,8 @@ release :bors_frontend do
   set applications: [
     bors_frontend: :permanent,
     bors_github: :permanent ]
+  set commands: [
+    "migrate": "rel/commands/migrate"
+  ]
+  set pre_start_hook: "rel/hooks/pre_start"
 end

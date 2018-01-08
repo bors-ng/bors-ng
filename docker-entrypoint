@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -ex
+
+db_addr="${DATABASE_URL##*@}"
+db_addr="${db_addr%%/*}"
+
+dockerize -wait "tcp://$db_addr" true
+exec "$@"
