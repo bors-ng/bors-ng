@@ -321,9 +321,20 @@ All the same recommendations apply, with some extra notes:
   is set to `false`. Make that change if the database state is managed externally, or if you are using a database that cannot safely handle
   concurrent schema changes (such as older MariaDB/MySQL versions).
 - Database migrations can be manually applied from a container using the `migrate` release command. Example:
-  `docker run borsng:latest /app/bors_frontend/bin/bors_frontend migrate`.
+  `docker run borsng/bors-ng:latest /app/bors_frontend/bin/bors_frontend migrate`.
   Unfortunately other `mix` tasks are not available, as they cannot be run from compiled releases.
 - The `PORT` environment variable is set to `4000` by default.
+
+    docker create --name bors --restart=unless-stopped \
+        -e PUBLIC_HOST=app.bors.tech \
+        -e SECRET_KEY_BASE=<secret> \
+        -e GITHUB_CLIENT_ID=<secret> \
+        -e GITHUB_CLIENT_SECRET=<secret> \
+        -e GITHUB_INTEGRATION_ID=<secret> \
+        -e GITHUB_INTEGRATION_PEM=<secret> \
+        -e GITHUB_WEBHOOK_SECRET=<secret> \
+        borsng/bors-ng
+    docker start bors
 
 ### Deploying on your own cluster
 
