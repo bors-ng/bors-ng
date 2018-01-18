@@ -123,8 +123,7 @@ defmodule BorsNG.Worker.Batcher do
                 patch_id: patch.id,
                 reviewer: reviewer}
               Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
-              poll_at = (project.batch_delay_sec + 1) * 1000
-              Process.send_after(self(), {:poll, :once}, poll_at)
+              poll_after_delay(project)
               send_status(repo_conn, [patch], :waiting)
             {:error, message} ->
               send_message(repo_conn, [patch], {:preflight, message})
@@ -466,6 +465,7 @@ defmodule BorsNG.Worker.Batcher do
       {lo, hi} = Enum.split(patch_links, div(count, 2))
       clone_batch(lo, project.id, into)
       clone_batch(hi, project.id, into)
+      poll_after_delay(project)
       :retrying
     else
       :failed
@@ -516,14 +516,16 @@ defmodule BorsNG.Worker.Batcher do
   def get_new_batch(project_id, into_branch, priority) do
     waiting = Batch.numberize_state(:waiting)
     Batch
-    |> Repo.get_by(
-      project_id: project_id,
-      state: waiting,
-      into_branch: into_branch,
-      priority: priority)
+    |> where([b], b.project_id == ^project_id)
+    |> where([b], b.state == ^waiting)
+    |> where([b], b.into_branch == ^into_branch)
+    |> where([b], b.priority == ^priority)
+    |> order_by([b], [desc: b.updated_at])
+    |> limit(1)
+    |> Repo.all()
     |> case do
-      nil -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
-      batch -> {batch, false}
+      [batch] -> {batch, false}
+      _ -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
     end
   end
 
@@ -572,5 +574,10 @@ defmodule BorsNG.Worker.Batcher do
     |> Enum.each(&send_status(repo_conn, &1, :delayed))
     Repo.update_all(batches_query,
       set: [state: Batch.numberize_state(:waiting)])
+  end
+
+  defp poll_after_delay(project) do
+    poll_at = (project.batch_delay_sec + 1) * 1000
+    Process.send_after(self(), {:poll, :once}, poll_at)
   end
 end
