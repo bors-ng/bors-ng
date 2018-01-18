@@ -516,14 +516,16 @@ defmodule BorsNG.Worker.Batcher do
   def get_new_batch(project_id, into_branch, priority) do
     waiting = Batch.numberize_state(:waiting)
     Batch
-    |> Repo.get_by(
-      project_id: project_id,
-      state: waiting,
-      into_branch: into_branch,
-      priority: priority)
+    |> where([b], b.project_id == ^project_id)
+    |> where([b], b.state == ^waiting)
+    |> where([b], b.into_branch == ^into_branch)
+    |> where([b], b.priority == ^priority)
+    |> order_by([b], [desc: b.updated_at])
+    |> limit(1)
+    |> Repo.all()
     |> case do
-      nil -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
-      batch -> {batch, false}
+      [batch] -> {batch, false}
+      _ -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
     end
   end
 
