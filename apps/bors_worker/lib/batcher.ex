@@ -123,8 +123,7 @@ defmodule BorsNG.Worker.Batcher do
                 patch_id: patch.id,
                 reviewer: reviewer}
               Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
-              poll_at = (project.batch_delay_sec + 1) * 1000
-              Process.send_after(self(), {:poll, :once}, poll_at)
+              poll_after_delay(project)
               send_status(repo_conn, [patch], :waiting)
             {:error, message} ->
               send_message(repo_conn, [patch], {:preflight, message})
@@ -466,6 +465,7 @@ defmodule BorsNG.Worker.Batcher do
       {lo, hi} = Enum.split(patch_links, div(count, 2))
       clone_batch(lo, project.id, into)
       clone_batch(hi, project.id, into)
+      poll_after_delay(project)
       :retrying
     else
       :failed
@@ -571,5 +571,10 @@ defmodule BorsNG.Worker.Batcher do
     Status
     |> join(:inner, [s], b in ^batches_query, s.batch_id == b.id)
     |> Repo.delete_all()
+  end
+
+  defp poll_after_delay(project) do
+    poll_at = (project.batch_delay_sec + 1) * 1000
+    Process.send_after(self(), {:poll, :once}, poll_at)
   end
 end
