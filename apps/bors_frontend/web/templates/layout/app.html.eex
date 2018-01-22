@@ -55,7 +55,7 @@
           <a class="header-link hide-on-narrow" href="<%= project_path(@conn, :index) %>">Repositories</a>
   <% end %>
           <a href="#user-dropdown" class="header-link-container drop-down-menu--toggler">
-            <img width=25 height=25 src="<%= @conn.assigns.avatar_url %>" alt="" role="presentation">
+            <img width=25 height=25 class="no-outline-on-focus" src="<%= @conn.assigns.avatar_url %>" alt="" role="presentation">
             <span class=header-link><%= @conn.assigns.user.login %> ▾</span>
           </a>
 <% end %>
