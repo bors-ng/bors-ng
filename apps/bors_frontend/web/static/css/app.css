@@ -4,20 +4,26 @@ html{overflow-y:scroll}
    This is used for consistency, since fill-link breaks outlines. */
 :link, :visited {
   text-decoration: none;
-  color: #4d76ae;
+  color: #3A5883;
 }
 :link:focus {
-  color: #33b5e5;
+  color: #000000;
 }
 :visited {
-  color: #ae3d96;
+  color: #8C3178;
 }
 :visited:focus {
-  color: #b533e5;
+  color: #000000;
 }
 :link:hover, :link:focus,
 :visited:hover, :visited:focus {
   text-decoration: underline;
+  outline: none;
+}
+:link:focus img, :visited:focus img {
+  outline: dotted;
+}
+:link:focus img.no-outline-on-focus, :visited:focus img.no-outline-on-focus {
   outline: none;
 }
 /* Should be used inside of the header, main, and footer */
@@ -277,7 +283,6 @@ footer {
   color: #FFF;
   background-color: #4d76ae;
   border: none;
-  border-radius: 8px;
   transition: box-shadow 0.1s ease-in-out;
   box-shadow: 0 1px 2px #666;
   cursor: pointer;
@@ -304,7 +309,7 @@ footer {
   cursor: not-allowed;
 }
 .toolbar-item--add {
-  background: #5e9766;
+  background: #518159;
 }
 .toolbar-item--add:focus {
   background: #0A0;
