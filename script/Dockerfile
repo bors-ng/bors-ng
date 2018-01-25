@@ -6,7 +6,7 @@ WORKDIR /tmp/dockerfile
 RUN echo "deb http://deb.nodesource.com/node_6.x jessie main" | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-key add nodesource.gpg.key && \
     apt-get update && \
-    apt-get install -y nodejs build-essential libtool autoconf git
+    apt-get install -y nodejs build-essential libtool autoconf git inotify-tools
 WORKDIR /srv
 RUN mix local.hex --force && mix local.rebar --force
 CMD mix phoenix.server
