@@ -7,6 +7,7 @@ It integrates GitHub pull requests with a tool like [Travis CI] that runs your t
 * [Home page](https://bors.tech/)
 * [Documentation](https://bors.tech/documentation/)
 * [Support forum](https://forum.bors.tech/)
+* [Publicly hosted instance (public repositories only)](https://app.bors.tech/)
 
 
 # But don't GitHub's Protected Branches already do this?
@@ -116,10 +117,10 @@ When a batch cannot be bisected (because it only contains one PR), it gets kicke
 
 Note that you can watch this process running on the [dashboard page] if you want.
 
-[Bors-NG]: https://bors-ng.github.io/
+[Bors-NG]: https://bors.tech/
 [GitHub Application]: https://github.com/settings/installations
 [Travis CI]: https://travis-ci.org/
-[dashboard page]: https://bors-app.herokuapp.com/
+[dashboard page]: https://app.bors.tech/
 
 The [original bors] used a more simple system (it just tested one PR at a time all the time).
 The one-at-a-time strategy is O(N), where N is the total number of pull requests.
