@@ -12,12 +12,12 @@ defmodule BorsNG.ProjectView do
 
   def stringify_state(state) do
     case state do
-      0 -> "Waiting to run"
-      1 -> "Running"
-      2 -> "Succeeded"
-      3 -> "Failed"
-      4 -> "Canceled"
-      _ -> "Invalid"
+      :waiting  -> "Waiting to run"
+      :running  -> "Running"
+      :ok       -> "Succeeded"
+      :error    -> "Failed"
+      :canceled -> "Canceled"
+      _         -> "Invalid"
     end
   end
 

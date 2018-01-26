@@ -127,7 +127,7 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{"N" => %{"bors" => :error}},
         files: %{}
       }}
-    assert Batch.numberize_state(:canceled) == Repo.get(Batch, batch.id).state
+    assert :canceled == Repo.get(Batch, batch.id).state
   end
 
   test "ignore cancel on not-running patch", %{proj: proj} do
@@ -268,11 +268,11 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at the same time doesn't change that.
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at a later time (yeah, I'm setting the clock back to do it)
     # kicks it off.
     batch
@@ -280,7 +280,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 3
+    assert batch.state == :error
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini",
@@ -315,11 +315,11 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at the same time doesn't change that.
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at a later time (yeah, I'm setting the clock back to do it)
     # kicks it off.
     batch
@@ -327,7 +327,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 1
+    assert batch.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -340,14 +340,14 @@ defmodule BorsNG.Worker.BatcherTest do
     # Polling again should change nothing.
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 1
+    assert batch.state == :running
     # Force-polling again should still change nothing.
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 1
+    assert batch.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -372,7 +372,7 @@ defmodule BorsNG.Worker.BatcherTest do
       }})
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 1
+    assert batch.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -390,7 +390,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 2
+    assert batch.state == :ok
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -434,7 +434,7 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at a later time (yeah, I'm setting the clock back to do it)
     # kicks it off.
     batch
@@ -442,7 +442,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 1
+    assert batch.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -480,7 +480,7 @@ defmodule BorsNG.Worker.BatcherTest do
     # Finally, finish it.
     Batcher.do_handle_cast({:status, {"iniN", "ci", :ok, nil}}, proj.id)
     batch = Repo.get! Batch, batch.id
-    assert batch.state == 2
+    assert batch.state == :ok
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -525,7 +525,7 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at a later time (yeah, I'm setting the clock back to do it)
     # kicks it off.
     batch
@@ -533,7 +533,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 1
+    assert batch.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -576,7 +576,7 @@ defmodule BorsNG.Worker.BatcherTest do
     # Finally, finish the higher-priority, second batch.
     Batcher.do_handle_cast({:status, {"iniO", "ci", :ok, nil}}, proj.id)
     batch2 = Repo.get! Batch, batch2.id
-    assert batch2.state == 2
+    assert batch2.state == :ok
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -614,7 +614,7 @@ defmodule BorsNG.Worker.BatcherTest do
     # Finish the first one, since the higher-priority item is past it now
     Batcher.do_handle_cast({:status, {"iniON", "ci", :ok, nil}}, proj.id)
     batch = Repo.get! Batch, batch.id
-    assert batch.state == 2
+    assert batch.state == :ok
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -664,7 +664,7 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at a later time (yeah, I'm setting the clock back to do it)
     # kicks it off.
     batch
@@ -672,7 +672,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 1
+    assert batch.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -686,7 +686,7 @@ defmodule BorsNG.Worker.BatcherTest do
     # It should send out an error, and start retrying.
     Batcher.do_handle_cast({:status, {"iniNO", "ci", :error, nil}}, proj.id)
     batch = Repo.get! Batch, batch.id
-    assert batch.state == 3
+    assert batch.state == :error
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -709,7 +709,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch_lo = Repo.get_by! Batch, id: batch_lo.id
-    assert batch_lo.state == 1
+    assert batch_lo.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -729,7 +729,7 @@ defmodule BorsNG.Worker.BatcherTest do
     # (because the batch has one item in it).
     Batcher.do_handle_cast({:status, {"iniN", "ci", :error, nil}}, proj.id)
     batch_lo = Repo.get! Batch, batch_lo.id
-    assert batch_lo.state == 3
+    assert batch_lo.state == :error
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -753,7 +753,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch_hi = Repo.get_by! Batch, id: batch_hi.id
-    assert batch_hi.state == 1
+    assert batch_hi.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -776,7 +776,7 @@ defmodule BorsNG.Worker.BatcherTest do
     # (because the batch has one item in it).
     Batcher.do_handle_cast({:status, {"iniO", "ci", :error, nil}}, proj.id)
     batch_hi = Repo.get! Batch, batch_hi.id
-    assert batch_hi.state == 3
+    assert batch_hi.state == :error
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -834,7 +834,7 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id, into_branch: "master"
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at a later time kicks it off.
     # It should only kick off the first one, not the second.
     batch
@@ -842,7 +842,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get! Batch, batch.id
-    assert batch.state == 1
+    assert batch.state == :running
     assert batch.into_branch == "master"
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
@@ -873,7 +873,7 @@ defmodule BorsNG.Worker.BatcherTest do
     # Finally, finish the first batch, causing the second to start.
     Batcher.do_handle_cast({:status, {"iniN", "ci", :ok, nil}}, proj.id)
     batch = Repo.get! Batch, batch.id
-    assert batch.state == 2
+    assert batch.state == :ok
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -919,7 +919,7 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     # Polling at a later time (yeah, I'm setting the clock back to do it)
     # kicks it off.
     batch
@@ -927,7 +927,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 1
+    assert batch.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -944,7 +944,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get! Batch, batch.id
-    assert batch.state == 3
+    assert batch.state == :error
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -967,7 +967,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch_lo = Repo.get_by! Batch, id: batch_lo.id
-    assert batch_lo.state == 1
+    assert batch_lo.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -990,7 +990,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch_lo = Repo.get! Batch, batch_lo.id
-    assert batch_lo.state == 3
+    assert batch_lo.state == :error
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -1012,7 +1012,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch_hi = Repo.get_by! Batch, id: batch_hi.id
-    assert batch_hi.state == 1
+    assert batch_hi.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -1036,7 +1036,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch_hi = Repo.get! Batch, batch_hi.id
-    assert batch_hi.state == 3
+    assert batch_hi.state == :error
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -1074,7 +1074,7 @@ defmodule BorsNG.Worker.BatcherTest do
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
@@ -1101,7 +1101,7 @@ defmodule BorsNG.Worker.BatcherTest do
     Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == 0
+    assert batch.state == :waiting
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
@@ -1161,7 +1161,8 @@ defmodule BorsNG.Worker.BatcherTest do
     Batcher.handle_call({:set_priority, patch2.id, 10}, nil, nil)
     Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
 
-    assert Repo.one!(from b in Batch, where: b.id == ^batch.id).state == 0
+    assert Repo.one!(from b in Batch,
+      where: b.id == ^batch.id).state == :waiting
     assert Repo.one!(from b in Batch, where: b.id == ^batch.id).priority == 0
     assert Repo.one!(from b in Patch, where: b.id == ^patch.id).priority == 0
     assert Repo.one!(from b in Batch, where: b.id != ^batch.id).priority == 10
@@ -1176,21 +1177,21 @@ defmodule BorsNG.Worker.BatcherTest do
     |> DateTime.to_unix
     batch = %Batch{
       project_id: proj.id,
-      state: 0,
+      state: :waiting,
       into_branch: "master",
       last_polled: t1}
     |> Repo.insert!()
 
     batch2 = %Batch{
       project_id: proj.id,
-      state: 0,
+      state: :waiting,
       into_branch: "master",
       last_polled: t2}
     |> Repo.insert!()
 
     batch3 = %Batch{
       project_id: proj.id,
-      state: 0,
+      state: :waiting,
       into_branch: "master",
       priority: 10}
     |> Repo.insert!()

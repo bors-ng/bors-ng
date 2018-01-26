@@ -24,6 +24,7 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Worker.Batcher
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Batch
+  alias BorsNG.Database.BatchState
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Status
@@ -135,14 +136,13 @@ defmodule BorsNG.Worker.Batcher do
 
   def do_handle_cast({:status, {commit, identifier, state, url}}, project_id) do
     batch = Repo.all(Batch.get_assoc_by_commit(commit))
-    state = Status.numberize_state(state)
     case batch do
       [batch] ->
         ^project_id = batch.project_id
         batch.id
         |> Status.get_for_batch(identifier)
         |> Repo.update_all([set: [state: state, url: url]])
-        if batch.state == Batch.numberize_state(:running) do
+        if batch.state == :running do
           maybe_complete_batch(batch)
         end
       [] -> :ok
@@ -157,7 +157,6 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def do_handle_cast({:cancel_all}, project_id) do
-    canceled = Batch.numberize_state(:canceled)
     waiting = project_id
     |> Batch.all_for_project(:waiting)
     |> Repo.all()
@@ -165,7 +164,7 @@ defmodule BorsNG.Worker.Batcher do
     running = project_id
     |> Batch.all_for_project(:running)
     |> Repo.all()
-    Enum.map(running, &Batch.changeset(&1, %{state: canceled}))
+    Enum.map(running, &Batch.changeset(&1, %{state: :canceled}))
     |> Enum.each(&Repo.update!/1)
     repo_conn = Project
     |> Repo.get!(project_id)
@@ -206,16 +205,15 @@ defmodule BorsNG.Worker.Batcher do
 
   def sort_batches(batches) do
     sorted_batches = Enum.sort_by(batches, &{
-      -&1.state,
+      -BatchState.numberize(&1.state),
       -&1.priority,
       &1.last_polled
     })
     new_batches = Enum.dedup_by(sorted_batches, &(&1.id))
-    running_state = Batch.numberize_state(:running)
-    state = if new_batches != [] and hd(new_batches).state == running_state do
+    state = if new_batches != [] and hd(new_batches).state == :running do
       :running
     else
-      Enum.each(new_batches, fn batch -> 0 = batch.state end)
+      Enum.each(new_batches, fn batch -> :waiting =  batch.state end)
       :waiting
     end
     {state, new_batches}
@@ -274,9 +272,8 @@ defmodule BorsNG.Worker.Batcher do
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     GitHub.delete_branch!(repo_conn, stmp)
     send_status(repo_conn, batch, status)
-    state = Batch.numberize_state(status)
     batch
-    |> Batch.changeset(%{state: state, commit: commit, last_polled: now})
+    |> Batch.changeset(%{state: status, commit: commit, last_polled: now})
     |> Repo.update!()
     Project.ping!(batch.project_id)
     status
@@ -323,7 +320,7 @@ defmodule BorsNG.Worker.Batcher do
         batch_id: batch.id,
         identifier: &1,
         url: nil,
-        state: Status.numberize_state(:running)})
+        state: :running})
     |> Enum.each(&Repo.insert!/1)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     batch
@@ -336,7 +333,7 @@ defmodule BorsNG.Worker.Batcher do
     gh_statuses = project
     |> get_repo_conn()
     |> GitHub.get_commit_status!(batch.commit)
-    |> Enum.map(&{elem(&1, 0), Status.numberize_state(elem(&1, 1))})
+    |> Enum.map(&{elem(&1, 0), elem(&1, 1)})
     |> Map.new()
     batch.id
     |> Status.all_for_batch()
@@ -351,7 +348,6 @@ defmodule BorsNG.Worker.Batcher do
   defp maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
     status = Batcher.State.summary_database_statuses(statuses)
-    state = Batch.numberize_state(status)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     if status != :running do
       batch.project
@@ -361,7 +357,7 @@ defmodule BorsNG.Worker.Batcher do
       complete_batch(status, batch, statuses)
     end
     batch
-    |> Batch.changeset(%{state: state, last_polled: now})
+    |> Batch.changeset(%{state: status, last_polled: now})
     |> Repo.update!()
     if status != :running do
       poll(batch.project_id)
@@ -385,7 +381,7 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:error, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    erred = Enum.filter(statuses, &(&1.state == Status.numberize_state(:error)))
+    erred = Enum.filter(statuses, &(&1.state == :error))
     patch_links = batch.id
     |> LinkPatchBatch.from_batch()
     |> Repo.all()
@@ -404,9 +400,8 @@ defmodule BorsNG.Worker.Batcher do
     project
     |> get_repo_conn()
     |> send_message(patches, {:timeout, state})
-    err = Batch.numberize_state(:error)
     batch
-    |> Batch.changeset(%{state: err})
+    |> Batch.changeset(%{state: :error})
     |> Repo.update!()
     Project.ping!(project.id)
     project
@@ -417,7 +412,7 @@ defmodule BorsNG.Worker.Batcher do
   defp cancel_patch(nil, _), do: :ok
 
   defp cancel_patch(batch, patch_id) do
-    cancel_patch(batch, patch_id, Batch.atomize_state(batch.state))
+    cancel_patch(batch, patch_id, batch.state)
     Project.ping!(batch.project_id)
   end
 
@@ -431,9 +426,8 @@ defmodule BorsNG.Worker.Batcher do
       [] -> :failed
       _ -> :retrying
     end
-    canceled = Batch.numberize_state(:canceled)
     batch
-    |> Batch.changeset(%{state: canceled})
+    |> Batch.changeset(%{state: :canceled})
     |> Repo.update!()
     if state == :retrying do
       patch_links
@@ -514,10 +508,9 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def get_new_batch(project_id, into_branch, priority) do
-    waiting = Batch.numberize_state(:waiting)
     Batch
     |> where([b], b.project_id == ^project_id)
-    |> where([b], b.state == ^waiting)
+    |> where([b], b.state == ^(:waiting))
     |> where([b], b.into_branch == ^into_branch)
     |> where([b], b.priority == ^priority)
     |> order_by([b], [desc: b.updated_at])
@@ -573,7 +566,7 @@ defmodule BorsNG.Worker.Batcher do
     |> Repo.all()
     |> Enum.each(&send_status(repo_conn, &1, :delayed))
     Repo.update_all(batches_query,
-      set: [state: Batch.numberize_state(:waiting)])
+      set: [state: :waiting])
   end
 
   defp poll_after_delay(project) do

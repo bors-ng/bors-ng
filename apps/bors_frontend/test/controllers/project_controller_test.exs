@@ -69,7 +69,11 @@ defmodule BorsNG.ProjectControllerTest do
 
   test "show a batched patch", %{conn: conn, project: project, user: user} do
     conn = login conn
-    batch = Repo.insert! %Batch{project_id: project.id, commit: "BC", state: 0}
+    batch = Repo.insert! %Batch{
+      project_id: project.id,
+      commit: "BC",
+      state: :waiting
+    }
     patch = Repo.insert! %Patch{project_id: project.id, commit: "PC"}
     Repo.insert! %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
     Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}

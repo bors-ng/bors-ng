@@ -9,12 +9,13 @@ defmodule BorsNG.Database.AttemptStatus do
   """
 
   use BorsNG.Database.Model
+  alias BorsNG.Database.AttemptStatusState
 
   schema "attempt_statuses" do
     belongs_to :attempt, Attempt
     field :identifier, :string
     field :url, :string
-    field :state, :integer
+    field :state, AttemptStatusState
     timestamps()
   end
 
@@ -40,27 +41,8 @@ defmodule BorsNG.Database.AttemptStatus do
   end
 
   def all_for_attempt(attempt_id, state) do
-    state = AttemptStatus.numberize_state(state)
     from s in AttemptStatus,
       where: s.attempt_id == ^attempt_id,
       where: s.state == ^state
-  end
-
-  def atomize_state(state) do
-    case state do
-      0 -> :waiting
-      1 -> :running
-      2 -> :ok
-      3 -> :error
-    end
-  end
-
-  def numberize_state(state) do
-    case state do
-      :waiting -> 0
-      :running -> 1
-      :ok -> 2
-      :error -> 3
-    end
   end
 end

@@ -63,11 +63,11 @@ defmodule BorsNG.Database.BatchTest do
 
   test "compute next poll time" do
     p = %Project{batch_delay_sec: 1, batch_poll_period_sec: 2}
-    b = %Batch{project: p, last_polled: 3, state: 0}
+    b = %Batch{project: p, last_polled: 3, state: :waiting}
     assert Batch.get_next_poll_unix_sec(b) == 4
     assert Batch.next_poll_is_past(b, 5)
     refute Batch.next_poll_is_past(b, 3)
-    b = %Batch{b | state: 1}
+    b = %Batch{b | state: :running}
     assert Batch.get_next_poll_unix_sec(b) == 5
     assert Batch.next_poll_is_past(b, 6)
     refute Batch.next_poll_is_past(b, 3)

@@ -181,7 +181,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     attempt = Repo.get_by! Attempt, patch_id: patch.id
-    assert attempt.state == 1
+    assert attempt.state == :running
     # Polling should not change that.
     Attemptor.handle_info(:poll, proj.id)
     assert GitHub.ServerMock.get_state() == %{
@@ -194,7 +194,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     attempt = Repo.get_by! Attempt, patch_id: patch.id
-    assert attempt.state == 1
+    assert attempt.state == :running
     # Mark the CI as having finished.
     # At this point, just running should still do nothing.
     GitHub.ServerMock.put_state(%{
@@ -208,7 +208,7 @@ defmodule BorsNG.Worker.AttemptorTest do
       }})
     Attemptor.handle_info(:poll, proj.id)
     attempt = Repo.get_by! Attempt, patch_id: patch.id
-    assert attempt.state == 1
+    assert attempt.state == :running
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
@@ -224,7 +224,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     |> Repo.update!()
     Attemptor.handle_info(:poll, proj.id)
     attempt = Repo.get_by! Attempt, patch_id: patch.id
-    assert attempt.state == 2
+    assert attempt.state == :ok
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{
