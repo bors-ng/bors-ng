@@ -6,12 +6,13 @@ defmodule BorsNG.Database.Batch do
   """
 
   use BorsNG.Database.Model
+  alias BorsNG.Database.BatchState
 
   schema "batches" do
     belongs_to :project, Project
     field :into_branch, :string
     field :commit, :string
-    field :state, :integer
+    field :state, BatchState
     field :last_polled, :integer
     field :timeout_at, :integer
     field :priority, :integer, default: 0
@@ -24,31 +25,10 @@ defmodule BorsNG.Database.Batch do
       into_branch: into_branch,
       project_id: project_id,
       commit: nil,
-      state: 0,
+      state: :waiting,
       last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds),
       priority: priority
     }
-  end
-
-  def atomize_state(state) do
-    case state do
-      0 -> :waiting
-      1 -> :running
-      2 -> :ok
-      3 -> :error
-      4 -> :canceled
-    end
-  end
-
-  def numberize_state(st) do
-    case st do
-      :waiting -> 0
-      :running -> 1
-      :ok -> 2
-      :error -> 3
-      :conflict -> 3
-      :canceled -> 4
-    end
   end
 
   def is_empty(batch_id, repo) do
@@ -67,16 +47,17 @@ defmodule BorsNG.Database.Batch do
 
   def all_for_project(project_id, :incomplete) do
     from b in all_for_project(project_id),
-      where: b.state == 0 or b.state == 1
+      where: b.state == ^(:waiting) or b.state == ^(:running)
   end
 
   def all_for_project(project_id, :complete) do
     from b in all_for_project(project_id),
-      where: b.state == 2 or b.state == 3 or b.state == 4
+      where: b.state == ^(:ok)
+        or b.state == ^(:error)
+        or b.state == ^(:canceled)
   end
 
   def all_for_project(project_id, state) do
-    state = Batch.numberize_state(state)
     from b in all_for_project(project_id),
       where: b.state == ^state
   end
@@ -97,12 +78,14 @@ defmodule BorsNG.Database.Batch do
 
   def all_assoc(:incomplete) do
     from b in all_assoc(),
-      where: b.state == 0 or b.state == 1
+      where: b.state == ^(:waiting) or b.state == ^(:running)
   end
 
   def all_assoc(:complete) do
     from b in all_assoc(),
-      where: b.state == 2 or b.state == 3 or b.state == 4
+      where: b.state == ^(:ok)
+        or b.state == ^(:error)
+        or b.state == ^(:canceled)
   end
 
   def get_assoc_by_commit(commit, state \\ nil) do
@@ -126,7 +109,7 @@ defmodule BorsNG.Database.Batch do
   end
 
   def get_next_poll_unix_sec(batch) do
-    period = if Batch.atomize_state(batch.state) == :waiting do
+    period = if batch.state == :waiting do
       batch.project.batch_delay_sec
     else
       batch.project.batch_poll_period_sec

@@ -7,12 +7,13 @@ defmodule BorsNG.Database.Attempt do
   """
 
   use BorsNG.Database.Model
+  alias BorsNG.Database.AttemptState
 
   schema "attempts" do
     belongs_to :patch, Patch
     field :into_branch, :string
     field :commit, :string
-    field :state, :integer
+    field :state, AttemptState
     field :last_polled, :integer
     field :timeout_at, :integer
     timestamps()
@@ -26,26 +27,6 @@ defmodule BorsNG.Database.Attempt do
       state: 0,
       last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
     }
-  end
-
-  def atomize_state(state) do
-    case state do
-      0 -> :waiting
-      1 -> :running
-      2 -> :ok
-      3 -> :error
-      4 -> :canceled
-    end
-  end
-
-  def numberize_state(st) do
-    case st do
-      :waiting -> 0
-      :running -> 1
-      :ok -> 2
-      :error -> 3
-      :canceled -> 4
-    end
   end
 
   def all(:incomplete) do
@@ -77,7 +58,6 @@ defmodule BorsNG.Database.Attempt do
   end
 
   def all_for_patch(patch_id, state) do
-    state = Attempt.numberize_state(state)
     from b in all_for_patch(patch_id),
       where: b.state == ^state
   end

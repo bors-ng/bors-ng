@@ -12,7 +12,6 @@ defmodule BorsNG.Worker.Batcher.State do
   def summary_database_statuses(statuses) do
     statuses
     |> Enum.map(&(&1.state))
-    |> Enum.map(&BorsNG.Database.Status.atomize_state/1)
     |> summary_states()
   end
 

@@ -9,12 +9,13 @@ defmodule BorsNG.Database.Status do
   @type state :: :waiting | :running | :ok | :error
 
   use BorsNG.Database.Model
+  alias BorsNG.Database.StatusState
 
   schema "statuses" do
     belongs_to :batch, Batch
     field :identifier, :string
     field :url, :string
-    field :state, :integer
+    field :state, StatusState
     timestamps()
   end
 
@@ -40,29 +41,8 @@ defmodule BorsNG.Database.Status do
   end
 
   def all_for_batch(batch_id, state) do
-    state = Status.numberize_state(state)
     from s in Status,
       where: s.batch_id == ^batch_id,
       where: s.state == ^state
-  end
-
-  @spec atomize_state(state_n) :: state
-  def atomize_state(state) do
-    case state do
-      0 -> :waiting
-      1 -> :running
-      2 -> :ok
-      3 -> :error
-    end
-  end
-
-  @spec numberize_state(state) :: state_n
-  def numberize_state(state) do
-    case state do
-      :waiting -> 0
-      :running -> 1
-      :ok -> 2
-      :error -> 3
-    end
   end
 end

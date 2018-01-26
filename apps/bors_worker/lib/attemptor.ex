@@ -80,7 +80,6 @@ defmodule BorsNG.Worker.Attemptor do
 
   def do_handle_cast({:status, {commit, identifier, state, url}}, project_id) do
     attempt = Repo.all(Attempt.get_by_commit(commit, :incomplete))
-    state = AttemptStatus.numberize_state(state)
     case attempt do
       [attempt] ->
         patch = Repo.get!(Patch, attempt.patch_id)
@@ -89,7 +88,7 @@ defmodule BorsNG.Worker.Attemptor do
         attempt.id
         |> AttemptStatus.get_for_attempt(identifier)
         |> Repo.update_all([set: [state: state, url: url]])
-        if attempt.state == Attempt.numberize_state(:running) do
+        if attempt.state == :running do
           maybe_complete_attempt(attempt, project, patch)
         end
       [] -> :ok
@@ -146,9 +145,8 @@ defmodule BorsNG.Worker.Attemptor do
     case merged do
       :conflict ->
         send_message(repo_conn, patch, {:conflict, :failed})
-        err = Attempt.numberize_state(:error)
         attempt
-        |> Attempt.changeset(%{state: err})
+        |> Attempt.changeset(%{state: :error})
         |> Repo.update!()
       _ ->
         commit = GitHub.synthesize_commit!(
@@ -160,7 +158,6 @@ defmodule BorsNG.Worker.Attemptor do
             commit_message: "Try \##{patch.pr_xref}:#{arguments}"
             })
         state = setup_statuses(repo_conn, attempt, project, patch)
-        state = Attempt.numberize_state(state)
         now = DateTime.to_unix(DateTime.utc_now(), :seconds)
         attempt
         |> Attempt.changeset(%{state: state, commit: commit, last_polled: now})
@@ -180,7 +177,7 @@ defmodule BorsNG.Worker.Attemptor do
             attempt_id: attempt.id,
             identifier: &1,
             url: nil,
-            state: AttemptStatus.numberize_state(:running)})
+            state: :running})
         |> Enum.each(&Repo.insert!/1)
         now = DateTime.to_unix(DateTime.utc_now(), :seconds)
         attempt
@@ -198,9 +195,8 @@ defmodule BorsNG.Worker.Attemptor do
 
   defp setup_statuses_error(repo_conn, attempt, patch, message) do
     message = Batcher.Message.generate_bors_toml_error(message)
-    err = Attempt.numberize_state(:error)
     attempt
-    |> Attempt.changeset(%{state: err})
+    |> Attempt.changeset(%{state: :error})
     |> Repo.update!()
     send_message(repo_conn, patch, {:config, message})
   end
@@ -214,7 +210,7 @@ defmodule BorsNG.Worker.Attemptor do
       gh_statuses = project
       |> get_repo_conn()
       |> GitHub.get_commit_status!(attempt.commit)
-      |> Enum.map(&{elem(&1, 0), AttemptStatus.numberize_state(elem(&1, 1))})
+      |> Enum.map(&{elem(&1, 0), elem(&1, 1)})
       |> Map.new()
       attempt.id
       |> AttemptStatus.all_for_attempt()
@@ -231,7 +227,6 @@ defmodule BorsNG.Worker.Attemptor do
     statuses = Repo.all(AttemptStatus.all_for_attempt(attempt.id))
     state = Batcher.State.summary_database_statuses(statuses)
     maybe_complete_attempt(state, project, patch, statuses)
-    state = Attempt.numberize_state(state)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     attempt
     |> Attempt.changeset(%{state: state, last_polled: now})
@@ -247,7 +242,7 @@ defmodule BorsNG.Worker.Attemptor do
     repo_conn = get_repo_conn(project)
     erred = Enum.filter(
       statuses,
-      &(&1.state == AttemptStatus.numberize_state(:error)))
+      &(&1.state == :error))
     send_message(repo_conn, patch, {:failed, erred})
   end
 
@@ -259,9 +254,8 @@ defmodule BorsNG.Worker.Attemptor do
     project
     |> get_repo_conn()
     |> send_message(patch, {:timeout, :failed})
-    err = Attempt.numberize_state(:error)
     attempt
-    |> Attempt.changeset(%{state: err})
+    |> Attempt.changeset(%{state: :error})
     |> Repo.update!()
   end
 
