@@ -87,6 +87,17 @@ defmodule BorsNG.GitHub.Server do
       [])}
   end
 
+  def do_handle_call(:close_pr, repo_conn, {pr_xref}) do
+    repo_conn
+    |> patch!("pulls/#{pr_xref}", Poison.encode!(%{"state": "closed"}))
+    |> case do
+      %{body: _, status_code: 200} ->
+        {:ok}
+      _ ->
+        {:error, :close_pr}
+    end
+  end
+
   def do_handle_call(:push, repo_conn, {sha, to}) do
     repo_conn
     |> patch!("git/refs/heads/#{to}", Poison.encode!(%{"sha": sha}))
