@@ -37,13 +37,13 @@ env:
 matrix:
   fast_finish: true
 
-  include:
-    - env: TYPE=script
-      sudo: true
-      language: minimal
-      elixir: false
-      otp_release: false
-      cache: false
+  #include:
+  #  - env: TYPE=script
+  #    sudo: true
+  #    language: minimal
+  #    elixir: false
+  #    otp_release: false
+  #    cache: false
 
 notifications:
   email: false
