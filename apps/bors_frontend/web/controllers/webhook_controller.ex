@@ -91,6 +91,15 @@ defmodule BorsNG.WebhookController do
     :ok
   end
 
+  # 2 hooks for deprecated events, they will be deleted after November 22, 2017
+  def do_webhook(_conn, "github", "integration_installation") do
+    :ok
+  end
+
+  def do_webhook(_conn, "github", "integration_installation_repositories") do
+    :ok
+  end
+
   def do_webhook(conn, "github", "installation") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
@@ -110,7 +119,7 @@ defmodule BorsNG.WebhookController do
     :ok
   end
 
-  def do_webhook(conn, "github", "repositories") do
+  def do_webhook(conn, "github", "installation_repositories") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
     installation = Repo.get_by!(
