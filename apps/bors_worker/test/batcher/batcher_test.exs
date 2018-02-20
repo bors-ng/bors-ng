@@ -96,7 +96,7 @@ defmodule BorsNG.Worker.BatcherTest do
     refute nil == Repo.get(LinkPatchBatch, link2.id)
   end
 
-  test "cancel a running batch", %{proj: proj} do
+  test "cancel a running batch with one patch", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
@@ -128,6 +128,59 @@ defmodule BorsNG.Worker.BatcherTest do
         files: %{}
       }}
     assert :canceled == Repo.get(Batch, batch.id).state
+  end
+
+  test "cancel a running batch with two patches", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => [], 2 => []},
+        statuses: %{},
+        files: %{}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "P",
+      into_branch: "master"}
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
+    %LinkPatchBatch{
+      patch_id: patch.id,
+      batch_id: batch.id,
+      reviewer: "nobody"}
+    |> Repo.insert!()
+    %LinkPatchBatch{
+      patch_id: patch2.id,
+      batch_id: batch.id,
+      reviewer: "nobody"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:cancel, patch.id}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{
+          1 => ["# Canceled"],
+          2 => ["# Canceled (will resume)"]},
+        statuses: %{
+          "N" => %{"bors" => :error},
+          "P" => %{"bors" => :error}},
+        files: %{}
+      }}
+    assert :canceled == Repo.get(Batch, batch.id).state
+    link2 = Repo.one!(from l in LinkPatchBatch, where: l.batch_id != ^batch.id)
+    assert link2.patch_id == patch2.id
   end
 
   test "ignore cancel on not-running patch", %{proj: proj} do
