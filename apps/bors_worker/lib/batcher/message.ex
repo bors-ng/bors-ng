@@ -100,6 +100,7 @@ defmodule BorsNG.Worker.Batcher.Message do
     "#{commit_title}\n#{commit_body}"
   end
 
+  def cut_body(nil, _), do: ""
   def cut_body(body, nil), do: body
   def cut_body(body, cut) do
     body
