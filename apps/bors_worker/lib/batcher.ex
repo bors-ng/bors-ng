@@ -429,14 +429,24 @@ defmodule BorsNG.Worker.Batcher do
     batch
     |> Batch.changeset(%{state: :canceled})
     |> Repo.update!()
-    if state == :retrying do
-      patch_links
-      |> Enum.filter(&(&1.patch_id == patch_id))
-      |> clone_batch(project.id, batch.into_branch)
-    end
     repo_conn = get_repo_conn(project)
+    if state == :retrying do
+      uncanceled_patch_links = Enum.filter(
+        patch_links,
+        &(&1.patch_id != patch_id))
+      clone_batch(uncanceled_patch_links, project.id, batch.into_branch)
+      canceled_patches = Enum.filter(
+        patches,
+        &(&1.id == patch_id))
+      uncanceled_patches = Enum.filter(
+        patches,
+        &(&1.id != patch_id))
+      send_message(repo_conn, canceled_patches, {:canceled, :failed})
+      send_message(repo_conn, uncanceled_patches, {:canceled, :retrying})
+    else
+      send_message(repo_conn, patches, {:canceled, :failed})
+    end
     send_status(repo_conn, batch, :canceled)
-    send_message(repo_conn, patches, {:canceled, state})
   end
 
   defp cancel_patch(batch, patch_id, _state) do
