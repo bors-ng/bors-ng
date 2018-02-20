@@ -40,6 +40,7 @@ defmodule BorsNg.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev},
       {:credo, "~> 0.7", only: [:dev, :test]},
       {:confex, "~> 3.3.1"},
+      {:postgrex, "~> 0.13.5"},
     ]
   end
 end
