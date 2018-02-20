@@ -109,6 +109,10 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     assert "ac" == Message.cut_body("ac", "b")
   end
 
+  test "cut body with nil text" do
+    assert "" == Message.cut_body(nil, "b")
+  end
+
   test "cut commit message bodies" do
     expected_message = """
     Merge #1
