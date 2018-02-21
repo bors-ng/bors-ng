@@ -30,6 +30,8 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.Status
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
+  alias BorsNG.Endpoint
+  import BorsNG.Router.Helpers
   import Ecto.Query
 
   # Every half-hour
@@ -540,7 +542,11 @@ defmodule BorsNG.Worker.Batcher do
       body))
   end
 
-  defp send_status(repo_conn, %Batch{id: id, commit: commit}, message) do
+  defp send_status(
+         repo_conn,
+         %Batch{id: id, commit: commit, project_id: project_id},
+         message
+       ) do
     patches = id
     |> Patch.all_for_batch()
     |> Repo.all()
@@ -548,16 +554,22 @@ defmodule BorsNG.Worker.Batcher do
     unless is_nil commit do
       {msg, status} = Batcher.Message.generate_status(message)
       repo_conn
-      |> GitHub.post_commit_status!(commit, status, msg)
+      |> GitHub.post_commit_status!({
+        commit,
+        status,
+        msg,
+        project_url(Endpoint, :log, project_id)})
     end
   end
   defp send_status(repo_conn, patches, message) do
     {msg, status} = Batcher.Message.generate_status(message)
     Enum.each(patches, &GitHub.post_commit_status!(
       repo_conn,
-      &1.commit,
-      status,
-      msg))
+      {
+        &1.commit,
+        status,
+        msg,
+        project_url(Endpoint, :log, &1.project_id)}))
   end
 
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}

@@ -290,8 +290,12 @@ defmodule BorsNG.GitHub.ServerMock do
       _ -> {{:error, :post_comment}, state}
     end
   end
-
-  def do_handle_call(:post_commit_status, repo_conn, {sha, status, _}, state) do
+  def do_handle_call(
+        :post_commit_status,
+        repo_conn,
+        {sha, status, _, _},
+        state
+      ) do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, statuses} <- Map.fetch(repo, :statuses) do
       sha_statuses = case Map.has_key?(statuses, sha) do
