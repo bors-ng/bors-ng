@@ -80,6 +80,15 @@ defmodule BorsNG.Database.Patch do
       where: lu.user_id == ^user_id
   end
 
+  def dups_in_batches do
+    all = all_links_not_err()
+    from p in Patch,
+      left_join: l in subquery(all), on: l.patch_id == p.id,
+      where: p.open,
+      group_by: p.id,
+      having: count(p.id) > 1
+  end
+
   @spec ci_skip?(%Patch{}) :: boolean()
   def ci_skip?(patch) do
     rexp =  ~r/\[ci skip\]/

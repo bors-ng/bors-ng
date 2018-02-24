@@ -26,6 +26,14 @@
         <%= link "Orphaned repositories", to: admin_path(@conn, :orphans) %>
       </td>
     </tr>
+    <tr role=row>
+      <td>
+        <%= @dup_patches_count %>
+      </td>
+      <td class=fill-link>
+        <%= link "Duplicate patches in batches", to: admin_path(@conn, :dup_patches) %>
+      </td>
+    </tr>
   </tbody>
 </table>
 
