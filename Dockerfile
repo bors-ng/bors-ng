@@ -25,7 +25,7 @@ ENV ALLOW_PRIVATE_REPOS=true
 ENV MIX_ENV=prod
 
 RUN mix deps.get
-RUN cd /src/apps/bors_frontend && npm install && npm run deploy
+RUN cd /src/ && npm install && npm run deploy
 RUN mix phx.digest
 RUN mix release --env=$MIX_ENV
 
@@ -48,6 +48,6 @@ ENV ALLOW_PRIVATE_REPOS=true
 
 WORKDIR /app
 ENTRYPOINT ["/usr/local/bin/bors-ng-entrypoint"]
-CMD ["./bors_frontend/bin/bors_frontend", "foreground"]
+CMD ["./bors/bin/bors", "foreground"]
 
 EXPOSE 4000

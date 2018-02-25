@@ -5,7 +5,7 @@ while [ ! -d script ] && [ `pwd` != / ]; do
 done
 docker-compose -f script/docker-compose.yml build
 docker-compose -f script/docker-compose.yml run --rm web mix deps.get
-docker-compose -f script/docker-compose.yml run --rm -w /srv/apps/bors_frontend web npm install
+docker-compose -f script/docker-compose.yml run --rm web npm install
 docker-compose -f script/docker-compose.yml run --rm web mix ecto.create
 docker-compose -f script/docker-compose.yml run --rm web mix ecto.migrate
 docker-compose -f script/docker-compose.yml run --rm web mix

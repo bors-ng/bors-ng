@@ -1,3 +1,3 @@
 #!/bin/sh
 
-$RELEASE_ROOT_DIR/bin/bors_frontend command Elixir.BorsNG.Database.Migrate run_standalone
+$RELEASE_ROOT_DIR/bin/bors command Elixir.BorsNG.Database.Migrate run_standalone

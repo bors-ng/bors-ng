@@ -150,7 +150,7 @@ and the [WebhookController] and [GitHub ServerMock] to create the repo.
 The main things you'll need to run Bors on your laptop are:
 
   * Elixir, with a full installation of OTP (the `esl-erlang` package is sufficient)
-  * PostgreSQL; the configuration for it is in apps/bors_database/config/dev.exs
+  * PostgreSQL; the configuration for it is in config/dev.exs
   * Stock C compilation tools, because some of bors's dependencies use NIFs
   * A git client, which you probably already have for downloading this repository
   * NodeJS, to perform asset compilation
@@ -322,7 +322,7 @@ All the same recommendations apply, with some extra notes:
   is set to `false`. Make that change if the database state is managed externally, or if you are using a database that cannot safely handle
   concurrent schema changes (such as older MariaDB/MySQL versions).
 - Database migrations can be manually applied from a container using the `migrate` release command. Example:
-  `docker run borsng/bors-ng:latest /app/bors_frontend/bin/bors_frontend migrate`.
+  `docker run borsng/bors-ng:latest /app/bors/bin/bors migrate`.
   Unfortunately other `mix` tasks are not available, as they cannot be run from compiled releases.
 - The `PORT` environment variable is set to `4000` by default.
 
