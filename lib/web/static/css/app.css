@@ -214,6 +214,9 @@ footer {
 .table col td:not([role="presentation"]) {
   background: #EEE;
 }
+.table tr:target {
+  background: #EEE;
+}
 .table tbody tr[role="row"]:hover {
   background: #EEE;
 }
@@ -287,7 +290,7 @@ footer {
   box-shadow: 0 1px 2px #666;
   cursor: pointer;
 }
-.toolbar-item:hover, 
+.toolbar-item:hover,
 .toolbar-item:focus {
   text-decoration: none;
   box-shadow: 0 1px 4px #666;
