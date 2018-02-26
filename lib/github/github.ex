@@ -129,11 +129,11 @@ defmodule BorsNG.GitHub do
     :ok
   end
 
-  @spec post_commit_status!(tconn, binary, tstatus, binary) :: :ok
-  def post_commit_status!(repo_conn, sha, status, msg) do
+  @spec post_commit_status!(tconn, {binary, tstatus, binary, binary}) :: :ok
+  def post_commit_status!(repo_conn, {sha, status, msg, url}) do
     :ok = GenServer.call(
       BorsNG.GitHub,
-      {:post_commit_status, repo_conn, {sha, status, msg}})
+      {:post_commit_status, repo_conn, {sha, status, msg, url}})
     :ok
   end
 

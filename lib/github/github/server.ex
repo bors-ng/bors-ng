@@ -244,9 +244,9 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:post_commit_status, repo_conn, {sha, status, msg}) do
+  def do_handle_call(:post_commit_status, repo_conn, {sha, status, msg, url}) do
     state = BorsNG.GitHub.map_status_to_state(status)
-    body = %{state: state, context: "bors", description: msg}
+    body = %{state: state, context: "bors", description: msg, target_url: url}
     repo_conn
     |> post!("statuses/#{sha}", Poison.encode!(body))
     |> case do
