@@ -20,8 +20,8 @@ You'll also want to do some terminology mapping between what we say to users and
 The frontend
 ------------
 
-In the source tree, you'll find the frontend in the `bors_frontend` folder.
-There is also a webhook controller in the `web/controllers` folder.
+In the source tree, you'll find the frontend in the `lib/web` folder.
+There is also a webhook controller in the `lib/web/controllers` folder.
 This isn't really part of the frontend, because the user won't be interacting with it,
 but rather GitHub will POST to it when comments are left, builds are completed,
 and new GitHub repositories are associated with our integration.
@@ -31,7 +31,7 @@ The webhook controller is on a separate Plug pipeline for this reason.
 The backend
 -----------
 
-In `bors_worker`, the worker GenServers are implemented.
+In `lib/worker`, the worker GenServers are implemented.
 
 ### `Worker.Batcher` and `Worker.Attemptor`
 
@@ -54,7 +54,7 @@ so bors can pick up where it left off if it's restarted.
 The GitHub glue
 ---------------
 
-Found in the folder `bors_github`.
+Found in the folder `lib/github`.
 
 ### GitHub.Server
 

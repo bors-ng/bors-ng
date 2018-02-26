@@ -8,7 +8,7 @@ Path.join(["rel", "plugins", "*.exs"])
 
 use Mix.Releases.Config,
     # This sets the default release built by `mix release`
-    default_release: :bors_frontend,
+    default_release: :bors,
     # This sets the default environment used by `mix release`
     default_environment: Mix.env
 
@@ -40,11 +40,9 @@ end
 # when running `mix release`, the first release in the file
 # will be used by default
 
-release :bors_frontend do
-  set version: current_version(:bors_frontend)
-  set applications: [
-    bors_frontend: :permanent,
-    bors_github: :permanent ]
+release :bors do
+  set version: current_version(:bors)
+  set applications: [ bors: :permanent ]
   set commands: [
     "migrate": "rel/commands/migrate"
   ]

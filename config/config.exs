@@ -2,12 +2,6 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-# By default, the umbrella project as well as each child
-# application will require this configuration file, ensuring
-# they all use the same configuration. While one could
-# configure all applications here, we prefer to delegate
-# back to each application for organization purposes.
-import_config "../apps/*/config/config.exs"
 import_config "scout_apm.exs"
 
 # Configures Elixir's Logger
@@ -25,3 +19,31 @@ case Mix.env do
     config :logger, :console,
       format: "[$level] $message\n"
 end
+
+config :bors,
+  ecto_repos: [BorsNG.Database.Repo],
+  site: "https://api.github.com"
+
+# General application configuration
+config :bors, BorsNG,
+  command_trigger: "bors",
+  home_url: "https://bors.tech/",
+  allow_private_repos: {:system, :boolean, "ALLOW_PRIVATE_REPOS", false}
+
+# Configures the endpoint
+config :bors, BorsNG.Endpoint,
+  url: [host: "localhost"],
+  secret_key_base:
+  "RflEtl3q2wkPracTsiqJXfJwu+PtZ6P65kd5rcA7da8KR5Abc/YjB8aZHE4DBxMG",
+  render_errors: [view: BorsNG.ErrorView, accepts: ~w(html json)],
+  pubsub: [name: BorsNG.PubSub, adapter: Phoenix.PubSub.PG2]
+
+config :wobserver,
+  mode: :plug,
+  security: BorsNG.WobserverSecurity,
+  remote_url_prefix: "/wobserver",
+  security_key: :crypto.strong_rand_bytes(128)
+
+# Import environment specific config. This must remain at the bottom
+# of this file so it overrides the configuration defined above.
+import_config "#{Mix.env}.exs"
