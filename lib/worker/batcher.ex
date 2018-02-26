@@ -127,10 +127,10 @@ defmodule BorsNG.Worker.Batcher do
                 reviewer: reviewer}
               Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
               poll_after_delay(project)
-              send_status(repo_conn, [patch], :waiting)
+              send_status(repo_conn, batch.id, [patch], :waiting)
             {:error, message} ->
               send_message(repo_conn, [patch], {:preflight, message})
-              send_status(repo_conn, [patch], :error)
+              send_status(repo_conn, batch.id, [patch], :error)
           end
         end
     end
@@ -461,7 +461,7 @@ defmodule BorsNG.Worker.Batcher do
     end
     patch = Repo.get!(Patch, patch_id)
     repo_conn = get_repo_conn(project)
-    send_status(repo_conn, [patch], :canceled)
+    send_status(repo_conn, batch.id, [patch], :canceled)
     send_message(repo_conn, [patch], {:canceled, :failed})
   end
 
@@ -550,7 +550,7 @@ defmodule BorsNG.Worker.Batcher do
     patches = id
     |> Patch.all_for_batch()
     |> Repo.all()
-    send_status(repo_conn, patches, message)
+    send_status(repo_conn, id, patches, message)
     unless is_nil commit do
       {msg, status} = Batcher.Message.generate_status(message)
       repo_conn
@@ -558,10 +558,10 @@ defmodule BorsNG.Worker.Batcher do
         commit,
         status,
         msg,
-        project_url(Endpoint, :log, project_id)})
+        project_url(Endpoint, :log, project_id) <> "#batch-#{id}"})
     end
   end
-  defp send_status(repo_conn, patches, message) do
+  defp send_status(repo_conn, batch_id,  patches, message) do
     {msg, status} = Batcher.Message.generate_status(message)
     Enum.each(patches, &GitHub.post_commit_status!(
       repo_conn,
@@ -569,7 +569,7 @@ defmodule BorsNG.Worker.Batcher do
         &1.commit,
         status,
         msg,
-        project_url(Endpoint, :log, &1.project_id)}))
+        project_url(Endpoint, :log, &1.project_id) <> "#batch-#{batch_id}"}))
   end
 
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}
