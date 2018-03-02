@@ -86,6 +86,7 @@ defmodule BorsNG.Router do
     get "/", AdminController, :index
     get "/orphans", AdminController, :orphans
     get "/project", AdminController, :project_by_name
+    get "/dup-patches", AdminController, :dup_patches
   end
 
   scope "/auth", BorsNG do
