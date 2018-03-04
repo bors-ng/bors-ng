@@ -6,12 +6,14 @@ defmodule BorsNG.Worker.Syncer do
   """
 
   alias BorsNG.Worker.Syncer
-  alias BorsNG.Database.LinkUserProject
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
   alias BorsNG.Database.User
   alias BorsNG.GitHub
+
+  @type tcollaborator :: GitHub.tcollaborator
+  @type trepo_perm :: GitHub.trepo_perm
 
   require Logger
 
@@ -24,30 +26,63 @@ defmodule BorsNG.Worker.Syncer do
   def synchronize_project(project_id) do
     {:ok, _} = Registry.register(Syncer.Registry, project_id, {})
     conn = Project.installation_project_connection(project_id, Repo)
+
     open_patches = Repo.all(Patch.all_for_project(project_id, :open))
     open_prs = GitHub.get_open_prs!(conn)
     deltas = synchronize_patches(open_patches, open_prs)
     Enum.each(deltas, &do_synchronize!(project_id, &1))
-    sync_admins_as_reviewers(conn, project_id)
+
+    synchronize_project_collaborators(conn, project_id)
     Project.ping!(project_id)
   end
 
-  def sync_admins_as_reviewers(repo_conn, project_id) do
-    case GitHub.get_admins_by_repo(repo_conn) do
-      {:ok, admins} ->
-        Enum.each(admins, fn user ->
-          user = Syncer.sync_user(user)
-          existing_link = Repo.get_by(LinkUserProject,
-            user_id: user.id,
-            project_id: project_id)
-          if is_nil existing_link do
-            link = %LinkUserProject{user_id: user.id, project_id: project_id}
-            Repo.insert!(link)
-          end
-          :ok
-        end)
-      error ->
-        Logger.warn(["Syncer: Error pulling repo admins: ", error])
+  @spec synchronize_project_collaborators_by_role(
+    Project.t, [tcollaborator], :users | :members, trepo_perm) ::
+    {:ok, Project.t} | {:error, any()}
+  def synchronize_project_collaborators_by_role(project, collaborators,
+                                                association, github_perm)
+    when association in [:users, :members]
+    and github_perm in [:admin, :push, :pull]
+  do
+    authorized_users = collaborators
+    |> Enum.filter(fn %{perms: perms} -> perms[github_perm] end)
+    |> Enum.map(fn %{user: user} -> user end)
+
+    Repo.transaction(fn ->
+      saved_users = authorized_users
+      |> Enum.map(&Syncer.sync_user/1)
+
+      project
+      |> Repo.preload(association)
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(association, saved_users)
+      |> Repo.update!()
+    end)
+  end
+
+  def synchronize_project_collaborators_by_role(project, _, _, nil) do
+    {:ok, project}
+  end
+
+  def synchronize_project_collaborators(repo_conn, project_id) do
+    project = Repo.get!(Project, project_id)
+    with \
+      {:ok, users} <-
+        GitHub.get_collaborators_by_repo(repo_conn),
+      {:ok, project} <-
+        synchronize_project_collaborators_by_role(
+          project, users, :users, project.auto_reviewer_required_perm),
+      {:ok, project} <-
+        synchronize_project_collaborators_by_role(
+          project, users, :members, project.auto_member_required_perm)
+    do
+      Logger.debug(["Syncer: refreshed project collaborators", project])
+      :ok
+    else
+      {:error, error} ->
+        Logger.warn(["Syncer: Error pulling repo collaborators: ",
+                     inspect(error)])
+        {:error, error}
     end
   end
 
