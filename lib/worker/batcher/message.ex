@@ -124,6 +124,10 @@ defmodule BorsNG.Worker.Batcher.Message do
     "bors.toml: expected timeout_sec to be an integer"
   end
 
+  def generate_bors_toml_error(:required_approvals) do
+    "bors.toml: expected required_approvals to be an integer"
+  end
+
   def generate_bors_toml_error(:status) do
     "bors.toml: expected status to be a list"
   end

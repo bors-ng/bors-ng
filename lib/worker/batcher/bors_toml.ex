@@ -13,6 +13,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   defstruct status: [], block_labels: [], pr_status: [],
     timeout_sec: (60 * 60),
+    required_approvals: 0,
     cut_body_after: nil,
     delete_merged_branches: false
 
@@ -21,6 +22,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     block_labels: [binary],
     pr_status: [binary],
     timeout_sec: integer,
+    required_approvals: integer,
     cut_body_after: binary | nil,
     delete_merged_branches: boolean}
 
@@ -28,6 +30,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     :block_labels |
     :pr_status |
     :timeout_sec |
+    :required_approvals |
     :cut_body_after |
     :empty_config |
     :parse_failed
@@ -44,6 +47,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
+          required_approvals: Map.get(toml, "required_approvals", 0),
           cut_body_after: Map.get(toml, "cut_body_after", nil),
           delete_merged_branches: Map.get(toml,
                                           "delete_merged_branches",
@@ -58,6 +62,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             {:error, :pr_status}
           %{timeout_sec: timeout_sec} when not is_integer timeout_sec ->
             {:error, :timeout_sec}
+          %{required_approvals: req_approve} when not is_integer req_approve ->
+            {:error, :required_approvals}
           %{cut_body_after: c} when (not is_binary c) and (not is_nil c) ->
             {:error, :cut_body_after}
           %{status: [], block_labels: [], pr_status: []} ->
