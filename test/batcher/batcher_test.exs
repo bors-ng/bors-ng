@@ -297,6 +297,108 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+  test "rejects a patch with a requested changes", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "Z",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{
+          1 => [":-1: Rejected by code reviews"]},
+        statuses: %{"Z" => %{"bors" => :error, "cn" => :ok}},
+        files: %{"Z" => %{"bors.toml" =>
+                           ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}},
+      }}
+  end
+
+  test "rejects a patch with too few approved reviews", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s/status = [ "ci" ]\npr_status = [ "cn" ]\nrequired_approvals = 1\n/}},
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "Z",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{
+          1 => [":-1: Rejected by code reviews"]},
+        statuses: %{"Z" => %{"bors" => :error, "cn" => :ok}},
+        files: %{"Z" => %{"bors.toml" =>
+                           ~s"""
+                             status = [ "ci" ]
+                             pr_status = [ "cn" ]
+                             required_approvals = 1
+                             """}},
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
+      }}
+  end
+
+  test "accepts a patch with approvals", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}},
+        files: %{"Z" => %{"bors.toml" =>
+                           ~s"""
+                             status = [ "ci" ]
+                             pr_status = [ "cn" ]
+                             required_approvals = 1
+                             """}},
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "Z",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{
+          1 => []},
+        statuses: %{"Z" => %{"bors" => :running, "cn" => :ok}},
+        files: %{"Z" => %{"bors.toml" =>
+                           ~s"""
+                             status = [ "ci" ]
+                             pr_status = [ "cn" ]
+                             required_approvals = 1
+                             """}},
+        reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}},
+      }}
+  end
+
   test "missing bors.toml", %{proj: proj} do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{
