@@ -113,6 +113,17 @@ defmodule BorsNG.GitHub do
     labels
   end
 
+  @spec get_reviews!(tconn, integer | bitstring) :: %{
+    "APPROVED": integer,
+    "CHANGES_REQUESTED": integer
+  }
+  def get_reviews!(repo_conn, issue_xref) do
+    {:ok, labels} = GenServer.call(
+      BorsNG.GitHub,
+      {:get_reviews, repo_conn, {issue_xref}})
+    labels
+  end
+
   @spec get_file!(tconn, binary, binary) :: binary | nil
   def get_file!(repo_conn, branch, path) do
     {:ok, file} = GenServer.call(
