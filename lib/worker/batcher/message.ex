@@ -34,6 +34,9 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message({:preflight, :pr_status}) do
     ":-1: Rejected by PR status"
   end
+  def generate_message({:preflight, :blocked_review}) do
+    ":-1: Rejected by code reviews"
+  end
   def generate_message(:not_awaiting_review) do
     "Not awaiting review"
   end

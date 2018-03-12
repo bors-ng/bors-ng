@@ -500,10 +500,24 @@ defmodule BorsNG.Worker.Batcher do
     |> Enum.map(fn {context, _} -> context end)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.pr_status))
-    case {passed_label, passed_status} do
-      {true, true} -> :ok
-      {false, _} -> {:error, :blocked_labels}
-      {_, false} -> {:error, :pr_status}
+    passed_review = repo_conn
+    |> GitHub.get_reviews!(patch.pr_xref)
+    |> are_reviews_passing(toml.required_approvals)
+
+    case {passed_label, passed_status, passed_review} do
+      {true, true, true} -> :ok
+      {false, _, _} -> {:error, :blocked_labels}
+      {_, false, _} -> {:error, :pr_status}
+      {_, _, false} -> {:error, :blocked_review}
+    end
+  end
+
+  defp are_reviews_passing(reviews, required) do
+    %{"CHANGES_REQUESTED" => failed, "APPROVED" => passed} = reviews
+
+    case {failed, passed} do
+      {0, approved} when approved >= required -> true
+      _ -> false
     end
   end
 
