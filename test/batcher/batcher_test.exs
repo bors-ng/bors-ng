@@ -335,7 +335,11 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{"Z" => %{"cn" => :ok}},
         reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
         files: %{"Z" => %{"bors.toml" =>
-          ~s/status = [ "ci" ]\npr_status = [ "cn" ]\nrequired_approvals = 1\n/}},
+                           ~s"""
+                             status = [ "ci" ]
+                             pr_status = [ "cn" ]
+                             required_approvals = 1
+                             """}},
       }})
     patch = %Patch{
       project_id: proj.id,
