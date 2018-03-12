@@ -1,7 +1,7 @@
 <nav>
 <div class=wrapper>
   <h1>
-    <a href="https://github.com/<%= @project.name %>/">
+    <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/">
       <%= @project.name %>
     </a>
   </h1>
@@ -38,7 +38,7 @@
         <%= patch.pr_xref %>
       </td>
       <td class="fill-link">
-        <a href="https://github.com/<%= @project.name %>/pull/<%= patch.pr_xref %>">
+        <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">
           <%= patch.title %>
         </a>
       </td>
@@ -69,7 +69,7 @@
         <%= patch.pr_xref %>
       </td>
       <td class="fill-link">
-        <a href="https://github.com/<%= @project.name %>/pull/<%= patch.pr_xref %>">
+        <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">
           <%= patch.title %>
         </a>
       </td>

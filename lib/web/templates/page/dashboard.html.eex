@@ -16,7 +16,7 @@
         <%= patch.pr_xref %>
       </td>
       <td class="fill-link">
-        <a href="https://github.com/<%= patch.project.name %>/pull/<%= patch.pr_xref %>">
+        <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= patch.project.name %>/pull/<%= patch.pr_xref %>">
           <%= patch.title %>
         </a>
       </td>

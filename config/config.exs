@@ -22,7 +22,10 @@ end
 
 config :bors,
   ecto_repos: [BorsNG.Database.Repo],
-  site: "https://api.github.com"
+  api_github_root: {:system, :string, "GITHUB_URL_ROOT_API",
+    "https://api.github.com"},
+  html_github_root: {:system, :string, "GITHUB_URL_ROOT_HTML",
+    "https://github.com"}
 
 # General application configuration
 config :bors, BorsNG,
