@@ -267,6 +267,16 @@ defmodule BorsNG.GitHub.ServerMock do
     end
   end
 
+  def do_handle_call(:get_reviews, repo_conn, {issue_xref}, state) do
+    with({:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, reviews} <- Map.fetch(repo, :reviews),
+      do: {:ok, reviews[issue_xref]})
+    |> case do
+      {:ok, _} = res -> {res, state}
+      _ -> {{:ok, %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}}, state}
+    end
+  end
+
   def do_handle_call(:get_file, repo_conn, {branch, path}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, files} <- Map.fetch(repo, :files),

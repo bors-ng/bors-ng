@@ -2,7 +2,7 @@
 
 <div class=wrapper>
   <h1>
-    <a href="https://github.com/<%= @project.name %>/">
+    <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/">
       <%= @project.name %>
     </a>
   </h1>

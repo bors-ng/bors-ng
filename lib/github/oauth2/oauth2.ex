@@ -7,11 +7,12 @@ defmodule BorsNG.GitHub.OAuth2 do
   alias OAuth2.Strategy.AuthCode
 
   defp config do
+    github = Confex.fetch_env!(:bors, :html_github_root)
     cfg = [
-      site: Confex.fetch_env!(:bors, :site),
+      site: Confex.fetch_env!(:bors, :api_github_root),
       strategy: BorsNG.GitHub.OAuth2,
-      authorize_url: "https://github.com/login/oauth/authorize",
-      token_url: "https://github.com/login/oauth/access_token"
+      authorize_url: "#{github}/login/oauth/authorize",
+      token_url: "#{github}/login/oauth/access_token",
     ]
     :bors
     |> Confex.fetch_env!(BorsNG.GitHub.OAuth2)

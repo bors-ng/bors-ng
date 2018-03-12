@@ -2,7 +2,7 @@
 
 <div class=wrapper>
   <h1>
-    <a href="https://github.com/<%= @project.name %>/">
+    <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/">
       <%= @project.name %>
     </a>
   </h1>
@@ -36,7 +36,7 @@
       <td><%= stringify_state(state) %></td>
       <td>
       <%= for patch <- patches do %>
-        <a href="https://github.com/<%= @project.name %>/pull/<%= patch.pr_xref %>">
+        <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">
           #<%= patch.pr_xref %>
         </a>
       <% end %>

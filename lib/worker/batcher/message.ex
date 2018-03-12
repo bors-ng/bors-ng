@@ -34,6 +34,12 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message({:preflight, :pr_status}) do
     ":-1: Rejected by PR status"
   end
+  def generate_message({:preflight, :insufficient_approvals}) do
+    ":-1: Rejected by too few approved reviews"
+  end
+  def generate_message({:preflight, :blocked_review}) do
+    ":-1: Rejected by code reviews"
+  end
   def generate_message(:not_awaiting_review) do
     "Not awaiting review"
   end
@@ -122,6 +128,10 @@ defmodule BorsNG.Worker.Batcher.Message do
 
   def generate_bors_toml_error(:timeout_sec) do
     "bors.toml: expected timeout_sec to be an integer"
+  end
+
+  def generate_bors_toml_error(:required_approvals) do
+    "bors.toml: expected required_approvals to be an integer"
   end
 
   def generate_bors_toml_error(:status) do

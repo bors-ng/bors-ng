@@ -325,6 +325,8 @@ All the same recommendations apply, with some extra notes:
   `docker run borsng/bors-ng:latest /app/bors/bin/bors migrate`.
   Unfortunately other `mix` tasks are not available, as they cannot be run from compiled releases.
 - The `PORT` environment variable is set to `4000` by default.
+- `GITHUB_URL_ROOT_API` and `GITHUB_URL_ROOT_HTML` should allow you to connect bors-ng to an instance of GitHub Enterprise.
+  Note: I've never actually used GitHub Enterprise, so I'm kinda guessing about what you'd need here.
 
       docker create --name bors --restart=unless-stopped \
           -e PUBLIC_HOST=app.bors.tech \
