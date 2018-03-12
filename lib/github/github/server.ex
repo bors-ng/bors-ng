@@ -34,7 +34,7 @@ defmodule BorsNG.GitHub.Server do
 
   @spec site() :: bitstring
   defp site do
-    Confex.fetch_env!(:bors, :site)
+    Confex.fetch_env!(:bors, :api_github_root)
   end
 
   def init(:ok) do
