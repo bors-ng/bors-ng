@@ -349,7 +349,7 @@ defmodule BorsNG.Worker.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         comments: %{
-          1 => [":-1: Rejected by code reviews"]},
+          1 => [":-1: Rejected by too few approved reviews"]},
         statuses: %{"Z" => %{"bors" => :error, "cn" => :ok}},
         files: %{"Z" => %{"bors.toml" =>
                            ~s"""

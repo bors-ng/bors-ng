@@ -505,10 +505,11 @@ defmodule BorsNG.Worker.Batcher do
     |> are_reviews_passing(toml.required_approvals)
 
     case {passed_label, passed_status, passed_review} do
-      {true, true, true} -> :ok
-      {false, _, _} -> {:error, :blocked_labels}
-      {_, false, _} -> {:error, :pr_status}
-      {_, _, false} -> {:error, :blocked_review}
+      {true, true, :sufficient} -> :ok
+      {false, _, _}             -> {:error, :blocked_labels}
+      {_, false, _}             -> {:error, :pr_status}
+      {_, _, :insufficient}     -> {:error, :insufficient_approvals}
+      {_, _, :failed}           -> {:error, :blocked_review}
     end
   end
 
@@ -516,8 +517,9 @@ defmodule BorsNG.Worker.Batcher do
     %{"CHANGES_REQUESTED" => failed, "APPROVED" => passed} = reviews
 
     case {failed, passed} do
-      {0, approved} when approved >= required -> true
-      _ -> false
+      {0, approved} when approved >= required -> :sufficient
+      {0, approved} when approved < required -> :insufficient
+      _ -> :failed
     end
   end
 
