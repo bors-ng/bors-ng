@@ -67,6 +67,7 @@ defmodule BorsNG.GitHub.ServerMock do
   @type ttoken :: BorsNG.GitHub.ttoken
   @type trepo :: BorsNG.GitHub.trepo
   @type tuser :: BorsNG.GitHub.User.t
+  @type tcollaborator :: BorsNG.GitHub.tcollaborator
 
   @type tbranch :: bitstring
   @type tcommit :: bitstring
@@ -76,7 +77,8 @@ defmodule BorsNG.GitHub.ServerMock do
       branches: %{tbranch => tcommit},
       comments: %{integer => [bitstring]},
       statuses: %{tbranch => %{bitstring => :open | :closed | :running}},
-      files: %{tbranch => %{bitstring => bitstring}}
+      files: %{tbranch => %{bitstring => bitstring}},
+      collaborators: [tcollaborator]
     },
     {:installation, number} => %{
       repos: [trepo]
@@ -316,8 +318,14 @@ defmodule BorsNG.GitHub.ServerMock do
     end
   end
 
-  def do_handle_call(:get_admins_by_repo, _repo_conn, {}, state) do
-    {{:ok, []}, state}
+  def do_handle_call(:get_collaborators_by_repo, repo_conn, {}, state) do
+    with {:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, users} <- Map.fetch(repo, :collaborators) do
+      {{:ok, users}, state}
+    else
+      _ ->
+        {{:error, :get_collaborators_by_repo}, state}
+    end
   end
 
   def do_handle_call(

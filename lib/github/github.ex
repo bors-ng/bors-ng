@@ -21,6 +21,9 @@ defmodule BorsNG.GitHub do
   @type trepo :: BorsNG.GitHub.Repo.t
   @type tpr :: BorsNG.GitHub.Pr.t
   @type tstatus :: :ok | :running | :error
+  @type trepo_perm :: :admin | :push | :pull
+  @type tuser_repo_perms :: %{admin: boolean, push: boolean, pull: boolean}
+  @type tcollaborator :: %{user: tuser, perms: tuser_repo_perms}
 
   @spec get_pr!(tconn, integer | bitstring) :: BorsNG.GitHub.Pr.t
   def get_pr!(repo_conn, pr_xref) do
@@ -145,11 +148,12 @@ defmodule BorsNG.GitHub do
     user
   end
 
-  @spec get_admins_by_repo(tconn) :: {:ok, [tuser]} | :error
-  def get_admins_by_repo(repo_conn) do
+  @spec get_collaborators_by_repo(tconn) ::
+    {:ok, [tcollaborator]} | :error
+  def get_collaborators_by_repo(repo_conn) do
     GenServer.call(
       BorsNG.GitHub,
-      {:get_admins_by_repo, repo_conn, {}})
+      {:get_collaborators_by_repo, repo_conn, {}})
   end
 
   @spec get_app!() :: String.t()

@@ -6,6 +6,7 @@ defmodule BorsNG.Database.Project do
   """
 
   use BorsNG.Database.Model
+  alias BorsNG.Database.ProjectPermission
 
   @type t :: %Project{}
 
@@ -24,12 +25,17 @@ defmodule BorsNG.Database.Project do
     belongs_to :installation, Installation
     field :repo_xref, :integer
     field :name, :string
-    many_to_many :users, User, join_through: LinkUserProject
+    many_to_many :users, User, join_through: LinkUserProject,
+                 on_replace: :delete
+    many_to_many :members, User, join_through: LinkMemberProject,
+                 on_replace: :delete
     field :staging_branch, :string, default: "staging"
     field :trying_branch, :string, default: "trying"
     field :batch_poll_period_sec, :integer, default: (60 * 30)
     field :batch_delay_sec, :integer, default: 10
     field :batch_timeout_sec, :integer, default: (60 * 60 * 2)
+    field :auto_reviewer_required_perm, ProjectPermission, default: :admin
+    field :auto_member_required_perm, ProjectPermission, default: nil
 
     timestamps()
   end
@@ -63,7 +69,8 @@ defmodule BorsNG.Database.Project do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:repo_xref, :name])
+    |> cast(params, [:repo_xref, :name, :auto_reviewer_required_perm,
+                     :auto_member_required_perm])
   end
   def changeset_branches(struct, params \\ %{}) do
     struct

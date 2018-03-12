@@ -19,6 +19,8 @@ defmodule BorsNG.GitHub.Server do
   @type trepo :: BorsNG.GitHub.trepo
   @type tuser :: BorsNG.GitHub.tuser
   @type tpr :: BorsNG.GitHub.tpr
+  @type tcollaborator :: BorsNG.GitHub.tcollaborator
+  @type tuser_repo_perms :: BorsNG.GitHub.tuser_repo_perms
 
   @typedoc """
   The token cache.
@@ -257,8 +259,9 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:get_admins_by_repo, {{:raw, token}, repo_xref}, {}) do
-    get_admins_by_repo_(
+  def do_handle_call(:get_collaborators_by_repo, {{:raw, token}, repo_xref},
+                     {}) do
+    get_collaborators_by_repo_(
       token,
       "#{site()}/repositories/#{repo_xref}/collaborators",
       [])
@@ -290,7 +293,6 @@ defmodule BorsNG.GitHub.Server do
   end
 
   @spec get_installation_repos_!(binary, binary, [trepo]) :: [trepo]
-
   defp get_installation_repos_!(_, nil, repos) do
     repos
   end
@@ -330,9 +332,16 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  @spec get_admins_by_repo_(binary, binary, [tuser]) ::
-    {:ok, [tuser]} | {:error, :get_admins_by_repo_}
-  def get_admins_by_repo_(token, url, append) do
+  @spec extract_user_repo_perms(map()) :: tuser_repo_perms
+  defp extract_user_repo_perms(data) do
+    Map.new(["admin", "push", "pull"], fn perm ->
+      {String.to_atom(perm), !!data["permissions"][perm]}
+    end)
+  end
+
+  @spec get_collaborators_by_repo_(binary, binary, [tcollaborator]) ::
+    {:ok, [tcollaborator]} | {:error, :get_collaborators_by_repo}
+  def get_collaborators_by_repo_(token, url, append) do
     params = get_url_params(url)
     url
     |> HTTPoison.get(
@@ -342,17 +351,21 @@ defmodule BorsNG.GitHub.Server do
       {:ok, %{body: raw, status_code: 200, headers: headers}} ->
         users = raw
         |> Poison.decode!()
-        |> Enum.filter(fn user -> user["permissions"]["admin"] end)
-        |> Enum.map(&BorsNG.GitHub.User.from_json!/1)
+        |> Enum.map(fn user ->
+          %{user: BorsNG.GitHub.User.from_json!(user),
+            perms: extract_user_repo_perms(user)}
+        end)
         |> Enum.concat(append)
         next_headers = get_next_headers(headers)
         case next_headers do
-          [] -> {:ok, users}
-          [next] -> get_admins_by_repo_(token, next.next.url, users)
+          [] ->
+            {:ok, users}
+          [next] ->
+            get_collaborators_by_repo_(token, next.next.url, users)
         end
       error ->
         IO.inspect(error)
-        {:error, :get_admins_by_repo}
+        {:error, :get_collaborators_by_repo}
     end
   end
 
