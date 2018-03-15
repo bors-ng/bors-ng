@@ -13,14 +13,28 @@ defmodule BorsNG.Database.Migrate do
 
   def repos, do: Application.get_env(:bors, :ecto_repos, [])
 
+  @start_apps [
+    :crypto,
+    :ssl,
+    :postgrex,
+    :ecto,
+    :confex
+  ]
+
   def run_standalone do
-    up(:permanent)
+    up()
 
     :init.stop()
   end
 
-  def up(type \\ :temporary) do
-    {:ok, _} = Application.ensure_all_started(:bors, type)
+  def up do
+    # Hack around https://forum.bors.tech/t/database-not-migrated/145
+    # Instead of trying to start the :bors app,
+    # which won't start because the database isn't set up yet,
+    # we start the Ecto Repo directly.
+    :ok = Application.load(:bors)
+    Enum.each(@start_apps, &Application.ensure_all_started/1)
+    Enum.each(repos(), &(&1.start_link(pool_size: 1)))
 
     Enum.each repos(), fn(repo) ->
       case create_storage_for(repo) do
