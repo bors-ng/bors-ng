@@ -209,4 +209,59 @@ defmodule BorsNG.Worker.SyncerTest do
     assert Enum.sort(member_xrefs) == Enum.sort([old_admin.id, new_admin.id,
                                                  old_pusher.id, new_pusher.id])
   end
+
+  test "do not synchronize collaborators when it's turned off",
+    %{proj: proj, proj_conn: proj_conn}
+  do
+    # Set up some Github users with different permissions and previous existence
+    # state
+    old_admin =      %GitHub.User{id: 1, login: "existing-admin"}
+    new_admin =      %GitHub.User{id: 2, login: "new-admin"}
+    removed_admin =  %GitHub.User{id: 3, login: "removed-admin"}
+    old_pusher =     %GitHub.User{id: 4, login: "existing-pusher"}
+    new_pusher =     %GitHub.User{id: 5, login: "new-pusher"}
+    removed_pusher = %GitHub.User{id: 6, login: "removed-pusher"}
+    puller =         %GitHub.User{id: 7, login: "puller"}
+
+    # Create the users that should exist
+    saved_admins = [old_admin, removed_admin]
+    |> Enum.map(&Syncer.sync_user/1)
+
+    saved_pushers = [old_pusher, removed_pusher]
+    |> Enum.map(&Syncer.sync_user/1)
+
+    # Set up the pre-existing associations and settings
+    proj = proj
+    |> Repo.preload([:users, :members])
+    |> Ecto.Changeset.change(%{auto_reviewer_required_perm: nil,
+                               auto_member_required_perm: nil})
+    |> Ecto.Changeset.put_assoc(:users, saved_admins)
+    |> Ecto.Changeset.put_assoc(:members, saved_pushers)
+    |> Repo.update!()
+
+    # Set up the Github response
+    GitHub.ServerMock.put_state(%{
+      proj_conn => %{
+        collaborators: [
+          %{user: old_admin, perms: %{admin: true, push: true, pull: true}},
+          %{user: new_admin, perms: %{admin: true, push: true, pull: true}},
+          # removed admin is not present
+          %{user: old_pusher, perms: %{admin: false, push: true, pull: true}},
+          %{user: new_pusher, perms: %{admin: false, push: true, pull: true}},
+          # removed pusher is not present
+          %{user: puller, perms: %{admin: false, push: false, pull: true}}
+        ]
+      }})
+
+    :ok = Syncer.synchronize_project_collaborators(proj_conn, proj.id)
+
+    user_xrefs = Repo.all(from u in assoc(proj, :users),
+                          select: u.user_xref)
+    member_xrefs = Repo.all(from u in assoc(proj, :members),
+                            select: u.user_xref)
+
+    assert Enum.sort(user_xrefs) == Enum.sort([old_admin.id, removed_admin.id])
+    assert Enum.sort(member_xrefs) == Enum.sort([
+      old_pusher.id, removed_pusher.id])
+  end
 end
