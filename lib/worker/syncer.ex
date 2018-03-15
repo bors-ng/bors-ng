@@ -37,7 +37,7 @@ defmodule BorsNG.Worker.Syncer do
   end
 
   @spec synchronize_project_collaborators_by_role(
-    Project.t, [tcollaborator], :users | :members, trepo_perm) ::
+    Project.t, [tcollaborator], :users | :members, trepo_perm | nil) ::
     {:ok, Project.t} | {:error, any()}
   def synchronize_project_collaborators_by_role(project, collaborators,
                                                 association, github_perm)
