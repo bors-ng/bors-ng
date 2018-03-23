@@ -93,7 +93,7 @@ defmodule BorsNG.GitHub.Pr do
     }}
   end
 
-  def from_json(_) do
-    :error
+  def from_json(x) do
+    {:error, x}
   end
 end

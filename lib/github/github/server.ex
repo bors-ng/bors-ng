@@ -338,7 +338,12 @@ defmodule BorsNG.GitHub.Server do
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
       [params: params])
     prs = Poison.decode!(raw)
-    |> Enum.map(&BorsNG.GitHub.Pr.from_json!/1)
+    |> Enum.flat_map(fn element ->
+      element |> BorsNG.GitHub.Pr.from_json |> case do
+        {:ok, pr} -> [pr]
+        _ -> []
+      end
+    end)
     |> Enum.concat(append)
     next_headers = get_next_headers(headers)
     case next_headers do
