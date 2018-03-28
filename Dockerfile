@@ -31,7 +31,7 @@ RUN mix release --env=$MIX_ENV
 # Make the git HEAD available to the released app
 RUN if [ -d .git ]; then \
         mkdir /src/_build/prod/rel/.git && \
-        git rev-parse --short HEAD > /src/_build/prod/rel/.git/HEAD \
+        git rev-parse --short HEAD > /src/_build/prod/rel/.git/HEAD; \
     fi
 
 ####
