@@ -4,7 +4,7 @@ FROM elixir:${ELIXIR_VERSION} as builder
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
-RUN apt-get update -q && apt-get install -y build-essential libtool autoconf curl
+RUN apt-get update -q && apt-get install -y build-essential libtool autoconf curl git
 
 RUN DEBIAN_CODENAME=$(sed -n 's/VERSION=.*(\(.*\)).*/\1/p' /etc/os-release) && \
     curl -q https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \
@@ -15,7 +15,6 @@ RUN DEBIAN_CODENAME=$(sed -n 's/VERSION=.*(\(.*\)).*/\1/p' /etc/os-release) && \
 RUN mix local.hex --force && \
     mix local.rebar --force && \
     mix hex.info
-
 
 WORKDIR /src
 ADD ./ /src/
@@ -28,6 +27,12 @@ RUN mix deps.get
 RUN cd /src/ && npm install && npm run deploy
 RUN mix phx.digest
 RUN mix release --env=$MIX_ENV
+
+# Make the git HEAD available to the released app
+RUN if [ -d .git ]; then \
+        mkdir /src/_build/prod/rel/.git && \
+        git rev-parse --short HEAD > /src/_build/prod/rel/.git/HEAD \
+    fi
 
 ####
 
