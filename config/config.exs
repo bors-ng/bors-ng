@@ -31,7 +31,16 @@ config :bors,
 config :bors, BorsNG,
   command_trigger: "bors",
   home_url: "https://bors.tech/",
-  allow_private_repos: {:system, :boolean, "ALLOW_PRIVATE_REPOS", false}
+  allow_private_repos: {:system, :boolean, "ALLOW_PRIVATE_REPOS", false},
+  dashboard_header_html: {:system, :string, "DASHBOARD_HEADER_HTML", """
+          <a class=header-link href="https://bors.tech">Home</a>
+          <a class=header-link href="https://forum.bors.tech">Forum</a>
+          <a class=header-link href="https://bors.tech/documentation/getting-started/">Docs</a>
+          <b class=header-link>Dashboard</b>
+    """},
+  dashboard_footer_html: {:system, :string, "DASHBOARD_FOOTER_HTML", """
+        This service is provided for free on a best-effort basis.
+    """}
 
 # Configures the endpoint
 config :bors, BorsNG.Endpoint,
