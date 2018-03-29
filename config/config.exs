@@ -37,6 +37,9 @@ config :bors, BorsNG,
           <a class=header-link href="https://forum.bors.tech">Forum</a>
           <a class=header-link href="https://bors.tech/documentation/getting-started/">Docs</a>
           <b class=header-link>Dashboard</b>
+    """},
+  dashboard_footer_html: {:system, :string, "DASHBOARD_FOOTER_HTML", """
+        This service is provided for free on a best-effort basis.
     """}
 
 # Configures the endpoint

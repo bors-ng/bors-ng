@@ -87,7 +87,7 @@
             <%= elem(get_version(), 0) %>
           </a>
         </span>
-        This service is provided for free on a best-effort basis.
+        <%= {:safe, get_footer_html()} %>
       </p>
     </footer>
 

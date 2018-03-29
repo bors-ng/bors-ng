@@ -53,4 +53,8 @@ defmodule BorsNG.LayoutView do
   def get_header_html do
     Confex.fetch_env!(:bors, BorsNG)[:dashboard_header_html]
   end
+
+  def get_footer_html do
+    Confex.fetch_env!(:bors, BorsNG)[:dashboard_footer_html]
+  end
 end
