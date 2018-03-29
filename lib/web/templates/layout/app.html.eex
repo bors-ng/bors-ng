@@ -40,10 +40,7 @@
       <div class="wrapper wrapper--mini">
         <a id=header-logo href="<%= page_path(@conn, :index) %>"><img alt="bors" src='<%= static_path(@conn, "/images/a.svg") %>' width="90" height="25"></a>
         <span id=header-sections class=hide-on-narrow>
-          <a class=header-link href="https://bors.tech">Home</a>
-          <a class=header-link href="https://forum.bors.tech">Forum</a>
-          <a class=header-link href="https://bors.tech/documentation/getting-started/">Docs</a>
-          <b class=header-link>Dashboard</b>
+          <%= {:safe, get_header_html()} %>
         </span>
         <span id=header-user>
 <%= if is_nil @conn.assigns[:user] do %>
