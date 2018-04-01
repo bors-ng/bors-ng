@@ -130,6 +130,7 @@ The batching strategy is O(E log N), where N is again the total number of pull r
 
 # How to run it on your local machine
 
+If you're using a macOS or Linux command line with Docker on it,
 `./script/setup && ./script/server` will set up a local instance,
 with a mocked-out GitHub instance, using Docker to pull in all the underlying dependencies.
 The web server ends up running on <http://localhost:4000/>.
@@ -149,6 +150,7 @@ and the [WebhookController] and [GitHub ServerMock] to create the repo.
 
 The main things you'll need to run Bors on your laptop are:
 
+  * Familiarity with the command line
   * Elixir, with a full installation of OTP (the `esl-erlang` package is sufficient)
   * PostgreSQL; the configuration for it is in config/dev.exs
   * Stock C compilation tools, because some of bors's dependencies use NIFs
@@ -162,7 +164,7 @@ and the Visual C++ build tools from Microsoft.
 [Portable PostgreSQL]: https://sourceforge.net/projects/postgresqlportable/
 [Chocolatey]: https://chocolatey.org/packages/Elixir
 
-You can then just run it using `mix`:
+You can then run it using `mix`:
 
     $ mix ecto.create
     $ mix ecto.migrate
@@ -272,13 +274,15 @@ bors-ng is built on the Phoenix web framework, and they have [docs on how to dep
 
 You'll need to edit the configuration with a few bors-specific variables.
 
-### Deploying on Heroku (and other 12-factor-style systems)
+### Deploying on [Heroku] (and other 12-factor-style systems)
 
-The config file in the repository is already set up to pull the needed information from the environment, so just set the right env variables and deploy the app:
+[Heroku]: https://heroku.com/
 
-You can do it the easy way:
+The config file in the repository is already set up to pull the needed information from the environment, so you can configure bors by setting the right env variables and deploy the app from this repository into Heroku:
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+You can do using Heroku's one-button-deploy system:
+
+[![Deploy on Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 Or you can do it manually:
 
@@ -304,7 +308,9 @@ It can recover the information after restarting, but it will not work correctly 
 If you need more throughput than one dyno can provide, you should deploy using a system that allows Erlang clustering to work.
 
 
-### Deploying using Docker (and compatible container orchestration systems)
+### Deploying using [Docker] (and compatible container orchestration systems)
+
+[Docker]: https://docker.com/
 
 Pre-built Docker images are available at [Docker Hub](https://hub.docker.com/r/borsng/bors-ng/) for tags and the current `master` (as `bors-ng:latest`).
 
