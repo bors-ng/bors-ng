@@ -60,6 +60,9 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     2: Beta r=s a=leg
 
     b
+
+    Co-authored-by: foo
+    Co-authored-by: bar
     """
     patches = [
       %{
@@ -76,7 +79,8 @@ defmodule BorsNG.Worker.BatcherMessageTest do
           body: "b",
           author: %{login: "leg"}},
         reviewer: "s"}]
-    actual_message = Message.generate_commit_message(patches, nil)
+    co_authors = ["foo", "bar"]
+    actual_message = Message.generate_commit_message(patches, nil, co_authors)
     assert expected_message == actual_message
   end
 
@@ -103,6 +107,8 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     1: Synchronize background and foreground processing r=bill a=pea
 
     Fixes that annoying bug.
+
+    Co-authored-by: foo
     """
     title = "Synchronize background and foreground processing"
     body = """
@@ -127,9 +133,11 @@ defmodule BorsNG.Worker.BatcherMessageTest do
           body: body,
           author: %{login: "pea"}},
       reviewer: "bill"} ]
+    co_authors = ["foo"]
     actual_message = Message.generate_commit_message(
       patches,
-      "\n\n<!-- boilerplate follows -->")
+      "\n\n<!-- boilerplate follows -->",
+      co_authors)
     assert expected_message == actual_message
   end
 end

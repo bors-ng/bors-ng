@@ -484,7 +484,10 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -499,7 +502,10 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == :waiting
@@ -523,11 +529,15 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
       }}
     # Polling again should change nothing.
     Batcher.handle_info({:poll, :once}, proj.id)
@@ -548,11 +558,15 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
       }}
     # Mark the CI as having finished.
     # At this point, just running should still do nothing.
@@ -564,13 +578,17 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{
           "iniN" => %{"ci" => :ok},
           "N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
       }})
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
@@ -583,13 +601,17 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{
           "iniN" => %{"ci" => :ok},
           "N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
       }}
     # Finally, an actual poll should finish it.
     batch
@@ -606,13 +628,17 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => ["# Build succeeded\n  * ci"]},
         statuses: %{
           "iniN" => %{"bors" => :ok, "ci" => :ok},
           "N" => %{"bors" => :ok}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
       }}
   end
 
@@ -624,7 +650,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -645,7 +676,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == :waiting
@@ -665,11 +701,17 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Submit the second one.
     Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
@@ -681,13 +723,19 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Push the second one's timer, so it'll start now.
     {batch, batch2} = case Repo.all(Batch) do
@@ -714,14 +762,20 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{commit_message: "[ci skip]", parents: ["iniN"]},
           "iniNO" => %{
-            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: b <f>\n",
             parents: ["iniN", "O"]}},
         comments: %{1 => ["# Build succeeded\n  * ci"], 2 => []},
         statuses: %{
           "iniN" => %{"bors" => :ok},
           "N" => %{"bors" => :ok},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
   end
 
@@ -733,7 +787,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -754,7 +813,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == :waiting
@@ -774,11 +838,17 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Submit the second one, with a higher priority.
     Batcher.handle_call({:set_priority, patch2.id, 10}, nil, proj.id)
@@ -806,17 +876,24 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "iniO" => %{
-            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{
           "iniN" => %{"bors" => :running},
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Finally, finish the higher-priority, second batch.
     Batcher.do_handle_cast({:status, {"iniO", "ci", :ok, nil}}, proj.id)
@@ -830,10 +907,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "iniO" => %{
-            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
         statuses: %{
@@ -841,7 +920,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniO" => %{"bors" => :ok},
           "O" => %{"bors" => :ok},
           "N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Poll again, so that the first, lower-priority batch is started again.
     batch2
@@ -859,11 +943,13 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "iniO" => %{commit_message: "[ci skip]", parents: ["iniO"]},
           "iniON" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["iniO", "N"]}},
         comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
         statuses: %{
@@ -871,7 +957,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniO" => %{"bors" => :ok},
           "O" => %{"bors" => :ok},
           "N" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Finish the first one, since the higher-priority item is past it now
     Batcher.do_handle_cast({:status, {"iniON", "ci", :ok, nil}}, proj.id)
@@ -885,11 +976,13 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "iniO" => %{commit_message: "[ci skip]", parents: ["iniO"]},
           "iniON" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["iniO", "N"]}},
         comments: %{
           2 => ["# Build succeeded\n  * ci"],
@@ -900,7 +993,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniO" => %{"bors" => :ok},
           "O" => %{"bors" => :ok},
           "N" => %{"bors" => :ok}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
   end
 
@@ -912,7 +1010,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -934,7 +1037,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == :waiting
@@ -955,11 +1063,17 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Tell the batcher that the test suite failed.
     # It should send out an error, and start retrying.
@@ -975,7 +1089,8 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{
           1 => ["# Build failed (retrying...)\n  * ci"],
@@ -984,7 +1099,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniNO" => %{"bors" => :error},
           "N" => %{"bors" => :error},
           "O" => %{"bors" => :error}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Kick off the new, replacement batch.
     [batch_lo, batch_hi] = ordered_batches(proj)
@@ -1004,10 +1124,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{
           1 => ["# Build failed (retrying...)\n  * ci"],
@@ -1016,7 +1138,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniNO" => %{"bors" => :error},
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :error}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Tell the batcher that the test suite failed.
     # It should out an error, and not retry
@@ -1033,10 +1160,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{
           1 => [
@@ -1048,7 +1177,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniN" => %{"bors" => :error},
           "N" => %{"bors" => :error},
           "O" => %{"bors" => :error}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Kick off the other replacement batch.
     batch_hi
@@ -1066,13 +1200,16 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "iniO" => %{
-            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{
           1 => [
@@ -1084,7 +1221,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniN" => %{"bors" => :error},
           "N" => %{"bors" => :error},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Tell the batcher that the test suite failed.
     # It should send out an error, and not retry
@@ -1101,13 +1243,16 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "iniO" => %{
-            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{
           1 => [
@@ -1122,7 +1267,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniO" => %{"bors" => :error},
           "N" => %{"bors" => :error},
           "O" => %{"bors" => :error}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # There should be no more items in the queue now
     [] = Repo.all(Batch.all_for_project(proj.id, :waiting))
@@ -1136,7 +1286,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -1160,7 +1315,12 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     batch = Repo.get_by! Batch, project_id: proj.id, into_branch: "master"
     assert batch.state == :waiting
@@ -1181,13 +1341,19 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Fetch the second batch.
     # Also, set off its timer,
@@ -1216,18 +1382,25 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "release" => %{commit_message: "[ci skip]", parents: ["release"]},
           "releaseO" => %{
-            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: b <f>\n",
             parents: ["release", "O"]}},
         comments: %{1 => ["# Build succeeded\n  * ci"], 2 => []},
         statuses: %{
           "iniN" => %{"bors" => :ok},
           "N" => %{"bors" => :ok},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
   end
 
@@ -1239,7 +1412,16 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+            %GitHub.Commit{sha: "abcd", author_name: "b", author_email: "f"},
+            %GitHub.Commit{sha: "ef90", author_name: "c", author_email: "g"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"},
+            %GitHub.Commit{sha: "ef90", author_name: "a", author_email: "e"},
+            %GitHub.Commit{sha: "ef90", author_name: "d", author_email: "h"}]},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -1263,7 +1445,16 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+            %GitHub.Commit{sha: "abcd", author_name: "b", author_email: "f"},
+            %GitHub.Commit{sha: "ef90", author_name: "c", author_email: "g"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"},
+            %GitHub.Commit{sha: "ef90", author_name: "a", author_email: "e"},
+            %GitHub.Commit{sha: "ef90", author_name: "d", author_email: "h"}]},
       }}
     batch = Repo.get_by! Batch, project_id: proj.id, into_branch: "master"
     assert batch.state == :waiting
@@ -1284,13 +1475,24 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>" <>
+              "\nCo-authored-by: c <g>\nCo-authored-by: d <h>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+            %GitHub.Commit{sha: "abcd", author_name: "b", author_email: "f"},
+            %GitHub.Commit{sha: "ef90", author_name: "c", author_email: "g"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"},
+            %GitHub.Commit{sha: "ef90", author_name: "a", author_email: "e"},
+            %GitHub.Commit{sha: "ef90", author_name: "d", author_email: "h"}]},
       }}
     # Finally, finish the batch.
     Batcher.do_handle_cast({:status, {"iniNO", "ci", :ok, nil}}, proj.id)
@@ -1305,7 +1507,9 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>" <>
+              "\nCo-authored-by: c <g>\nCo-authored-by: d <h>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{
           1 => ["# Build succeeded\n  * ci"],
@@ -1315,7 +1519,16 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniNO" => %{"bors" => :ok},
           "N" => %{"bors" => :ok},
           "O" => %{"bors" => :ok}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+            %GitHub.Commit{sha: "abcd", author_name: "b", author_email: "f"},
+            %GitHub.Commit{sha: "ef90", author_name: "c", author_email: "g"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"},
+            %GitHub.Commit{sha: "ef90", author_name: "a", author_email: "e"},
+            %GitHub.Commit{sha: "ef90", author_name: "d", author_email: "h"}]},
       }}
   end
 
@@ -1327,7 +1540,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -1349,7 +1567,12 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == :waiting
@@ -1370,11 +1593,17 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Polling at a later time causes the test to time out.
     # It should send out an error, and start retrying.
@@ -1393,7 +1622,8 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{
           1 => ["# Timed out (retrying...)"],
@@ -1402,7 +1632,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniNO" => %{"bors" => :error},
           "N" => %{"bors" => :error},
           "O" => %{"bors" => :error}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Kick off the new, replacement batch.
     [batch_lo, batch_hi] = ordered_batches(proj)
@@ -1422,10 +1657,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{
           1 => ["# Timed out (retrying...)"],
@@ -1434,7 +1671,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniNO" => %{"bors" => :error},
           "N" => %{"bors" => :running},
           "O" => %{"bors" => :error}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Polling at a later time causes the test to time out.
     # It should out an error, and not retry
@@ -1454,10 +1696,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{
           1 => ["# Timed out", "# Timed out (retrying...)"],
@@ -1467,7 +1711,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniN" => %{"bors" => :error},
           "N" => %{"bors" => :error},
           "O" => %{"bors" => :error}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Kick off the other replacement batch.
     batch_hi
@@ -1485,13 +1734,16 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "iniO" => %{
-            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{
           1 => ["# Timed out", "# Timed out (retrying...)"],
@@ -1501,7 +1753,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniN" => %{"bors" => :error},
           "N" => %{"bors" => :error},
           "O" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # Polling at a later time causes the test to time out.
     # It should send out an error, and not retry
@@ -1521,13 +1778,16 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
-              "\n2:  r=rvr a=[unknown]\n\n\n",
+              "\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]},
           "iniN" => %{
-            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
           "iniO" => %{
-            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
+              "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{
           1 => ["# Timed out", "# Timed out (retrying...)"],
@@ -1538,7 +1798,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "iniO" => %{"bors" => :error},
           "N" => %{"bors" => :error},
           "O" => %{"bors" => :error}},
-        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}]},
       }}
     # There should be no more items in the queue now
     [] = Repo.all(Batch.all_for_project(proj.id, :waiting))
@@ -1551,7 +1816,8 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"staging.tmp" => %{".travis.yml" => ""}}
+        files: %{"staging.tmp" => %{".travis.yml" => ""}},
+        pr_commits: %{1 => []},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -1579,7 +1845,8 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"staging.tmp" =>
-        %{".github/bors.toml" => ~s/status = [ "ci" ]/}}
+        %{".github/bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [], 2 => []},
       }})
     patch = %Patch{
       project_id: proj.id,
@@ -1689,6 +1956,45 @@ defmodule BorsNG.Worker.BatcherTest do
 
     sorted = Batcher.sort_batches([batch, batch2, batch3])
     assert sorted == {:waiting, [batch3, batch, batch2]}
+  end
+
+  test "gather_co_authors() collects unique commit authors", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => [], 2 => []},
+        statuses: %{},
+        files: %{},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1", author_name: "Foo", author_email: "foo"},
+            %GitHub.Commit{sha: "2", author_name: "Bar", author_email: "bar"}],
+          2 => [
+            %GitHub.Commit{sha: "3", author_name: "Bar", author_email: "other"},
+            %GitHub.Commit{sha: "4", author_name: "Foo", author_email: "foo"}],
+        },
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    batch = %Batch{
+      project: proj,
+      state: 0,
+      into_branch: "master"}
+    link = %LinkPatchBatch{patch: patch, batch: batch}
+    link2 = %LinkPatchBatch{patch: patch2, batch: batch}
+
+    assert Batcher.gather_co_authors(batch, [link, link2]) == [
+      "Foo <foo>",
+      "Bar <bar>",
+      "Bar <other>"]
   end
 
   test "posts message if patch has ci skip", %{proj: proj} do

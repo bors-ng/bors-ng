@@ -43,6 +43,13 @@ defmodule BorsNG.GitHub.ServerMock do
       ...>           id: 6,
       ...>           login: "bors-fanboi",
       ...>           avatar_url: "data:image/svg+xml,<svg></svg>"}}},
+      ...>     pr_commits: %{
+      ...>       1 => [
+      ...>         %GitHub.Commit{
+      ...>           sha: "00000001",
+      ...>           author_name: "Bors Fanboi",
+      ...>           author_email: "bors-fanboi@example.com"}
+      ...>       ] },
       ...>     statuses: %{},
       ...>     files: %{}}})
       iex> GitHub.get_open_prs!({{:installation, 91}, 14})
@@ -129,6 +136,16 @@ defmodule BorsNG.GitHub.ServerMock do
     |> case do
       {:ok, _} = res -> {res, state}
       _ -> {{:error, :get_pr}, state}
+    end
+  end
+
+  def do_handle_call(:get_pr_commits, repo_conn, {pr_xref}, state) do
+    with({:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, pr_commits} <- Map.fetch(repo, :pr_commits),
+      do: Map.fetch(pr_commits, pr_xref))
+    |> case do
+      {:ok, _} = res -> {res, state}
+      _ -> {{:error, :get_pr_commits}, state}
     end
   end
 

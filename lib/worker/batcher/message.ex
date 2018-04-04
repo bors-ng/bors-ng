@@ -83,7 +83,7 @@ defmodule BorsNG.Worker.Batcher.Message do
     "#{acc}\n  * #{status_link}"
   end
 
-  def generate_commit_message(patch_links, cut_body_after) do
+  def generate_commit_message(patch_links, cut_body_after, co_authors) do
     commit_title = Enum.reduce(patch_links,
       "Merge", &"#{&2} \##{&1.patch.pr_xref}")
     commit_body = Enum.reduce(patch_links, "", fn link, acc ->
@@ -102,7 +102,10 @@ defmodule BorsNG.Worker.Batcher.Message do
       #{body}
       """
     end)
-    "#{commit_title}\n#{commit_body}"
+    co_author_trailers = co_authors
+    |> Enum.map(&("Co-authored-by: #{&1}"))
+    |> Enum.join("\n")
+    "#{commit_title}\n#{commit_body}\n#{co_author_trailers}\n"
   end
 
   def cut_body(nil, _), do: ""

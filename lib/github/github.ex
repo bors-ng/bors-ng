@@ -37,6 +37,18 @@ defmodule BorsNG.GitHub do
     GenServer.call(BorsNG.GitHub, {:get_pr, repo_conn, {pr_xref}})
   end
 
+  @spec get_pr_commits!(tconn, integer | bitstring) :: [BorsNG.GitHub.Commit.t]
+  def get_pr_commits!(repo_conn, pr_xref) do
+    {:ok, commits} = get_pr_commits(repo_conn, pr_xref)
+    commits
+  end
+
+  @spec get_pr_commits(tconn, integer | bitstring) ::
+    {:ok, [BorsNG.GitHub.Commit.t]} | {:error, term}
+  def get_pr_commits(repo_conn, pr_xref) do
+    GenServer.call(BorsNG.GitHub, {:get_pr_commits, repo_conn, {pr_xref}})
+  end
+
   @spec get_open_prs!(tconn) :: [tpr]
   def get_open_prs!(repo_conn) do
     {:ok, prs} = GenServer.call(
