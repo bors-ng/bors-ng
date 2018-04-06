@@ -243,6 +243,7 @@ defmodule BorsNG.Worker.Batcher do
     project = batch.project
     repo_conn = get_repo_conn(project)
     patch_links = Repo.all(LinkPatchBatch.from_batch(batch.id))
+    |> Enum.sort_by(&(&1.patch.pr_xref))
     stmp = "#{project.staging_branch}.tmp"
     base = GitHub.get_branch!(
       repo_conn,

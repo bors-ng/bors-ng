@@ -1231,6 +1231,94 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+  test "full runthrough showing PR sorting", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
+        comments: %{1 => [], 2 => []},
+        statuses: %{},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
+        comments: %{1 => [], 2 => []},
+        statuses: %{
+          "N" => %{"bors" => :running},
+          "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    batch = Repo.get_by! Batch, project_id: proj.id, into_branch: "master"
+    assert batch.state == :waiting
+    # Polling at a later time kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == :running
+    assert batch.into_branch == "master"
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]}},
+        comments: %{1 => [], 2 => []},
+        statuses: %{
+          "N" => %{"bors" => :running},
+          "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Finally, finish the batch.
+    Batcher.do_handle_cast({:status, {"iniNO", "ci", :ok, nil}}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == :ok
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "iniNO",
+          "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]}},
+        comments: %{
+          1 => ["# Build succeeded\n  * ci"],
+          2 => ["# Build succeeded\n  * ci"]
+        },
+        statuses: %{
+          "iniNO" => %{"bors" => :ok},
+          "N" => %{"bors" => :ok},
+          "O" => %{"bors" => :ok}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+  end
+
   test "full runthrough with test timeout", %{proj: proj} do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{

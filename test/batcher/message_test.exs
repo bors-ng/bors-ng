@@ -76,25 +76,8 @@ defmodule BorsNG.Worker.BatcherMessageTest do
           body: "b",
           author: %{login: "leg"}},
         reviewer: "s"}]
-    patches2 = [
-      %{
-        patch: %{
-          pr_xref: 2,
-          title: "Beta",
-          body: "b",
-          author: %{login: "leg"}},
-        reviewer: "s"},
-      %{
-        patch: %{
-          pr_xref: 1,
-          title: "Alpha",
-          body: "a",
-          author: %{login: "lag"}},
-        reviewer: "r"}]
     actual_message = Message.generate_commit_message(patches, nil)
     assert expected_message == actual_message
-    actual_message2 = Message.generate_commit_message(patches2, nil)
-    assert expected_message == actual_message2
   end
 
   test "cut body" do
