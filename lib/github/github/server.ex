@@ -147,8 +147,15 @@ defmodule BorsNG.GitHub.Server do
     branch: branch,
     tree: tree,
     parents: parents,
-    commit_message: commit_message}}) do
+    commit_message: commit_message,
+    committer: committer}}) do
     msg = %{"parents": parents, "tree": tree, "message": commit_message}
+    msg = if is_nil committer do
+      msg
+    else
+      Map.put(msg, "author", %{
+        "name": committer.name, "email": committer.email})
+    end
     repo_conn
     |> post!("git/commits", Poison.encode!(msg))
     |> case do

@@ -44,6 +44,19 @@ defmodule BatcherBorsTomlTest do
     assert toml.timeout_sec == 2
   end
 
+  test "can parse committer details" do
+    {:ok, toml} = BorsToml.new(
+      ~s/status = ["exl"]\n[committer]\nname = "BORS"\nemail = "bors@ex.com"/)
+    assert toml.committer.name == "BORS"
+    assert toml.committer.email == "bors@ex.com"
+  end
+
+  test "defaults committer details to nil" do
+    {:ok, toml} = BorsToml.new(
+      ~s/status = ["exl"]/)
+    assert is_nil toml.committer
+  end
+
   test "defaults cut_body_after to nil" do
     {:ok, toml} = BorsToml.new(~s/status = ["exl"]/)
     assert is_nil toml.cut_body_after
@@ -67,5 +80,15 @@ defmodule BatcherBorsTomlTest do
   test "recognizes an invalid cut_body_after" do
     r = BorsToml.new(~s/cut_body_after = 13/)
     assert r == {:error, :cut_body_after}
+  end
+
+  test "requires committer email if name provided" do
+    r = BorsToml.new(~s/status = ["exl"]\n[committer]\nname = "BORS!"/)
+    assert r == {:error, :committer_details}
+  end
+
+  test "requires committer name if email provided" do
+    r = BorsToml.new(~s/status = ["exl"]\n[committer]\nemail = "bors@ex.com"/)
+    assert r == {:error, :committer_details}
   end
 end

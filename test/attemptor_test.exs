@@ -68,7 +68,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{".travis.yml" => ""}}
+        files: %{"trying.tmp" => %{".travis.yml" => ""}}
       }})
     patch = new_patch(proj, 1, "N")
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
@@ -83,7 +83,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{".travis.yml" => "", "appveyor.yml" => ""}}
+        files: %{"trying.tmp" => %{".travis.yml" => "", "appveyor.yml" => ""}}
       }})
     patch = new_patch(proj, 1, "N")
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
@@ -101,7 +101,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"circle.yml" => ""}}
+        files: %{"trying.tmp" => %{"circle.yml" => ""}}
       }})
     patch = new_patch(proj, 1, "N")
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
@@ -116,7 +116,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"jet-steps.yml" => ""}}
+        files: %{"trying.tmp" => %{"jet-steps.yml" => ""}}
       }})
     patch = new_patch(proj, 1, "N")
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
@@ -131,7 +131,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"jet-steps.json" => ""}}
+        files: %{"trying.tmp" => %{"jet-steps.json" => ""}}
       }})
     patch = new_patch(proj, 1, "N")
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
@@ -146,7 +146,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"codeship-steps.yml" => ""}}
+        files: %{"trying.tmp" => %{"codeship-steps.yml" => ""}}
       }})
     patch = new_patch(proj, 1, "N")
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
@@ -161,7 +161,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"codeship-steps.json" => ""}}
+        files: %{"trying.tmp" => %{"codeship-steps.json" => ""}}
       }})
     patch = new_patch(proj, 1, "N")
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
@@ -177,7 +177,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     patch = new_patch(proj, 1, "N")
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
@@ -191,7 +191,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     attempt = Repo.get_by! Attempt, patch_id: patch.id
     assert attempt.state == :running
@@ -207,7 +207,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     attempt = Repo.get_by! Attempt, patch_id: patch.id
     assert attempt.state == :running
@@ -223,7 +223,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
-        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }})
     Attemptor.handle_info(:poll, proj.id)
     attempt = Repo.get_by! Attempt, patch_id: patch.id
@@ -238,7 +238,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
-        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
     # Finally, an actual poll should finish it.
     attempt
@@ -257,7 +257,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => ["## try\n\n# Build succeeded\n  * ci"]},
         statuses: %{"iniN" => [{"ci", :ok}]},
-        files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
   end
 
@@ -268,7 +268,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
-        files: %{"trying" => %{"circle.yml" => ""}}
+        files: %{"trying.tmp" => %{"circle.yml" => ""}}
       }})
     patch = %Patch{
       project_id: proj.id,
