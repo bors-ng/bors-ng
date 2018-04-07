@@ -40,6 +40,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         files: %{}
@@ -51,6 +52,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => ["## try\n\nNot awaiting review"]
           },
@@ -63,6 +65,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{".travis.yml" => ""}}
@@ -77,6 +80,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{".travis.yml" => "", "appveyor.yml" => ""}}
@@ -94,6 +98,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"circle.yml" => ""}}
@@ -108,6 +113,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"jet-steps.yml" => ""}}
@@ -122,6 +128,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"jet-steps.json" => ""}}
@@ -136,6 +143,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"codeship-steps.yml" => ""}}
@@ -150,6 +158,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"codeship-steps.json" => ""}}
@@ -165,6 +174,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -176,6 +186,9 @@ defmodule BorsNG.Worker.AttemptorTest do
         branches: %{
           "master" => "ini",
           "trying" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -189,6 +202,9 @@ defmodule BorsNG.Worker.AttemptorTest do
         branches: %{
           "master" => "ini",
           "trying" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -202,6 +218,9 @@ defmodule BorsNG.Worker.AttemptorTest do
         branches: %{
           "master" => "ini",
           "trying" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -214,6 +233,9 @@ defmodule BorsNG.Worker.AttemptorTest do
         branches: %{
           "master" => "ini",
           "trying" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -230,6 +252,9 @@ defmodule BorsNG.Worker.AttemptorTest do
         branches: %{
           "master" => "ini",
           "trying" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => ["## try\n\n# Build succeeded\n  * ci"]},
         statuses: %{"iniN" => [{"ci", :ok}]},
         files: %{"trying" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -240,6 +265,7 @@ defmodule BorsNG.Worker.AttemptorTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"trying" => %{"circle.yml" => ""}}

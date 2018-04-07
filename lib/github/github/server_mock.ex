@@ -29,6 +29,7 @@ defmodule BorsNG.GitHub.ServerMock do
       ...>   ] },
       ...>   {{:installation, 91}, 14} => %{
       ...>     branches: %{},
+      ...>     commits: %{},
       ...>     comments: %{1 => []},
       ...>     pulls: %{
       ...>       1 => %GitHub.Pr{
@@ -72,10 +73,16 @@ defmodule BorsNG.GitHub.ServerMock do
   @type tbranch :: bitstring
   @type tcommit :: bitstring
 
+  @type tsynthesized :: %{
+    commit_message: bitstring,
+    parents: [bitstring]
+  }
+
   @type tstate :: %{
     tconn => %{
       branches: %{tbranch => tcommit},
       comments: %{integer => [bitstring]},
+      commits: %{bitstring => tsynthesized},
       statuses: %{tbranch => %{bitstring => :open | :closed | :running}},
       files: %{tbranch => %{bitstring => bitstring}},
       collaborators: [tcollaborator]
@@ -215,15 +222,20 @@ defmodule BorsNG.GitHub.ServerMock do
     branch: branch,
     tree: tree,
     parents: parents,
-    commit_message: _commit_message}}, state) do
+    commit_message: commit_message}}, state) do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
-         {:ok, branches} <- Map.fetch(repo, :branches) do
+         {:ok, branches} <- Map.fetch(repo, :branches),
+         {:ok, commits} <- Map.fetch(repo, :commits) do
       nsha = parents
       |> Enum.reverse()
       |> Enum.reduce(&<>/2)
       ^nsha = tree
+      commits = Map.put(commits, nsha, %{
+        parents: parents,
+        commit_message: commit_message})
       branches = Map.put(branches, branch, nsha)
       repo = %{repo | branches: branches}
+      repo = %{repo | commits: commits}
       state = %{state | repo_conn => repo}
       {{:ok, nsha}, state}
     end

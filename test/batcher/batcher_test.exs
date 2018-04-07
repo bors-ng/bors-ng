@@ -55,6 +55,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{}
@@ -85,6 +86,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => ["# Canceled"],
           2 => []
@@ -100,6 +102,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         files: %{}
@@ -121,6 +124,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => ["# Canceled"]
           },
@@ -134,6 +138,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{}
@@ -170,6 +175,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => ["# Canceled"],
           2 => ["# Canceled (will resume)"]},
@@ -187,6 +193,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         files: %{}
@@ -201,6 +208,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         files: %{}
@@ -211,6 +219,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         files: %{}
@@ -231,6 +240,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => ["Not awaiting review"]
           },
@@ -243,6 +253,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         labels: %{1 => ["no"]},
         statuses: %{"Z" => %{}},
@@ -260,6 +271,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => [":-1: Rejected by label"]},
         labels: %{1 => ["no"]},
@@ -273,6 +285,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"Z" => %{"cn" => :error}},
         files: %{"Z" => %{"bors.toml" =>
@@ -289,6 +302,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => [":-1: Rejected by PR status"]},
         statuses: %{"Z" => %{"bors" => :error, "cn" => :error}},
@@ -301,6 +315,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"Z" => %{"cn" => :ok}},
         reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}},
@@ -318,6 +333,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => [":-1: Rejected by code reviews"]},
         statuses: %{"Z" => %{"bors" => :error, "cn" => :ok}},
@@ -331,6 +347,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"Z" => %{"cn" => :ok}},
         reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
@@ -352,6 +369,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => [":-1: Rejected by too few approved reviews"]},
         statuses: %{"Z" => %{"bors" => :error, "cn" => :ok}},
@@ -369,6 +387,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"Z" => %{"cn" => :ok}},
         reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}},
@@ -390,6 +409,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert state == %{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{
           1 => []},
         statuses: %{"Z" => %{"bors" => :running, "cn" => :ok}},
@@ -408,6 +428,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         files: %{}
@@ -422,6 +443,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"N" => %{"bors" => :running}},
         files: %{}
@@ -444,6 +466,10 @@ defmodule BorsNG.Worker.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini",
           "staging" => ""},
+        commits: %{
+          "ini" => %{
+            commit_message: "[ci skip]",
+            parents: ["ini"]}},
         comments: %{1 => ["# Configuration problem\nbors.toml: not found"]},
         statuses: %{"N" => %{"bors" => :error}},
         files: %{}
@@ -455,6 +481,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -469,6 +496,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -492,6 +520,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -512,6 +545,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -523,6 +561,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{
           "iniN" => %{"ci" => :ok},
@@ -537,6 +580,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{
           "iniN" => %{"ci" => :ok},
@@ -555,6 +603,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "iniN",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => ["# Build succeeded\n  * ci"]},
         statuses: %{
           "iniN" => %{"bors" => :ok, "ci" => :ok},
@@ -568,6 +621,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -588,6 +642,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -607,6 +662,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -618,6 +678,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{
           "N" => %{"bors" => :running},
@@ -645,6 +710,12 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "iniN",
           "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "[ci skip]", parents: ["iniN"]},
+          "iniNO" => %{
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["iniN", "O"]}},
         comments: %{1 => ["# Build succeeded\n  * ci"], 2 => []},
         statuses: %{
           "iniN" => %{"bors" => :ok},
@@ -659,6 +730,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -679,6 +751,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -698,6 +771,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -725,6 +803,14 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "iniO" => %{
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "O"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{
           "iniN" => %{"bors" => :running},
@@ -741,6 +827,14 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "iniO",
           "staging" => "iniO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "iniO" => %{
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "O"]}},
         comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
         statuses: %{
           "iniN" => %{"bors" => :running},
@@ -762,6 +856,15 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "iniO",
           "staging" => "iniON"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "iniO" => %{commit_message: "[ci skip]", parents: ["iniO"]},
+          "iniON" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["iniO", "N"]}},
         comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
         statuses: %{
           "iniN" => %{"bors" => :running},
@@ -779,6 +882,15 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "iniON",
           "staging" => "iniON"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "iniO" => %{commit_message: "[ci skip]", parents: ["iniO"]},
+          "iniON" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["iniO", "N"]}},
         comments: %{
           2 => ["# Build succeeded\n  * ci"],
           1 => ["# Build succeeded\n  * ci"]},
@@ -797,6 +909,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -818,6 +931,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -837,6 +951,12 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -851,6 +971,12 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]}},
         comments: %{
           1 => ["# Build failed (retrying...)\n  * ci"],
           2 => ["# Build failed (retrying...)\n  * ci"]},
@@ -874,6 +1000,15 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{
           1 => ["# Build failed (retrying...)\n  * ci"],
           2 => ["# Build failed (retrying...)\n  * ci"]},
@@ -894,6 +1029,15 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{
           1 => [
             "# Build failed\n  * ci",
@@ -918,6 +1062,18 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "iniO" => %{
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "O"]}},
         comments: %{
           1 => [
             "# Build failed\n  * ci",
@@ -941,6 +1097,18 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "iniO" => %{
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "O"]}},
         comments: %{
           1 => [
             "# Build failed\n  * ci",
@@ -965,6 +1133,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -986,6 +1155,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{
           "N" => %{"bors" => :running},
@@ -1008,6 +1178,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{
           "N" => %{"bors" => :running},
@@ -1038,6 +1213,15 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "iniN",
           "staging" => "releaseO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "release" => %{commit_message: "[ci skip]", parents: ["release"]},
+          "releaseO" => %{
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["release", "O"]}},
         comments: %{1 => ["# Build succeeded\n  * ci"], 2 => []},
         statuses: %{
           "iniN" => %{"bors" => :ok},
@@ -1047,11 +1231,100 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+  test "full runthrough showing PR sorting", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
+        comments: %{1 => [], 2 => []},
+        statuses: %{},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
+        comments: %{1 => [], 2 => []},
+        statuses: %{
+          "N" => %{"bors" => :running},
+          "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    batch = Repo.get_by! Batch, project_id: proj.id, into_branch: "master"
+    assert batch.state == :waiting
+    # Polling at a later time kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == :running
+    assert batch.into_branch == "master"
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]}},
+        comments: %{1 => [], 2 => []},
+        statuses: %{
+          "N" => %{"bors" => :running},
+          "O" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+    # Finally, finish the batch.
+    Batcher.do_handle_cast({:status, {"iniNO", "ci", :ok, nil}}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == :ok
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "iniNO",
+          "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]}},
+        comments: %{
+          1 => ["# Build succeeded\n  * ci"],
+          2 => ["# Build succeeded\n  * ci"]
+        },
+        statuses: %{
+          "iniNO" => %{"bors" => :ok},
+          "N" => %{"bors" => :ok},
+          "O" => %{"bors" => :ok}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }}
+  end
+
   test "full runthrough with test timeout", %{proj: proj} do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -1073,6 +1346,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert GitHub.ServerMock.get_state() == %{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -1092,6 +1366,12 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]}},
         comments: %{1 => [], 2 => []},
         statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
@@ -1109,6 +1389,12 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniNO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]}},
         comments: %{
           1 => ["# Timed out (retrying...)"],
           2 => ["# Timed out (retrying...)"]},
@@ -1132,6 +1418,15 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{
           1 => ["# Timed out (retrying...)"],
           2 => ["# Timed out (retrying...)"]},
@@ -1155,6 +1450,15 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]}},
         comments: %{
           1 => ["# Timed out", "# Timed out (retrying...)"],
           2 => ["# Timed out (retrying...)"]},
@@ -1177,6 +1481,18 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "iniO" => %{
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "O"]}},
         comments: %{
           1 => ["# Timed out", "# Timed out (retrying...)"],
           2 => ["# Timed out (retrying...)"]},
@@ -1201,6 +1517,18 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{
           "master" => "ini",
           "staging" => "iniO"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniNO" => %{
+            commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+              "\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N", "O"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "N"]},
+          "iniO" => %{
+            commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n",
+            parents: ["ini", "O"]}},
         comments: %{
           1 => ["# Timed out", "# Timed out (retrying...)"],
           2 => ["# Timed out", "# Timed out (retrying...)"]},
@@ -1220,6 +1548,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"staging.tmp" => %{".travis.yml" => ""}}
@@ -1246,6 +1575,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"staging.tmp" =>
@@ -1273,6 +1603,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         files: %{}
@@ -1291,6 +1622,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         files: %{}
@@ -1363,6 +1695,7 @@ defmodule BorsNG.Worker.BatcherTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},

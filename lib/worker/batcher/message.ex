@@ -84,7 +84,6 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_commit_message(patch_links, cut_body_after) do
-    patch_links = Enum.sort_by(patch_links, &(&1.patch.pr_xref))
     commit_title = Enum.reduce(patch_links,
       "Merge", &"#{&2} \##{&1.patch.pr_xref}")
     commit_body = Enum.reduce(patch_links, "", fn link, acc ->

@@ -25,6 +25,7 @@ defmodule BorsNG.Worker.BranchDeleterTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "update" => "foo"},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         pulls: %{
@@ -77,6 +78,7 @@ defmodule BorsNG.Worker.BranchDeleterTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "update" => "foo"},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         pulls: %{
@@ -131,6 +133,7 @@ defmodule BorsNG.Worker.BranchDeleterTest do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "update" => "foo"},
+        commits: %{},
         comments: %{1 => []},
         statuses: %{},
         pulls: %{
