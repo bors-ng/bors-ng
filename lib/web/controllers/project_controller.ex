@@ -105,7 +105,7 @@ defmodule BorsNG.ProjectController do
     end)
     crashes = Repo.all(Crash.all_for_project(project.id))
     entries = crashes ++ batches
-    |> Enum.sort_by(fn %{updated_at: at} -> Date.to_erl(at) end)
+    |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
     |> Enum.reverse()
     render conn, "log.html",
       project: project,
