@@ -82,6 +82,18 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
+  def do_handle_call(:get_pr_commits, repo_conn, {pr_xref}) do
+    case get!(repo_conn, "pulls/#{pr_xref}/commits") do
+      %{body: raw, status_code: 200} ->
+        commits = raw
+        |> Poison.decode!()
+        |> Enum.map(&BorsNG.GitHub.Commit.from_json!/1)
+        {:ok, commits}
+      e ->
+        {:error, :get_pr_commits, e.status_code, pr_xref}
+    end
+  end
+
   def do_handle_call(:get_open_prs, {{:raw, token}, repo_xref}, {}) do
     {:ok, get_open_prs_!(
       token,

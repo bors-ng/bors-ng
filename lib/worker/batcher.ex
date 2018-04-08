@@ -292,7 +292,8 @@ defmodule BorsNG.Worker.Batcher do
         parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
         commit_message = Batcher.Message.generate_commit_message(
           patch_links,
-          toml.cut_body_after)
+          toml.cut_body_after,
+          gather_co_authors(batch, patch_links))
         head = GitHub.synthesize_commit!(
           repo_conn,
           %{
@@ -315,6 +316,15 @@ defmodule BorsNG.Worker.Batcher do
     state = bisect(patch_links, batch)
     send_message(repo_conn, patches, {:conflict, state})
     {:conflict, nil}
+  end
+
+  def gather_co_authors(batch, patch_links) do
+    repo_conn = get_repo_conn(batch.project)
+    patch_links
+    |> Enum.map(&(&1.patch.pr_xref))
+    |> Enum.flat_map(&GitHub.get_pr_commits!(repo_conn, &1))
+    |> Enum.map(&("#{&1.author_name} <#{&1.author_email}>"))
+    |> Enum.uniq
   end
 
   defp setup_statuses(batch, toml) do
