@@ -85,7 +85,19 @@ defmodule BorsNG.ProjectController do
   def settings(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
   def settings(conn, :rw, project, _params) do
     reviewers = Permission.list_users_for_project(:reviewer, project.id)
+    |> Enum.sort_by(fn %User{login: login} ->
+      case conn.assigns[:user].login do
+        ^login -> ""
+        _ -> login
+      end
+    end)
     members = Permission.list_users_for_project(:member, project.id)
+    |> Enum.sort_by(fn %User{login: login} ->
+      case conn.assigns[:user].login do
+        ^login -> ""
+        _ -> login
+      end
+    end)
     render conn, "settings.html",
       project: project,
       reviewers: reviewers,
