@@ -24,6 +24,7 @@ defmodule BorsNG.GitHub do
   @type trepo_perm :: :admin | :push | :pull
   @type tuser_repo_perms :: %{admin: boolean, push: boolean, pull: boolean}
   @type tcollaborator :: %{user: tuser, perms: tuser_repo_perms}
+  @type tcommitter :: %{name: bitstring, email: bitstring}
 
   @spec get_pr!(tconn, integer | bitstring) :: BorsNG.GitHub.Pr.t
   def get_pr!(repo_conn, pr_xref) do
@@ -95,7 +96,8 @@ defmodule BorsNG.GitHub do
     branch: bitstring,
     tree: bitstring,
     parents: [bitstring],
-    commit_message: bitstring}) :: binary
+    commit_message: bitstring,
+    committer: tcommitter}) :: binary
   def synthesize_commit!(repo_conn, info) do
     {:ok, sha} = GenServer.call(
       BorsNG.GitHub,

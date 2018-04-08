@@ -134,7 +134,8 @@ defmodule BorsNG.Worker.Attemptor do
         branch: stmp,
         tree: base.tree,
         parents: [base.commit],
-        commit_message: "[ci skip]"
+        commit_message: "[ci skip]",
+        committer: nil
         })
     merged = GitHub.merge_branch!(
       repo_conn,
@@ -149,48 +150,50 @@ defmodule BorsNG.Worker.Attemptor do
         |> Attempt.changeset(%{state: :error})
         |> Repo.update!()
       _ ->
-        commit = GitHub.synthesize_commit!(
+        toml = Batcher.GetBorsToml.get(
           repo_conn,
-          %{
-            branch: project.trying_branch,
-            tree: merged.tree,
-            parents: [base.commit, patch.commit],
-            commit_message: "Try \##{patch.pr_xref}:#{arguments}"
-            })
-        state = setup_statuses(repo_conn, attempt, project, patch)
-        now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-        attempt
-        |> Attempt.changeset(%{state: state, commit: commit, last_polled: now})
-        |> Repo.update!()
+          stmp)
+        case toml do
+          {:ok, toml} ->
+            commit = GitHub.synthesize_commit!(
+              repo_conn,
+              %{
+                branch: project.trying_branch,
+                tree: merged.tree,
+                parents: [base.commit, patch.commit],
+                commit_message: "Try \##{patch.pr_xref}:#{arguments}",
+                committer: toml.committer
+                })
+            state = setup_statuses(attempt, toml)
+            now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+            attempt
+            |> Attempt.changeset(%{
+              state: state, commit: commit, last_polled: now})
+            |> Repo.update!()
+          {:error, message} ->
+            setup_statuses_error(repo_conn,
+              attempt,
+              patch,
+              message)
+            :error
+        end
     end
     GitHub.delete_branch!(repo_conn, stmp)
   end
 
-  defp setup_statuses(repo_conn, attempt, project, patch) do
-    toml = Batcher.GetBorsToml.get(
-      repo_conn,
-      project.trying_branch)
-    case toml do
-      {:ok, toml} ->
-        toml.status
-        |> Enum.map(&%AttemptStatus{
-            attempt_id: attempt.id,
-            identifier: &1,
-            url: nil,
-            state: :running})
-        |> Enum.each(&Repo.insert!/1)
-        now = DateTime.to_unix(DateTime.utc_now(), :seconds)
-        attempt
-        |> Attempt.changeset(%{timeout_at: now + toml.timeout_sec})
-        |> Repo.update!()
-        :running
-      {:error, message} ->
-        setup_statuses_error(repo_conn,
-          attempt,
-          patch,
-          message)
-        :error
-    end
+  defp setup_statuses(attempt, toml) do
+    toml.status
+    |> Enum.map(&%AttemptStatus{
+        attempt_id: attempt.id,
+        identifier: &1,
+        url: nil,
+        state: :running})
+    |> Enum.each(&Repo.insert!/1)
+    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    attempt
+    |> Attempt.changeset(%{timeout_at: now + toml.timeout_sec})
+    |> Repo.update!()
+    :running
   end
 
   defp setup_statuses_error(repo_conn, attempt, patch, message) do

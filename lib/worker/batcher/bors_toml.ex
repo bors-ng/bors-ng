@@ -15,7 +15,12 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     timeout_sec: (60 * 60),
     required_approvals: 0,
     cut_body_after: nil,
-    delete_merged_branches: false
+    delete_merged_branches: false,
+    committer: nil
+
+  @type tcommitter :: %{
+    name: binary,
+    email: binary}
 
   @type t :: %BorsNG.Worker.Batcher.BorsToml{
     status: [binary],
@@ -24,7 +29,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     timeout_sec: integer,
     required_approvals: integer,
     cut_body_after: binary | nil,
-    delete_merged_branches: boolean}
+    delete_merged_branches: boolean,
+    committer: tcommitter}
 
   @type err :: :status |
     :block_labels |
@@ -32,16 +38,33 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     :timeout_sec |
     :required_approvals |
     :cut_body_after |
+    :committer_details |
     :empty_config |
     :parse_failed
+
+  defp to_map(toml) do
+    toml
+      |> Enum.map(fn {key, val} -> {String.replace(key, "-", "_"), val} end)
+      |> Map.new()
+  end
 
   @spec new(binary) :: {:ok, t} | {:error, err}
   def new(str) when is_binary(str) do
     case :etoml.parse(str) do
       {:ok, toml} ->
-        toml = toml
-        |> Enum.map(fn {key, val} -> {String.replace(key, "-", "_"), val} end)
-        |> Map.new()
+        toml = to_map toml
+
+        committer = Map.get(toml, "committer", nil)
+        committer = case committer do
+          nil -> nil
+          _ ->
+            c = to_map committer
+            %{
+              name: Map.get(c, "name", nil),
+              email: Map.get(c, "email", nil),
+            }
+        end
+
         toml = %BorsNG.Worker.Batcher.BorsToml{
           status: Map.get(toml, "status", []),
           block_labels: Map.get(toml, "block_labels", []),
@@ -51,7 +74,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           cut_body_after: Map.get(toml, "cut_body_after", nil),
           delete_merged_branches: Map.get(toml,
                                           "delete_merged_branches",
-                                          false)
+                                          false),
+          committer: committer
         }
         case toml do
           %{status: status} when not is_list status ->
@@ -68,6 +92,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             {:error, :cut_body_after}
           %{status: [], block_labels: [], pr_status: []} ->
             {:error, :empty_config}
+          %{committer: %{name: n, email: e}} when (is_nil n) or (is_nil e) ->
+            {:error, :committer_details}
           toml -> {:ok, toml}
         end
       {:error, _error} -> {:error, :parse_failed}

@@ -239,7 +239,8 @@ defmodule BorsNG.GitHub.ServerMock do
     branch: branch,
     tree: tree,
     parents: parents,
-    commit_message: commit_message}}, state) do
+    commit_message: commit_message,
+    committer: _committer}}, state) do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, branches} <- Map.fetch(repo, :branches),
          {:ok, commits} <- Map.fetch(repo, :commits) do

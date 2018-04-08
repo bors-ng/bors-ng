@@ -254,7 +254,8 @@ defmodule BorsNG.Worker.Batcher do
         branch: stmp,
         tree: base.tree,
         parents: [base.commit],
-        commit_message: "[ci skip]"})
+        commit_message: "[ci skip]",
+        committer: nil})
     do_merge_patch = fn %{patch: patch}, branch ->
       case branch do
         :conflict -> :conflict
@@ -300,7 +301,8 @@ defmodule BorsNG.Worker.Batcher do
             branch: batch.project.staging_branch,
             tree: tree,
             parents: parents,
-            commit_message: commit_message})
+            commit_message: commit_message,
+            committer: toml.committer})
         setup_statuses(batch, toml)
         {:running, head}
       {:error, message} ->
