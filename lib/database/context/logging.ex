@@ -15,7 +15,7 @@ defmodule BorsNG.Database.Context.Logging do
   def most_recent_cmd(%Patch{id: id}) do
     from(l in Log)
     |> where([l], l.patch_id == ^id)
-    |> order_by([l], [desc: l.updated_at])
+    |> order_by([l], [desc: l.updated_at, desc: l.id])
     |> preload([l], :user)
     |> limit(1)
     |> Repo.all()

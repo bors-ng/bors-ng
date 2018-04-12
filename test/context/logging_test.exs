@@ -29,6 +29,7 @@ defmodule BorsNG.Database.Context.LoggingTest do
     %{patch: patch, user: user} = params
     Logging.log_cmd(patch, user, :cmd1)
     Logging.log_cmd(patch, user, :cmd2)
-    assert {user, :cmd2} == Logging.most_recent_cmd(patch)
+    user_id = user.id
+    assert {%User{id: ^user_id}, :cmd2} = Logging.most_recent_cmd(patch)
   end
 end
