@@ -53,6 +53,12 @@ defmodule Mix.Tasks.Bors.Cleanup do
               and p.updated_at < datetime_add(^NaiveDateTime.utc_now,
                 ^negative_months, "month")))
 
+          # Delete all the old crash reports
+          BorsNG.Database.Repo.delete_all(
+            from p in BorsNG.Database.Crash,
+            where: p.updated_at < datetime_add(^NaiveDateTime.utc_now,
+                ^negative_months, "month"))
+
           pid && repo.stop(pid)
         end
     end
