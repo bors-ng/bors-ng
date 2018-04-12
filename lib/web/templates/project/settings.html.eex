@@ -55,7 +55,7 @@
 
 <section class=split-item>
 <h2 class=header>Members</h2>
-<p>permission to run "bors try", and, in the future, to run "bors retry"</p>
+<p>permission to run the <code>try</code> and <code>retry</code> commands</p>
 <table class="table">
   <tbody>
 <%= for member <- @members do %>
