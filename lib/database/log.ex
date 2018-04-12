@@ -1,4 +1,7 @@
 defmodule BorsNG.Database.Log.Cmd do
+  @moduledoc """
+  An already-parsed bors command. Represented as a binary Erlang term.
+  """
   def type, do: :binary
   def load(any), do: cast(any)
   def cast(binary = << 131, _ :: binary >>) do
