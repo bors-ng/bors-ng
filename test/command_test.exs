@@ -123,7 +123,7 @@ defmodule BorsNG.CommandTest do
 
     c = %Command{
       project: proj,
-      commenter: "commenter",
+      commenter: nil,
       comment: "bors ping",
       pr_xref: 1
     }
@@ -172,9 +172,14 @@ defmodule BorsNG.CommandTest do
       into_branch: "master"
     })
 
+    {:ok, commenter} = Repo.insert(%BorsNG.Database.User{
+      user_xref: 1,
+      login: "commenter",
+    })
+
     c = %Command{
       project: proj,
-      commenter: "commenter",
+      commenter: commenter,
       comment: "bors ping",
       pr_xref: 1
     }

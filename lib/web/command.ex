@@ -20,6 +20,7 @@ defmodule BorsNG.Command do
   alias BorsNG.Worker.Attemptor
   alias BorsNG.Worker.Batcher
   alias BorsNG.Command
+  alias BorsNG.Database.Context.Logging
   alias BorsNG.Database.Context.Permission
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Patch
@@ -288,6 +289,7 @@ defmodule BorsNG.Command do
     |> required_permission_level()
     |> Permission.permission?(c.commenter, c.patch)
     |> if do
+      Enum.each(cmd_list, &log(c, &1))
       Enum.each(cmd_list, &run(c, &1))
     else
       permission_denied(c)
@@ -337,6 +339,11 @@ defmodule BorsNG.Command do
 
       Existing reviewers: [click here to make #{login} a reviewer](#{url})
       """)
+  end
+
+  @spec log(t, cmd) :: :ok
+  def log(c, cmd) do
+    Logging.log_cmd(c.patch, c.commenter, cmd)
   end
 
   @spec run(t, cmd) :: :ok
