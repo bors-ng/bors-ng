@@ -1,11 +1,6 @@
 defmodule BorsNG.Database.Crash do
   @moduledoc """
-  Records of the 
-  Corresponds to a pull request in GitHub.
-
-  A closed patch may not be r+'ed,
-  nor can a patch associated with a completed batch be r+'ed again,
-  though a patch may be merged and r+'ed at the same time.
+  Crash dumps.
   """
 
   use BorsNG.Database.Model

@@ -20,6 +20,7 @@ defmodule BorsNG.Command do
   alias BorsNG.Worker.Attemptor
   alias BorsNG.Worker.Batcher
   alias BorsNG.Command
+  alias BorsNG.Database.Context.Logging
   alias BorsNG.Database.Context.Permission
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Patch
@@ -94,7 +95,8 @@ defmodule BorsNG.Command do
     :delegate |
     {:delegate_to, binary} |
     {:autocorrect, binary} |
-    :ping
+    :ping |
+    :retry
 
   @doc """
   Parse a comment for bors commands.
@@ -132,6 +134,7 @@ defmodule BorsNG.Command do
   def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
   def parse_cmd("ping" <> _), do: [:ping]
   def parse_cmd("p=" <> rest), do: parse_priority(rest)
+  def parse_cmd("retry" <> _), do: [:retry]
   def parse_cmd(_), do: []
 
   @doc ~S"""
@@ -289,6 +292,7 @@ defmodule BorsNG.Command do
     |> Permission.permission?(c.commenter, c.patch)
     |> if do
       Enum.each(cmd_list, &run(c, &1))
+      Enum.each(cmd_list, &log(c, &1))
     else
       permission_denied(c)
     end
@@ -301,6 +305,9 @@ defmodule BorsNG.Command do
     :none
   end
   def required_permission_level_cmd({:try, _}) do
+    :member
+  end
+  def required_permission_level_cmd(:retry) do
     :member
   end
   def required_permission_level_cmd(_) do
@@ -337,6 +344,11 @@ defmodule BorsNG.Command do
 
       Existing reviewers: [click here to make #{login} a reviewer](#{url})
       """)
+  end
+
+  @spec log(t, cmd) :: :ok
+  def log(c, cmd) do
+    Logging.log_cmd(c.patch, c.commenter, cmd)
   end
 
   @spec run(t, cmd) :: :ok
@@ -389,6 +401,10 @@ defmodule BorsNG.Command do
       user -> user
     end
     delegate_to(c, delegatee)
+  end
+  def run(c, :retry) do
+    {commenter, cmd} = Logging.most_recent_cmd(c.patch)
+    run(%{c | commenter: commenter}, cmd)
   end
 
   def delegate_to(c, delegatee) do
