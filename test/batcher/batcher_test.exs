@@ -780,6 +780,58 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+  test "merge conflict", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"iniN" => %{}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
+      },
+      :merge_conflict => 0,
+    })
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :waiting
+    # Polling at the same time doesn't change that.
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :waiting
+    # Polling at a later time (yeah, I'm setting the clock back to do it)
+    # kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :error
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => ""},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]}},
+        comments: %{1 => ["# Merge conflict"]},
+        statuses: %{"N" => %{"bors" => :error}, "iniN" => %{}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{1 => [
+          %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
+      },
+      :merge_conflict => 0,
+    }
+  end
+
   test "full runthrough and continue", %{proj: proj} do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{

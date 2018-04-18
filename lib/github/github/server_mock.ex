@@ -92,12 +92,13 @@ defmodule BorsNG.GitHub.ServerMock do
       commits: %{bitstring => tsynthesized},
       statuses: %{tbranch => %{bitstring => :open | :closed | :running}},
       files: %{tbranch => %{bitstring => bitstring}},
-      collaborators: [tcollaborator]
+      collaborators: [tcollaborator],
     },
     {:installation, number} => %{
       repos: [trepo]
     },
-    :users => %{bitstring => tuser}
+    :users => %{bitstring => tuser},
+    :merge_conflict => integer,
   }
 
   def put_state(state) do
@@ -210,6 +211,21 @@ defmodule BorsNG.GitHub.ServerMock do
       {:ok, _} = res -> res
       _ -> {{:error, :get_branch}, state}
     end
+  end
+
+  def do_handle_call(:merge_branch, _, _,
+    %{merge_conflict: 0} = state) do
+    {{:ok, :conflict}, state}
+  end
+
+  def do_handle_call(:merge_branch, repo_conn, params,
+    %{merge_conflict: n} = state) when is_integer(n) do
+    {result, state} = do_handle_call(
+      :merge_branch,
+      repo_conn,
+      params,
+      %{state | :merge_conflict => nil})
+    {result, %{state | :merge_conflict => n - 1}}
   end
 
   def do_handle_call(:merge_branch, repo_conn, {%{
