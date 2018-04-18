@@ -66,7 +66,10 @@ defmodule BorsNG.Worker.Batcher do
   # Server callbacks
 
   def init(project_id) do
-    Process.send_after(self(), {:poll, :repeat}, @poll_period)
+    Process.send_after(
+      self(),
+      {:poll, :repeat},
+      @poll_period * :rand.uniform(2) * 0.5)
     {:ok, project_id}
   end
 
