@@ -25,6 +25,7 @@ defmodule BorsNG.Database.BatchState do
       :running  -> {:ok, :running}
       :ok       -> {:ok, :ok}
       :error    -> {:ok, :error}
+      :conflict -> {:ok, :error}
       :canceled -> {:ok, :canceled}
       _         -> :error
     end
