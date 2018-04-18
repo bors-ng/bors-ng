@@ -248,14 +248,16 @@ defmodule BorsNG.Worker.Batcher do
     base = GitHub.get_branch!(
       repo_conn,
       batch.into_branch)
-    tbase = GitHub.synthesize_commit!(
-      repo_conn,
-      %{
-        branch: stmp,
-        tree: base.tree,
-        parents: [base.commit],
-        commit_message: "[ci skip]",
-        committer: nil})
+    tbase = %{
+      tree: base.tree,
+      commit: GitHub.synthesize_commit!(
+        repo_conn,
+        %{
+          branch: stmp,
+          tree: base.tree,
+          parents: [base.commit],
+          commit_message: "[ci skip]",
+          committer: nil})}
     do_merge_patch = fn %{patch: patch}, branch ->
       case branch do
         :conflict -> :conflict
