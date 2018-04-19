@@ -69,7 +69,7 @@ defmodule BorsNG.Worker.Batcher do
     Process.send_after(
       self(),
       {:poll, :repeat},
-      @poll_period * :rand.uniform(2) * 0.5)
+      trunc(@poll_period * :rand.uniform(2) * 0.5))
     {:ok, project_id}
   end
 
