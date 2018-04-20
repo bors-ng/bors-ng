@@ -73,13 +73,6 @@ defmodule BorsNG.Database.Patch do
       where: p.project_id == ^project_id
   end
 
-  def all_for_user(user_id, :awaiting_review) do
-    from p in Patch.all(:awaiting_review),
-      preload: :project,
-      join: lu in LinkUserProject, on: lu.project_id == p.project_id,
-      where: lu.user_id == ^user_id
-  end
-
   def dups_in_batches do
     all = all_links_not_err()
     from p in Patch,

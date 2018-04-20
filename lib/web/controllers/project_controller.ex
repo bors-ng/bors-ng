@@ -12,6 +12,7 @@ defmodule BorsNG.ProjectController do
   use BorsNG.Web, :controller
 
   alias BorsNG.Worker.Batcher
+  alias BorsNG.Database.Context.Dashboard
   alias BorsNG.Database.Context.Permission
   alias BorsNG.Database.Repo
   alias BorsNG.Database.LinkMemberProject
@@ -51,9 +52,19 @@ defmodule BorsNG.ProjectController do
   # Two-item ones have a project ID inputed
   # One-item ones don't
 
+  def index(conn, %{"mode" => "reviewer"}) do
+    index_(conn, :reviewer)
+  end
+  def index(conn, %{"mode" => "member"}) do
+    index_(conn, :member)
+  end
   def index(conn, _params) do
-    projects = Repo.all(Project.by_owner(conn.assigns.user.id))
-    render conn, "index.html", projects: projects
+    index_(conn, :all)
+  end
+
+  defp index_(conn, filter) do
+    projects = Dashboard.my_projects(conn.assigns.user.id, filter)
+    render conn, "index.html", projects: projects, filter: filter
   end
 
   defp batch_info(batch) do
