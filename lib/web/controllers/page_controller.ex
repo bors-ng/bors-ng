@@ -8,12 +8,10 @@ defmodule BorsNG.PageController do
 
   use BorsNG.Web, :controller
 
-  alias BorsNG.Database.Repo
-  alias BorsNG.Database.Patch
+  alias BorsNG.Database.Context.Dashboard
 
   def index(conn, _params) do
     user = conn.assigns[:user]
-    patches = Repo.all(Patch.all_for_user(user.id, :awaiting_review))
-    render conn, "dashboard.html", %{patches: patches}
+    render conn, "dashboard.html", patches: Dashboard.my_patches(user.id)
   end
 end

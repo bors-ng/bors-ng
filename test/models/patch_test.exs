@@ -134,27 +134,6 @@ defmodule BorsNG.Database.PatchTest do
     assert got_patch.id == patch.id
   end
 
-  test "grab patches that a particular user has", %{project: project} do
-    batch = Repo.insert!(%Batch{project: project, state: 0})
-    patch = Repo.insert!(%Patch{
-      project: project,
-      pr_xref: 9,
-      title: "T",
-      body: "B",
-      commit: "C"})
-    patch2 = Repo.insert!(%Patch{
-      project: project,
-      pr_xref: 10,
-      title: "T",
-      body: "B",
-      commit: "C"})
-    Repo.insert!(%LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id})
-    user = Repo.insert!(%User{})
-    Repo.insert!(%LinkUserProject{user_id: user.id, project_id: project.id})
-    [got_patch] = Repo.all(Patch.all_for_user(user.id, :awaiting_review))
-    assert got_patch.id == patch.id
-  end
-
   test "forbid duplicate patches", %{project: project} do
     Repo.insert!(%Patch{
       project: project,
