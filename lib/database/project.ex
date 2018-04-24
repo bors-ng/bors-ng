@@ -34,7 +34,7 @@ defmodule BorsNG.Database.Project do
     field :batch_poll_period_sec, :integer, default: (60 * 30)
     field :batch_delay_sec, :integer, default: 10
     field :batch_timeout_sec, :integer, default: (60 * 60 * 2)
-    field :auto_reviewer_required_perm, ProjectPermission, default: :admin
+    field :auto_reviewer_required_perm, ProjectPermission, default: nil
     field :auto_member_required_perm, ProjectPermission, default: nil
 
     timestamps()
@@ -76,6 +76,14 @@ defmodule BorsNG.Database.Project do
     struct
     |> cast(params, [:staging_branch, :trying_branch])
     |> validate_required([:staging_branch, :trying_branch])
+  end
+  def changeset_reviewer_settings(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:auto_reviewer_required_perm])
+  end
+  def changeset_member_settings(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:auto_member_required_perm])
   end
 
   # Red flag queries
