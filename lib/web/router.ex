@@ -62,6 +62,8 @@ defmodule BorsNG.Router do
     get "/:id", ProjectController, :show
     get "/:id/settings", ProjectController, :settings
     put "/:id/settings/branches", ProjectController, :update_branches
+    put "/:id/settings/reviewer", ProjectController, :update_reviewer_settings
+    put "/:id/settings/member", ProjectController, :update_member_settings
     delete "/:id/batches/incomplete", ProjectController, :cancel_all
     post "/:id/reviewer", ProjectController, :add_reviewer
     post "/:id/member", ProjectController, :add_member

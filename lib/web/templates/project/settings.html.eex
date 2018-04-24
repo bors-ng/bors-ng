@@ -23,6 +23,13 @@
 <section class=split-item>
 <h2 class=header>Reviewers</h2>
 <p>permission to run any command, and to change repository settings</p>
+<%= form_for @update_reviewer_settings, project_path(@conn, :update_reviewer_settings, @project), [as: :project], fn f -> %>
+  <label for=project_auto_reviewer_required_perm>Synchronize</label>
+  <div class=toolbar>
+    <%= select f, :auto_reviewer_required_perm, BorsNG.Database.ProjectPermission.select_list %>
+    <%= submit "Update", class: "toolbar-item" %>
+  </div>
+<% end %>
 <table class="table">
   <tbody>
 <%= for reviewer <- @reviewers do %>
@@ -30,6 +37,7 @@
       <td>
         <%= reviewer.login %>
       </td>
+<%= if !@project.auto_reviewer_required_perm do %>
       <%= form_for @conn, project_path(@conn, :remove_reviewer, @project.id, reviewer.id), [as: :reviewer, method: :delete], fn _ -> %>
       <td class="fill-link">
   <%= if reviewer.id != @current_user_id do %>
@@ -37,8 +45,10 @@
   <% end %>
       </td>
       <% end %>
+<% end %>
     </tr>
 <% end %>
+<%= if !@project.auto_reviewer_required_perm do %>
     <tr role=row>
       <%= form_for @conn, project_path(@conn, :add_reviewer, @project.id), [as: :reviewer], fn f -> %>
       <td>
@@ -49,6 +59,7 @@
       </td>
       <% end %>
     </tr>
+<% end %>
   </tbody>
 </table>
 </section> <!-- class=split-item -->
@@ -56,6 +67,13 @@
 <section class=split-item>
 <h2 class=header>Members</h2>
 <p>permission to run the <code>try</code> and <code>retry</code> commands</p>
+<%= form_for @update_member_settings, project_path(@conn, :update_member_settings, @project), [as: :project], fn f -> %>
+  <label for=project_auto_member_required_perm>Synchronize</label>
+  <div class=toolbar>
+    <%= select f, :auto_member_required_perm, BorsNG.Database.ProjectPermission.select_list %>
+    <%= submit "Update", class: "toolbar-item" %>
+  </div>
+<% end %>
 <table class="table">
   <tbody>
 <%= for member <- @members do %>
@@ -63,13 +81,16 @@
       <td>
         <%= member.login %>
       </td>
+<%= if !@project.auto_member_required_perm do %>
       <%= form_for @conn, project_path(@conn, :remove_member, @project.id, member.id), [as: :member, method: :delete], fn _ -> %>
       <td class="fill-link">
         <%= submit "Remove", title: "Remove member", class: "table-button table-button--remove" %>
       </td>
       <% end %>
+<% end %>
     </tr>
 <% end %>
+<%= if !@project.auto_member_required_perm do %>
     <tr role=row>
       <%= form_for @conn, project_path(@conn, :add_member, @project.id), [as: :member], fn f -> %>
       <td>
@@ -80,6 +101,7 @@
       </td>
       <% end %>
     </tr>
+<% end %>
   </tbody>
 </table>
 </section> <!-- class=split-item -->

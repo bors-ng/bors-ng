@@ -117,6 +117,9 @@ defmodule BorsNG.ProjectController do
       reviewers: reviewers,
       members: members,
       current_user_id: conn.assigns.user.id,
+      update_reviewer_settings:
+        Project.changeset_reviewer_settings(project),
+      update_member_settings: Project.changeset_member_settings(project),
       update_branches: Project.changeset_branches(project)
   end
 
@@ -149,6 +152,65 @@ defmodule BorsNG.ProjectController do
     |> redirect(to: project_path(conn, :show, project))
   end
 
+  def update_reviewer_settings(_, :ro, _, _) do
+    raise BorsNG.PermissionDeniedError
+  end
+  def update_reviewer_settings(conn, :rw, project, %{"project" => pdef}) do
+    result = project
+    |> Project.changeset_reviewer_settings(pdef)
+    |> Repo.update()
+    case result do
+      {:ok, _} ->
+        Syncer.start_synchronize_project(project.id)
+        conn
+        |> put_flash(:ok, "Successfully updated reviewer settings")
+        |> redirect(to: project_path(conn, :settings, project))
+      {:error, changeset} ->
+        reviewers = Permission.list_users_for_project(:reviewer, project.id)
+        members = Permission.list_users_for_project(:member, project.id)
+        conn
+        |> put_flash(:error, "Cannot update branches")
+        |> render("settings.html",
+          project: project,
+          reviewers: reviewers,
+          members: members,
+          current_user_id: conn.assigns.user.id,
+          update_reviewer_settings: changeset,
+          update_member_settings: Project.changeset_member_settings(project),
+          update_branches: Project.changeset_branches(project))
+    end
+  end
+
+  def update_member_settings(_, :ro, _, _) do
+    raise BorsNG.PermissionDeniedError
+  end
+  def update_member_settings(conn, :rw, project, %{"project" => pdef}) do
+    result = project
+    |> Project.changeset_member_settings(pdef)
+    |> Repo.update()
+    case result do
+      {:ok, _} ->
+        Syncer.start_synchronize_project(project.id)
+        conn
+        |> put_flash(:ok, "Successfully updated member settings")
+        |> redirect(to: project_path(conn, :settings, project))
+      {:error, changeset} ->
+        reviewers = Permission.list_users_for_project(:reviewer, project.id)
+        members = Permission.list_users_for_project(:member, project.id)
+        conn
+        |> put_flash(:error, "Cannot update branches")
+        |> render("settings.html",
+          project: project,
+          reviewers: reviewers,
+          members: members,
+          current_user_id: conn.assigns.user.id,
+          update_reviewer_settings:
+            Project.changeset_reviewer_settings(project),
+          update_member_settings: changeset,
+          update_branches: Project.changeset_branches(project))
+    end
+  end
+
   def update_branches(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
   def update_branches(conn, :rw, project, %{"project" => pdef}) do
     result = project
@@ -169,6 +231,9 @@ defmodule BorsNG.ProjectController do
           reviewers: reviewers,
           members: members,
           current_user_id: conn.assigns.user.id,
+          update_reviewer_settings:
+            Project.changeset_reviewer_settings(project),
+          update_member_settings: Project.changeset_member_settings(project),
           update_branches: changeset)
     end
   end
