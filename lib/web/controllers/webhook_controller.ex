@@ -140,6 +140,7 @@ defmodule BorsNG.WebhookController do
     |> Enum.filter(&(@allow_private_repos || !&1.private))
     |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
     |> Enum.map(&%Project{
+      auto_reviewer_required_perm: :push,
       repo_xref: &1.id,
       name: &1.name,
       installation_id: installation.id})
@@ -341,7 +342,11 @@ defmodule BorsNG.WebhookController do
     |> GitHub.get_installation_repos!()
     |> Enum.filter(&(@allow_private_repos || !&1.private))
     |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
-    |> Enum.map(&%Project{repo_xref: &1.id, name: &1.name, installation: i})
+    |> Enum.map(&%Project{
+      auto_reviewer_required_perm: :push,
+      repo_xref: &1.id,
+      name: &1.name,
+      installation: i})
     |> Enum.map(&Repo.insert!/1)
     |> Enum.each(fn %Project{id: id} ->
       Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: id})
