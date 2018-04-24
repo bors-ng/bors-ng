@@ -4,10 +4,8 @@ defmodule BorsNG.Database.PatchTest do
   alias BorsNG.Database.Batch
   alias BorsNG.Database.Installation
   alias BorsNG.Database.LinkPatchBatch
-  alias BorsNG.Database.LinkUserProject
   alias BorsNG.Database.Project
   alias BorsNG.Database.Patch
-  alias BorsNG.Database.User
 
   setup do
     installation = Repo.insert!(%Installation{

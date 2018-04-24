@@ -22,8 +22,7 @@ defmodule BorsNG.Database.DashboardContextTest do
     {:ok, installation: installation, project: project}
   end
 
-  test "grab project by user", %{installation: installation,
-    project: project} do
+  test "grab project by user", %{project: project} do
     user = Repo.insert!(%User{
       login: "X",
       })
@@ -32,8 +31,7 @@ defmodule BorsNG.Database.DashboardContextTest do
     assert project_x.id == project.id
   end
 
-  test "avoid project by other user", %{installation: installation,
-    project: project} do
+  test "avoid project by other user", %{project: project} do
     user = Repo.insert!(%User{
       login: "X",
       })

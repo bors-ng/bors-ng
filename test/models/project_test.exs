@@ -3,8 +3,6 @@ defmodule BorsNG.Database.ProjectTest do
 
   alias BorsNG.Database.Installation
   alias BorsNG.Database.Project
-  alias BorsNG.Database.User
-  alias BorsNG.Database.LinkUserProject
 
   setup do
     installation = Repo.insert!(%Installation{
