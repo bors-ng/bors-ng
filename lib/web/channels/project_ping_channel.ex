@@ -15,14 +15,17 @@ defmodule BorsNG.ProjectPingChannel do
 
   use BorsNG.Web, :channel
 
-  alias BorsNG.Database.Repo
-  alias BorsNG.Database.User
+  alias BorsNG.Database.Project
+  alias BorsNG.Database.Context.Permission
 
   def join("project_ping:" <> project_id, _message, socket) do
-    with(
-      %{assigns: %{user: user}} <- socket,
-      true <- User.has_perm(Repo, user, project_id),
-      do: {:ok, socket})
+    (not Confex.fetch_env!(:bors, BorsNG)[:allow_private_repos]) ||
+      Permission.get_permission(socket.assigns.user, %Project{id: project_id})
+    |> if do
+      {:ok, socket}
+    else
+      {:error, :permission_denied}
+    end
   end
 
   def handle_out(topic, msg, socket) do
