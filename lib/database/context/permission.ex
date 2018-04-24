@@ -37,6 +37,19 @@ defmodule BorsNG.Database.Context.Permission do
     true
   end
 
+  def get_permission(nil, _) do
+    nil
+  end
+  def get_permission(user, project) do
+    %User{id: user_id} = user
+    %Project{id: project_id} = project
+    cond do
+      project_reviewer?(user_id, project_id) -> :reviewer
+      project_member?(user_id, project_id) -> :member
+      true -> nil
+    end
+  end
+
   defp project_reviewer?(user_id, project_id) do
     LinkUserProject
     |> where([l], l.user_id == ^user_id and l.project_id == ^project_id)

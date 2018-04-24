@@ -37,10 +37,13 @@ defmodule BorsNG.ProjectController do
     project = Project
     |> from(preload: [:installation])
     |> Repo.get!(id)
-    mode = cond do
-      User.has_perm(Repo, conn.assigns.user, project.id) -> :rw
-      !allow_private_repos -> :ro
-      true -> raise BorsNG.PermissionDeniedError
+    mode = conn.assigns.user
+    |> Permission.get_permission(project)
+    |> case do
+      :reviewer -> :rw
+      :member -> :ro
+      _ when not allow_private_repos -> :ro
+      _ -> raise BorsNG.PermissionDeniedError
     end
     apply(__MODULE__, action, [conn, mode, project, params])
   end

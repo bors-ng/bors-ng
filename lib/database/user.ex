@@ -17,15 +17,6 @@ defmodule BorsNG.Database.User do
     timestamps()
   end
 
-  def has_perm(_repo, %User{is_admin: true}, _project_id) do
-    true
-  end
-
-  def has_perm(repo, %User{id: id}, project_id) do
-    params = [project_id: project_id, user_id: id]
-    not is_nil repo.get_by(LinkUserProject, params)
-  end
-
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """
