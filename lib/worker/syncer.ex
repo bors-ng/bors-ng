@@ -17,10 +17,14 @@ defmodule BorsNG.Worker.Syncer do
 
   require Logger
 
-  def start_synchronize_project(project_id) do
+  def start_synchronize_project(project) do
     {:ok, _} = Task.Supervisor.start_child(
       Syncer.Supervisor,
-      fn -> synchronize_project(project_id) end)
+      fn -> synchronize_project(project) end)
+  end
+
+  def synchronize_project(%Project{id: id}) do
+    synchronize_project(id)
   end
 
   def synchronize_project(project_id) do
