@@ -37,9 +37,11 @@ defmodule BorsNG.ProjectController do
     project = Project
     |> from(preload: [:installation])
     |> Repo.get!(id)
+    admin? = conn.assigns.user.is_admin
     mode = conn.assigns.user
     |> Permission.get_permission(project)
     |> case do
+      _ when admin? -> :rw
       :reviewer -> :rw
       :member -> :ro
       _ when not allow_private_repos -> :ro

@@ -89,6 +89,27 @@ defmodule BorsNG.ProjectControllerTest do
    end
   end
 
+  test "show an unlinked project to admin", %{
+    conn: conn, project: project, user: user} do
+    user
+    |> User.changeset(%{is_admin: true})
+    |> Repo.update!()
+    conn = login conn
+    conn = get conn, project_path(conn, :show, project)
+    assert html_response(conn, 200) =~ "example/project"
+  end
+
+  test "show an unlinked project's settings to admin", %{
+    conn: conn, project: project, user: user} do
+    user
+    |> User.changeset(%{is_admin: true})
+    |> Repo.update!()
+    conn = login conn
+    conn = get conn, project_path(conn, :settings, project)
+    assert html_response(conn, 200) =~ "example/project"
+    assert html_response(conn, 200) =~ "Reviewer"
+  end
+
   test "add a known reviewer", %{conn: conn, project: project, user: user} do
     Repo.insert! %LinkUserProject{user_id: user.id, project_id: project.id}
     Repo.insert! %User{login: "case", user_xref: 9999}
