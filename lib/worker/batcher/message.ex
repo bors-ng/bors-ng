@@ -40,6 +40,9 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message({:preflight, :blocked_review}) do
     ":-1: Rejected by code reviews"
   end
+  def generate_message({:preflight, :ci_skip}) do
+    "Has [ci skip], bors build will time out"
+  end
   def generate_message(:not_awaiting_review) do
     "Not awaiting review"
   end
@@ -63,9 +66,6 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
   def generate_message({:canceled, :retrying}) do
     "# Canceled (will resume)"
-  end
-  def generate_message(:ci_skip) do
-    "Has [ci skip], bors build will time out"
   end
   def generate_message({state, statuses}) do
     msg = case state do
