@@ -63,7 +63,7 @@ defmodule BorsNG.Worker.Attemptor do
         if Patch.ci_skip?(patch) do
           project
           |> get_repo_conn()
-          |> send_message(patch, :ci_skip)
+          |> send_message(patch, {:preflight, :ci_skip})
         else
           patch
           |> Attempt.new()

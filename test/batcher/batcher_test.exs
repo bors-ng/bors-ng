@@ -275,7 +275,7 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{
           1 => [":-1: Rejected by label"]},
         labels: %{1 => ["no"]},
-        statuses: %{"Z" => %{"bors" => :error}},
+        statuses: %{"Z" => %{}},
         files: %{"Z" => %{"bors.toml" =>
           ~s/status = [ "ci" ]\nblock_labels = [ "no" ]/}},
       }}
@@ -305,7 +305,7 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{
           1 => [":-1: Rejected by PR status"]},
-        statuses: %{"Z" => %{"bors" => :error, "cn" => :error}},
+        statuses: %{"Z" => %{"cn" => :error}},
         files: %{"Z" => %{"bors.toml" =>
           ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
       }}
@@ -336,7 +336,7 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{
           1 => [":-1: Rejected by code reviews"]},
-        statuses: %{"Z" => %{"bors" => :error, "cn" => :ok}},
+        statuses: %{"Z" => %{"cn" => :ok}},
         files: %{"Z" => %{"bors.toml" =>
                            ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
         reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}},
@@ -372,7 +372,7 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{
           1 => [":-1: Rejected by too few approved reviews"]},
-        statuses: %{"Z" => %{"bors" => :error, "cn" => :ok}},
+        statuses: %{"Z" => %{"cn" => :ok}},
         files: %{"Z" => %{"bors.toml" =>
                            ~s"""
                              status = [ "ci" ]
@@ -381,6 +381,8 @@ defmodule BorsNG.Worker.BatcherTest do
                              """}},
         reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
       }}
+    # When preflight checks reject a patch, no batch should be created!
+    assert [] == Repo.all(Batch)
   end
 
   test "accepts a patch with approvals", %{proj: proj} do
