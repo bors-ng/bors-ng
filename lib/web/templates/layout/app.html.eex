@@ -73,10 +73,7 @@
 
     <footer role=navigation class=show-on-narrow>
       <div class=wrapper>
-        <a class=header-link href="https://bors.tech">Home</a>
-        <a class=header-link href="https://forum.bors.tech">Forum</a>
-        <a class=header-link href="https://bors.tech/documentation/getting-started/">Docs</a>
-        <b class=header-link>Dashboard</b>
+          <%= {:safe, get_header_html()} %>
       </div>
     </footer>
     <footer role=note>
