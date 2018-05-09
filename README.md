@@ -223,18 +223,22 @@ For each of these sections, set the following overall section permissions and ch
 - *Repository projects*: No access
 - *Organization members*: No access
 - *Organization projects*: No access
+- *Checks*: Read & Write
+  - *Check suite* (CheckSuite created from the API)
 
 #### Permission explanations
 
 *Repository metadata* will be read-only. Must be set to receive *Repository* events to automatically remove entries from our database when a repo is deleted.
 
-*Commit statuses* must be set to *Read & write* to report a testing status. Also must get *Status* events to integrate with CI systems that report their status via GitHub.
+*Commit statuses* must be set to *Read & write* to report a testing status (this is the older version). Also must get *Status* events to integrate with CI systems that report their status via GitHub.
 
 *Issues* must be set to *Read & write* because pull requests are issues. *Issue comment* events must be enabled to get the "bors r+" comments. If *Issues* is set to Read-only, repos will end up with pull requests that are marked as simultaneously merged and opened.
 
 *Pull requests* must be set to *Read & write* to be able to post pull request comments. Also, must receive *Pull request* events to be able to keep the dashboard working, and must get *Pull request review* and *Pull request review comment* events to get those kinds of comments.
 
 *Repository contents*: Must be set to *Read-write* to be able to create merge commits.
+
+*Checks* must be set to *Read & write* to report a testing status (this is the newer version). Also must get *Check suite* events to integrate with CI systems that report their status via GitHub.
 
 ### After you click the "Create" button
 
