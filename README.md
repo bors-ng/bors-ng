@@ -224,7 +224,7 @@ For each of these sections, set the following overall section permissions and ch
 - *Organization members*: No access
 - *Organization projects*: No access
 - *Checks*: Read & Write
-  - *Check suite* (CheckSuite created from the API)
+  - *Check run* (CheckSuite created from the API)
 
 #### Permission explanations
 
@@ -238,7 +238,7 @@ For each of these sections, set the following overall section permissions and ch
 
 *Repository contents*: Must be set to *Read-write* to be able to create merge commits.
 
-*Checks* must be set to *Read & write* to report a testing status (this is the newer version). Also must get *Check suite* events to integrate with CI systems that report their status via GitHub.
+*Checks* must be set to *Read & write* to report a testing status (this is the newer version). Also must get *Check run* events to integrate with CI systems that report their status via GitHub.
 
 ### After you click the "Create" button
 
