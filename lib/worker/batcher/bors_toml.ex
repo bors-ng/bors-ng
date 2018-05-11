@@ -10,6 +10,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
       pr_status = [ "continuous-integration/travis-ci/pull" ]
   """
+  
+  alias BorsNG.GitHub
 
   defstruct status: [], block_labels: [], pr_status: [],
     timeout_sec: (60 * 60),
@@ -66,7 +68,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
         end
 
         toml = %BorsNG.Worker.Batcher.BorsToml{
-          status: Map.get(toml, "status", []),
+          status: Map.get(toml, "status", [])
+            |> Enum.map(&GitHub.map_changed_status/1),
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
