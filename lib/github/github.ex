@@ -205,12 +205,29 @@ defmodule BorsNG.GitHub do
     end
   end
 
+  @spec map_check_to_status(binary) :: tstatus
+  def map_check_to_status(conclusion) do
+    case conclusion do
+      nil -> :running
+      "success" -> :ok
+      _ -> :error
+    end
+  end
+
   @spec map_status_to_state(tstatus) :: binary
   def map_status_to_state(state) do
     case state do
       :running -> "pending"
       :ok -> "success"
       :error -> "failure"
+    end
+  end
+
+  @spec map_changed_status(binary) :: binary
+  def map_changed_status(check_name) do
+    case check_name do
+      "Travis CI - Branch" -> "continuous-integration/travis-ci/push"
+      check_name -> check_name
     end
   end
 end
