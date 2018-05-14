@@ -222,7 +222,7 @@ defmodule BorsNG.GitHub do
       :error -> "failure"
     end
   end
-  
+
   @spec map_changed_status(binary) :: binary
   def map_changed_status(check_name) do
     case check_name do

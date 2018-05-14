@@ -10,7 +10,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
       pr_status = [ "continuous-integration/travis-ci/pull" ]
   """
-  
+
   alias BorsNG.GitHub
 
   defstruct status: [], block_labels: [], pr_status: [],

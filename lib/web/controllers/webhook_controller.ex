@@ -216,7 +216,7 @@ defmodule BorsNG.WebhookController do
       |> Command.run()
     end
   end
-  
+
   # The check suite is automatically added by GitHub.
   # But don't start until the user writes "r+"
   def do_webhook(_conn, "github", "check_suite") do
