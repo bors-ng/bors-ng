@@ -68,8 +68,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
         end
 
         toml = %BorsNG.Worker.Batcher.BorsToml{
-          status: Map.get(toml, "status", [])
-            |> Enum.map(&GitHub.map_changed_status/1),
+          status: Map.get(toml, "status", []),
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
@@ -97,7 +96,12 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             {:error, :empty_config}
           %{committer: %{name: n, email: e}} when (is_nil n) or (is_nil e) ->
             {:error, :committer_details}
-          toml -> {:ok, toml}
+          toml -> {:ok, %{toml |
+            status: toml.status
+            |> Enum.map(&GitHub.map_changed_status/1),
+            pr_status: toml.pr_status
+            |> Enum.map(&GitHub.map_changed_status/1),
+          }}
         end
       {:error, _error} -> {:error, :parse_failed}
     end
