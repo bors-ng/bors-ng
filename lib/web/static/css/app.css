@@ -183,9 +183,11 @@ footer {
 }
 /* The tab bar. */
 .tabs {
-  margin: -1px auto;
+  margin: 0 auto;
   padding: 0 20px;
   max-width: 1000px;
+  position: relative;
+  top: 1px;
 }
 .tabs::after {
   content: ". . . . . . . . . . ";
