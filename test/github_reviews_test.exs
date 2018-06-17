@@ -12,8 +12,7 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "APPROVED",
-        "author_association" => "ADMIN"}])
+        "state" => "APPROVED"}])
     assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}
   end
 
@@ -21,8 +20,7 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "CHANGES_REQUESTED",
-        "author_association" => "ADMIN"}])
+        "state" => "CHANGES_REQUESTED"}])
     assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}
   end
 
@@ -30,12 +28,10 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "APPROVED",
-        "author_association" => "ADMIN"},
+        "state" => "APPROVED"},
       %{
         "user" => %{"id" => 1},
-        "state" => "CHANGES_REQUESTED",
-        "author_association" => "ADMIN"}])
+        "state" => "CHANGES_REQUESTED"}])
     assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}
   end
 
@@ -43,12 +39,10 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "CHANGES_REQUESTED",
-        "author_association" => "ADMIN"},
+        "state" => "CHANGES_REQUESTED"},
       %{
         "user" => %{"id" => 1},
-        "state" => "APPROVED",
-        "author_association" => "ADMIN"}])
+        "state" => "APPROVED"}])
     assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}
   end
 
@@ -56,12 +50,10 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "CHANGES_REQUESTED",
-        "author_association" => "ADMIN"},
+        "state" => "CHANGES_REQUESTED"},
       %{
         "user" => %{"id" => 2},
-        "state" => "APPROVED",
-        "author_association" => "ADMIN"}])
+        "state" => "APPROVED"}])
     assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 1}
   end
 end

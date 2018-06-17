@@ -530,9 +530,9 @@ defmodule BorsNG.Worker.Batcher do
     %{"CHANGES_REQUESTED" => failed, "APPROVED" => passed} = reviews
 
     case {failed, passed} do
-      {0, approved} when approved >= required -> :sufficient
-      {0, approved} when approved < required -> :insufficient
-      _ -> :failed
+      {failed, 0} when failed > 0 -> :failed
+      {_, approved} when approved >= required -> :sufficient
+      {0, _} -> :insufficient
     end
   end
 
