@@ -23,6 +23,7 @@ defmodule BorsNG.Worker.Batcher.GetBorsToml do
       nil ->
         [
           {".travis.yml", "continuous-integration/travis-ci/push"},
+          {".appveyor.yml", "continuous-integration/appveyor/branch"},
           {"appveyor.yml", "continuous-integration/appveyor/branch"},
           {"circle.yml", "ci/circleci"},
           {"jet-steps.yml", "continuous-integration/codeship"},
