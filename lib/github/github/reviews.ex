@@ -11,8 +11,10 @@ defmodule BorsNG.GitHub.Reviews do
     json
     # Count only the latest review from a user,
     # by deduplicating using the user id
-    |> Enum.reduce(%{},
-      fn %{"user" => %{"id" => uid}, "state" => state}, acc ->
+    |> Enum.reduce(%{}, fn
+      %{"state" => "COMMENTED"}, acc ->
+        acc
+      %{"user" => %{"id" => uid}, "state" => state}, acc ->
         Map.update(acc, uid, state, fn _ -> state end)
       end)
     # Remove reviews that don't count

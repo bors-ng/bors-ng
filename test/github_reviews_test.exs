@@ -16,6 +16,33 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}
   end
 
+  test "ignore comment-only reviews", _ do
+    result = BorsNG.GitHub.Reviews.from_json!([
+      %{
+        "user" => %{"id" => 1},
+        "state" => "COMMENTED"},
+      %{
+        "user" => %{"id" => 1},
+        "state" => "APPROVED"},
+      %{
+        "user" => %{"id" => 1},
+        "state" => "COMMENTED"},
+    ])
+    assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}
+  end
+
+  test "have dismissed reviews cancel everything else", _ do
+    result = BorsNG.GitHub.Reviews.from_json!([
+      %{
+        "user" => %{"id" => 1},
+        "state" => "APPROVED"},
+      %{
+        "user" => %{"id" => 1},
+        "state" => "DISMISSED"},
+    ])
+    assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}
+  end
+
   test "counts a change request", _ do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
