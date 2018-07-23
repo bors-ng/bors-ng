@@ -133,9 +133,12 @@ defmodule BorsNG.GitHub.ServerMock do
   def handle_call(:get_installation_list, _from, state) do
     list = state
     |> Enum.flat_map(fn
-      {{{:installation, installation_number}, _repo_number}, _data} -> [installation_number]
-      {{:installation, installation_number}, _data} -> [installation_number]
-      _ -> []
+      {{{:installation, installation_number}, _repo_number}, _data} ->
+        [installation_number]
+      {{:installation, installation_number}, _data} ->
+        [installation_number]
+      _ ->
+        []
     end)
     |> Enum.uniq()
     {:reply, {:ok, list}, state}
