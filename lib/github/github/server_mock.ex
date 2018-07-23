@@ -130,6 +130,20 @@ defmodule BorsNG.GitHub.ServerMock do
     {:reply, {:ok, "https://github.com/apps/bors-foobar"}, state}
   end
 
+  def handle_call(:get_installation_list, _from, state) do
+    list = state
+    |> Enum.flat_map(fn
+      {{{:installation, installation_number}, _repo_number}, _data} ->
+        [installation_number]
+      {{:installation, installation_number}, _data} ->
+        [installation_number]
+      _ ->
+        []
+    end)
+    |> Enum.uniq()
+    {:reply, {:ok, list}, state}
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, pulls} <- Map.fetch(repo, :pulls),

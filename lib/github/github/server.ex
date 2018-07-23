@@ -72,6 +72,16 @@ defmodule BorsNG.GitHub.Server do
     {:reply, result, state}
   end
 
+  def handle_call(:get_installation_list, _from, state) do
+    jwt_token = get_jwt_token()
+    list = get_installation_list_!(
+      jwt_token,
+      "#{site()}/app/installations",
+      [])
+
+    {:reply, {:ok, list}, state}
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}) do
     case get!(repo_conn, "pulls/#{pr_xref}") do
       %{body: raw, status_code: 200} ->
@@ -365,6 +375,29 @@ defmodule BorsNG.GitHub.Server do
     case next_headers do
       [] -> repositories
       [next] -> get_installation_repos_!(token, next.next.url, repositories)
+    end
+  end
+
+  @spec get_installation_list_!(binary, binary, [integer]) :: [integer]
+  defp get_installation_list_!(_, nil, list) do
+    list
+  end
+
+  defp get_installation_list_!(jwt_token, url, append) do
+    params = get_url_params(url)
+    %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
+      url,
+      [
+        {"Authorization", "Bearer #{jwt_token}"},
+        {"Accept", @installation_content_type}],
+      [params: params])
+    list = Poison.decode!(raw)
+                   |> Enum.map(fn %{"id" => id} -> id end)
+                   |> Enum.concat(append)
+    next_headers = get_next_headers(headers)
+    case next_headers do
+      [] -> list
+      [next] -> get_installation_list_!(jwt_token, next.next.url, list)
     end
   end
 

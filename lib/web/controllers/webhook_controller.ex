@@ -47,12 +47,12 @@ defmodule BorsNG.WebhookController do
       ...>       "login" => "bors-fanboi",
       ...>       "avatar_url" => "" },
       ...>     "action" => "created" }}, "github", "installation")
+      iex> # This starts a background sync process with the installation.
+      iex> # Watch it happen in the user interface.
+      iex> BorsNG.Worker.SyncerInstallation.wait_hot_spin_xref(91)
       iex> proj = Database.Repo.get_by!(Database.Project, repo_xref: 14)
       iex> proj.name
       "test/repo"
-      iex> # This has also started a (background) sync of all attached patches.
-      iex> # Watch it happen in the user interface.
-      iex> BorsNG.Worker.Syncer.wait_hot_spin(proj.id)
       iex> patch = Database.Repo.get_by!(Database.Patch, pr_xref: 1)
       iex> patch.title
       "Test"
@@ -62,9 +62,6 @@ defmodule BorsNG.WebhookController do
 
   require Logger
 
-  @allow_private_repos Confex.fetch_env!(
-    :bors, BorsNG)[:allow_private_repos]
-
   alias BorsNG.Worker.Attemptor
   alias BorsNG.Worker.Batcher
   alias BorsNG.Worker.BranchDeleter
@@ -73,9 +70,9 @@ defmodule BorsNG.WebhookController do
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
-  alias BorsNG.Database.LinkUserProject
   alias BorsNG.GitHub
   alias BorsNG.Worker.Syncer
+  alias BorsNG.Worker.SyncerInstallation
 
   @doc """
   This action is reached via `/webhook/:provider`
@@ -94,53 +91,25 @@ defmodule BorsNG.WebhookController do
   def do_webhook(conn, "github", "installation") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
-    sender = payload["sender"]
-    |> GitHub.User.from_json!()
-    |> Syncer.sync_user()
     case payload["action"] do
       "deleted" -> Repo.delete_all(from(
         i in Installation,
         where: i.installation_xref == ^installation_xref
       ))
-      "created" -> Repo.transaction(fn ->
-        create_installation_by_xref(installation_xref, sender)
-      end)
+      "created" -> SyncerInstallation.start_synchronize_installation(
+        %Installation{
+          installation_xref: installation_xref
+        }
+      )
       _ -> nil
     end
     :ok
   end
 
   def do_webhook(conn, "github", "installation_repositories") do
-    payload = conn.body_params
-    installation_xref = payload["installation"]["id"]
-    installation = Repo.get_by!(
-      Installation,
-      installation_xref: installation_xref)
-    :ok = case payload["action"] do
-      "removed" -> :ok
-      "added" -> :ok
-    end
-    sender = payload["sender"]
-    |> GitHub.User.from_json!()
-    |> Syncer.sync_user()
-    payload["repositories_removed"]
-    |> Enum.map(&from(p in Project, where: p.repo_xref == ^&1["id"]))
-    |> Enum.each(&Repo.delete_all/1)
-    {:installation, installation_xref}
-    |> GitHub.get_installation_repos!()
-    |> Enum.filter(&(@allow_private_repos || !&1.private))
-    |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
-    |> Enum.map(&%Project{
-      auto_reviewer_required_perm: :push,
-      repo_xref: &1.id,
-      name: &1.name,
-      installation_id: installation.id})
-    |> Enum.map(&Repo.insert!/1)
-    |> Enum.each(fn %Project{id: id} ->
-      Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: id})
-      Syncer.start_synchronize_project(id)
-    end)
-    :ok
+    SyncerInstallation.start_synchronize_installation(%Installation{
+      installation_xref: conn.body_params["installation"]["id"]
+    })
   end
 
   def do_webhook(conn, "github", "pull_request") do
@@ -311,28 +280,5 @@ defmodule BorsNG.WebhookController do
 
   def do_webhook_pr(_conn, %{action: action}) do
     Logger.info(["WebhookController: Got unknown action: ", action])
-  end
-
-  def create_installation_by_xref(installation_xref, sender) do
-    i = case Repo.get_by(Installation, installation_xref: installation_xref) do
-      nil -> Repo.insert!(%Installation{
-        installation_xref: installation_xref
-      })
-      i -> i
-    end
-    {:installation, installation_xref}
-    |> GitHub.get_installation_repos!()
-    |> Enum.filter(&(@allow_private_repos || !&1.private))
-    |> Enum.filter(& is_nil Repo.get_by(Project, repo_xref: &1.id))
-    |> Enum.map(&%Project{
-      auto_reviewer_required_perm: :push,
-      repo_xref: &1.id,
-      name: &1.name,
-      installation: i})
-    |> Enum.map(&Repo.insert!/1)
-    |> Enum.each(fn %Project{id: id} ->
-      Repo.insert!(%LinkUserProject{user_id: sender.id, project_id: id})
-      Syncer.start_synchronize_project(id)
-    end)
   end
 end

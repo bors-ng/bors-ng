@@ -6,6 +6,7 @@
 
 <div class=toolbar>
 <a class=toolbar-item href="<%= @wobserver_url %>/">Observer</a>
+<%= link "Sync installations", class: "toolbar-item", to: admin_path(@conn, :synchronize_all_installations), method: :post %>
 </div>
 
 <h2 class=header>Open any repository</h2>
