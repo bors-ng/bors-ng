@@ -195,6 +195,14 @@ defmodule BorsNG.GitHub do
     repos
   end
 
+  @spec get_installation_list! :: [integer]
+  def get_installation_list! do
+    {:ok, installations} = GenServer.call(
+      BorsNG.GitHub, :get_installation_list
+    )
+    installations
+  end
+
   @spec map_state_to_status(binary) :: tstatus
   def map_state_to_status(state) do
     case state do
