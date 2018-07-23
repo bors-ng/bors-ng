@@ -51,4 +51,9 @@ defmodule BorsNG.AdminController do
     project = Repo.get_by! Project, name: name
     redirect conn, to: project_path(conn, :show, project.id)
   end
+
+  def synchronize_all_installations(conn, _params) do
+    BorsNG.Worker.SyncerInstallation.start_synchronize_all_installations()
+    redirect conn, to: admin_path(conn, :index)
+  end
 end

@@ -16,10 +16,22 @@ defmodule BorsNG.Worker.SyncerInstallation do
 
   require Logger
 
+  def start_synchronize_all_installations do
+    {:ok, _} = Task.Supervisor.start_child(
+      Syncer.Supervisor,
+      fn -> synchronize_all_installations() end)
+  end
+
   def start_synchronize_installation(installation) do
     {:ok, _} = Task.Supervisor.start_child(
       Syncer.Supervisor,
       fn -> synchronize_installation(installation) end)
+  end
+
+  def synchronize_all_installations do
+    GitHub.get_installation_list!()
+    |> Enum.each(&synchronize_installation(
+      %Installation{installation_xref: &1}))
   end
 
   def synchronize_installation(installation = %Installation{
