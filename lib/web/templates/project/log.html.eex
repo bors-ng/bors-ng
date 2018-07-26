@@ -36,9 +36,7 @@
       <td><%= stringify_state(state) %></td>
       <td>
       <%= for patch <- patches do %>
-        <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">
-          #<%= patch.pr_xref %>
-        </a>
+        <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">#<%= patch.pr_xref %></a>
       <% end %>
       </td>
     </tr>
