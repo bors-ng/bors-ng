@@ -5,7 +5,6 @@ while [ ! -d script ] && [ `pwd` != / ]; do
 done
 if [ -z $BORS_WITHIN_DOCKER ]; then
   docker rm -f borsng-dev
-  docker build --tag borsng/dev --file janitor.dockerfile .
   docker create --name borsng-dev --volume `pwd`:/home/user/bors-ng borsng/dev
   docker start borsng-dev
   exec docker exec -it borsng-dev "$0" "$@"
