@@ -6,7 +6,7 @@ done
 if [ ! -f ../janitor.json ]; then
   docker rm -f borsng-dev
   docker build --tag borsng/dev --file script/Dockerfile
-  docker create --name borsng-dev borsng/dev
+  docker create --name borsng-dev --volume `pwd`:/home/user/bors-ng borsng/dev
   docker start borsng-dev
   exec docker exec -it borsng-dev "$0" "$@"
 fi
