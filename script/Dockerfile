@@ -1,4 +1,3 @@
-# This file has to be at the top level because otherwise Docker Hub doesn't give it access to the source code
 FROM notriddle/docker-phoenix-elixir-test@sha256:934629635382f4581a49032f4bcfeedc4cae735281a321e208b5269fbb73438e
 USER user
 WORKDIR /home/user
