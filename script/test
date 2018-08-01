@@ -9,5 +9,4 @@ if [ ! -f ../janitor.json ]; then
 fi
 export MIX_ENV=test
 mix do deps.get, test
-mix dogma
 mix dialyzer --halt-exit-status

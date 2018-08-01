@@ -66,7 +66,6 @@ defmodule BorsNg.Mixfile do
       {:etoml, [git: "git://github.com/kalta/etoml.git"]},
       {:wobserver, "~> 0.1.8"},
       {:hackney, "~> 1.12"},
-      {:dogma, "~> 0.1", only: [ :dev, :test ], runtime: false},
       {:ex_link_header, "~> 0.0.5"},
       {:oauth2, "~> 0.9.2"},
       {:joken, "~> 1.5"},

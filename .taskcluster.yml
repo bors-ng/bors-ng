@@ -53,14 +53,14 @@ tasks:
           git clone {{event.head.repo.url}} repo && cd repo &&
           git config advice.detachedHead false && git checkout {{event.head.sha}} &&
           mix deps.get &&
-          mix dogma && mix dialyzer --halt-exit-status
+          mix dialyzer --halt-exit-status
     metadata:
       name: Bors-NG static analysis
-      description: 'Run static analysis (dogma and dialyzer)'
+      description: 'Run static analysis (dialyzer)'
       owner: 'infra@bors.tech'
       source: '{{ event.head.repo.url }}'
 
-  # The pull request builder (dogma)
+  # The pull request builder
   - provisionerId: '{{ taskcluster.docker.provisionerId }}'
     workerType: '{{ taskcluster.docker.workerType }}'
     extra:
@@ -81,10 +81,10 @@ tasks:
         - >-
           git clone {{event.head.repo.url}} repo && cd repo &&
           git config advice.detachedHead false && git checkout {{event.head.sha}} &&
-          mix deps.get &&
-          mix dogma
+          export MIX_ENV=test &&
+          mix deps.get && mix compile
     metadata:
       name: Bors-NG style checker
-      description: 'Run "dogma" against a pull request'
+      description: 'Run "build" against a pull request'
       owner: '{{ event.head.user.email }}'
       source: '{{ event.head.repo.url }}'
