@@ -1,0 +1,37 @@
+{
+  "name": "Bors-NG",
+  "description": "Automatically maintain a master branch that always passes all the tests.",
+  "icon": "https://janitor.technology/img/bors-ng.svg",
+  "docker": {
+    "image": "borsng/dev"
+  },
+  "ports": {
+    "22": {
+      "label": "SSH",
+      "proxy": "none"
+    },
+    "8000": {
+      "label": "Bors-NG",
+      "proxy": "https",
+      "preview": true
+    },
+    "8088": {
+      "label": "VNC",
+      "proxy": "https"
+    },
+    "8089": {
+      "label": "Cloud9",
+      "proxy": "https"
+    },
+    "8090": {
+      "label": "Theia",
+      "proxy": "https"
+    }
+  },
+  "scripts": {
+    "Setup": "script/setup",
+    "Start web server": "script/server",
+    "Start web server with REPL": "script/repl",
+    "Run tests": "script/test"
+  }
+}

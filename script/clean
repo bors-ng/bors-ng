@@ -1,3 +1,12 @@
 #!/bin/sh
-docker-compose -f script/docker-compose.yml run --rm web mix clean
-docker-compose -f script/docker-compose.yml rm -f
+if [ -z $BORS_WITHIN_DOCKER ]; then
+  docker start borsng-dev || true
+  docker exec -it mix clean || true
+  docker rm -f borsng-dev
+  docker rmi -f borsng/dev
+else
+  mix ecto.drop
+  mix clean
+fi
+rm -rf _build
+rm -rf deps

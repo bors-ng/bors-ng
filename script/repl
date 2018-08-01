@@ -3,4 +3,7 @@ set -e
 while [ ! -d script ] && [ `pwd` != / ]; do
   cd ..
 done
-docker-compose -f script/docker-compose.yml run --rm web iex -S mix phoenix.server
+if [ -z $BORS_WITHIN_DOCKER ]; then
+  exec docker exec -it borsng-dev "$0" "$@"
+fi
+iex -S mix phoenix.server

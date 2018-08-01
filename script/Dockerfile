@@ -1,12 +1,9 @@
-FROM elixir:1.4.5
-ENV LC_ALL=C.UTF-8
-ENV MIX_ENV=dev
-ADD https://deb.nodesource.com/gpgkey/nodesource.gpg.key /tmp/dockerfile/nodesource.gpg.key
-WORKDIR /tmp/dockerfile
-RUN echo "deb http://deb.nodesource.com/node_6.x jessie main" | tee /etc/apt/sources.list.d/nodesource.list && \
-    apt-key add nodesource.gpg.key && \
-    apt-get update && \
-    apt-get install -y nodejs build-essential libtool autoconf git inotify-tools
-WORKDIR /srv
-RUN mix local.hex --force && mix local.rebar --force
-CMD mix phoenix.server
+FROM notriddle/docker-phoenix-elixir-test@sha256:934629635382f4581a49032f4bcfeedc4cae735281a321e208b5269fbb73438e
+USER user
+WORKDIR /home/user
+ADD . /home/user/bors-ng
+ENV BORS_WITHIN_DOCKER 1
+WORKDIR /home/user/bors-ng
+RUN (sudo runuser -u postgres -- /usr/lib/postgresql/9.5/bin/postgres -D /etc/postgresql/9.5/main/ 2>&1 > /dev/null &) && \
+    sleep 1 && \
+    mix do ecto.create, ecto.migrate

@@ -3,4 +3,9 @@ set -e
 while [ ! -d script ] && [ `pwd` != / ]; do
   cd ..
 done
-docker-compose -f script/docker-compose.yml run web bash
+if [ -z $BORS_WITHIN_DOCKER ]; then
+  docker exec -it borsng-dev bash
+else
+  echo "This script is not necessary on the Janitor."
+  exit 1
+fi
