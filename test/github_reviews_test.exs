@@ -12,17 +12,42 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "APPROVED",
-        "author_association" => "ADMIN"}])
+        "state" => "APPROVED"}])
     assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}
+  end
+
+  test "ignore comment-only reviews", _ do
+    result = BorsNG.GitHub.Reviews.from_json!([
+      %{
+        "user" => %{"id" => 1},
+        "state" => "COMMENTED"},
+      %{
+        "user" => %{"id" => 1},
+        "state" => "APPROVED"},
+      %{
+        "user" => %{"id" => 1},
+        "state" => "COMMENTED"},
+    ])
+    assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}
+  end
+
+  test "have dismissed reviews cancel everything else", _ do
+    result = BorsNG.GitHub.Reviews.from_json!([
+      %{
+        "user" => %{"id" => 1},
+        "state" => "APPROVED"},
+      %{
+        "user" => %{"id" => 1},
+        "state" => "DISMISSED"},
+    ])
+    assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}
   end
 
   test "counts a change request", _ do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "CHANGES_REQUESTED",
-        "author_association" => "ADMIN"}])
+        "state" => "CHANGES_REQUESTED"}])
     assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}
   end
 
@@ -30,12 +55,10 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "APPROVED",
-        "author_association" => "ADMIN"},
+        "state" => "APPROVED"},
       %{
         "user" => %{"id" => 1},
-        "state" => "CHANGES_REQUESTED",
-        "author_association" => "ADMIN"}])
+        "state" => "CHANGES_REQUESTED"}])
     assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}
   end
 
@@ -43,12 +66,10 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "CHANGES_REQUESTED",
-        "author_association" => "ADMIN"},
+        "state" => "CHANGES_REQUESTED"},
       %{
         "user" => %{"id" => 1},
-        "state" => "APPROVED",
-        "author_association" => "ADMIN"}])
+        "state" => "APPROVED"}])
     assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}
   end
 
@@ -56,12 +77,10 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     result = BorsNG.GitHub.Reviews.from_json!([
       %{
         "user" => %{"id" => 1},
-        "state" => "CHANGES_REQUESTED",
-        "author_association" => "ADMIN"},
+        "state" => "CHANGES_REQUESTED"},
       %{
         "user" => %{"id" => 2},
-        "state" => "APPROVED",
-        "author_association" => "ADMIN"}])
+        "state" => "APPROVED"}])
     assert result == %{"APPROVED" => 1, "CHANGES_REQUESTED" => 1}
   end
 end

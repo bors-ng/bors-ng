@@ -88,15 +88,6 @@ defmodule BorsNG.WebhookController do
     :ok
   end
 
-  # 2 hooks for deprecated events, they will be deleted after November 22, 2017
-  def do_webhook(_conn, "github", "integration_installation") do
-    :ok
-  end
-
-  def do_webhook(_conn, "github", "integration_installation_repositories") do
-    :ok
-  end
-
   def do_webhook(conn, "github", "installation") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
@@ -195,48 +186,39 @@ defmodule BorsNG.WebhookController do
     end
   end
 
-  def do_webhook(conn, "github", "status") do
-    do_webhook_status(
-      conn,
-      conn.body_params["commit"]["commit"]["message"])
+  # The check suite is automatically added by GitHub.
+  # But don't start until the user writes "r+"
+  def do_webhook(_conn, "github", "check_suite") do
+    :ok
   end
 
-  def do_webhook_status(conn, "Merge " <> _) do
-    identifier = conn.body_params["context"]
-    commit = conn.body_params["sha"]
-    url = conn.body_params["target_url"]
+  def do_webhook(conn, "github", "check_run") do
     repo_xref = conn.body_params["repository"]["id"]
+    commit = conn.body_params["check_run"]["head_sha"]
+    run_name = conn.body_params["check_run"]["name"]
+    |> GitHub.map_changed_status()
+    url = conn.body_params["check_run"]["html_url"]
+    state = GitHub.map_check_to_status(
+      conn.body_params["check_run"]["conclusion"])
+    project = Repo.get_by!(Project, repo_xref: repo_xref)
+    batcher = Batcher.Registry.get(project.id)
+    Batcher.status(batcher, {commit, run_name, state, url})
+    attemptor = Attemptor.Registry.get(project.id)
+    Attemptor.status(attemptor, {commit, run_name, state, url})
+  end
+
+  def do_webhook(conn, "github", "status") do
+    repo_xref = conn.body_params["repository"]["id"]
+    commit = conn.body_params["commit"]["sha"]
+    identifier = conn.body_params["context"]
+    |> GitHub.map_changed_status()
+    url = conn.body_params["target_url"]
     state = GitHub.map_state_to_status(conn.body_params["state"])
     project = Repo.get_by!(Project, repo_xref: repo_xref)
     batcher = Batcher.Registry.get(project.id)
     Batcher.status(batcher, {commit, identifier, state, url})
-  end
-
-  def do_webhook_status(conn, "Try " <> _) do
-    identifier = conn.body_params["context"]
-    commit = conn.body_params["sha"]
-    url = conn.body_params["target_url"]
-    repo_xref = conn.body_params["repository"]["id"]
-    state = GitHub.map_state_to_status(conn.body_params["state"])
-    project = Repo.get_by!(Project, repo_xref: repo_xref)
     attemptor = Attemptor.Registry.get(project.id)
     Attemptor.status(attemptor, {commit, identifier, state, url})
-  end
-
-  def do_webhook_status(conn, "[ci skip] -bors-staging-tmp-" <> pr_xref) do
-    identifier = conn.body_params["context"]
-    err_msg = Batcher.Message.generate_staging_tmp_message(identifier)
-    case err_msg do
-      nil -> :ok
-      err_msg ->
-        conn.body_params["repository"]["id"]
-        |> Project.installation_connection(Repo)
-        |> GitHub.post_comment!(String.to_integer(pr_xref), err_msg)
-    end
-  end
-
-  def do_webhook_status(_conn, _) do
-    :ok
   end
 
   def do_webhook_pr(conn, %{

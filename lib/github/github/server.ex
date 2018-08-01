@@ -1,5 +1,6 @@
 defmodule BorsNG.GitHub.Server do
   use GenServer
+  alias BorsNG.GitHub
 
   @moduledoc """
   Provides a real connection to GitHub's REST API.
@@ -7,20 +8,21 @@ defmodule BorsNG.GitHub.Server do
   """
 
   def start_link do
-    GenServer.start_link(__MODULE__, :ok, name: BorsNG.GitHub)
+    GenServer.start_link(__MODULE__, :ok, name: GitHub)
   end
 
   @installation_content_type "application/vnd.github.machine-man-preview+json"
+  @check_content_type "application/vnd.github.antiope-preview+json"
   @content_type_raw "application/vnd.github.v3.raw"
   @content_type "application/vnd.github.v3+json"
 
-  @type tconn :: BorsNG.GitHub.tconn
-  @type ttoken :: BorsNG.GitHub.ttoken
-  @type trepo :: BorsNG.GitHub.trepo
-  @type tuser :: BorsNG.GitHub.tuser
-  @type tpr :: BorsNG.GitHub.tpr
-  @type tcollaborator :: BorsNG.GitHub.tcollaborator
-  @type tuser_repo_perms :: BorsNG.GitHub.tuser_repo_perms
+  @type tconn :: GitHub.tconn
+  @type ttoken :: GitHub.ttoken
+  @type trepo :: GitHub.trepo
+  @type tuser :: GitHub.tuser
+  @type tpr :: GitHub.tpr
+  @type tcollaborator :: GitHub.tcollaborator
+  @type tuser_repo_perms :: GitHub.tuser_repo_perms
 
   @typedoc """
   The token cache.
@@ -29,7 +31,7 @@ defmodule BorsNG.GitHub.Server do
 
   @spec config() :: keyword
   defp config do
-    Confex.fetch_env!(:bors, BorsNG.GitHub.Server)
+    Confex.fetch_env!(:bors, GitHub.Server)
   end
 
   @spec site() :: bitstring
@@ -85,7 +87,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status_code: 200} ->
         pr = raw
         |> Poison.decode!()
-        |> BorsNG.GitHub.Pr.from_json!()
+        |> GitHub.Pr.from_json!()
         {:ok, pr}
       e ->
         {:error, :get_pr, e.status_code, pr_xref}
@@ -97,7 +99,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status_code: 200} ->
         commits = raw
         |> Poison.decode!()
-        |> Enum.map(&BorsNG.GitHub.Commit.from_json!/1)
+        |> Enum.map(&GitHub.Commit.from_json!/1)
         {:ok, commits}
       e ->
         {:error, :get_pr_commits, e.status_code, pr_xref}
@@ -223,19 +225,36 @@ defmodule BorsNG.GitHub.Server do
   end
 
   def do_handle_call(:get_commit_status, repo_conn, {sha}) do
-    repo_conn
-    |> get!("commits/#{sha}/status")
-    |> case do
-      %{body: raw, status_code: 200} ->
-        res = Poison.decode!(raw)["statuses"]
-        |> Enum.map(&{
-          &1["context"],
-          BorsNG.GitHub.map_state_to_status(&1["state"])})
-        |> Map.new()
-        {:ok, res}
-      _ ->
-        {:error, :get_commit_status}
-    end
+    with \
+      {:ok, status} <- (
+        repo_conn
+        |> get!("commits/#{sha}/status")
+        |> case do
+          %{body: raw, status_code: 200} ->
+            res = Poison.decode!(raw)["statuses"]
+            |> Enum.map(&{
+              &1["context"] |> GitHub.map_changed_status(),
+              GitHub.map_state_to_status(&1["state"])})
+            |> Map.new()
+            {:ok, res}
+          _ ->
+            {:error, :get_commit_status, :status}
+        end),
+      {:ok, check} <- (
+        repo_conn
+        |> get!("commits/#{sha}/check-runs", [{"Accept", @check_content_type}])
+        |> case do
+          %{body: raw, status_code: 200} ->
+            res = Poison.decode!(raw)["check_runs"]
+            |> Enum.map(&{
+              &1["name"] |> GitHub.map_changed_status(),
+              GitHub.map_check_to_status(&1["conclusion"])})
+            |> Map.new()
+            {:ok, res}
+          _ ->
+            {:error, :get_commit_status, :check}
+        end),
+      do: {:ok, Map.merge(status, check)}
   end
 
   def do_handle_call(:get_labels, repo_conn, {issue_xref}) do
@@ -258,7 +277,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status_code: 200} ->
         res = raw
         |> Poison.decode!()
-        |> BorsNG.GitHub.Reviews.from_json!()
+        |> GitHub.Reviews.from_json!()
 
         {:ok, res}
       _ ->
@@ -291,7 +310,7 @@ defmodule BorsNG.GitHub.Server do
   end
 
   def do_handle_call(:post_commit_status, repo_conn, {sha, status, msg, url}) do
-    state = BorsNG.GitHub.map_status_to_state(status)
+    state = GitHub.map_status_to_state(status)
     body = %{state: state, context: "bors", description: msg, target_url: url}
     repo_conn
     |> post!("statuses/#{sha}", Poison.encode!(body))
@@ -320,7 +339,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status_code: 200} ->
         user = raw
         |> Poison.decode!()
-        |> BorsNG.GitHub.User.from_json!()
+        |> GitHub.User.from_json!()
         {:ok, user}
       %{status_code: 404} ->
         {:ok, nil}
@@ -350,7 +369,7 @@ defmodule BorsNG.GitHub.Server do
         {"Accept", @installation_content_type}],
       [params: params])
     repositories = Poison.decode!(raw)["repositories"]
-    |> Enum.map(&BorsNG.GitHub.Repo.from_json!/1)
+    |> Enum.map(&GitHub.Repo.from_json!/1)
     |> Enum.concat(append)
     next_headers = get_next_headers(headers)
     case next_headers do
@@ -391,7 +410,7 @@ defmodule BorsNG.GitHub.Server do
       [params: params])
     prs = Poison.decode!(raw)
     |> Enum.flat_map(fn element ->
-      element |> BorsNG.GitHub.Pr.from_json |> case do
+      element |> GitHub.Pr.from_json |> case do
         {:ok, pr} -> [pr]
         _ -> []
       end
@@ -424,7 +443,7 @@ defmodule BorsNG.GitHub.Server do
         users = raw
         |> Poison.decode!()
         |> Enum.map(fn user ->
-          %{user: BorsNG.GitHub.User.from_json!(user),
+          %{user: GitHub.User.from_json!(user),
             perms: extract_user_repo_perms(user)}
         end)
         |> Enum.concat(append)

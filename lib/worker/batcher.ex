@@ -105,36 +105,27 @@ defmodule BorsNG.Worker.Batcher do
         # Patch exists and is awaiting review
         # This will cause the PR to start after the patch's scheduled delay
         project = Repo.get!(Project, patch.project_id)
-        if Patch.ci_skip?(patch) do
-          project
-          |> get_repo_conn()
-          |> send_message([patch], :ci_skip)
-        else
-
-          {batch, is_new_batch} = get_new_batch(
-            project_id,
-            patch.into_branch,
-            patch.priority
-          )
-
-          if is_new_batch do
-            put_incomplete_on_hold(get_repo_conn(project), batch)
-          end
-
-          repo_conn = get_repo_conn(project)
-          case patch_preflight(repo_conn, patch) do
-            :ok ->
-              params = %{
-                batch_id: batch.id,
-                patch_id: patch.id,
-                reviewer: reviewer}
-              Repo.insert!(LinkPatchBatch.changeset(%LinkPatchBatch{}, params))
-              poll_after_delay(project)
-              send_status(repo_conn, batch.id, [patch], :waiting)
-            {:error, message} ->
-              send_message(repo_conn, [patch], {:preflight, message})
-              send_status(repo_conn, batch.id, [patch], :error)
-          end
+        repo_conn = get_repo_conn(project)
+        case patch_preflight(repo_conn, patch) do
+          :ok ->
+            {batch, is_new_batch} = get_new_batch(
+              project_id,
+              patch.into_branch,
+              patch.priority
+            )
+            %LinkPatchBatch{}
+            |> LinkPatchBatch.changeset(%{
+              batch_id: batch.id,
+              patch_id: patch.id,
+              reviewer: reviewer})
+            |> Repo.insert!()
+            if is_new_batch do
+              put_incomplete_on_hold(get_repo_conn(project), batch)
+            end
+            poll_after_delay(project)
+            send_status(repo_conn, batch.id, [patch], :waiting)
+          {:error, message} ->
+            send_message(repo_conn, [patch], {:preflight, message})
         end
     end
   end
@@ -497,10 +488,14 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   defp patch_preflight(repo_conn, patch) do
-    toml = Batcher.GetBorsToml.get(
-      repo_conn,
-      patch.commit)
-    patch_preflight(repo_conn, patch, toml)
+    if Patch.ci_skip?(patch) do
+      {:error, :ci_skip}
+    else
+      toml = Batcher.GetBorsToml.get(
+        repo_conn,
+        patch.commit)
+      patch_preflight(repo_conn, patch, toml)
+    end
   end
 
   defp patch_preflight(_repo_conn, _patch, {:error, _}) do
@@ -535,9 +530,9 @@ defmodule BorsNG.Worker.Batcher do
     %{"CHANGES_REQUESTED" => failed, "APPROVED" => passed} = reviews
 
     case {failed, passed} do
-      {0, approved} when approved >= required -> :sufficient
-      {0, approved} when approved < required -> :insufficient
-      _ -> :failed
+      {failed, 0} when failed > 0 -> :failed
+      {_, approved} when approved >= required -> :sufficient
+      {0, _} -> :insufficient
     end
   end
 

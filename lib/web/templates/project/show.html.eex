@@ -89,7 +89,7 @@
 </div></main>
 
 <%= if @mode == :rw do %>
-<div class="wrapper wrapper--mini" role=toolbar><div class=toolbar>
+<footer><div class="wrapper wrapper--mini" role=toolbar><div class=toolbar>
 <%= if @is_synchronizing do %>
   <span class="toolbar-item toolbar-item--disabled">Synchronizing...</span>
 <% else %>
@@ -98,5 +98,5 @@
 <%= if @batches != [] do %>
   <%= link "Cancel all", to: project_path(@conn, :cancel_all, @project), method: :delete, class: "toolbar-item toolbar-item--remove", data: [confirm: "Commenting `bors r-` on a PR will cancel just the one. You asked to cancel all of them, which is a PITA to undo.\n\nAre you sure you want to cancel all running and waiting pull requests?"] %>
 <% end %>
-</div></div>
+</div></div></footer>
 <% end %>

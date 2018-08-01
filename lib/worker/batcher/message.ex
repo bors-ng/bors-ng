@@ -40,6 +40,9 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message({:preflight, :blocked_review}) do
     ":-1: Rejected by code reviews"
   end
+  def generate_message({:preflight, :ci_skip}) do
+    "Has [ci skip], bors build will time out"
+  end
   def generate_message(:not_awaiting_review) do
     "Not awaiting review"
   end
@@ -63,9 +66,6 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
   def generate_message({:canceled, :retrying}) do
     "# Canceled (will resume)"
-  end
-  def generate_message(:ci_skip) do
-    "Has [ci skip], bors build will time out"
   end
   def generate_message({state, statuses}) do
     msg = case state do
@@ -142,58 +142,5 @@ defmodule BorsNG.Worker.Batcher.Message do
 
   def generate_bors_toml_error(:blocked_labels) do
     "bors.toml: expected blocked_labels to be a list"
-  end
-
-  @doc """
-  Generate the GitHub comment for when staging.tmp is being built.
-  By default, this doesn't say anything; it's only applicable when we're
-  using a recognized CI system, and, as a result, know the fix.
-  """
-  def generate_staging_tmp_message("continuous-integration/travis-ci/push") do
-    """
-    Travis CI is building the `staging.tmp` branch.
-    This is not necessary.
-    It wastes time, and makes your build and everyone else's slow.
-
-    To do this, you can add this to your `.travis.yml` file,
-    if you only care about staging, trying, and the pull request statuses:
-
-        branches:
-          only:
-            - master
-            - staging
-            - trying
-
-    Alternatively, you can add this to only turn off `staging.tmp`:
-
-        branches:
-          except:
-            - staging.tmp
-    """
-  end
-  def generate_staging_tmp_message("continuous-integration/appveyor/branch") do
-    """
-    AppVeyor is building the `staging.tmp` branch.
-    This is not necessary.
-    It wastes time, and makes your build and everyone else's slow.
-
-    To do this, you can add this to your `appveyor.yml` file,
-    if you only care about pull requests, staging, and trying:
-
-        branches:
-          only:
-            - master
-            - staging
-            - trying
-
-    Alternatively, you can add this to only turn off `staging.tmp`:
-
-        branches:
-          except:
-            - staging.tmp
-    """
-  end
-  def generate_staging_tmp_message(_context) do
-    nil
   end
 end

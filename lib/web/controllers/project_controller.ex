@@ -37,9 +37,11 @@ defmodule BorsNG.ProjectController do
     project = Project
     |> from(preload: [:installation])
     |> Repo.get!(id)
+    admin? = conn.assigns.user.is_admin
     mode = conn.assigns.user
     |> Permission.get_permission(project)
     |> case do
+      _ when admin? -> :rw
       :reviewer -> :rw
       :member -> :ro
       _ when not allow_private_repos -> :ro
@@ -336,11 +338,21 @@ defmodule BorsNG.ProjectController do
   def confirm_add_reviewer(_, :ro, _, _) do
     raise BorsNG.PermissionDeniedError
   end
-  def confirm_add_reviewer(conn, :rw, project, %{"login" => login}) do
+  def confirm_add_reviewer(
+    conn,
+    :rw,
+    %Project{auto_reviewer_required_perm: nil} = project,
+    %{"login" => login}
+  ) do
     render conn, "confirm-add-reviewer.html",
       project: project,
       current_user_id: conn.assigns.user.id,
       login: login
+  end
+  def confirm_add_reviewer(conn, :rw, %Project{name: name}, _) do
+    url = Confex.fetch_env!(:bors, :html_github_root)
+    url = "#{url}/#{name}/settings/collaboration"
+    redirect(conn, external: url)
   end
 
   def remove_reviewer(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError

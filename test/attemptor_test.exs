@@ -94,6 +94,24 @@ defmodule BorsNG.Worker.AttemptorTest do
       &(&1.identifier == "continuous-integration/appveyor/branch"))
   end
 
+  test "infer from .appveyor.yml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+          {{:installation, 91}, 14} => %{
+                                branches: %{"master" => "ini",
+                                            "trying" => "",
+                                            "trying.tmp" => ""},
+                                commits: %{},
+                                comments: %{1 => []},
+                                statuses: %{"iniN" => []},
+                                files: %{"trying.tmp" =>
+                                  %{".appveyor.yml" => ""}}
+                              }})
+    patch = new_patch(proj, 1, "N")
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    [status] = Repo.all(AttemptStatus)
+    assert status.identifier == "continuous-integration/appveyor/branch"
+  end
+
   test "infer from circle.yml", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
