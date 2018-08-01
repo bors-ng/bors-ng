@@ -6,4 +6,4 @@ ENV BORS_WITHIN_DOCKER 1
 WORKDIR /home/user/bors-ng
 RUN (sudo runuser -u postgres -- /usr/lib/postgresql/9.5/bin/postgres -D /etc/postgresql/9.5/main/ 2>&1 > /dev/null &) && \
     sleep 1 && \
-    mix do ecto.create, ecto.migrate
+    mix do deps.get, ecto.create, ecto.migrate
