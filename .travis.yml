@@ -20,7 +20,7 @@ install:
   - mix do local.rebar --force, local.hex --force, deps.get
 
 script:
-  - then mix test
+  - mix test
 
 env:
   - TYPE=test
