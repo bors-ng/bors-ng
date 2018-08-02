@@ -123,7 +123,7 @@ defmodule BorsNG.Router do
       conn
     else
       conn
-      |> assign(:user, Database.Repo.get!(Database.User, user_id))
+      |> assign(:user, Database.Repo.get(Database.User, user_id))
       |> assign(:avatar_url, Plug.Conn.get_session(conn, :avatar_url))
     end
   end
