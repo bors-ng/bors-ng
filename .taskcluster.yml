@@ -60,7 +60,7 @@ tasks:
       owner: 'infra@bors.tech'
       source: '{{ event.head.repo.url }}'
 
-  # The pull request builder
+  # The pull request builder (static analysis)
   - provisionerId: '{{ taskcluster.docker.provisionerId }}'
     workerType: '{{ taskcluster.docker.workerType }}'
     extra:
@@ -82,7 +82,8 @@ tasks:
           git clone {{event.head.repo.url}} repo && cd repo &&
           git config advice.detachedHead false && git checkout {{event.head.sha}} &&
           export MIX_ENV=test &&
-          mix deps.get && mix compile
+          mix deps.get &&
+          mix dialyzer --halt-exit-status
     metadata:
       name: Bors-NG style checker
       description: 'Run "build" against a pull request'
