@@ -81,7 +81,7 @@ tasks:
         - >-
           git clone {{event.head.repo.url}} repo && cd repo &&
           git config advice.detachedHead false && git checkout {{event.head.sha}} &&
-          export MIX_ENV=test &&
+          export MIX_ENV=dev &&
           mix deps.get &&
           mix dialyzer --halt-exit-status
     metadata:
