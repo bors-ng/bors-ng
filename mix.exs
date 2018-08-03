@@ -20,7 +20,8 @@ defmodule BorsNg.Mixfile do
         flags: [
           "-Wno_unused",
           "-Werror_handling",
-          "-Wrace_conditions" ] ] ]
+          "-Wrace_conditions" ],
+        plt_add_apps: [:mix] ] ]
   end
 
   # Configuration for the OTP application.
@@ -63,7 +64,7 @@ defmodule BorsNg.Mixfile do
       {:gettext, "~> 0.15"},
       {:cowboy, "~> 1.0"},
       {:httpoison, "~> 0.12"},
-      {:etoml, [git: "git://github.com/kalta/etoml.git"]},
+      {:etoml, [git: "git://github.com/bors-ng/etoml.git", commit: "6202b5d"]},
       {:wobserver, "~> 0.1.8"},
       {:hackney, "~> 1.12"},
       {:ex_link_header, "~> 0.0.5"},

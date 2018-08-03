@@ -87,6 +87,8 @@ defmodule BorsNG.Worker.Syncer do
         Logger.warn(["Syncer: Error pulling repo collaborators: ",
                      inspect(error)])
         {:error, error}
+      :error ->
+        Logger.warn("Syncer: Error pulling repo collaborators (no description)")
     end
   end
 
