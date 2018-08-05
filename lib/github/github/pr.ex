@@ -39,7 +39,7 @@ defmodule BorsNG.GitHub.Pr do
   @doc """
   Convert from Poison-decoded JSON to a Pr struct.
   """
-  @spec from_json(tjson) :: {:ok, t} | :err
+  @spec from_json(tjson) :: {:ok, t} | {:error, term}
   def from_json(%{
     "number" => number,
     "title" => title,

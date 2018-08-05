@@ -3,8 +3,11 @@ set -e
 while [ ! -d script ] && [ `pwd` != / ]; do
   cd ..
 done
-docker-compose -f script/docker-compose.yml run -e MIX_ENV=test --rm web mix test
-if [ x$1 != x--fast ]; then
-  docker-compose -f script/docker-compose.yml run --rm web mix dogma
-  docker-compose -f script/docker-compose.yml run --rm web mix dialyzer --halt-exit-status
+if [ ! -f ../janitor.json ]; then
+  docker start borsng-dev
+  exec docker exec -it borsng-dev "$0" "$@"
 fi
+export MIX_ENV=test
+mix do deps.get, test
+export MIX_ENV=dev
+mix dialyzer --halt-exit-status

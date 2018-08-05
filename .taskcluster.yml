@@ -14,7 +14,7 @@ tasks:
           - trying
     payload:
       maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:3ce1bf137ee89c4c8f9391442781d44e97c39dbc0c9446586aded299966b3c71"
+      image: "notriddle/docker-phoenix-elixir-test@sha256:f3b3e932d2565135ac3d1efcb52f84ba72038228a6707638b533b1a0d9025e14"
       command:
         - /bin/bash
         - '--login'
@@ -22,7 +22,10 @@ tasks:
         - >-
           git clone {{event.head.repo.url}} repo && cd repo &&
           git config advice.detachedHead false && git checkout {{event.head.sha}} &&
-          bash script/ci
+          (sudo runuser -u postgres -- /usr/lib/postgresql/9.5/bin/postgres -D /etc/postgresql/9.5/main/ 2>&1 > /dev/null &) &&
+          sleep 2 &&
+          export MIX_ENV=test &&
+          mix do deps.get, test
     metadata:
       name: Bors-NG test suite
       description: 'Run unit and integration tests with no browser and a mock GitHub API'
@@ -42,7 +45,7 @@ tasks:
           - trying
     payload:
       maxRunTime: 3600
-      image: notriddle/docker-phoenix-elixir-test
+      image: "notriddle/docker-phoenix-elixir-test@sha256:f3b3e932d2565135ac3d1efcb52f84ba72038228a6707638b533b1a0d9025e14"
       command:
         - /bin/bash
         - '--login'
@@ -52,14 +55,14 @@ tasks:
           git clone {{event.head.repo.url}} repo && cd repo &&
           git config advice.detachedHead false && git checkout {{event.head.sha}} &&
           mix deps.get &&
-          mix dogma && mix dialyzer
+          mix dialyzer --halt-exit-status
     metadata:
       name: Bors-NG static analysis
-      description: 'Run static analysis (dogma and dialyzer)'
+      description: 'Run static analysis (dialyzer)'
       owner: 'infra@bors.tech'
       source: '{{ event.head.repo.url }}'
 
-  # The pull request builder (dogma)
+  # The pull request builder (static analysis)
   - provisionerId: '{{ taskcluster.docker.provisionerId }}'
     workerType: '{{ taskcluster.docker.workerType }}'
     extra:
@@ -72,7 +75,7 @@ tasks:
           - master
     payload:
       maxRunTime: 3600
-      image: notriddle/docker-phoenix-elixir-test
+      image: "notriddle/docker-phoenix-elixir-test@sha256:f3b3e932d2565135ac3d1efcb52f84ba72038228a6707638b533b1a0d9025e14"
       command:
         - /bin/bash
         - '--login'
@@ -80,10 +83,11 @@ tasks:
         - >-
           git clone {{event.head.repo.url}} repo && cd repo &&
           git config advice.detachedHead false && git checkout {{event.head.sha}} &&
+          export MIX_ENV=dev &&
           mix deps.get &&
-          mix dogma
+          mix dialyzer --halt-exit-status
     metadata:
       name: Bors-NG style checker
-      description: 'Run "dogma" against a pull request'
+      description: 'Run "build" against a pull request'
       owner: '{{ event.head.user.email }}'
       source: '{{ event.head.repo.url }}'

@@ -17,33 +17,17 @@ cache:
     - deps
 
 install:
-  - if [ $TYPE != script ]; then mix do local.rebar --force, local.hex --force, deps.get; fi
-  - if [ $TYPE = script ] && [ $TRAVIS_BRANCH != master ]; then sh script/setup; fi
+  - mix do local.rebar --force, local.hex --force, deps.get
 
 script:
-  - if [ $TYPE = test ]; then mix test; fi
-  - if [ $TYPE = dogma ]; then mix dogma; fi
-  - if [ $TYPE = dialyzer ]; then mix dialyzer --halt-exit-status; fi
-  - if [ $TYPE = script ] && [ $TRAVIS_BRANCH != master ]; then sh script/test --fast; fi
+  - mix test
 
 env:
   - TYPE=test
-  #- TYPE=dialyzer
-  - TYPE=dogma
   - TYPE=test BORS_TEST_DATABASE=mysql
-  #- TYPE=dialyzer BORS_TEST_DATABASE=mysql
-  - TYPE=dogma BORS_TEST_DATABASE=mysql
 
 matrix:
   fast_finish: true
-
-  #include:
-  #  - env: TYPE=script
-  #    sudo: true
-  #    language: minimal
-  #    elixir: false
-  #    otp_release: false
-  #    cache: false
 
 notifications:
   email: false

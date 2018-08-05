@@ -133,7 +133,7 @@ The batching strategy is O(E log N), where N is again the total number of pull r
 If you're using a macOS or Linux command line with Docker on it,
 `./script/setup && ./script/server` will set up a local instance,
 with a mocked-out GitHub instance, using Docker to pull in all the underlying dependencies.
-The web server ends up running on <http://localhost:4000/>.
+The web server ends up running on <http://localhost:8000/>.
 You can get an Elixir REPL running in the same context as the webserver by running
 `repl` instead of `server`. To run the tests, run `test` instead of `server`.
 

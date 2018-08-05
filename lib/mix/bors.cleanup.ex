@@ -59,7 +59,7 @@ defmodule Mix.Tasks.Bors.Cleanup do
             where: p.updated_at < datetime_add(^NaiveDateTime.utc_now,
                 ^negative_months, "month"))
 
-          pid && repo.stop(pid)
+          repo.stop(pid)
         end
     end
   end

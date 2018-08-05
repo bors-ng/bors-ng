@@ -97,7 +97,7 @@ defmodule BorsNG.GitHub do
     tree: bitstring,
     parents: [bitstring],
     commit_message: bitstring,
-    committer: tcommitter}) :: binary
+    committer: tcommitter | nil}) :: binary
   def synthesize_commit!(repo_conn, info) do
     {:ok, sha} = GenServer.call(
       BorsNG.GitHub,
@@ -130,10 +130,7 @@ defmodule BorsNG.GitHub do
     labels
   end
 
-  @spec get_reviews!(tconn, integer | bitstring) :: %{
-    "APPROVED": integer,
-    "CHANGES_REQUESTED": integer
-  }
+  @spec get_reviews!(tconn, integer | bitstring) :: map
   def get_reviews!(repo_conn, issue_xref) do
     {:ok, labels} = GenServer.call(
       BorsNG.GitHub,

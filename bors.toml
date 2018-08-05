@@ -1,3 +1,2 @@
 status = [ "continuous-integration/travis-ci/push", "Taskcluster (push)" ]
-pr-status = [ "Taskcluster (pull_request)" ]
 block_labels = [ "S-do-not-merge-yet" ]
