@@ -22,6 +22,7 @@ defmodule BorsNG.Command do
   alias BorsNG.Command
   alias BorsNG.Database.Context.Logging
   alias BorsNG.Database.Context.Permission
+  alias BorsNG.Database.Installation
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
@@ -392,8 +393,9 @@ defmodule BorsNG.Command do
   def run(c, {:delegate_to, login}) do
     delegatee = case Repo.get_by(User, login: login) do
       nil ->
+        installation = Repo.get!(Installation, c.project.installation_id)
         gh_user = GitHub.get_user_by_login!(
-          {:installation, c.project.installation.installation_xref},
+          {:installation, installation.installation_xref},
           login)
         Repo.insert!(%User{
           login: gh_user.login,
