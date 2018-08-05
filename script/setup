@@ -4,8 +4,9 @@ while [ ! -d script ] && [ `pwd` != / ]; do
   cd ..
 done
 if [ -z $BORS_WITHIN_DOCKER ]; then
-  docker rm -f borsng-dev
-  docker create --name borsng-dev --volume `pwd`:/home/user/bors-ng borsng/dev
+  docker rm -f borsng-dev 2>&1 >/dev/null || true
+  docker pull borsng/dev
+  docker create --name borsng-dev -p 8000:8000 -p 4000:8000 -p 8089:8089 --volume `pwd`:/home/user/bors-ng borsng/dev
   docker start borsng-dev
   exec docker exec -it borsng-dev "$0" "$@"
 fi
