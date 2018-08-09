@@ -270,19 +270,11 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:get_reviews, repo_conn, {issue_xref}) do
-    repo_conn
-    |> get!("pulls/#{issue_xref}/reviews")
-    |> case do
-      %{body: raw, status_code: 200} ->
-        res = raw
-        |> Poison.decode!()
-        |> GitHub.Reviews.from_json!()
-
-        {:ok, res}
-      _ ->
-        {:error, :get_reviews}
-    end
+  def do_handle_call(:get_reviews, {{:raw, token}, repo_xref}, {issue_xref}) do
+    reviews = token
+    |> get_reviews_json_!("#{site()}/repositories/#{repo_xref}/pulls/#{issue_xref}/reviews", [])
+    |> GitHub.Reviews.from_json!()
+    {:ok, reviews}
   end
 
   def do_handle_call(:get_file, repo_conn, {branch, path}) do
@@ -353,6 +345,26 @@ defmodule BorsNG.GitHub.Server do
       token,
       "#{site()}/installation/repositories",
       [])}
+  end
+
+  defp get_reviews_json_!(_, nil, append) do
+    append
+  end
+
+  defp get_reviews_json_!(token, url, append) do
+    params = get_url_params(url)
+    %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
+      url,
+      [
+        {"Authorization", "token #{token}"},
+        {"Accept", @installation_content_type}],
+      [params: params])
+    json = Enum.concat(append, Poison.decode!(raw))
+    next_headers = get_next_headers(headers)
+    case next_headers do
+      [] -> json
+      [next] -> get_reviews_json_!(token, next.next.url, json)
+    end
   end
 
   @spec get_installation_repos_!(binary, binary, [trepo]) :: [trepo]
