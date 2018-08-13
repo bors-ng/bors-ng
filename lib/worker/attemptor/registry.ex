@@ -47,30 +47,38 @@ defmodule BorsNG.Worker.Attemptor.Registry do
     pid
   end
 
-  def handle_call({:get, project_id}, _from, {names, refs}) do
-    {pid, names, refs} = case names[project_id] do
-      nil ->
-        pid = do_start(project_id)
-        names = Map.put(names, project_id, pid)
-        ref = Process.monitor(pid)
-        refs = Map.put(names, ref, project_id)
-        {pid, names, refs}
-      pid ->
-        {pid, names, refs}
-    end
-    {:reply, pid, {names, refs}}
+  def start_and_insert(project_id, {names, refs}) do
+    pid = do_start(project_id)
+    names = Map.put(names, project_id, pid)
+    ref = Process.monitor(pid)
+    refs = Map.put(refs, ref, project_id)
+    {pid, {names, refs}}
   end
 
-  def handle_info({:DOWN, ref, :process, _pid, reason}, {names, refs}) do
+  def handle_call({:get, project_id}, _from, {names, _refs} = state) do
+    {pid, state} = case names[project_id] do
+      nil ->
+        start_and_insert(project_id, state)
+      pid ->
+        {pid, state}
+    end
+    {:reply, pid, state}
+  end
+
+  def handle_info({:DOWN, ref, :process, _pid, :normal}, {names, refs}) do
     {project_id, refs} = Map.pop(refs, ref)
     names = Map.delete(names, project_id)
-    if reason != :normal do
-      Repo.insert(%Crash{
-        project_id: project_id,
-        component: "try",
-        crash: inspect(reason, pretty: true)})
-    end
     {:noreply, {names, refs}}
+  end
+
+  def handle_info({:DOWN, ref, :process, _, reason}, {_, refs} = state) do
+    project_id = refs[ref]
+    {pid, state} = start_and_insert(project_id, state)
+    Repo.insert(%Crash{
+      project_id: project_id,
+      component: "try",
+      crash: inspect(reason, pretty: true, width: 60)})
+    {:noreply, state}
   end
 
   def handle_info(_msg, state) do

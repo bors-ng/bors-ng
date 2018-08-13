@@ -43,7 +43,10 @@ defmodule BorsNG.Worker.Attemptor do
   # Server callbacks
 
   def init(project_id) do
-    Process.send_after(self(), :poll, @poll_period)
+    Process.send_after(
+      self(),
+      :poll,
+      trunc(@poll_period * :rand.uniform(2) * 0.5))
     {:ok, project_id}
   end
 
