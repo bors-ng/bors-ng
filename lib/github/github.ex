@@ -55,7 +55,7 @@ defmodule BorsNG.GitHub do
     {:ok, prs} = GenServer.call(
       BorsNG.GitHub,
       {:get_open_prs, repo_conn, {}},
-      10_000)
+      100_000)
     prs
   end
 
