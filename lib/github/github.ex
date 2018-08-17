@@ -189,15 +189,17 @@ defmodule BorsNG.GitHub do
   def get_installation_repos!(token) do
     {:ok, repos} = GenServer.call(
       BorsNG.GitHub,
-      {:get_installation_repos, token, {}})
+      {:get_installation_repos, token, {}},
+      100_000)
     repos
   end
 
   @spec get_installation_list! :: [integer]
   def get_installation_list! do
     {:ok, installations} = GenServer.call(
-      BorsNG.GitHub, :get_installation_list
-    )
+      BorsNG.GitHub,
+      :get_installation_list,
+      100_000)
     installations
   end
 
