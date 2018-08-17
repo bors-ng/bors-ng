@@ -390,7 +390,7 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  @spec get_installation_list_!(binary, binary, [integer]) :: [integer]
+  @spec get_installation_list_!(binary, binary | nil, [integer]) :: [integer]
   defp get_installation_list_!(_, nil, list) do
     list
   end
@@ -413,7 +413,10 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  @spec get_open_prs_!(binary, binary, [tpr]) :: [tpr]
+  @spec get_open_prs_!(binary, binary | nil, [tpr]) :: [tpr]
+  defp get_open_prs_!(_, nil, prs) do
+    prs
+  end
   defp get_open_prs_!(token, url, append) do
     params = get_url_params(url)
     %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
