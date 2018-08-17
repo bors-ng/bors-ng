@@ -36,9 +36,7 @@ defmodule BorsNG.Router do
   end
 
   pipeline :wobserver do
-    plug :fetch_session
-    plug :get_current_user
-    plug :force_current_user_admin
+    plug :wobserver_auth
   end
 
   pipeline :webhook do
@@ -146,6 +144,19 @@ defmodule BorsNG.Router do
         conn
         |> Plug.Conn.send_resp(403, "Not allowed.")
         |> halt
+    end
+  end
+
+  # If the target URL is in the wobserver API, do not mess with it.
+  # Otherwise, authenticate the current user.
+  defp wobserver_auth(conn, _) do
+    case conn.path_info do
+      ["api", _] -> conn
+      _ ->
+        conn
+        |> fetch_session([])
+        |> get_current_user([])
+        |> force_current_user_admin([])
     end
   end
 end
