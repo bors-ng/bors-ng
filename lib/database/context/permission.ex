@@ -71,8 +71,8 @@ defmodule BorsNG.Database.Context.Permission do
   defp patch_delegated_reviewer?(user_id, patch_id) do
     UserPatchDelegation
     |> where([d], d.user_id == ^user_id and d.patch_id == ^patch_id)
-    |> Repo.one()
-    |> is_nil()
+    |> Repo.all()
+    |> Enum.empty?()
     |> Kernel.not()
   end
 
