@@ -8,10 +8,10 @@
   </h1>
 </div>
 
-<div class=tabs role=tabs>
+<div class=tabs role=navigation>
   <%= link "Pull requests", to: project_path(@conn, :show, @project), class: "tab" %>
   <%= link "History", to: project_path(@conn, :log, @project), class: "tab" %>
-  <span class="tab tab--active">Settings</span>
+  <span class="tab tab--active" aria-selected=true>Settings</span>
 </div>
 
 </nav>

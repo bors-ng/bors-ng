@@ -6,8 +6,8 @@
     </a>
   </h1>
 </div>
-<div class=tabs role=tabs>
-  <span class="tab tab--active">Pull requests</span>
+<div class=tabs role=navigation>
+  <span class="tab tab--active" aria-selected=true>Pull requests</span>
   <%= if @mode == :rw do %>
   <%= link "History", to: project_path(@conn, :log, @project), class: "tab" %>
   <%= link "Settings", to: project_path(@conn, :settings, @project), class: "tab" %>

@@ -110,6 +110,22 @@ a.header-link-container:focus .header-link,
   background: #fff;
   padding: 8px 0;
   box-shadow: 0 1px 4px #666;
+  z-index: 100;
+}
+.drop-down-menu-backdrop {
+  display: none;
+  background: rgba(250, 250, 250, 0.3);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 100%;
+  bottom: 100%;
+  width: 100%;
+  height: 100%;
+  z-index: 99;
+}
+.drop-down-menu-backdrop--active {
+  display: block;
 }
 .drop-down-menu:target, .drop-down-menu--open {
   display: block;
@@ -184,10 +200,14 @@ footer {
 /* The tab bar. */
 .tabs {
   margin: 0 auto;
-  padding: 0 20px;
+  line-height: 1.15;
+  padding: 0 10px;
   max-width: 1000px;
   position: relative;
   top: 1px;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: row;
 }
 .tabs::after {
   content: ". . . . . . . . . . ";
@@ -203,15 +223,18 @@ footer {
   float: left;
   border: solid 1px transparent;
   margin-left: -1px;
-  transition: border-color 0.1s ease-in-out;
+  transition: color 0.1s ease-in-out, background-color 0.1s ease-in-out;
 }
-.tab--active, .tab:hover, .tab:focus {
+.tab:hover, .tab:focus {
+  text-decoration: none;
+  color: #FFF;
+  background: #000;
+}
+.tab--active, .tab--active:hover, .tab--active:focus {
   border-color: #CCC;
   border-bottom-color: transparent;
-  text-decoration: none;
-}
-.tab--active {
   background: #FFF;
+  color: #000;
 }
 /* The fancy table. */
 .table {
