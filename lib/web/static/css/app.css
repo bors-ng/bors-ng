@@ -184,10 +184,14 @@ footer {
 /* The tab bar. */
 .tabs {
   margin: 0 auto;
-  padding: 0 20px;
-  max-width: 1000px;
+  line-height: 1.15;
+  padding: 0 10px;
+  max-width: 800px;
   position: relative;
   top: 1px;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: row;
 }
 .tabs::after {
   content: ". . . . . . . . . . ";
@@ -203,15 +207,18 @@ footer {
   float: left;
   border: solid 1px transparent;
   margin-left: -1px;
-  transition: border-color 0.1s ease-in-out;
+  transition: color 0.1s ease-in-out, background-color 0.1s ease-in-out;
 }
-.tab--active, .tab:hover, .tab:focus {
-  border-color: #CCC;
-  border-bottom-color: transparent;
+.tab:hover, .tab:focus {
   text-decoration: none;
+  color: #FFF;
+  background: #000;
 }
 .tab--active {
+  border-color: #CCC;
+  border-bottom-color: transparent;
   background: #FFF;
+  color: #000;
 }
 /* The fancy table. */
 .table {
