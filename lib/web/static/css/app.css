@@ -110,6 +110,7 @@ a.header-link-container:focus .header-link,
   background: #fff;
   padding: 8px 0;
   box-shadow: 0 1px 4px #666;
+  z-index: 100;
 }
 .drop-down-menu:target, .drop-down-menu--open {
   display: block;
