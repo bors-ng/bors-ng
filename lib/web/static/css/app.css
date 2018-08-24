@@ -112,6 +112,21 @@ a.header-link-container:focus .header-link,
   box-shadow: 0 1px 4px #666;
   z-index: 100;
 }
+.drop-down-menu-backdrop {
+  display: none;
+  background: rgba(250, 250, 250, 0.3);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 100%;
+  bottom: 100%;
+  width: 100%;
+  height: 100%;
+  z-index: 99;
+}
+.drop-down-menu-backdrop--active {
+  display: block;
+}
 .drop-down-menu:target, .drop-down-menu--open {
   display: block;
 }
