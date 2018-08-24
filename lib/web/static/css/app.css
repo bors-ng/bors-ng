@@ -214,7 +214,7 @@ footer {
   color: #FFF;
   background: #000;
 }
-.tab--active {
+.tab--active, .tab--active:hover, .tab--active:focus {
   border-color: #CCC;
   border-bottom-color: transparent;
   background: #FFF;
