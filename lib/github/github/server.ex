@@ -119,8 +119,9 @@ defmodule BorsNG.GitHub.Server do
     |> case do
       %{body: _, status_code: 200} ->
         {:ok, sha}
-      _ ->
-        {:error, :push}
+      %{body: body, status_code: status_code} ->
+        IO.inspect({:error, :push, body})
+        {:error, :push, status_code}
     end
   end
 
