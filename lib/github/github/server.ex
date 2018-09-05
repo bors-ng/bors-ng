@@ -122,8 +122,6 @@ defmodule BorsNG.GitHub.Server do
       %{body: body, status_code: status_code} ->
         IO.inspect({:error, :push, body})
         {:error, :push, status_code}
-      _ ->
-        {:error, :push}
     end
   end
 
