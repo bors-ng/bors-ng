@@ -88,6 +88,11 @@ defmodule BorsNG.WebhookController do
     :ok
   end
 
+  def do_webhook(conn, "github", "member"), do: do_webhook_installation_sync(conn)
+  def do_webhook(conn, "github", "membership"), do: do_webhook_installation_sync(conn)
+  def do_webhook(conn, "github", "team"), do: do_webhook_installation_sync(conn)
+  def do_webhook(conn, "github", "organization"), do: do_webhook_installation_sync(conn)
+
   def do_webhook(conn, "github", "installation") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
@@ -219,6 +224,16 @@ defmodule BorsNG.WebhookController do
     Batcher.status(batcher, {commit, identifier, state, url})
     attemptor = Attemptor.Registry.get(project.id)
     Attemptor.status(attemptor, {commit, identifier, state, url})
+  end
+
+  def do_webhook_installation_sync(conn) do
+    payload = conn.body_params
+    installation_xref = payload["installation"]["id"]
+    SyncerInstallation.start_synchronize_installation(
+      %Installation{
+        installation_xref: installation_xref
+      }
+    )
   end
 
   def do_webhook_pr(conn, %{

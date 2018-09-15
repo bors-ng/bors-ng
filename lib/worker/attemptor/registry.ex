@@ -73,7 +73,7 @@ defmodule BorsNG.Worker.Attemptor.Registry do
 
   def handle_info({:DOWN, ref, :process, _, reason}, {_, refs} = state) do
     project_id = refs[ref]
-    {pid, state} = start_and_insert(project_id, state)
+    {_pid, state} = start_and_insert(project_id, state)
     Repo.insert(%Crash{
       project_id: project_id,
       component: "try",
