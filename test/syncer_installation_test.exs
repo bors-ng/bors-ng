@@ -23,7 +23,7 @@ defmodule BorsNG.Worker.SyncerInstallationTest do
       %Project{id: 2, repo_xref: 1, name: "me"}
     ]
     result = SyncerInstallation.plan_synchronize(true, repos, projects)
-    assert result == []
+    assert [{:sync, %{id: 2}}] = result
   end
 
   test "syncing a removal does something" do

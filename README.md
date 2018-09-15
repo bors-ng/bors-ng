@@ -221,7 +221,11 @@ For each of these sections, set the following overall section permissions and ch
   - (no checkboxes)
 - *Single file*: No access
 - *Repository projects*: No access
-- *Organization members*: No access
+- *Organization members*: Read-only
+  - *Team* (Team is created, deleted, edited, added to/removed from a repository)
+  - *Member* (Collaborator added to, removed from, or has changed permissions for a repository)
+  - *Membership* (Team membership added or removed)
+  - *Organization* ( User invited to, added to, or removed from an organization)
 - *Organization projects*: No access
 - *Checks*: Read & Write
   - *Check run* (CheckSuite created from the API)
@@ -236,9 +240,11 @@ For each of these sections, set the following overall section permissions and ch
 
 *Pull requests* must be set to *Read & write* to be able to post pull request comments. Also, must receive *Pull request* events to be able to keep the dashboard working, and must get *Pull request review* and *Pull request review comment* events to get those kinds of comments.
 
-*Repository contents*: Must be set to *Read-write* to be able to create merge commits.
+*Repository contents* must be set to *Read & write* to be able to create merge commits.
 
 *Checks* must be set to *Read & write* to report a testing status (this is the newer version). Also must get *Check run* events to integrate with CI systems that report their status via GitHub.
+
+*Organization members* must be set to *Read only* to synchronize repository contributors and bors reviewers.
 
 ### After you click the "Create" button
 
