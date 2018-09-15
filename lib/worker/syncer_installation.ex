@@ -78,7 +78,7 @@ defmodule BorsNG.Worker.SyncerInstallation do
       if Map.has_key?(projects, xref), do: [], else: [{:add, repo}]
     end)
     removes = Enum.flat_map(projects, fn {xref, project} ->
-      if Map.has_key?(repos, xref), do: [], else: [{:remove, project}]
+      if Map.has_key?(repos, xref), do: [{:sync, project}], else: [{:remove, project}]
     end)
     adds ++ removes
   end
@@ -96,6 +96,11 @@ defmodule BorsNG.Worker.SyncerInstallation do
   def remove(_installation, project) do
     project
     |> Repo.delete!()
+  end
+
+  def sync(_installation, project) do
+    project
+    |> Syncer.synchronize_project()
   end
 
   @doc """
