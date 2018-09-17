@@ -88,6 +88,7 @@ defmodule BorsNG.WebhookController do
     :ok
   end
 
+  def do_webhook(conn, "github", "repository"), do: do_webhook_installation_sync(conn)
   def do_webhook(conn, "github", "member"), do: do_webhook_installation_sync(conn)
   def do_webhook(conn, "github", "membership"), do: do_webhook_installation_sync(conn)
   def do_webhook(conn, "github", "team"), do: do_webhook_installation_sync(conn)

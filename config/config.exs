@@ -29,7 +29,7 @@ config :bors,
 
 # General application configuration
 config :bors, BorsNG,
-  command_trigger: "bors",
+  command_trigger: {:system, :string, "COMMAND_TRIGGER", "bors"},
   home_url: "https://bors.tech/",
   allow_private_repos: {:system, :boolean, "ALLOW_PRIVATE_REPOS", false},
   dashboard_header_html: {:system, :string, "DASHBOARD_HEADER_HTML", """
