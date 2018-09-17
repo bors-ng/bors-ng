@@ -420,10 +420,14 @@ defmodule BorsNG.GitHub.Server do
   end
   defp get_open_prs_!(token, url, append) do
     params = get_url_params(url)
-    %{body: raw, status_code: 200, headers: headers} = HTTPoison.get!(
-      url,
+    {raw, headers} = url
+    |> HTTPoison.get!(
       [{"Authorization", "token #{token}"}, {"Accept", @content_type}],
       [params: params])
+    |> case do
+         %{body: raw, status_code: 200, headers: headers} -> {raw, headers}
+         _ -> {"[]", %{}}
+    end
     prs = Poison.decode!(raw)
     |> Enum.flat_map(fn element ->
       element |> GitHub.Pr.from_json |> case do
