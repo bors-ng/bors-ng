@@ -32,7 +32,8 @@ defmodule BorsNG.Worker.SyncerInstallation do
     GitHub.get_installation_list!()
     |> Enum.each(fn installation_xref ->
       {worker, worker_monitor} = spawn_monitor fn ->
-        synchronize_installation(installation_xref)
+        synchronize_installation(%Installation{
+                                installation_xref: installation_xref})
       end
       receive do
         {:DOWN, ^worker_monitor, _, _, _} -> :ok
