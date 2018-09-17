@@ -30,8 +30,16 @@ defmodule BorsNG.Worker.SyncerInstallation do
 
   def synchronize_all_installations do
     GitHub.get_installation_list!()
-    |> Enum.each(&synchronize_installation(
-      %Installation{installation_xref: &1}))
+    |> Enum.each(fn installation_xref ->
+      {worker, worker_monitor} = spawn_monitor fn ->
+        synchronize_installation(installation_xref)
+      end
+      receive do
+        {:DOWN, ^worker_monitor, _, _, _} -> :ok
+      after
+        600_000 -> Process.exit(worker, :kill)
+      end
+    end)
   end
 
   def synchronize_installation(installation = %Installation{
