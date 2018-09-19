@@ -12,7 +12,7 @@
   "devDependencies": {
     "babel-brunch": "~7.0.0",
     "brunch": "^2.10.17",
-    "clean-css-brunch": "~2.0.0",
+    "clean-css-brunch": "~2.10.0",
     "css-brunch": "~2.10.0",
     "javascript-brunch": "~2.10.0",
     "uglify-js-brunch": "~2.10.0"
