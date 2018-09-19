@@ -1,4 +1,5 @@
 ARG ELIXIR_VERSION=1.4.5
+ARG SOURCE_COMMIT
 
 FROM elixir:${ELIXIR_VERSION} as builder
 
@@ -32,6 +33,9 @@ RUN mix release --env=$MIX_ENV
 RUN if [ -d .git ]; then \
         mkdir /src/_build/prod/rel/.git && \
         git rev-parse --short HEAD > /src/_build/prod/rel/.git/HEAD; \
+    else if [ -n ${SOURCE_COMMIT} ]; then \
+        mkdir /src/_build/prod/rel/.git && \
+        echo ${SOURCE_COMMIT} /src/_build/prod/rel/.git/HEAD; > \
     fi
 
 ####
