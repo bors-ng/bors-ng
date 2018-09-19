@@ -2,8 +2,6 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-import_config "scout_apm.exs"
-
 # Configures Elixir's Logger
 # Do not include metadata nor timestamps in development logs
 case Mix.env do

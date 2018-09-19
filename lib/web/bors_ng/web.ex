@@ -25,14 +25,6 @@ defmodule BorsNG.Web do
 
       import BorsNG.Router.Helpers
       import BorsNG.Gettext
-
-      unquote do
-        if Confex.get_env(:scout_apm, :key) do
-          quote do
-            use ScoutApm.Instrumentation
-          end
-        end
-      end
     end
   end
 
