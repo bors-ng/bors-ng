@@ -15,6 +15,6 @@
     "clean-css-brunch": "~2.0.0",
     "css-brunch": "~2.10.0",
     "javascript-brunch": "~2.10.0",
-    "uglify-js-brunch": "~2.0.1"
+    "uglify-js-brunch": "~2.10.0"
   }
 }
