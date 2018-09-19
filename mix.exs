@@ -79,14 +79,6 @@ defmodule BorsNg.Mixfile do
       {:postgrex, "~> 0.13.5"},
       {:mariaex, "~> 0.8"},
       {:ecto, "~> 2.2"},
-    ] ++ (
-      if System.get_env("SCOUT_KEY") do
-        [
-          {:scout_apm, "~> 0.4"},
-        ]
-      else
-        []
-      end
-    )
+    ]
   end
 end
