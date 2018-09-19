@@ -71,7 +71,7 @@ defmodule BorsNg.Mixfile do
       {:oauth2, "~> 0.9.2"},
       {:joken, "~> 1.5"},
       {:dialyxir, git: "https://github.com/jeremyjh/dialyxir.git", commit: "78ecd45", only: [ :dev ], runtime: false},
-      {:distillery, "~> 1.5", runtime: false},
+      {:distillery, "~> 2.0", runtime: false},
       {:edeliver, "~> 1.5", runtime: false},
       {:ex_doc, "~> 0.18", only: :dev},
       {:credo, "~> 0.9", only: [:dev, :test]},
