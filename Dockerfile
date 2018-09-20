@@ -41,7 +41,7 @@ RUN if [ -d .git ]; then \
 ####
 
 FROM debian:stretch-slim
-RUN apt-get update -q && apt-get install -y git-core libssl1.0.0 curl ca-certificates
+RUN apt-get update -q && apt-get install -y git-core libssl1.1 curl ca-certificates
 
 ENV DOCKERIZE_VERSION=v0.6.0
 RUN curl -Ls https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz | \
