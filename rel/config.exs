@@ -46,5 +46,5 @@ release :bors do
   set commands: [
     "migrate": "rel/commands/migrate"
   ]
-  set pre_start_hook: "rel/hooks/pre_start"
+  set pre_start_hooks: "rel/hooks/pre_start"
 end
