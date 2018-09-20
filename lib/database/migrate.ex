@@ -32,7 +32,7 @@ defmodule BorsNG.Database.Migrate do
     # Instead of trying to start the :bors app,
     # which won't start because the database isn't set up yet,
     # we start the Ecto Repo directly.
-    :ok = Application.load(:bors)
+    Application.load(:bors)
     Enum.each(@start_apps, &Application.ensure_all_started/1)
     Enum.each(repos(), &(&1.start_link(pool_size: 1)))
 
