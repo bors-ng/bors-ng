@@ -2,6 +2,37 @@ version: 0
 allowPullRequests: public
 tasks:
 
+  # The bors build queue (build release)
+  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
+    workerType: '{{ taskcluster.docker.workerType }}'
+    extra:
+      github:
+        events:
+          - push
+        branches:
+          - staging
+          - trying
+    payload:
+      maxRunTime: 3600
+      image: "notriddle/docker-phoenix-elixir-test@sha256:f3b3e932d2565135ac3d1efcb52f84ba72038228a6707638b533b1a0d9025e14"
+      command:
+        - /bin/bash
+        - '--login'
+        - '-c'
+        - >-
+          git clone {{event.head.repo.url}} repo && cd repo &&
+          git config advice.detachedHead false && git checkout {{event.head.sha}} &&
+          export MIX_ENV=prod &&
+          mix deps.get &&
+          npm install && npm run deploy &&
+          mix phx.digest &&
+          mix release --env=$MIX_ENV
+    metadata:
+      name: Bors-NG build release
+      description: 'Run a release using distillery'
+      owner: 'infra@bors.tech'
+      source: '{{ event.head.repo.url }}'
+
   # The bors build queue (test suite)
   - provisionerId: '{{ taskcluster.docker.provisionerId }}'
     workerType: '{{ taskcluster.docker.workerType }}'
@@ -33,7 +64,6 @@ tasks:
       source: '{{ event.head.repo.url }}'
 
   # The bors build queue (static analysis)
-  # TODO: cache the PLT files that dialyzer uses
   - provisionerId: '{{ taskcluster.docker.provisionerId }}'
     workerType: '{{ taskcluster.docker.workerType }}'
     extra:
@@ -91,3 +121,4 @@ tasks:
       description: 'Run "build" against a pull request'
       owner: '{{ event.head.user.email }}'
       source: '{{ event.head.repo.url }}'
+
