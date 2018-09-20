@@ -40,7 +40,7 @@ RUN if [ -d .git ]; then \
 
 ####
 
-FROM debian:jessie-slim
+FROM debian:stretch-slim
 RUN apt-get update -q && apt-get install -y git-core libssl1.0.0 curl ca-certificates
 
 ENV DOCKERIZE_VERSION=v0.6.0
