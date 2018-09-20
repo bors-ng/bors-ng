@@ -35,7 +35,7 @@ RUN if [ -d .git ]; then \
         git rev-parse --short HEAD > /src/_build/prod/rel/.git/HEAD; \
     else if [ -n ${SOURCE_COMMIT} ]; then \
         mkdir /src/_build/prod/rel/.git && \
-        echo ${SOURCE_COMMIT} /src/_build/prod/rel/.git/HEAD; > \
+        echo ${SOURCE_COMMIT} > /src/_build/prod/rel/.git/HEAD; \
     fi
 
 ####
