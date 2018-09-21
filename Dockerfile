@@ -31,11 +31,11 @@ RUN mix release --env=$MIX_ENV
 
 # Make the git HEAD available to the released app
 RUN if [ -d .git ]; then \
-        mkdir /src/_build/prod/rel/.git && \
-        git rev-parse --short HEAD > /src/_build/prod/rel/.git/HEAD; \
+        mkdir /src/_build/prod/rel/bors/.git && \
+        git rev-parse --short HEAD > /src/_build/prod/rel/bors/.git/HEAD; \
     elif [ -n ${SOURCE_COMMIT} ]; then \
-        mkdir /src/_build/prod/rel/.git && \
-        echo ${SOURCE_COMMIT} > /src/_build/prod/rel/.git/HEAD; \
+        mkdir /src/_build/prod/rel/bors/.git && \
+        echo ${SOURCE_COMMIT} > /src/_build/prod/rel/bors/.git/HEAD; \
     fi
 
 ####
