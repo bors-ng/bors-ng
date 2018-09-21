@@ -26,4 +26,11 @@ defmodule BorsNG.Database.Crash do
     from c in Crash,
       where: c.project_id == ^project_id
   end
+
+  def days(d) do
+    ds = d * 60 * 60 * 24
+    start = NaiveDateTime.utc_now() |> NaiveDateTime.add(-ds, :seconds)
+    from c in Crash,
+      where: c.inserted_at >= ^start
+  end
 end

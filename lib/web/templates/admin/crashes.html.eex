@@ -1,0 +1,32 @@
+<nav><div class=wrapper>
+  <a href="<%= admin_path(@conn, :index) %>">
+    Administration
+  </a>
+  ›
+  <h1>Crashes in last <%= @days %> days</h1>
+</div></nav>
+
+<main role=main><div class=wrapper>
+
+<table class=table>
+  <tbody>
+  <%= for crash <- @crashes do %>
+    <tr role="row">
+      <td class="fill-link">
+        <a href="<%= project_path(@conn, :show, crash.project.id) %>">
+          <%= crash.project.name %>
+        </a>
+      </td>
+      <td>
+        <%= crash.component %><br>
+        <%= htmlify_naive_datetime(crash.updated_at) %>
+      </td>
+      <td><pre>
+        <%= crash.crash %>
+      </pre></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+
+</div></main>
