@@ -304,6 +304,7 @@ Or you can do it manually:
         POOL_SIZE=18 \
         PUBLIC_HOST=bors-app.herokuapp.com \
         ALLOW_PRIVATE_REPOS=true \
+        COMMAND_TRIGGER=bors \
         SECRET_KEY_BASE=<SECRET1> \
         GITHUB_CLIENT_ID=<OAUTH_CLIENT_ID> \
         GITHUB_CLIENT_SECRET=<OAUTH_CLIENT_SECRET> \
@@ -355,6 +356,7 @@ All the same recommendations apply, with some extra notes:
           -e DATABASE_URL="postgresql://postgres:<secret>@db:5432/bors_ng" \
           -e DATABASE_USE_SSL=false \
           -e DATABASE_AUTO_MIGRATE=true \
+          -e COMMAND_TRIGGER=bors \
           borsng/bors-ng
       docker start bors
 
