@@ -8,6 +8,10 @@
 
   "success_url": "/auth/github",
   "env": {
+    "COMMAND_TRIGGER": {
+      "description": "Prefix for all commands",
+      "value": "bors"
+    },
     "MIX_ENV": {
       "description": "Mode to run the application in",
       "value": "prod"
