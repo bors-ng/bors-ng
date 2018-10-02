@@ -228,7 +228,8 @@ For each of these sections, set the following overall section permissions and ch
   - *Organization* ( User invited to, added to, or removed from an organization)
 - *Organization projects*: No access
 - *Checks*: Read & Write
-  - *Check run* (CheckSuite created from the API)
+  - *Check run* (Check run created from the API)
+  - *Check suite* (Check suite created from the API)
 
 #### Permission explanations
 
