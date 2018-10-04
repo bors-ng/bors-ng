@@ -1,6 +1,6 @@
 <nav><div class=wrapper>
   <a href="<%= admin_path(@conn, :index) %>">
-    Administrators
+    Administration
   </a>
   ›
   <h1>Duplicate patches in batches</h1>

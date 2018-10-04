@@ -1,5 +1,5 @@
 <nav><div class=wrapper>
-<h1>Administrator</h1>
+<h1>Administration</h1>
 </div></nav>
 
 <main role=main><div class=wrapper>
@@ -33,6 +33,30 @@
       </td>
       <td class=fill-link>
         <%= link "Duplicate patches in batches", to: admin_path(@conn, :dup_patches) %>
+      </td>
+    </tr>
+    <tr role=row>
+      <td>
+        <%= @crashes_day %>
+      </td>
+      <td class=fill-link>
+        <%= link "Worker crashes in last day", to: admin_path(@conn, :crashes, days: 1) %>
+      </td>
+    </tr>
+    <tr role=row>
+      <td>
+        <%= @crashes_week %>
+      </td>
+      <td class=fill-link>
+        <%= link "Worker crashes in last 7 days", to: admin_path(@conn, :crashes, days: 7) %>
+      </td>
+    </tr>
+    <tr role=row>
+      <td>
+        <%= @crashes_month %>
+      </td>
+      <td class=fill-link>
+        <%= link "Worker crashes in last 30 days", to: admin_path(@conn, :crashes, days: 30) %>
       </td>
     </tr>
   </tbody>

@@ -87,6 +87,7 @@ defmodule BorsNG.Router do
     get "/orphans", AdminController, :orphans
     get "/project", AdminController, :project_by_name
     get "/dup-patches", AdminController, :dup_patches
+    get "/crashes", AdminController, :crashes
     post "/synchronize-all-installations", AdminController,
          :synchronize_all_installations
   end
