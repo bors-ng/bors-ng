@@ -136,7 +136,6 @@ defmodule BorsNG.Worker.Batcher do
     |> Repo.all()
     |> case do
       [batch] ->
-        assert project_id == batch.project_id
         batch.id
         |> Status.get_for_batch(identifier)
         |> Repo.update_all([set: [state: state, url: url]])
