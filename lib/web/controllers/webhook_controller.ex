@@ -199,11 +199,13 @@ defmodule BorsNG.WebhookController do
     branch = conn.body_params["check_suite"]["head_branch"]
     project = Repo.get_by!(Project, repo_xref: repo_xref)
     action = conn.body_params["action"]
+    staging_branch = project.staging_branch
+    trying_branch = project.trying_branch
     case {action, branch} do
-      {"completed", ^project.staging_branch} ->
+      {"completed", ^staging_branch} ->
         batcher = Batcher.Registry.get(project.id)
         Batcher.poll(batcher)
-      {"completed", ^project.trying_branch} ->
+      {"completed", ^trying_branch} ->
         attemptor = Attemptor.Registry.get(project.id)
         Attemptor.poll(attemptor)
       _ -> :ok
