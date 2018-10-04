@@ -55,6 +55,10 @@ defmodule BorsNG.Worker.Batcher do
     GenServer.cast(pid, {:status, stat})
   end
 
+  def poll(pid) do
+    send(pid, {:poll, :once})
+  end
+
   def cancel(pid, patch_id) when is_integer(patch_id) do
     GenServer.cast(pid, {:cancel, patch_id})
   end

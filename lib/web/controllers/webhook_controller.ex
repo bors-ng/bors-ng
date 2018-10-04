@@ -195,22 +195,23 @@ defmodule BorsNG.WebhookController do
   # The check suite is automatically added by GitHub.
   # But don't start until the user writes "r+"
   def do_webhook(_conn, "github", "check_suite") do
-    :ok
+    repo_xref = conn.body_params["repository"]["id"]
+    branch = conn.body_params["check_suite"]["head_branch"]
+    project = Repo.get_by!(Project, repo_xref: repo_xref)
+    action = conn.body_params["action"]
+    case {action, branch} do
+      {"completed", ^project.staging_branch} ->
+        batcher = Batcher.Registry.get(project.id)
+        Batcher.poll(batcher)
+      {"completed", ^project.trying_branch} ->
+        attemptor = Attemptor.Registry.get(project.id)
+        Attemptor.poll(attemptor)
+      _ -> :ok
+    end
   end
 
   def do_webhook(conn, "github", "check_run") do
-    repo_xref = conn.body_params["repository"]["id"]
-    commit = conn.body_params["check_run"]["head_sha"]
-    run_name = conn.body_params["check_run"]["name"]
-    |> GitHub.map_changed_status()
-    url = conn.body_params["check_run"]["html_url"]
-    state = GitHub.map_check_to_status(
-      conn.body_params["check_run"]["conclusion"])
-    project = Repo.get_by!(Project, repo_xref: repo_xref)
-    batcher = Batcher.Registry.get(project.id)
-    Batcher.status(batcher, {commit, run_name, state, url})
-    attemptor = Attemptor.Registry.get(project.id)
-    Attemptor.status(attemptor, {commit, run_name, state, url})
+    :ok
   end
 
   def do_webhook(conn, "github", "status") do
