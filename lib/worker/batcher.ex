@@ -131,10 +131,12 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def do_handle_cast({:status, {commit, identifier, state, url}}, project_id) do
-    batch = Repo.all(Batch.get_assoc_by_commit(commit))
-    case batch do
+    project_id
+    |> Batch.get_assoc_by_commit(commit)
+    |> Repo.all()
+    |> case do
       [batch] ->
-        ^project_id = batch.project_id
+        assert project_id == batch.project_id
         batch.id
         |> Status.get_for_batch(identifier)
         |> Repo.update_all([set: [state: state, url: url]])

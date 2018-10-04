@@ -82,8 +82,10 @@ defmodule BorsNG.Worker.Attemptor do
   end
 
   def do_handle_cast({:status, {commit, identifier, state, url}}, project_id) do
-    attempt = Repo.all(Attempt.get_by_commit(commit, :incomplete))
-    case attempt do
+    project_id
+    |> Attempt.get_by_commit(commit, :incomplete)
+    |> Repo.all()
+    |> case do
       [attempt] ->
         patch = Repo.get!(Patch, attempt.patch_id)
         ^project_id = patch.project_id
