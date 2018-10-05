@@ -194,7 +194,7 @@ defmodule BorsNG.WebhookController do
 
   # The check suite is automatically added by GitHub.
   # But don't start until the user writes "r+"
-  def do_webhook(_conn, "github", "check_suite") do
+  def do_webhook(conn, "github", "check_suite") do
     repo_xref = conn.body_params["repository"]["id"]
     branch = conn.body_params["check_suite"]["head_branch"]
     project = Repo.get_by!(Project, repo_xref: repo_xref)
