@@ -64,7 +64,8 @@ defmodule BorsNG.Database.Attempt do
 
   def get_by_commit(project_id, commit, state) do
     from b in all(state),
-      where: b.commit == ^commit and b.project_id == ^project_id
+      join: p in Patch, on: p.id == b.patch_id,
+      where: b.commit == ^commit and p.project_id == ^project_id
   end
 
   def next_poll_is_past(attempt, project) do
