@@ -55,6 +55,10 @@ defmodule BorsNG.Worker.Batcher do
     GenServer.cast(pid, {:status, stat})
   end
 
+  def poll(pid) do
+    send(pid, {:poll, :once})
+  end
+
   def cancel(pid, patch_id) when is_integer(patch_id) do
     GenServer.cast(pid, {:cancel, patch_id})
   end
@@ -173,7 +177,7 @@ defmodule BorsNG.Worker.Batcher do
     if repetition != :once do
       Process.send_after(self(), {:poll, repetition}, @poll_period)
     end
-    case poll(project_id) do
+    case poll_(project_id) do
       :stop ->
         {:stop, :normal, project_id}
       :again ->
@@ -183,7 +187,7 @@ defmodule BorsNG.Worker.Batcher do
 
   # Private implementation details
 
-  defp poll(project_id) do
+  defp poll_(project_id) do
     project = Repo.get(Project, project_id)
     incomplete = project_id
     |> Batch.all_for_project(:incomplete)
@@ -371,7 +375,7 @@ defmodule BorsNG.Worker.Batcher do
     |> Batch.changeset(%{state: status, last_polled: now})
     |> Repo.update!()
     if status != :running do
-      poll(batch.project_id)
+      poll_(batch.project_id)
     end
   end
 

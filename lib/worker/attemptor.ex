@@ -40,6 +40,10 @@ defmodule BorsNG.Worker.Attemptor do
     GenServer.cast(pid, {:status, stat})
   end
 
+  def poll(pid) do
+    send(pid, :poll_once)
+  end
+
   # Server callbacks
 
   def init(project_id) do
@@ -98,8 +102,13 @@ defmodule BorsNG.Worker.Attemptor do
     end
   end
 
+  def handle_info(:poll_once, project_id) do
+    Repo.transaction(fn -> poll_(project_id) end)
+    {:noreply, project_id}
+  end
+
   def handle_info(:poll, project_id) do
-    case Repo.transaction(fn -> poll(project_id) end) do
+    case Repo.transaction(fn -> poll_(project_id) end) do
       {:ok, :stop} ->
         {:stop, :normal, project_id}
       {:ok, :again} ->
@@ -110,7 +119,7 @@ defmodule BorsNG.Worker.Attemptor do
 
   # Private implementation details
 
-  defp poll(project_id) do
+  defp poll_(project_id) do
     project = Repo.get(Project, project_id)
     incomplete = project_id
     |> Attempt.all_for_project(:incomplete)
