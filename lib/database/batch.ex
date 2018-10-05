@@ -88,9 +88,9 @@ defmodule BorsNG.Database.Batch do
         or b.state == ^(:canceled)
   end
 
-  def get_assoc_by_commit(commit, state \\ nil) do
+  def get_assoc_by_commit(project_id, commit, state \\ nil) do
     from b in all_assoc(state),
-      where: b.commit == ^commit
+      where: b.commit == ^commit and b.project_id == ^project_id
   end
 
   def next_poll_is_past(batch) do
