@@ -201,14 +201,14 @@ defmodule BorsNG.WebhookController do
     sha = conn.body_params["check_suite"]["head_sha"]
     action = conn.body_params["action"]
     project = Repo.get_by!(Project, repo_xref: repo_xref)
-    Batch
-    |> Repo.get_by!(commit: sha, project_id: project.id)
-    |> Batch.changeset(%{"last_polled" => 0})
-    |> Repo.update!()
     staging_branch = project.staging_branch
     trying_branch = project.trying_branch
     case {action, branch} do
       {"completed", ^staging_branch} ->
+        Batch
+        |> Repo.get_by!(commit: sha, project_id: project.id)
+        |> Batch.changeset(%{last_polled: 0})
+        |> Repo.update!()
         batcher = Batcher.Registry.get(project.id)
         Batcher.poll(batcher)
       {"completed", ^trying_branch} ->
