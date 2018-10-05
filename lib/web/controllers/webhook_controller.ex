@@ -66,6 +66,7 @@ defmodule BorsNG.WebhookController do
   alias BorsNG.Worker.Batcher
   alias BorsNG.Worker.BranchDeleter
   alias BorsNG.Command
+  alias BorsNG.Database.Batch
   alias BorsNG.Database.Installation
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
@@ -197,8 +198,13 @@ defmodule BorsNG.WebhookController do
   def do_webhook(conn, "github", "check_suite") do
     repo_xref = conn.body_params["repository"]["id"]
     branch = conn.body_params["check_suite"]["head_branch"]
-    project = Repo.get_by!(Project, repo_xref: repo_xref)
+    sha = conn.body_params["check_suite"]["head_sha"]
     action = conn.body_params["action"]
+    project = Repo.get_by!(Project, repo_xref: repo_xref)
+    Batch
+    |> Repo.get_by!(commit: sha, project_id: project.id)
+    |> Batch.changeset(%{"last_polled" => 0})
+    |> Repo.update!()
     staging_branch = project.staging_branch
     trying_branch = project.trying_branch
     case {action, branch} do
