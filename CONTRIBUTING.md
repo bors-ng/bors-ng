@@ -78,7 +78,7 @@ Finding something to work on
 ----------------------------
 
 If you're not sure what to work on,
-there's a list of easy-to-fix problems to get you started at <https://bors-ng.github.io/starters>.
+there's a list of easy-to-fix problems to get you started at <https://bors.tech/starters>.
 After you pick an issue,
 you should mention that you're working on it in a GitHub comment
 (so that we can mark it as assigned and avoid duplicate work).
