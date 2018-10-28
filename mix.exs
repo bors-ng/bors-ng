@@ -65,7 +65,7 @@ defmodule BorsNg.Mixfile do
       {:cowboy, "~> 1.0"},
       {:plug_cowboy, "~> 1.0"},
       {:httpoison, "~> 0.12"},
-      {:etoml, [git: "git://github.com/bors-ng/etoml.git", commit: "6202b5d"]},
+      {:toml, "~> 0.5"},
       {:wobserver, "~> 0.1.8"},
       {:hackney, "~> 1.12"},
       {:ex_link_header, "~> 0.0.5"},

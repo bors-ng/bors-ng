@@ -52,10 +52,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   @spec new(binary) :: {:ok, t} | {:error, err}
   def new(str) when is_binary(str) do
-    case :etoml.parse(str) do
+    case Toml.decode(str) do
       {:ok, toml} ->
-        toml = to_map toml
-
         committer = Map.get(toml, "committer", nil)
         committer = case committer do
           nil -> nil
