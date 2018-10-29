@@ -54,6 +54,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
   def new(str) when is_binary(str) do
     case Toml.decode(str) do
       {:ok, toml} ->
+        toml = to_map(toml)
+
         committer = Map.get(toml, "committer", nil)
         committer = case committer do
           nil -> nil
