@@ -32,7 +32,7 @@ defmodule BorsNG.Worker.Batcher.Registry do
   # Server callbacks
 
   def init(:ok) do
-    names = Project
+    names = Project.active
     |> Repo.all()
     |> Enum.map(&{&1.id, do_start(&1.id)})
     |> Map.new()
