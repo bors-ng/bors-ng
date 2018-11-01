@@ -40,6 +40,13 @@ defmodule BorsNG.Database.Project do
     timestamps()
   end
 
+  def active do
+    from p in Project,
+      join: b in Batch, on: p.id == b.project_id,
+      where: b.state == ^(:waiting)
+             or b.state == ^(:running)
+  end
+
   def installation_project_connection(project_id, repo) do
     {installation_xref, repo_xref} = from(p in Project,
       join: i in Installation, on: i.id == p.installation_id,
