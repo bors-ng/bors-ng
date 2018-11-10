@@ -79,7 +79,7 @@ defmodule BorsNg.Mixfile do
       {:confex, "~> 3.3.1"},
       {:postgrex, "~> 0.13.5"},
       {:mariaex, "~> 0.8"},
-      {:ecto, "~> 2.2"},
+      {:ecto, "~> 3.0"},
     ]
   end
 end
