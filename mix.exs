@@ -37,7 +37,7 @@ defmodule BorsNg.Mixfile do
   # Run ecto setup before running tests.
   defp aliases do
     [
-      "test": ["ecto.create --quiet", "ecto.migrate", "test"]
+      test: ["ecto.create --quiet", "ecto.migrate", "test"]
     ]
   end
 
