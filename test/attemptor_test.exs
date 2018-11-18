@@ -279,6 +279,98 @@ defmodule BorsNG.Worker.AttemptorTest do
       }}
   end
 
+  test "full runthrough (with wildcard)", %{proj: proj} do
+    # Attempts start running immediately
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}}
+      }})
+    patch = new_patch(proj, 1, "N")
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "trying" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+               comments: %{1 => []},
+               statuses: %{"iniN" => []},
+               files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}}
+             }}
+    attempt = Repo.get_by! Attempt, patch_id: patch.id
+    assert attempt.state == :running
+    # Polling should not change that.
+    Attemptor.handle_info(:poll, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "trying" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+               comments: %{1 => []},
+               statuses: %{"iniN" => []},
+               files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}}
+             }}
+    attempt = Repo.get_by! Attempt, patch_id: patch.id
+    assert attempt.state == :running
+    # Mark the CI as having finished.
+    # At this point, just running should still do nothing.
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "trying" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+        comments: %{1 => []},
+        statuses: %{"iniN" => [{"ci", :ok}]},
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}}
+      }})
+    Attemptor.handle_info(:poll, proj.id)
+    attempt = Repo.get_by! Attempt, patch_id: patch.id
+    assert attempt.state == :running
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "trying" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+               comments: %{1 => []},
+               statuses: %{"iniN" => [{"ci", :ok}]},
+               files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}}
+             }}
+    # Finally, an actual poll should finish it.
+    attempt
+    |> Attempt.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Attemptor.handle_info(:poll, proj.id)
+    attempt = Repo.get_by! Attempt, patch_id: patch.id
+    assert attempt.state == :ok
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "trying" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+               comments: %{1 => ["## try\n\n# Build succeeded\n  * ci"]},
+               statuses: %{"iniN" => [{"ci", :ok}]},
+               files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}}
+             }}
+  end
+
   test "posts message if patch has ci skip", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{

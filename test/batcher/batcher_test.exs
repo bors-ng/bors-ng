@@ -782,6 +782,172 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+  test "full runthrough (with wildcard)", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"iniN" => %{}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+        pr_commits: %{1 => [
+                        %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
+      }})
+    patch = %Patch{
+              project_id: proj.id,
+              pr_xref: 1,
+              commit: "N",
+              into_branch: "master"}
+            |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+               commits: %{},
+               comments: %{1 => []},
+               statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
+               files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pr_commits: %{1 => [
+                               %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+               ]},
+             }}
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :waiting
+    # Polling at the same time doesn't change that.
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :waiting
+    # Polling at a later time (yeah, I'm setting the clock back to do it)
+    # kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :running
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "staging" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{
+                   commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+                                   "\nCo-authored-by: a <e>\n",
+                   parents: ["ini", "N"]}},
+               comments: %{1 => []},
+               statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
+               files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pr_commits: %{1 => [
+                               %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+               ]},
+             }}
+    # Polling again should change nothing.
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :running
+    # Force-polling again should still change nothing.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :running
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "staging" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{
+                   commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+                                   "\nCo-authored-by: a <e>\n",
+                   parents: ["ini", "N"]}},
+               comments: %{1 => []},
+               statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
+               files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pr_commits: %{1 => [
+                               %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+               ]},
+             }}
+    # Mark the CI as having finished.
+    # At this point, just running should still do nothing.
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "staging" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{
+            commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+                            "\nCo-authored-by: a <e>\n",
+            parents: ["ini", "N"]}},
+        comments: %{1 => []},
+        statuses: %{
+          "iniN" => %{"ci" => :ok},
+          "N" => %{"bors" => :running}},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+        pr_commits: %{1 => [
+                        %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+        ]},
+      }})
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :running
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "staging" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{
+                   commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+                                   "\nCo-authored-by: a <e>\n",
+                   parents: ["ini", "N"]}},
+               comments: %{1 => []},
+               statuses: %{
+                 "iniN" => %{"ci" => :ok},
+                 "N" => %{"bors" => :running}},
+               files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pr_commits: %{1 => [
+                               %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+               ]},
+             }}
+    # Finally, an actual poll should finish it.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :ok
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "iniN",
+                 "staging" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{
+                   commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
+                                   "\nCo-authored-by: a <e>\n",
+                   parents: ["ini", "N"]}},
+               comments: %{1 => ["# Build succeeded\n  * ci"]},
+               statuses: %{
+                 "iniN" => %{"bors" => :ok, "ci" => :ok},
+                 "N" => %{"bors" => :ok}},
+               files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pr_commits: %{1 => [
+                               %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
+               ]},
+             }}
+  end
+
   test "merge conflict", %{proj: proj} do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{

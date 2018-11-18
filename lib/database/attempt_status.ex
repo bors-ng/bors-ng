@@ -27,7 +27,7 @@ defmodule BorsNG.Database.AttemptStatus do
   def get_for_attempt(attempt_id, identifier) do
     from s in AttemptStatus,
       where: s.attempt_id == ^attempt_id,
-      where: s.identifier == ^identifier
+      where: fragment("? LIKE ?", ^identifier, s.identifier)
   end
 
   def all_for_attempt(attempt_id) do

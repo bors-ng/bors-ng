@@ -27,7 +27,7 @@ defmodule BorsNG.Database.Status do
   def get_for_batch(batch_id, identifier) do
     from s in Status,
       where: s.batch_id == ^batch_id,
-      where: s.identifier == ^identifier
+      where: fragment("? LIKE ?", ^identifier, s.identifier)
   end
 
   def all_for_batch(batch_id) do

@@ -96,7 +96,7 @@ defmodule BorsNG.Worker.Attemptor do
         project = Repo.get!(Project, project_id)
         attempt.id
         |> AttemptStatus.get_for_attempt(identifier)
-        |> Repo.update_all([set: [state: state, url: url]])
+        |> Repo.update_all([set: [state: state, url: url, identifier: identifier]])
         if attempt.state == :running do
           maybe_complete_attempt(attempt, project, patch)
         end
@@ -224,18 +224,14 @@ defmodule BorsNG.Worker.Attemptor do
     if attempt.timeout_at < now do
       timeout_attempt(attempt, project, patch)
     else
-      gh_statuses = project
+      project
       |> get_repo_conn()
       |> GitHub.get_commit_status!(attempt.commit)
-      |> Enum.map(&{elem(&1, 0), elem(&1, 1)})
-      |> Map.new()
-      attempt.id
-      |> AttemptStatus.all_for_attempt()
-      |> Repo.all()
-      |> Enum.filter(&Map.has_key?(gh_statuses, &1.identifier))
-      |> Enum.map(&{&1, %{state: Map.fetch!(gh_statuses, &1.identifier)}})
-      |> Enum.map(&AttemptStatus.changeset(elem(&1, 0), elem(&1, 1)))
-      |> Enum.each(&Repo.update!/1)
+      |> Enum.each(fn {identifier, state} ->
+        attempt.id
+        |> AttemptStatus.get_for_attempt(identifier)
+        |> Repo.update_all([set: [state: state, identifier: identifier]])
+      end)
       maybe_complete_attempt(attempt, project, patch)
     end
   end
