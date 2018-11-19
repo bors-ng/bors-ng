@@ -142,7 +142,7 @@ defmodule BorsNG.Worker.Batcher do
       [batch] ->
         batch.id
         |> Status.get_for_batch(identifier)
-        |> Repo.update_all([set: [state: state, url: url]])
+        |> Repo.update_all([set: [state: state, url: url, identifier: identifier]])
         if batch.state == :running do
           maybe_complete_batch(batch)
         end
@@ -345,19 +345,14 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   defp poll_running_batch(batch) do
-    project = batch.project
-    gh_statuses = project
+    batch.project
     |> get_repo_conn()
     |> GitHub.get_commit_status!(batch.commit)
-    |> Enum.map(&{elem(&1, 0), elem(&1, 1)})
-    |> Map.new()
-    batch.id
-    |> Status.all_for_batch()
-    |> Repo.all()
-    |> Enum.filter(&Map.has_key?(gh_statuses, &1.identifier))
-    |> Enum.map(&{&1, %{state: Map.fetch!(gh_statuses, &1.identifier)}})
-    |> Enum.map(&Status.changeset(elem(&1, 0), elem(&1, 1)))
-    |> Enum.each(&Repo.update!/1)
+    |> Enum.each(fn {identifier, state} ->
+      batch.id
+      |> Status.get_for_batch(identifier)
+      |> Repo.update_all([set: [state: state, identifier: identifier]])
+    end)
     maybe_complete_batch(batch)
   end
 
