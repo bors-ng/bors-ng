@@ -75,7 +75,7 @@ defmodule BorsNg.Mixfile do
       {:distillery, "~> 2.0", runtime: false},
       {:edeliver, "~> 1.5", runtime: false},
       {:ex_doc, "~> 0.18", only: :dev},
-      {:credo, "~> 0.9", only: [:dev, :test]},
+      {:credo, "~> 1.0", only: [:dev, :test]},
       {:confex, "~> 3.3.1"},
       {:postgrex, "~> 0.13.5"},
       {:mariaex, "~> 0.8"},
