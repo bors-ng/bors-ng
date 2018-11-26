@@ -76,7 +76,7 @@ To use it, you need to stop clicking the big green merge button, and instead lea
 
 As commits are reviewed, bors lumps them into a queue of batches. If everything passes, there will just be two batches; the one that's running, and the one that's waiting to be run (and is accumulating more and more pull requests until it gets a chance to run).
 
-To run a batch, bors creates a merge commit, merging master with all the pull requests that make up the batch. They'll look like this:
+To run a batch, bors creates a merge commit, merging master with all the pull requests that make up the batch. Instead of pushing the merge commit to `master` immediately, however, it will instead push it to the `staging` branch. They'll look like this:
 
     Merge #5 #7 #8
 
@@ -116,6 +116,8 @@ This one will pass, since the PR it conflicts with (#7) is sitting behind it in 
 When a batch cannot be bisected (because it only contains one PR), it gets kicked back to the creator so they can fix it.
 
 Note that you can watch this process running on the [dashboard page] if you want.
+
+As a convenience, you can also run `bors try`, which will kick off a build the same way `r+` would, but without actually pushing it to master even if it does succeed. To help keep them separate, `r+` merge commits go in `staging` and `try` builds go in `trying`.
 
 [Bors-NG]: https://bors.tech/
 [GitHub Application]: https://github.com/settings/installations
