@@ -510,110 +510,13 @@ defmodule BorsNG.Worker.BatcherTest do
     batch = Repo.get_by! Batch, project_id: proj.id
     assert batch.state == :waiting
     # Polling at a later time (yeah, I'm setting the clock back to do it)
-    # kicks it off.
+    # causes the zero-patch batch to cancel.
     batch
     |> Batch.changeset(%{last_polled: 0})
     |> Repo.update!()
     Batcher.handle_info({:poll, :once}, proj.id)
     batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == :running
-    assert GitHub.ServerMock.get_state() == %{
-      {{:installation, 91}, 14} => %{
-        branches: %{
-          "master" => "ini",
-          "staging" => "ini"},
-        commits: %{
-          "ini" => %{
-            commit_message: "Merge\n\n\n",
-            parents: ["ini"]}},
-        comments: %{},
-        statuses: %{"ini" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{
-          "bors.toml" =>
-            ~s"""
-              status = [ "ci" ]
-              [unstable]
-              allow-empty-batches = true
-            """}},
-      }}
-    # Polling again should change nothing.
-    Batcher.handle_info({:poll, :once}, proj.id)
-    batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == :running
-    # Force-polling again should still change nothing.
-    batch
-    |> Batch.changeset(%{last_polled: 0})
-    |> Repo.update!()
-    Batcher.handle_info({:poll, :once}, proj.id)
-    batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == :running
-    assert GitHub.ServerMock.get_state() == %{
-      {{:installation, 91}, 14} => %{
-        branches: %{
-          "master" => "ini",
-          "staging" => "ini"},
-        commits: %{
-          "ini" => %{
-            commit_message: "Merge\n\n\n",
-            parents: ["ini"]}},
-        comments: %{},
-        statuses: %{"ini" => %{"bors" => :running}},
-        files: %{"staging.tmp" => %{
-          "bors.toml" =>
-            ~s"""
-              status = [ "ci" ]
-              [unstable]
-              allow-empty-batches = true
-            """}},
-      }}
-    # Mark the CI as having finished.
-    GitHub.ServerMock.put_state(%{
-      {{:installation, 91}, 14} => %{
-        branches: %{
-          "master" => "ini",
-          "staging" => "ini"},
-        commits: %{
-          "ini" => %{
-            commit_message: "Merge\n\n\n",
-            parents: ["ini"]}},
-        comments: %{},
-        statuses: %{
-          "ini" => %{"ci" => :ok, "bors" => :running}},
-        files: %{"staging.tmp" => %{
-          "bors.toml" =>
-            ~s"""
-              status = [ "ci" ]
-              [unstable]
-              allow-empty-batches = true
-            """}},
-      }})
-    # Finally, an actual poll should finish it.
-    batch
-    |> Batch.changeset(%{last_polled: 0})
-    |> Repo.update!()
-    Batcher.handle_info({:poll, :once}, proj.id)
-    batch = Repo.get_by! Batch, project_id: proj.id
-    assert batch.state == :ok
-    assert GitHub.ServerMock.get_state() == %{
-      {{:installation, 91}, 14} => %{
-        branches: %{
-          "master" => "ini",
-          "staging" => "ini"},
-        commits: %{
-          "ini" => %{
-            commit_message: "Merge\n\n\n",
-            parents: ["ini"]}},
-        comments: %{},
-        statuses: %{
-          "ini" => %{"bors" => :ok, "ci" => :ok}},
-        files: %{"staging.tmp" => %{
-          "bors.toml" =>
-            ~s"""
-              status = [ "ci" ]
-              [unstable]
-              allow-empty-batches = true
-            """}},
-      }}
+    assert batch.state == :canceled
   end
 
   test "full runthrough (with polling fallback)", %{proj: proj} do

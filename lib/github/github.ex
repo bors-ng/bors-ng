@@ -65,6 +65,11 @@ defmodule BorsNG.GitHub do
     sha
   end
 
+  @spec push(tconn, binary, binary) :: {:ok, binary} | {:error, term, term}
+  def push(repo_conn, sha, to) do
+    GenServer.call(BorsNG.GitHub, {:push, repo_conn, {sha, to}})
+  end
+
   @spec get_branch!(tconn, binary) :: %{commit: bitstring, tree: bitstring}
   def get_branch!(repo_conn, from) do
     {:ok, commit} = GenServer.call(
