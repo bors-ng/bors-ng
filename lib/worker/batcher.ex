@@ -260,6 +260,7 @@ defmodule BorsNG.Worker.Batcher do
     do_merge_patch = fn %{patch: patch}, branch ->
       case branch do
         :conflict -> :conflict
+        :canceled -> :canceled
         _ -> GitHub.merge_branch!(
           repo_conn,
           %{
@@ -282,6 +283,10 @@ defmodule BorsNG.Worker.Batcher do
     |> Repo.update!()
     Project.ping!(batch.project_id)
     status
+  end
+
+  defp start_waiting_merged_batch(_batch, [], _, _) do
+    {:canceled, nil}
   end
 
   defp start_waiting_merged_batch(batch, patch_links, base, %{tree: tree}) do
@@ -378,7 +383,7 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    GitHub.push!(
+    {:ok, _} = push_with_retry(
       repo_conn,
       batch.commit,
       batch.into_branch)
@@ -399,6 +404,23 @@ defmodule BorsNG.Worker.Batcher do
     patches = Enum.map(patch_links, &(&1.patch))
     state = bisect(patch_links, batch)
     send_message(repo_conn, patches, {state, erred})
+  end
+
+  # A delay has been observed between Bors sending the Status change
+  # and GitHub allowing a Status-bearing commit to be pushed to master.
+  # As a workaround, retry with exponential backoff.
+  # This should retry *nine times*, by the way.
+  defp push_with_retry(repo_conn, commit, into_branch, timeout \\ 1) do
+    Process.sleep(timeout)
+    result = GitHub.push(
+      repo_conn,
+      commit,
+      into_branch)
+    case result do
+      {:ok, _} -> result
+      _ when timeout >= 512 -> result
+      _ -> push_with_retry(repo_conn, commit, into_branch, timeout * 2)
+    end
   end
 
   defp timeout_batch(batch) do
