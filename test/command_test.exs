@@ -101,6 +101,14 @@ defmodule BorsNG.CommandTest do
     assert [] == Command.parse("Xbors tryZ")
   end
 
+  test "accept bros with a valid command" do
+    assert [:bros] == Command.parse("bros ping")
+  end
+
+  test "do not accept any bros without a valid command" do
+    assert [] == Command.parse("bros talk")
+  end
+
   test "command permissions" do
     assert :none == Command.required_permission_level([])
     assert :none == Command.required_permission_level([:ping])
@@ -376,5 +384,30 @@ defmodule BorsNG.CommandTest do
         comments: %{1 => ["pong", "pong"]},
       }
     } = GitHub.ServerMock.get_state()
+  end
+
+  test "running bros command should post brofist", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{}
+      }
+    })
+
+    c = %Command{
+      project: proj,
+      commenter: nil,
+      comment: "bros ping",
+      pr_xref: 1
+    }
+    Command.run(c, :bros)
+    assert GitHub.ServerMock.get_state() == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => ["👊"]},
+        statuses: %{}
+      }
+    }
   end
 end

@@ -115,8 +115,11 @@ defmodule BorsNG.Command do
     end)
   end
 
-  def regex, do: ~r/^#{@command_trigger}:?\s(?<command>.+)/i
+  def regex, do: ~r/^(?<command_trigger>#{@command_trigger}|bros):?\s(?<command>.+)/i
 
+  def trim_and_parse_cmd(%{"command_trigger" => "bros", "command" => cmd}) do
+    with [_] <- parse_cmd(cmd), do: [:bros]
+  end
   def trim_and_parse_cmd(%{"command" => cmd}) do
     cmd
     |> String.trim()
@@ -407,6 +410,12 @@ defmodule BorsNG.Command do
   def run(c, :retry) do
     {commenter, cmd} = Logging.most_recent_cmd(c.patch)
     run(%{c | commenter: commenter}, cmd)
+  end
+  def run(c, :bros) do
+    c.project.repo_xref
+    |> Project.installation_connection(Repo)
+    |> GitHub.post_comment!(
+      c.pr_xref, ~s/👊/)
   end
 
   def delegate_to(c, delegatee) do
