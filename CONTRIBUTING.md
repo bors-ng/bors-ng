@@ -8,14 +8,10 @@ Answering support questions
 ---------------------------
 
 If you've been using bors a lot,
-you can help other people use it by answering questions on the [support forum] and the [gitter room].
-You can log in to both using your Github account.
-The more you interact on the forum,
-the more tools you will have to help organize the discussion (for example, fixing other people's categories).
-
+you can help other people use it by answering questions on the [support forum].
+It's running on Discourse, the same app used by Elixir Forum and Rust Users.
 
 [support forum]: https://forum.bors.tech/
-[gitter room]: https://gitter.im/bors-ng/Lobby
 
 
 Submitting bug reports
