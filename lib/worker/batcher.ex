@@ -88,7 +88,7 @@ defmodule BorsNG.Worker.Batcher do
       %{priority: ^priority} -> nil
       patch ->
         patch.id
-        |> Batch.all_for_patch(:running)
+        |> Batch.all_for_patch(:incomplete)
         |> Repo.one()
         |> raise_batch_priority(priority)
         patch
@@ -590,7 +590,7 @@ defmodule BorsNG.Worker.Batcher do
 
   defp raise_batch_priority(%Batch{priority: old_priority} = batch, priority) when old_priority < priority do
     project = Repo.get!(Project, batch.project_id)
-    batch
+    batch = batch
     |> Batch.changeset_raise_priority(%{priority: priority})
     |> Repo.update!()
     put_incomplete_on_hold(get_repo_conn(project), batch)
