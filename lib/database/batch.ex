@@ -131,4 +131,11 @@ defmodule BorsNG.Database.Batch do
       :priority
     ])
   end
+
+  def changeset_raise_priority(struct, params \\ %{}) do
+    struct
+    |> cast(params, [
+      :priority
+    ])
+  end
 end

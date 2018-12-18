@@ -82,18 +82,21 @@ defmodule BorsNG.Worker.Batcher do
     {:noreply, project_id}
   end
 
-  def handle_call({:set_priority, patch_id, priority}, _from, state) do
-    case Repo.get(Patch.all(:awaiting_review), patch_id) do
+  def handle_call({:set_priority, patch_id, priority}, _from, project_id) do
+    case Repo.get(Patch, patch_id) do
       nil -> nil
+      %{priority: ^priority} -> nil
       patch ->
-        if patch.priority != priority do
-          patch
-          |> Patch.changeset(%{priority: priority})
-          |> Repo.update!()
-        end
+        patch.id
+        |> Batch.all_for_patch(:incomplete)
+        |> Repo.one()
+        |> raise_batch_priority(priority)
+        patch
+        |> Patch.changeset(%{priority: priority})
+        |> Repo.update!()
     end
 
-    {:reply, :ok, state}
+    {:reply, :ok, project_id}
   end
 
   def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
@@ -151,10 +154,10 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def do_handle_cast({:cancel, patch_id}, _project_id) do
-    batch = patch_id
+    patch_id
     |> Batch.all_for_patch(:incomplete)
     |> Repo.one()
-    cancel_patch(batch, patch_id)
+    |> cancel_patch(patch_id)
   end
 
   def do_handle_cast({:cancel_all}, project_id) do
@@ -583,6 +586,17 @@ defmodule BorsNG.Worker.Batcher do
       [batch] -> {batch, false}
       _ -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
     end
+  end
+
+  defp raise_batch_priority(%Batch{priority: old_priority} = batch, priority) when old_priority < priority do
+    project = Repo.get!(Project, batch.project_id)
+    batch = batch
+    |> Batch.changeset_raise_priority(%{priority: priority})
+    |> Repo.update!()
+    put_incomplete_on_hold(get_repo_conn(project), batch)
+  end
+  defp raise_batch_priority(_, _) do
+    :ok
   end
 
   defp send_message(repo_conn, patches, message) do

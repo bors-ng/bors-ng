@@ -2170,18 +2170,59 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.insert!()
     batch = %Batch{
       project_id: proj.id,
-      state: 1,
+      state: :running,
       into_branch: "master"}
     |> Repo.insert!()
 
     %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
     |> Repo.insert!()
 
-    Batcher.handle_call({:set_priority, patch2.id, 10}, nil, nil)
+    Batcher.handle_call({:set_priority, patch2.id, 10}, nil, proj.id)
     Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
 
     assert Repo.one!(from b in Batch,
       where: b.id == ^batch.id).state == :waiting
+    assert Repo.one!(from b in Batch, where: b.id == ^batch.id).priority == 0
+    assert Repo.one!(from b in Patch, where: b.id == ^patch.id).priority == 0
+    assert Repo.one!(from b in Batch, where: b.id != ^batch.id).priority == 10
+  end
+
+  test "allow raising a batch priority late", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+
+    patch = %Patch{
+              project_id: proj.id,
+              pr_xref: 1,
+              commit: "N",
+              into_branch: "master"}
+            |> Repo.insert!()
+    patch2 = %Patch{
+               project_id: proj.id,
+               pr_xref: 2,
+               commit: "O",
+               into_branch: "master"}
+             |> Repo.insert!()
+    batch = %Batch{
+              project_id: proj.id,
+              state: :running,
+              into_branch: "master"}
+            |> Repo.insert!()
+
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+    Batcher.handle_call({:set_priority, patch2.id, 10}, nil, nil)
+
+    assert Repo.one!(from b in Batch,
+                     where: b.id == ^batch.id).state == :waiting
     assert Repo.one!(from b in Batch, where: b.id == ^batch.id).priority == 0
     assert Repo.one!(from b in Patch, where: b.id == ^patch.id).priority == 0
     assert Repo.one!(from b in Batch, where: b.id != ^batch.id).priority == 10
