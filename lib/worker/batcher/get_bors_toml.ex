@@ -26,6 +26,7 @@ defmodule BorsNG.Worker.Batcher.GetBorsToml do
           {".appveyor.yml", "continuous-integration/appveyor/branch"},
           {"appveyor.yml", "continuous-integration/appveyor/branch"},
           {"circle.yml", "ci/circleci"},
+          {".circleci/config.yml", "ci/circleci"},
           {"jet-steps.yml", "continuous-integration/codeship"},
           {"jet-steps.json", "continuous-integration/codeship"},
           {"codeship-steps.yml", "continuous-integration/codeship"},
