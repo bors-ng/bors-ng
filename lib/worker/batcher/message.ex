@@ -68,7 +68,9 @@ defmodule BorsNG.Worker.Batcher.Message do
     "# Canceled (will resume)"
   end
   def generate_message({state, statuses}) do
+    is_new_year = get_is_new_year()
     msg = case state do
+      :succeeded when is_new_year -> "Build succeeded\n\n*And happy new year from bors! 🎉*\n\n"
       :succeeded -> "Build succeeded"
       :failed -> "Build failed"
       :retrying -> "Build failed (retrying...)"
@@ -142,5 +144,16 @@ defmodule BorsNG.Worker.Batcher.Message do
 
   def generate_bors_toml_error(:blocked_labels) do
     "bors.toml: expected blocked_labels to be a list"
+  end
+
+  def get_is_new_year do
+    celebrate_new_year = Application.get_env(:bors, :celebrate_new_year)
+    %{month: month, day: day} = DateTime.utc_now()
+    case {celebrate_new_year, month, day} do
+      {true, 12, 31} -> true
+      {true, 1, 1} -> true
+      {true, 1, 2} -> true
+      _ -> false
+    end
   end
 end
