@@ -54,6 +54,9 @@ config :wobserver,
   remote_url_prefix: "/wobserver",
   security_key: :crypto.strong_rand_bytes(128)
 
+# Overridden by the test config to avoid date-specific behavior
+config :bors, :celebrate_new_year, true
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env}.exs"
