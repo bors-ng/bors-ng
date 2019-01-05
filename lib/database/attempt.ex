@@ -94,4 +94,12 @@ defmodule BorsNG.Database.Attempt do
     struct
     |> cast(params, [:patch_id, :commit, :state, :last_polled, :timeout_at])
   end
+
+  @doc """
+  Builds a changeset based on the `struct` and `params`.
+  """
+  def changeset_state(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:state])
+  end
 end
