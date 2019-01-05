@@ -279,6 +279,83 @@ defmodule BorsNG.Worker.AttemptorTest do
       }}
   end
 
+  test "cancelling defuses polling", %{proj: proj} do
+    # Attempts start running immediately
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    patch = new_patch(proj, 1, "N")
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "trying" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+               comments: %{1 => []},
+               statuses: %{"iniN" => []},
+               files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+             }}
+    attempt = Repo.get_by! Attempt, patch_id: patch.id
+    assert attempt.state == :running
+    # Cancel.
+    Attemptor.handle_cast({:cancel, patch.id}, proj.id)
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{
+                 "master" => "ini",
+                 "trying" => "iniN"},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+               comments: %{1 => []},
+               statuses: %{"iniN" => []},
+               files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+             }}
+    attempt = Repo.get_by! Attempt, patch_id: patch.id
+    assert attempt.state == :canceled
+    # Mark the CI as having finished.
+    # At this point, just running should still do nothing.
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "trying" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+        comments: %{1 => []},
+        statuses: %{"iniN" => [{"ci", :ok}]},
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+    # Polling should not change the result after cancelling.
+    attempt
+    |> Attempt.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Attemptor.handle_info(:poll, proj.id)
+    attempt = Repo.get_by! Attempt, patch_id: patch.id
+    assert attempt.state == :canceled
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{
+          "master" => "ini",
+          "trying" => "iniN"},
+        commits: %{
+          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
+        comments: %{1 => []},
+        statuses: %{"iniN" => [{"ci", :ok}]},
+        files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
+      }})
+  end
+
   test "full runthrough (with wildcard)", %{proj: proj} do
     # Attempts start running immediately
     GitHub.ServerMock.put_state(%{

@@ -89,6 +89,7 @@ defmodule BorsNG.Command do
 
   @type cmd ::
     {:try, binary} |
+    :try_cancel |
     {:activate_by, binary} |
     {:set_priority, integer()} |
     :activate |
@@ -139,6 +140,7 @@ defmodule BorsNG.Command do
   def parse_cmd("ping" <> _), do: [:ping]
   def parse_cmd("p=" <> rest), do: parse_priority(rest)
   def parse_cmd("retry" <> _), do: [:retry]
+  def parse_cmd("try-" <> _), do: [:try_cancel]
   def parse_cmd(_), do: []
 
   @doc ~S"""
@@ -311,6 +313,12 @@ defmodule BorsNG.Command do
   def required_permission_level_cmd({:try, _}) do
     :member
   end
+  def required_permission_level_cmd(:try_cancel) do
+    :member
+  end
+  def required_permission_level_cmd(:deactivate) do
+    :member
+  end
   def required_permission_level_cmd(:retry) do
     :member
   end
@@ -376,6 +384,11 @@ defmodule BorsNG.Command do
     c = fetch_patch(c)
     attemptor = Attemptor.Registry.get(c.project.id)
     Attemptor.tried(attemptor, c.patch.id, arguments)
+  end
+  def run(c, :try_cancel) do
+    c = fetch_patch(c)
+    attemptor = Attemptor.Registry.get(c.project.id)
+    Attemptor.cancel(attemptor, c.patch.id)
   end
   def run(c, {:autocorrect, command}) do
     c.project.repo_xref

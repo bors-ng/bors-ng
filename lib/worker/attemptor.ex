@@ -36,6 +36,10 @@ defmodule BorsNG.Worker.Attemptor do
     GenServer.cast(pid, {:tried, patch_id, arguments})
   end
 
+  def cancel(pid, patch_id) when is_integer(patch_id) do
+    GenServer.cast(pid, {:cancel, patch_id})
+  end
+
   def status(pid, stat) do
     GenServer.cast(pid, {:status, stat})
   end
@@ -101,6 +105,19 @@ defmodule BorsNG.Worker.Attemptor do
           maybe_complete_attempt(attempt, project, patch)
         end
       [] -> :ok
+    end
+  end
+
+  def do_handle_cast({:cancel, patch_id}, project_id) do
+    patch = Repo.get!(Patch, patch_id)
+    ^project_id = patch.project_id
+    case Repo.one(Attempt.all_for_patch(patch_id, :incomplete)) do
+      nil ->
+        :ok
+      attempt ->
+        attempt
+        |> Attempt.changeset_state(%{state: :canceled})
+        |> Repo.update!()
     end
   end
 
