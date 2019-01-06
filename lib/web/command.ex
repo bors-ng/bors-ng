@@ -128,7 +128,7 @@ defmodule BorsNG.Command do
   end
   def trim_and_parse_cmd(_), do: []
 
-  def parse_cmd("try-" <> _), do: [:try_cancel]
+  def parse_cmd("try-"), do: [:try_cancel]
   def parse_cmd("try" <> arguments), do: [{:try, arguments}]
   def parse_cmd("r+ p=" <> rest), do: parse_priority(rest) ++ [:activate]
   def parse_cmd("r+" <> _), do: [:activate]
