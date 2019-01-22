@@ -23,7 +23,9 @@ config :bors,
   api_github_root: {:system, :string, "GITHUB_URL_ROOT_API",
     "https://api.github.com"},
   html_github_root: {:system, :string, "GITHUB_URL_ROOT_HTML",
-    "https://github.com"}
+    "https://github.com"},
+  api_github_timeout: {:system, :integer, "GITHUB_API_TIMEOUT",
+    5000}
 
 # General application configuration
 config :bors, BorsNG,
