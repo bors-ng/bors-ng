@@ -59,7 +59,7 @@ defmodule BorsNG.Worker.Attemptor do
   end
 
   def handle_cast(args, project_id) do
-    Repo.transaction(fn -> do_handle_cast(args, project_id) end)
+    do_handle_cast(args, project_id)
     {:noreply, project_id}
   end
 
@@ -77,9 +77,9 @@ defmodule BorsNG.Worker.Attemptor do
           |> send_message(patch, {:preflight, :ci_skip})
         else
           patch
-          |> Attempt.new()
+          |> Attempt.new(arguments)
           |> Repo.insert!()
-          |> start_attempt(project, patch, arguments)
+          |> maybe_start_attempt(project)
         end
       _attempt ->
         # There is already a running attempt
@@ -153,12 +153,23 @@ defmodule BorsNG.Worker.Attemptor do
     end
   end
 
-  defp start_attempt(attempt, project, patch, arguments) do
+  defp maybe_start_attempt(attempt, project) do
+    case Repo.one(Attempt.all_for_project(project.id, :running)) do
+      nil -> start_attempt(attempt, project)
+      _attempt -> :ok
+    end
+  end
+
+  defp start_attempt(attempt, project) do
+    attempt = attempt
+    |> Repo.preload([:patch])
     stmp = "#{project.trying_branch}.tmp"
     repo_conn = get_repo_conn(project)
     base = GitHub.get_branch!(
       repo_conn,
       attempt.into_branch)
+    patch = attempt.patch
+    arguments = attempt.arguments
     GitHub.synthesize_commit!(
       repo_conn,
       %{
@@ -261,6 +272,7 @@ defmodule BorsNG.Worker.Attemptor do
     attempt
     |> Attempt.changeset(%{state: state, last_polled: now})
     |> Repo.update!()
+    maybe_start_next_attempt(state, project)
   end
 
   defp maybe_complete_attempt(:ok, project, patch, statuses) do
@@ -278,6 +290,18 @@ defmodule BorsNG.Worker.Attemptor do
 
   defp maybe_complete_attempt(:running, _project, _patch, _statuses) do
     :ok
+  end
+
+  defp maybe_start_next_attempt(:running, _project) do
+    :ok
+  end
+  
+  defp maybe_start_next_attempt(_state, project) do
+    case Repo.one(Attempt.all_for_project(project.id, :waiting)) do
+      nil -> :ok
+      attempt ->
+        maybe_start_attempt(attempt, project)
+    end
   end
 
   defp timeout_attempt(attempt, project, patch) do

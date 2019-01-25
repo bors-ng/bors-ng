@@ -16,22 +16,30 @@ defmodule BorsNG.Database.Attempt do
     field :state, AttemptState
     field :last_polled, :integer
     field :timeout_at, :integer
+    field :arguments, :string
     timestamps()
   end
 
-  def new(%Patch{} = patch) do
+  def new(%Patch{} = patch, arguments) do
     %Attempt{
       patch_id: patch.id,
+      patch: patch,
       into_branch: patch.into_branch,
       commit: nil,
       state: 0,
+      arguments: arguments,
       last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
     }
   end
 
   def all(:incomplete) do
     from b in Attempt,
-      where: b.state == 0 or b.state == 1
+         where: b.state == 0 or b.state == 1
+  end
+
+  def all(state) do
+    from b in Attempt,
+         where: b.state == ^state
   end
 
   def all_for_project(project_id, state) do
