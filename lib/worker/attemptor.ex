@@ -59,7 +59,7 @@ defmodule BorsNG.Worker.Attemptor do
   end
 
   def handle_cast(args, project_id) do
-    Repo.transaction(fn -> do_handle_cast(args, project_id) end)
+    do_handle_cast(args, project_id)
     {:noreply, project_id}
   end
 
