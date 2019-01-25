@@ -14,8 +14,11 @@
    viewBox="0 0 47.825287 13.123333"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92pre4 15278"
-   sodipodi:docname="bors-path.svg">
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="bors-path.svg"
+   inkscape:export-filename="C:\Users\micha\IdeaProjects\bors-ng\icon\bors-path.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -23,18 +26,18 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="229.21858"
+     inkscape:zoom="8"
+     inkscape:cx="108.34358"
      inkscape:cy="12.196552"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1643"
      inkscape:window-height="840"
-     inkscape:window-x="3584"
-     inkscape:window-y="250"
+     inkscape:window-x="3239"
+     inkscape:window-y="268"
      inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -57,6 +60,11 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-47.028551,-127.59772)">
+    <path
+       style="fill:#ffffff;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1"
+       d="m 61.448342,130.60074 c 0,0 -2.84427,2.24896 -2.61276,3.83646 0.231511,1.5875 3.108854,2.34818 3.108854,2.34818 l 8.135938,-0.89297 c 0,0 1.190625,-1.15755 0.892968,-1.98438 -0.297656,-0.82682 -0.694531,-1.9513 -0.694531,-1.9513 z"
+       id="path13"
+       inkscape:connector-curvature="0" />
     <g
        aria-label="BORS"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458302px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
