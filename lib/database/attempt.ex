@@ -34,7 +34,7 @@ defmodule BorsNG.Database.Attempt do
 
   def all(:incomplete) do
     from b in Attempt,
-        where: b.state == 0 or b.state == 1
+         where: b.state == 0 or b.state == 1
   end
 
   def all(state) do

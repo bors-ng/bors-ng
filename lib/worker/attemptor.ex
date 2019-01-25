@@ -161,6 +161,8 @@ defmodule BorsNG.Worker.Attemptor do
   end
 
   defp start_attempt(attempt, project) do
+    attempt = attempt
+    |> Repo.preload([:patch])
     stmp = "#{project.trying_branch}.tmp"
     repo_conn = get_repo_conn(project)
     base = GitHub.get_branch!(
