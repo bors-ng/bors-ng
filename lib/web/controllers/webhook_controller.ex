@@ -218,7 +218,7 @@ defmodule BorsNG.WebhookController do
     end
   end
 
-  def do_webhook(conn, "github", "check_run") do
+  def do_webhook(_conn, "github", "check_run") do
     :ok
   end
 
