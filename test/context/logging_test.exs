@@ -32,4 +32,12 @@ defmodule BorsNG.Database.Context.LoggingTest do
     user_id = user.id
     assert {%User{id: ^user_id}, :cmd2} = Logging.most_recent_cmd(patch)
   end
+
+  test "most recent command should exclude retry", params do
+    %{patch: patch, user: user} = params
+    Logging.log_cmd(patch, user, :cmd1)
+    Logging.log_cmd(patch, user, :retry)
+    user_id = user.id
+    assert {%User{id: ^user_id}, :cmd1} = Logging.most_recent_cmd(patch)
+  end
 end
