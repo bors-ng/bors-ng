@@ -242,7 +242,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => ["Not awaiting review"]
+          1 => ["Already running a review"]
           },
         statuses: %{},
         files: %{}

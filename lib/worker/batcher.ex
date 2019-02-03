@@ -107,7 +107,7 @@ defmodule BorsNG.Worker.Batcher do
         project = Repo.get!(Project, patch.project_id)
         project
         |> get_repo_conn()
-        |> send_message([patch], :not_awaiting_review)
+        |> send_message([patch], :already_running_review)
       patch ->
         # Patch exists and is awaiting review
         # This will cause the PR to start after the patch's scheduled delay
