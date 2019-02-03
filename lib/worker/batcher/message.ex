@@ -43,8 +43,8 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message({:preflight, :ci_skip}) do
     "Has [ci skip], bors build will time out"
   end
-  def generate_message(:not_awaiting_review) do
-    "Not awaiting review"
+  def generate_message(:already_running_review) do
+    "Already running a review"
   end
   def generate_message({:config, message}) do
     "# Configuration problem\n#{message}"

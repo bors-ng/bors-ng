@@ -85,7 +85,7 @@ defmodule BorsNG.Worker.Attemptor do
         # There is already a running attempt
         project
         |> get_repo_conn()
-        |> send_message(patch, :not_awaiting_review)
+        |> send_message(patch, :already_running_review)
     end
   end
 
@@ -295,7 +295,7 @@ defmodule BorsNG.Worker.Attemptor do
   defp maybe_start_next_attempt(:running, _project) do
     :ok
   end
-  
+
   defp maybe_start_next_attempt(_state, project) do
     case Repo.one(Attempt.all_for_project(project.id, :waiting)) do
       nil -> :ok
