@@ -46,6 +46,9 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message(:not_awaiting_review) do
     "Not awaiting review"
   end
+  def generate_message(:already_running_review) do
+    "Already running a review"
+  end
   def generate_message({:config, message}) do
     "# Configuration problem\n#{message}"
   end
