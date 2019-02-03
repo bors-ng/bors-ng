@@ -54,7 +54,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => ["## try\n\nNot awaiting review"]
+          1 => ["## try\n\nAlready running a review"]
           },
         statuses: %{},
         files: %{}
