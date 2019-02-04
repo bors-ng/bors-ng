@@ -1,6 +1,6 @@
 {
   "repository": {},
-  "license": "MIT",
+  "license": "APACHE-2.0",
   "scripts": {
     "deploy": "brunch build --production",
     "watch": "brunch watch --stdin"
