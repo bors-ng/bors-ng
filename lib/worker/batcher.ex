@@ -538,10 +538,13 @@ defmodule BorsNG.Worker.Batcher do
     |> Enum.map(fn {context, _} -> context end)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.pr_status))
-    passed_review = repo_conn
-    |> GitHub.get_reviews!(patch.pr_xref)
-    |> are_reviews_passing(toml.required_approvals)
-
+    passed_review = if is_nil(toml.required_approvals) do
+      :sufficient
+    else
+      repo_conn
+      |> GitHub.get_reviews!(patch.pr_xref)
+      |> are_reviews_passing(toml.required_approvals)
+    end
     case {passed_label, passed_status, passed_review} do
       {true, true, :sufficient} -> :ok
       {false, _, _}             -> {:error, :blocked_labels}
