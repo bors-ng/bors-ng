@@ -156,7 +156,7 @@ defmodule BorsNG.Worker.Attemptor do
   defp maybe_start_attempt(attempt, project) do
     case Repo.all(Attempt.all_for_project(project.id, :running)) do
       [] -> start_attempt(attempt, project)
-      [_attempt | ] -> :ok
+      [_attempt | _ ] -> :ok
     end
   end
 
