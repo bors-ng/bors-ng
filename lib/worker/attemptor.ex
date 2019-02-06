@@ -67,8 +67,8 @@ defmodule BorsNG.Worker.Attemptor do
     patch = Repo.get!(Patch, patch_id)
     ^project_id = patch.project_id
     project = Repo.get!(Project, project_id)
-    case Repo.one(Attempt.all_for_patch(patch_id, :incomplete)) do
-      nil ->
+    case Repo.all(Attempt.all_for_patch(patch_id, :incomplete)) do
+      [] ->
         # There is no currently running attempt
         # Start one
         if Patch.ci_skip?(patch) do
@@ -81,7 +81,7 @@ defmodule BorsNG.Worker.Attemptor do
           |> Repo.insert!()
           |> maybe_start_attempt(project)
         end
-      _attempt ->
+      [_attempt | _] ->
         # There is already a running attempt
         project
         |> get_repo_conn()
@@ -111,10 +111,10 @@ defmodule BorsNG.Worker.Attemptor do
   def do_handle_cast({:cancel, patch_id}, project_id) do
     patch = Repo.get!(Patch, patch_id)
     ^project_id = patch.project_id
-    case Repo.one(Attempt.all_for_patch(patch_id, :incomplete)) do
-      nil ->
+    case Repo.all(Attempt.all_for_patch(patch_id, :incomplete)) do
+      [] ->
         :ok
-      attempt ->
+      [attempt | _] ->
         attempt
         |> Attempt.changeset_state(%{state: :canceled})
         |> Repo.update!()
@@ -154,9 +154,9 @@ defmodule BorsNG.Worker.Attemptor do
   end
 
   defp maybe_start_attempt(attempt, project) do
-    case Repo.one(Attempt.all_for_project(project.id, :running)) do
-      nil -> start_attempt(attempt, project)
-      _attempt -> :ok
+    case Repo.all(Attempt.all_for_project(project.id, :running)) do
+      [] -> start_attempt(attempt, project)
+      [_attempt | ] -> :ok
     end
   end
 
@@ -297,9 +297,9 @@ defmodule BorsNG.Worker.Attemptor do
   end
 
   defp maybe_start_next_attempt(_state, project) do
-    case Repo.one(Attempt.all_for_project(project.id, :waiting)) do
-      nil -> :ok
-      attempt ->
+    case Repo.all(Attempt.all_for_project(project.id, :waiting)) do
+      [] -> :ok
+      [attempt | _] ->
         maybe_start_attempt(attempt, project)
     end
   end
