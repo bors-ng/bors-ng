@@ -64,7 +64,7 @@ defmodule BorsNg.Mixfile do
       {:gettext, "~> 0.15"},
       {:cowboy, "~> 1.0"},
       {:plug_cowboy, "~> 1.0"},
-      {:httpoison, "~> 0.12"},
+      {:tesla, "~> 1.2.1"},
       {:toml, "~> 0.5"},
       {:wobserver, "~> 0.1.8"},
       {:hackney, "~> 1.12"},
