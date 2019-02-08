@@ -141,7 +141,7 @@ defmodule BorsNG.Worker.Attemptor do
   defp poll_(project_id) do
     project = Repo.get(Project, project_id)
     incomplete = project_id
-    |> Attempt.all_for_project(:incomplete)
+    |> Attempt.all_for_project(:running)
     |> Repo.all()
     incomplete
     |> Enum.filter(&Attempt.next_poll_is_past(&1, project))
