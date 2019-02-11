@@ -361,7 +361,7 @@ defmodule BorsNG.GitHub.Server do
     next_headers = get_next_headers(headers)
     case next_headers do
       [] -> json
-      [next] -> get_reviews_json_!(token, next.next.url, json)
+      [next] -> get_reviews_json_!(token, next.url, json)
     end
   end
 
@@ -381,7 +381,7 @@ defmodule BorsNG.GitHub.Server do
     next_headers = get_next_headers(headers)
     case next_headers do
       [] -> repositories
-      [next] -> get_installation_repos_!(token, next.next.url, repositories)
+      [next] -> get_installation_repos_!(token, next.url, repositories)
     end
   end
 
@@ -401,7 +401,7 @@ defmodule BorsNG.GitHub.Server do
     next_headers = get_next_headers(headers)
     case next_headers do
       [] -> list
-      [next] -> get_installation_list_!(jwt_token, next.next.url, list)
+      [next] -> get_installation_list_!(jwt_token, next.url, list)
     end
   end
 
@@ -429,7 +429,7 @@ defmodule BorsNG.GitHub.Server do
     next_headers = get_next_headers(headers)
     case next_headers do
       [] -> prs
-      [next] -> get_open_prs_!(token, next.next.url, prs)
+      [next] -> get_open_prs_!(token, next.url, prs)
     end
   end
 
@@ -461,7 +461,7 @@ defmodule BorsNG.GitHub.Server do
           [] ->
             {:ok, users}
           [next] ->
-            get_collaborators_by_repo_(token, next.next.url, users)
+            get_collaborators_by_repo_(token, next.url, users)
         end
       error ->
         IO.inspect(error)
@@ -518,10 +518,16 @@ defmodule BorsNG.GitHub.Server do
   end
 
   defp get_next_headers(headers) do
-    headers
-    |> Enum.filter(&(elem(&1, 0) == "Link"))
-    |> Enum.map(&(ExLinkHeader.parse!(elem(&1, 1))))
-    |> Enum.filter(&!is_nil(&1.next))
+    Enum.flat_map(headers, fn {name, value} ->
+      name
+      |> String.downcase(:ascii)
+      |> case do
+        "link" ->
+          value = ExLinkHeader.parse!(value)
+          if is_nil(value.next), do: [], else: [value.next]
+        _ -> []
+      end
+    end)
   end
 
   defp get_url_params(url) do
