@@ -66,7 +66,6 @@ defmodule BorsNg.Mixfile do
       {:plug_cowboy, "~> 1.0"},
       {:tesla, "~> 1.2.1"},
       {:toml, "~> 0.5"},
-      {:wobserver, "~> 0.1.8"},
       {:hackney, "~> 1.12"},
       {:ex_link_header, "~> 0.0.5"},
       {:oauth2, "~> 1.0.1"},

@@ -37,8 +37,7 @@ defmodule BorsNG.AdminController do
       dup_patches_count: dup_patches_count,
       crashes_day: crashes_day,
       crashes_week: crashes_week,
-      crashes_month: crashes_month,
-      wobserver_url: Confex.fetch_env!(:wobserver, :remote_url_prefix)
+      crashes_month: crashes_month
   end
 
   def orphans(conn, _params) do
