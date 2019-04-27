@@ -6,8 +6,6 @@ defmodule BorsNG.Router do
   and user authentication part of the session.
   """
 
-  @wobserver_url Confex.fetch_env!(:wobserver, :remote_url_prefix)
-
   use BorsNG.Web, :router
   alias BorsNG.Database
 
@@ -33,10 +31,6 @@ defmodule BorsNG.Router do
 
   pipeline :browser_admin do
     plug :force_current_user_admin
-  end
-
-  pipeline :wobserver do
-    plug :wobserver_auth
   end
 
   pipeline :webhook do
@@ -70,11 +64,6 @@ defmodule BorsNG.Router do
     get "/:id/log", ProjectController, :log
     delete "/:id/reviewer/:user_id", ProjectController, :remove_reviewer
     delete "/:id/member/:user_id", ProjectController, :remove_member
-  end
-
-  scope @wobserver_url, Wobserver do
-    pipe_through :wobserver
-    forward "/", Web.Router
   end
 
   scope "/admin", BorsNG do
@@ -145,19 +134,6 @@ defmodule BorsNG.Router do
         conn
         |> Plug.Conn.send_resp(403, "Not allowed.")
         |> halt
-    end
-  end
-
-  # If the target URL is in the wobserver API, do not mess with it.
-  # Otherwise, authenticate the current user.
-  defp wobserver_auth(conn, _) do
-    case conn.path_info do
-      ["api", _] -> conn
-      _ ->
-        conn
-        |> fetch_session([])
-        |> get_current_user([])
-        |> force_current_user_admin([])
     end
   end
 end
