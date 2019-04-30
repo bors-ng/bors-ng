@@ -555,7 +555,7 @@ defmodule BorsNG.GitHub.Server do
       "iat" => Joken.current_time(),
       "exp" => Joken.current_time() + @token_exp,
       "iss" => cfg[:iss]
-    }, Joken.Signer.create(%{"pem" => cfg[:pem]}))
+    }, Joken.Signer.create("RS256", %{"pem" => cfg[:pem]}))
   end
 
   @doc """
