@@ -549,16 +549,13 @@ defmodule BorsNG.GitHub.Server do
   end
 
   def get_jwt_token do
-    import Joken
+    import Joken.Config
     cfg = config()
-    pem = JOSE.JWK.from_pem(cfg[:pem])
-    %{
-      "iat" => current_time(),
-      "exp" => current_time() + @token_exp,
-      "iss" => cfg[:iss]}
-    |> token()
-    |> sign(rs256(pem))
-    |> get_compact()
+    Joken.generate_and_sign!(default_claims(), %{
+      "iat" => Joken.current_time(),
+      "exp" => Joken.current_time() + @token_exp,
+      "iss" => cfg[:iss]
+    }, Joken.Signer.create("RS256", %{"pem" => cfg[:pem]}))
   end
 
   @doc """
