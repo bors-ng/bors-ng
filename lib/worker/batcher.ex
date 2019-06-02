@@ -258,7 +258,7 @@ defmodule BorsNG.Worker.Batcher do
           branch: stmp,
           tree: base.tree,
           parents: [base.commit],
-          commit_message: "[ci skip]",
+          commit_message: "[ci skip][skip ci][skip netlify]",
           committer: nil})}
     do_merge_patch = fn %{patch: patch}, branch ->
       case branch do
@@ -269,7 +269,7 @@ defmodule BorsNG.Worker.Batcher do
           %{
             from: patch.commit,
             to: stmp,
-            commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"})
+            commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{patch.pr_xref}"})
       end
     end
     merge = Enum.reduce(patch_links, tbase, do_merge_patch)

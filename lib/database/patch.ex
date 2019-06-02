@@ -84,7 +84,7 @@ defmodule BorsNG.Database.Patch do
 
   @spec ci_skip?(%Patch{}) :: boolean()
   def ci_skip?(patch) do
-    rexp =  ~r/\[ci skip\]/
+    rexp =  ~r/\[ci skip\]\[skip ci\]\[skip netlify\]/
     title = patch.title || ""
     body = patch.body || ""
     String.match?(title, rexp) or String.match?(body, rexp)

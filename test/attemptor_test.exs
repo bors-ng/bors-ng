@@ -205,7 +205,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "master" => "ini",
           "trying" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
@@ -221,7 +221,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "master" => "ini",
           "trying" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => []},
@@ -237,7 +237,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "master" => "ini",
           "trying" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
@@ -252,7 +252,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "master" => "ini",
           "trying" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
@@ -271,7 +271,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "master" => "ini",
           "trying" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => ["## try\n\n# Build succeeded\n  * ci"]},
         statuses: %{"iniN" => [{"ci", :ok}]},
@@ -297,7 +297,7 @@ defmodule BorsNG.Worker.AttemptorTest do
                  "master" => "ini",
                  "trying" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
                comments: %{1 => []},
                statuses: %{"iniN" => []},
@@ -313,7 +313,7 @@ defmodule BorsNG.Worker.AttemptorTest do
                  "master" => "ini",
                  "trying" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
                comments: %{1 => []},
                statuses: %{"iniN" => []},
@@ -329,7 +329,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "master" => "ini",
           "trying" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
@@ -348,7 +348,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "master" => "ini",
           "trying" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
@@ -374,7 +374,7 @@ defmodule BorsNG.Worker.AttemptorTest do
                  "master" => "ini",
                  "trying" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
                comments: %{1 => []},
                statuses: %{"iniN" => []},
@@ -390,7 +390,7 @@ defmodule BorsNG.Worker.AttemptorTest do
                  "master" => "ini",
                  "trying" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
                comments: %{1 => []},
                statuses: %{"iniN" => []},
@@ -406,7 +406,7 @@ defmodule BorsNG.Worker.AttemptorTest do
           "master" => "ini",
           "trying" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
         comments: %{1 => []},
         statuses: %{"iniN" => [{"ci", :ok}]},
@@ -421,7 +421,7 @@ defmodule BorsNG.Worker.AttemptorTest do
                  "master" => "ini",
                  "trying" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
                comments: %{1 => []},
                statuses: %{"iniN" => [{"ci", :ok}]},
@@ -440,7 +440,7 @@ defmodule BorsNG.Worker.AttemptorTest do
                  "master" => "ini",
                  "trying" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
                comments: %{1 => ["## try\n\n# Build succeeded\n  * ci"]},
                statuses: %{"iniN" => [{"ci", :ok}]},
@@ -461,13 +461,13 @@ defmodule BorsNG.Worker.AttemptorTest do
       project_id: proj.id,
       pr_xref: 1,
       commit: "N",
-      title: "[ci skip]",
+      title: "[ci skip][skip ci][skip netlify]",
       into_branch: "master"}
     |> Repo.insert!()
 
     Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
     state = GitHub.ServerMock.get_state()
     comments = state[{{:installation, 91}, 14}].comments[1]
-    assert comments == ["## try\n\nHas [ci skip], bors build will time out"]
+    assert comments == ["## try\n\nHas [ci skip][skip ci][skip netlify], bors build will time out"]
   end
 end

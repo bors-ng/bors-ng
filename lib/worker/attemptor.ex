@@ -176,7 +176,7 @@ defmodule BorsNG.Worker.Attemptor do
         branch: stmp,
         tree: base.tree,
         parents: [base.commit],
-        commit_message: "[ci skip]",
+        commit_message: "[ci skip][skip ci][skip netlify]",
         committer: nil
         })
     merged = GitHub.merge_branch!(
@@ -184,7 +184,7 @@ defmodule BorsNG.Worker.Attemptor do
       %{
         from: patch.commit,
         to: stmp,
-        commit_message: "[ci skip] -bors-staging-tmp-#{patch.pr_xref}"})
+        commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{patch.pr_xref}"})
     case merged do
       :conflict ->
         send_message(repo_conn, patch, {:conflict, :failed})

@@ -501,7 +501,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "staging" => ""},
         commits: %{
           "ini" => %{
-            commit_message: "[ci skip]",
+            commit_message: "[ci skip][skip ci][skip netlify]",
             parents: ["ini"]}},
         comments: %{1 => ["# Configuration problem\nbors.toml: not found"]},
         statuses: %{"N" => %{"bors" => :error}},
@@ -601,7 +601,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -630,7 +630,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -650,7 +650,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -673,7 +673,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -700,7 +700,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "iniN",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -767,7 +767,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  "master" => "ini",
                  "staging" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{
                    commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
                                    "\nCo-authored-by: a <e>\n",
@@ -796,7 +796,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  "master" => "ini",
                  "staging" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{
                    commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
                                    "\nCo-authored-by: a <e>\n",
@@ -816,7 +816,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
                             "\nCo-authored-by: a <e>\n",
@@ -839,7 +839,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  "master" => "ini",
                  "staging" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{
                    commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
                                    "\nCo-authored-by: a <e>\n",
@@ -866,7 +866,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  "master" => "iniN",
                  "staging" => "iniN"},
                commits: %{
-                 "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{
                    commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
                                    "\nCo-authored-by: a <e>\n",
@@ -922,7 +922,7 @@ defmodule BorsNG.Worker.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => ""},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]}},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]}},
         comments: %{1 => ["# Merge conflict"]},
         statuses: %{"N" => %{"bors" => :error}, "iniN" => %{}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
@@ -991,7 +991,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -1013,7 +1013,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -1051,8 +1051,8 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "iniN",
           "staging" => "iniNO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
-          "iniN" => %{commit_message: "[ci skip]", parents: ["iniN"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
+          "iniN" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["iniN"]},
           "iniNO" => %{
             commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: b <f>\n",
@@ -1128,7 +1128,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -1166,7 +1166,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -1197,7 +1197,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "iniO",
           "staging" => "iniO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -1233,12 +1233,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "iniO",
           "staging" => "iniON"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
-          "iniO" => %{commit_message: "[ci skip]", parents: ["iniO"]},
+          "iniO" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["iniO"]},
           "iniON" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -1266,12 +1266,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "iniON",
           "staging" => "iniON"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
-          "iniO" => %{commit_message: "[ci skip]", parents: ["iniO"]},
+          "iniO" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["iniO"]},
           "iniON" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -1352,7 +1352,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniNO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1378,7 +1378,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniNO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1413,7 +1413,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1449,7 +1449,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1489,7 +1489,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1532,7 +1532,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1631,7 +1631,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
@@ -1672,12 +1672,12 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "iniN",
           "staging" => "releaseO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]},
-          "release" => %{commit_message: "[ci skip]", parents: ["release"]},
+          "release" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["release"]},
           "releaseO" => %{
             commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: b <f>\n",
@@ -1764,7 +1764,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniNO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1796,7 +1796,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "iniNO",
           "staging" => "iniNO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1882,7 +1882,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniNO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1911,7 +1911,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniNO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1946,7 +1946,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -1985,7 +1985,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniN"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -2023,7 +2023,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -2067,7 +2067,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "master" => "ini",
           "staging" => "iniO"},
         commits: %{
-          "ini" => %{commit_message: "[ci skip]", parents: ["ini"]},
+          "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniNO" => %{
             commit_message: "Merge #1 #2\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\n2:  r=rvr a=[unknown]\n\n\n" <>
@@ -2344,7 +2344,7 @@ defmodule BorsNG.Worker.BatcherTest do
       project_id: proj.id,
       pr_xref: 1,
       commit: "N",
-      title: "[ci skip]",
+      title: "[ci skip][skip ci][skip netlify]",
       into_branch: "master"}
     |> Repo.insert!()
 
@@ -2352,7 +2352,7 @@ defmodule BorsNG.Worker.BatcherTest do
 
     state = GitHub.ServerMock.get_state()
     comments = state[{{:installation, 91}, 14}].comments[1]
-    assert comments == ["Has [ci skip], bors build will time out"]
+    assert comments == ["Has [ci skip][skip ci][skip netlify], bors build will time out"]
   end
 
   defp ordered_batches(proj) do
