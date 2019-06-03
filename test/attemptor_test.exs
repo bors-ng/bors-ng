@@ -187,6 +187,21 @@ defmodule BorsNG.Worker.AttemptorTest do
     assert status.identifier == "continuous-integration/codeship"
   end
 
+  test "infer from .semaphore/semaphore.yml", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "trying" => "", "trying.tmp" => ""},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"iniN" => []},
+        files: %{"trying.tmp" => %{".semaphore/semaphore.yml" => ""}}
+      }})
+    patch = new_patch(proj, 1, "N")
+    Attemptor.handle_cast({:tried, patch.id, "test"}, proj.id)
+    [status] = Repo.all(AttemptStatus)
+    assert status.identifier == "continuous-integration/semaphoreci"
+  end
+
   test "full runthrough (with polling fallback)", %{proj: proj} do
     # Attempts start running immediately
     GitHub.ServerMock.put_state(%{
