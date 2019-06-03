@@ -41,7 +41,7 @@ defmodule BorsNG.Worker.Batcher.Message do
     ":-1: Rejected by code reviews"
   end
   def generate_message({:preflight, :ci_skip}) do
-    "Has [ci skip], bors build will time out"
+    "Has [ci skip][skip ci][skip netlify], bors build will time out"
   end
   def generate_message(:already_running_review) do
     "Already running a review"

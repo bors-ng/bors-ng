@@ -189,7 +189,7 @@ defmodule BorsNG.Database.PatchTest do
     p = %Patch{
       pr_xref: 9,
       title: "T",
-      body: "this is \n [ci skip]\n it should fail",
+      body: "this is \n [ci skip][skip ci][skip netlify]\n it should fail",
       commit: "C"
     }
     assert Patch.ci_skip?(p)
@@ -198,7 +198,7 @@ defmodule BorsNG.Database.PatchTest do
   test "ci_skip? checks title" do
     p = %Patch{
       pr_xref: 9,
-      title: "[ci skip] title",
+      title: "[ci skip][skip ci][skip netlify] title",
       body: "this is body",
       commit: "C"
     }
