@@ -170,7 +170,7 @@ You can then run it using `mix`:
 
     $ mix ecto.create
     $ mix ecto.migrate
-    $ mix phoenix.server
+    $ mix phx.server
 
 And it'll run with the GitHub API mocked-out.
 

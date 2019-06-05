@@ -10,7 +10,7 @@ defmodule BorsNG.GitHub.ServerMock do
   you can put and get its state,
   and other functions will mutate or read subsets of it.
 
-  For example, I can run `iex -S mix phoenix.server` and do this:
+  For example, I can run `iex -S mix phx.server` and do this:
 
       iex> # Push state to "GitHub"
       iex> alias BorsNG.GitHub
