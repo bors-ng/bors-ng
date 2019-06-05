@@ -6,4 +6,4 @@ done
 if [ -z $BORS_WITHIN_DOCKER ]; then
   exec docker exec -it borsng-dev "$0" "$@"
 fi
-iex -S mix phoenix.server
+iex -S mix phx.server
