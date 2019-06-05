@@ -383,7 +383,7 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  @spec complete_batch(BorsNG.Database.Status.state, BorsNG.Database.Batch.t, term) :: term
+  @spec complete_batch(Status.state, Batch.t, [Status.t]) :: :ok
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
@@ -539,13 +539,9 @@ defmodule BorsNG.Worker.Batcher do
     |> Enum.map(fn {context, _} -> context end)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.pr_status))
-    passed_review = if is_nil(toml.required_approvals) do
-      :sufficient
-    else
-      repo_conn
-      |> GitHub.get_reviews!(patch.pr_xref)
-      |> are_reviews_passing(toml.required_approvals)
-    end
+    passed_review = repo_conn
+    |> GitHub.get_reviews!(patch.pr_xref)
+    |> are_reviews_passing(toml)
     case {passed_label, passed_status, passed_review} do
       {true, true, :sufficient} -> :ok
       {false, _, _}             -> {:error, :blocked_labels}
@@ -555,13 +551,22 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  defp are_reviews_passing(reviews, required) do
-    %{"CHANGES_REQUESTED" => failed, "APPROVED" => passed} = reviews
-
-    case {failed, passed} do
-      {failed, _} when failed > 0 -> :failed
-      {_, approved} when approved >= required -> :sufficient
-      {0, _} -> :insufficient
+  @spec are_reviews_passing(map, Batcher.BorsToml.t) :: :sufficient | :failed | :insufficient
+  defp are_reviews_passing(reviews, toml) do
+    %{"CHANGES_REQUESTED" => failed, "APPROVED" => approvals} = reviews
+    required? = is_integer(toml.required_approvals)
+    approvals_needed = required? && toml.required_approvals || 0
+    approved? = approvals >= approvals_needed
+    failed? = failed > 0
+    cond do
+      not required? ->
+        :sufficient
+      failed? ->
+        :failed
+      approved? ->
+        :sufficient
+      required? ->
+        :insufficient
     end
   end
 
