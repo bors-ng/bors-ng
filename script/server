@@ -7,4 +7,4 @@ if [ ! -f ../janitor.json ]; then
   docker start borsng-dev
   exec docker exec -it borsng-dev "$0" "$@"
 fi
-mix phoenix.server
+mix phx.server

@@ -3,7 +3,7 @@ defmodule BorsNG.WebhookController do
   The webhook controller responds to HTTP requests
   that are initiated from other services (currently, just GitHub).
 
-  For example, I can run `iex -S mix phoenix.server` and do this:
+  For example, I can run `iex -S mix phx.server` and do this:
 
       iex> # Push state to "GitHub"
       iex> alias BorsNG.GitHub
