@@ -383,6 +383,7 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
+  @spec complete_batch(BorsNG.Database.Status.state, BorsNG.Database.Batch.t, term) :: term
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
@@ -558,7 +559,7 @@ defmodule BorsNG.Worker.Batcher do
     %{"CHANGES_REQUESTED" => failed, "APPROVED" => passed} = reviews
 
     case {failed, passed} do
-      {failed, 0} when failed > 0 -> :failed
+      {failed, _} when failed > 0 -> :failed
       {_, approved} when approved >= required -> :sufficient
       {0, _} -> :insufficient
     end

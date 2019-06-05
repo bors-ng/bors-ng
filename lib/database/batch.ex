@@ -5,6 +5,8 @@ defmodule BorsNG.Database.Batch do
   A batch is a collection of patches that are running, or will run.
   """
 
+  @type t :: %__MODULE__{}
+
   use BorsNG.Database.Model
   alias BorsNG.Database.BatchState
 

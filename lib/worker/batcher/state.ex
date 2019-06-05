@@ -5,23 +5,23 @@ defmodule BorsNG.Worker.Batcher.State do
   and emits a batch state.
   """
 
-  @typep n :: BorsNG.Database.Status.state_n
-  @typep t :: BorsNG.Database.Status.state
+  @typep status :: BorsNG.Database.Status.t
+  @typep state :: BorsNG.Database.Status.state
 
-  @spec summary_database_statuses([n]) :: t
+  @spec summary_database_statuses([status]) :: state
   def summary_database_statuses(statuses) do
     statuses
     |> Enum.map(&(&1.state))
     |> summary_states()
   end
 
-  @spec summary_states([t]) :: t
+  @spec summary_states([state]) :: state
   def summary_states(states) do
     states
     |> Enum.reduce(:ok, &summarize/2)
   end
 
-  @spec summarize(t, t) :: t
+  @spec summarize(state, state) :: state
   def summarize(self, rest) do
     case {self, rest} do
       {:error, _} -> :error
