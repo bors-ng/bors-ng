@@ -5,6 +5,7 @@ defmodule BorsNG.Database.Status do
   array of bors.toml.
   """
 
+  @type t :: %__MODULE__{}
   @type state_n :: 0 | 1 | 2 | 3
   @type state :: :waiting | :running | :ok | :error
 

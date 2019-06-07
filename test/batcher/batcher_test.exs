@@ -343,6 +343,38 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+  test "rejects an patch with a request for changes even if it also has approvals", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        reviews: %{1 => %{"APPROVED" => 2, "CHANGES_REQUESTED" => 1}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s/status = [ "ci" ]\nrequired_approvals = 1/}},
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "Z",
+      into_branch: "master"}
+    |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{
+          1 => [":-1: Rejected by code reviews"]},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        files: %{"Z" => %{"bors.toml" =>
+                           ~s/status = [ "ci" ]\nrequired_approvals = 1/}},
+        reviews: %{1 => %{"APPROVED" => 2, "CHANGES_REQUESTED" => 1}},
+      }}
+  end
+
   test "accepts a patch with a requested changes turned off", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
