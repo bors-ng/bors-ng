@@ -8,6 +8,7 @@ defmodule BorsNG.Database.DashboardContextTest do
   alias BorsNG.Database.User
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.Database.LinkUserProject
+  alias BorsNG.Database.LinkMemberProject
   alias BorsNG.Database.Context.Dashboard
 
   setup do
@@ -45,7 +46,7 @@ defmodule BorsNG.Database.DashboardContextTest do
 
   test "avoid other project", %{installation: installation,
     project: project} do
-    _project2 = Repo.insert!(%Project{
+    project2 = Repo.insert!(%Project{
       installation_id: installation.id,
       repo_xref: 14,
       name: "example/project2",
@@ -53,9 +54,43 @@ defmodule BorsNG.Database.DashboardContextTest do
     user = Repo.insert!(%User{
       login: "X",
       })
+    user2 = Repo.insert!(%User{
+      login: "y",
+      })
     Repo.insert!(%LinkUserProject{user: user, project: project})
+    Repo.insert!(%LinkUserProject{user: user2, project: project2})
     [project_x] = Dashboard.my_projects(user.id)
     assert project_x.id == project.id
+  end
+
+  test "does not duplicate resultset when simultaneously member and reviewer", %{project: project} do
+    user = Repo.insert!(%User{
+      login: "X"
+      })
+    Repo.insert!(%LinkMemberProject{user: user, project: project})
+    Repo.insert!(%LinkUserProject{user: user, project: project})
+    projects = Dashboard.my_projects(user.id)
+    assert Enum.count(projects) == 1
+    [project_x] = projects
+    assert project_x.id == project.id
+  end
+
+  test "returns both projects where member or where reviewer", context do
+    project2 = Repo.insert!(%Project{
+      installation_id: context.installation.id,
+      repo_xref: 14,
+      name: "example/project2",
+      })
+    user = Repo.insert!(%User{
+      login: "X"
+      })
+    Repo.insert!(%LinkUserProject{user: user, project: context.project})
+    Repo.insert!(%LinkMemberProject{user: user, project: project2})
+
+    projects = Dashboard.my_projects(user.id)
+    assert Enum.count(projects) == 2
+    ids = Enum.map(projects, &(&1.id))
+    assert [context.project.id, project2.id] == ids
   end
 
   test "grab patches that a particular user has", %{project: project} do
