@@ -183,7 +183,7 @@ defmodule BorsNG.GitHub do
   def get_user_by_login!(token, login) do
     {:ok, user} = GenServer.call(
       BorsNG.GitHub,
-      {:get_user_by_login, token, {login}},
+      {:get_user_by_login, token, {String.trim(login)}},
       Confex.fetch_env!(:bors, :api_github_timeout))
     user
   end
