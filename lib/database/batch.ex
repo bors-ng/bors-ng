@@ -42,7 +42,8 @@ defmodule BorsNG.Database.Batch do
 
   def all_for_project(project_id) do
     from b in Batch,
-      where: b.project_id == ^project_id
+      where: b.project_id == ^project_id,
+      order_by: [desc: b.state]
   end
 
   def all_for_project(project_id, nil), do: all_for_project(project_id)

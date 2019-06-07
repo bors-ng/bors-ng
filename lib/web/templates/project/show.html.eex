@@ -21,18 +21,18 @@
   Nothing to see here
 <% else %>
 <table class="table">
-<%= if @unbatched_patches != [] do %>
+<%= for batch <- @batches do %>
   <thead>
     <tr role=heading><td aria-role=presentation colspan=4>
       <h2 class=header>
-        Awaiting review
-        <span class=header-count><%= Enum.count(@unbatched_patches) %></span>
+        <%= stringify_state batch.state %>
+        <span class=header-count><%= Enum.count(batch.patches) %></span>
       </h2>
     </td></tr>
     <tr role=row><th>#</th><th>Title</th><th>Priority</th><th>Commit</th></tr>
   </thead>
   <tbody>
-  <%= for patch <- @unbatched_patches do %>
+  <%= for patch <- batch.patches do %>
     <tr role="row">
       <td>
         <%= patch.pr_xref %>
@@ -52,18 +52,18 @@
   <% end %>
   </tbody>
 <% end %>
-<%= for batch <- @batches do %>
+<%= if @unbatched_patches != [] do %>
   <thead>
     <tr role=heading><td aria-role=presentation colspan=4>
       <h2 class=header>
-        <%= stringify_state batch.state %>
-        <span class=header-count><%= Enum.count(batch.patches) %></span>
+        Awaiting review
+        <span class=header-count><%= Enum.count(@unbatched_patches) %></span>
       </h2>
     </td></tr>
     <tr role=row><th>#</th><th>Title</th><th>Priority</th><th>Commit</th></tr>
   </thead>
   <tbody>
-  <%= for patch <- batch.patches do %>
+  <%= for patch <- @unbatched_patches do %>
     <tr role="row">
       <td>
         <%= patch.pr_xref %>
