@@ -42,7 +42,8 @@ defmodule BorsNG.Database.Batch do
 
   def all_for_project(project_id) do
     from b in Batch,
-      where: b.project_id == ^project_id
+      where: b.project_id == ^project_id,
+      order_by: [desc: b.state]
   end
 
   def all_for_project(project_id, nil), do: all_for_project(project_id)
@@ -50,14 +51,15 @@ defmodule BorsNG.Database.Batch do
   def all_for_project(project_id, :incomplete) do
     from b in all_for_project(project_id),
       where: b.state == ^(:waiting) or b.state == ^(:running),
-      order_by: b.state
+      order_by: [desc: b.state]
   end
 
   def all_for_project(project_id, :complete) do
     from b in all_for_project(project_id),
       where: b.state == ^(:ok)
         or b.state == ^(:error)
-        or b.state == ^(:canceled)
+        or b.state == ^(:canceled),
+      order_by: [desc: b.state]
   end
 
   def all_for_project(project_id, state) do
