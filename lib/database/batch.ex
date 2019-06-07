@@ -49,7 +49,8 @@ defmodule BorsNG.Database.Batch do
 
   def all_for_project(project_id, :incomplete) do
     from b in all_for_project(project_id),
-      where: b.state == ^(:waiting) or b.state == ^(:running)
+      where: b.state == ^(:waiting) or b.state == ^(:running),
+      order_by: b.state
   end
 
   def all_for_project(project_id, :complete) do
