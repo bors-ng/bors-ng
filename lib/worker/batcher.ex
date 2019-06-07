@@ -655,17 +655,22 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   defp put_incomplete_on_hold(repo_conn, batch) do
-    batches_query = batch.project_id
+    batches = batch.project_id
     |> Batch.all_for_project(:running)
     |> where([b], b.id != ^batch.id and b.priority < ^batch.priority)
-    Status
-    |> join(:inner, [s], b in ^batches_query, s.batch_id == b.id)
-    |> Repo.delete_all()
-    batches_query
     |> Repo.all()
-    |> Enum.each(&send_status(repo_conn, &1, :delayed))
-    Repo.update_all(batches_query,
-      set: [state: :waiting])
+
+    ids = Enum.map(batches, &(&1.id))
+
+    Status
+    |> where([s], s.batch_id in ^ids)
+    |> Repo.delete_all()
+
+    
+    Enum.each(batches, &send_status(repo_conn, &1, :delayed))
+    Batch
+    |> where([b], b.id in ^ids)
+    |> Repo.update_all(set: [state: :waiting])
   end
 
   defp poll_after_delay(project) do
