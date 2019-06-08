@@ -299,6 +299,8 @@ You can do using Heroku's one-button-deploy system:
 
 Or you can do it manually:
 
+**Note**: The `GITHUB_INTEGRATION_ID` is now called the App ID on GitHub.
+
     $ heroku create --buildpack "https://github.com/HashNuke/heroku-buildpack-elixir.git" bors-app
     $ heroku buildpacks:add https://github.com/gjaldon/heroku-buildpack-phoenix-static.git
     $ heroku addons:create heroku-postgresql:hobby-dev
