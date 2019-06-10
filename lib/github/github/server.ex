@@ -327,7 +327,7 @@ defmodule BorsNG.GitHub.Server do
   ) do
     "token #{token}"
     |> tesla_client()
-    |> Tesla.get!("/users/#{login}")
+    |> Tesla.get!(URI.encode("/users/#{login}"))
     |> case do
       %{body: raw, status: 200} ->
         user = raw
@@ -478,7 +478,7 @@ defmodule BorsNG.GitHub.Server do
     ) do
     "token #{token}"
     |> tesla_client(content_type)
-    |> Tesla.post!("/repositories/#{repo_xref}/#{path}", body)
+    |> Tesla.post!(URI.encode("/repositories/#{repo_xref}/#{path}"), body)
   end
 
   @spec patch!(tconn, binary, binary, binary) :: map
@@ -490,7 +490,7 @@ defmodule BorsNG.GitHub.Server do
     ) do
     "token #{token}"
     |> tesla_client(content_type)
-    |> Tesla.patch!("/repositories/#{repo_xref}/#{path}", body)
+    |> Tesla.patch!(URI.encode("/repositories/#{repo_xref}/#{path}"), body)
   end
 
   @spec get!(tconn, binary, binary, list) :: map
@@ -502,7 +502,7 @@ defmodule BorsNG.GitHub.Server do
     ) do
     "token #{token}"
     |> tesla_client(content_type)
-    |> Tesla.get!("/repositories/#{repo_xref}/#{path}", params)
+    |> Tesla.get!(URI.encode("/repositories/#{repo_xref}/#{path}"), params)
   end
 
   @spec delete!(tconn, binary, binary, list) :: map
@@ -514,7 +514,7 @@ defmodule BorsNG.GitHub.Server do
     ) do
     "token #{token}"
     |> tesla_client(content_type)
-    |> Tesla.delete!("/repositories/#{repo_xref}/#{path}", params)
+    |> Tesla.delete!(URI.encode("/repositories/#{repo_xref}/#{path}"), params)
   end
 
   defp get_next_headers(headers) do
