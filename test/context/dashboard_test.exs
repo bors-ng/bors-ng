@@ -90,7 +90,7 @@ defmodule BorsNG.Database.DashboardContextTest do
     projects = Dashboard.my_projects(user.id)
     assert Enum.count(projects) == 2
     ids = Enum.map(projects, &(&1.id))
-    assert [context.project.id, project2.id] == ids
+    assert [context.project.id, project2.id] == Enum.sort(ids)
   end
 
   test "grab patches that a particular user has", %{project: project} do
