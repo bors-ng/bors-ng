@@ -6,6 +6,8 @@ defmodule BorsNG.Database.Batch do
   """
 
   @type t :: %__MODULE__{}
+  @type id :: pos_integer()
+  @type state :: :waiting | :running | :ok | :error | :conflict | :canceled
 
   use BorsNG.Database.Model
   alias BorsNG.Database.BatchState
@@ -22,6 +24,7 @@ defmodule BorsNG.Database.Batch do
     timestamps()
   end
 
+  @spec new(Project.id, String.t, non_neg_integer) :: t
   def new(project_id, into_branch, priority \\ 0) do
     %Batch{
       into_branch: into_branch,
@@ -33,19 +36,22 @@ defmodule BorsNG.Database.Batch do
     }
   end
 
+  @spec is_empty(id, module) :: boolean
   def is_empty(batch_id, repo) do
-    links = LinkPatchBatch
+    LinkPatchBatch
     |> where([l], l.batch_id == ^batch_id)
     |> repo.all()
-    links == []
+    |> Enum.empty?
   end
 
+  @spec all_for_project(Project.id) :: Ecto.Queryable.t
   def all_for_project(project_id) do
     from b in Batch,
       where: b.project_id == ^project_id,
       order_by: [desc: b.state]
   end
 
+  @spec all_for_project(Project.id, state | :complete | :incomplete | nil) :: Ecto.Queryable.t
   def all_for_project(project_id, nil), do: all_for_project(project_id)
 
   def all_for_project(project_id, :incomplete) do
@@ -65,18 +71,21 @@ defmodule BorsNG.Database.Batch do
       where: b.state == ^state
   end
 
+  @spec all_for_patch(Patch.id, :complete | :incomplete | nil) :: Ecto.Queryable.t
   def all_for_patch(patch_id, state \\ nil) do
     from b in all_assoc(state),
       join: l in LinkPatchBatch, on: l.batch_id == b.id,
       where: l.patch_id == ^patch_id
   end
 
+  @spec all_assoc() :: Ecto.Queryable.t
   def all_assoc do
     from b in Batch,
       join: p in assoc(b, :project),
       preload: [project: p]
   end
 
+  @spec all_assoc(:complete | :incomplete | nil) :: Ecto.Queryable.t
   def all_assoc(nil), do: all_assoc()
 
   def all_assoc(:incomplete) do
@@ -91,26 +100,31 @@ defmodule BorsNG.Database.Batch do
         or b.state == ^(:canceled)
   end
 
+  @spec get_assoc_by_commit(Project.id, String.t, :complete | :incomplete | nil) :: Ecto.Queryable.t
   def get_assoc_by_commit(project_id, commit, state \\ nil) do
     from b in all_assoc(state),
       where: b.commit == ^commit and b.project_id == ^project_id
   end
 
+  @spec next_poll_is_past(t) :: boolean
   def next_poll_is_past(batch) do
     now = DateTime.to_unix(DateTime.utc_now(), :second)
     next_poll_is_past(batch, now)
   end
 
+  @spec next_poll_is_past(t, pos_integer()) :: boolean
   def next_poll_is_past(batch, now_utc_sec) do
     next = get_next_poll_unix_sec(batch)
     next < now_utc_sec
   end
 
+  @spec timeout_is_past(t) :: boolean
   def timeout_is_past(%Batch{timeout_at: timeout_at}) do
     now = DateTime.to_unix(DateTime.utc_now(), :second)
     now > timeout_at
   end
 
+  @spec get_next_poll_unix_sec(t) :: integer
   def get_next_poll_unix_sec(batch) do
     period = if batch.state == :waiting do
       batch.project.batch_delay_sec
@@ -120,9 +134,7 @@ defmodule BorsNG.Database.Batch do
     batch.last_polled + period
   end
 
-  @doc """
-  Builds a changeset based on the `struct` and `params`.
-  """
+  @spec changeset(t | Ecto.Changeset.t, map) :: Ecto.Changeset.t
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [
@@ -135,6 +147,7 @@ defmodule BorsNG.Database.Batch do
     ])
   end
 
+  @spec changeset_raise_priority(t | Ecto.Changeset.t, map) :: Ecto.Changeset.t
   def changeset_raise_priority(struct, params \\ %{}) do
     struct
     |> cast(params, [

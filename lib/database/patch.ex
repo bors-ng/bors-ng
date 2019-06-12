@@ -10,6 +10,7 @@ defmodule BorsNG.Database.Patch do
   use BorsNG.Database.Model
 
   @type t :: %Patch{}
+  @type id :: pos_integer
 
   schema "patches" do
     belongs_to :project, Project

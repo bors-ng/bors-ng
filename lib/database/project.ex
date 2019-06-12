@@ -9,6 +9,7 @@ defmodule BorsNG.Database.Project do
   alias BorsNG.Database.ProjectPermission
 
   @type t :: %Project{}
+  @type id :: pos_integer
 
   @doc """
   After modifying the underlying model,
