@@ -45,7 +45,8 @@ defmodule BorsNG.Database.Patch do
   def all_for_batch(batch_id) do
     from p in Patch,
       join: l in LinkPatchBatch, on: l.patch_id == p.id,
-      where: l.batch_id == ^batch_id
+      where: l.batch_id == ^batch_id,
+      order_by: [desc: p.pr_xref]
   end
 
   defp all_links_not_err do
@@ -59,18 +60,21 @@ defmodule BorsNG.Database.Patch do
     from p in Patch,
       left_join: l in subquery(all), on: l.patch_id == p.id,
       where: is_nil(l.batch_id),
-      where: p.open
+      where: p.open,
+      order_by: [desc: p.pr_xref]
   end
 
   def all_for_project(project_id, :open) do
     from p in Patch,
       where: p.open,
-      where: p.project_id == ^project_id
+      where: p.project_id == ^project_id,
+      order_by: [desc: p.pr_xref]
   end
 
   def all_for_project(project_id, :awaiting_review) do
     from p in Patch.all(:awaiting_review),
-      where: p.project_id == ^project_id
+      where: p.project_id == ^project_id,
+      order_by: [desc: p.pr_xref]
   end
 
   def dups_in_batches do
