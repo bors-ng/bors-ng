@@ -10,6 +10,7 @@ defmodule BorsNG.Database.Attempt do
   alias BorsNG.Database.AttemptState
 
   @type t :: %__MODULE__{}
+  @type id :: pos_integer
 
   schema "attempts" do
     belongs_to :patch, Patch
