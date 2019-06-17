@@ -4,6 +4,8 @@ defmodule BorsNG.Database.AttemptState do
   A type to represent the attmept state.
   """
 
+  @type t :: :waiting | :running | :ok | :error | :canceled
+
   # Underlying storage is an integer.
   def type, do: :integer
 
