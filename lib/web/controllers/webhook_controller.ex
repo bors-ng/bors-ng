@@ -218,8 +218,16 @@ defmodule BorsNG.WebhookController do
     end
   end
 
-  def do_webhook(_conn, "github", "check_run") do
-    :ok
+  def do_webhook(conn, "github", "check_run") do
+    repo_xref = conn.body_params["repository"]["id"]
+    commit = conn.body_params["check_run"]["sha"]
+    identifier = conn.body_params["check_run"]["name"]
+    |> GitHub.map_changed_status()
+    url = conn.body_params["details_url"]
+    state = GitHub.map_check_to_status(conn.body_params["check_run"]["conclusion"])
+    project = Repo.get_by!(Project, repo_xref: repo_xref)
+    batcher = Batcher.Registry.get(project.id)
+    Batcher.status(batcher, {commit, identifier, state, url})
   end
 
   def do_webhook(conn, "github", "status") do
