@@ -40,9 +40,6 @@ defmodule BorsNG.Command do
     patch: nil,
     comment: "")
 
-  @command_trigger(
-    Confex.fetch_env!(:bors, BorsNG)[:command_trigger])
-
   @type t :: %BorsNG.Command{
     project: Project.t,
     commenter: User.t,
@@ -50,6 +47,9 @@ defmodule BorsNG.Command do
     pr_xref: integer,
     patch: Patch.t | nil,
     comment: binary}
+
+  defp command_trigger(),
+    do: Confex.fetch_env!(:bors, BorsNG)[:command_trigger]
 
   @doc """
   If the GitHub PR is not already in this struct, fetch it.
@@ -116,7 +116,7 @@ defmodule BorsNG.Command do
     end)
   end
 
-  def regex, do: ~r/^(?<command_trigger>#{@command_trigger}|bros):?\s(?<command>.+)/i
+  def regex, do: ~r/^(?<command_trigger>#{command_trigger()}|bros):?\s(?<command>.+)/i
 
   def trim_and_parse_cmd(%{"command_trigger" => "bros", "command" => cmd}) do
     with [_] <- parse_cmd(cmd), do: [:bros]
