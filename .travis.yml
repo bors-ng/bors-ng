@@ -1,7 +1,7 @@
 language: elixir
 elixir:
-  - 1.6
   - 1.7.3
+  - 1.8.1
 otp_release:
   - 20.0
   - 21.0.9
@@ -28,9 +28,6 @@ env:
 
 matrix:
   fast_finish: true
-  exclude:
-    - elixir: 1.6
-      otp_release: 21.0.9
 
 notifications:
   email: false
