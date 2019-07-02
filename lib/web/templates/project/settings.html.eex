@@ -124,14 +124,14 @@
 <section class=split-item>
 <h2 class=header>Bors Badge</h2>
 <p>Put this badge in your README to show your love for Bors.</p>
-<p><a href="<%= project_path(@conn, :show, @project) %>"><img src="https://bors.tech/images/badge_small.svg" alt="Bors enabled"></a></p>
+<p><a href="<%= project_url(@conn, :show, @project) %>"><img src="https://bors.tech/images/badge_small.svg" alt="Bors enabled"></a></p>
 <h3 class=header>HTML</h3>
 <textarea rows="5" cols="50" onclick="this.focus();this.select()" readonly="readonly">
-<a href="<%= project_path(@conn, :show, @project) %>"><img src="https://bors.tech/images/badge_small.svg" alt="Bors enabled"></a>
+<a href="<%= project_url(@conn, :show, @project) %>"><img src="https://bors.tech/images/badge_small.svg" alt="Bors enabled"></a>
 </textarea>
 <h3 class=header>Markdown</h3>
 <textarea rows="5" cols="50" onclick="this.focus();this.select()" readonly="readonly">
-[![Bors enabled](https://bors.tech/images/badge_small.svg)](<%= project_path(@conn, :show, @project) %>)
+[![Bors enabled](https://bors.tech/images/badge_small.svg)](<%= project_url(@conn, :show, @project) %>)
 </textarea>
 
 </section> <!-- class=split-item -->
