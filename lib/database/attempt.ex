@@ -28,7 +28,7 @@ defmodule BorsNG.Database.Attempt do
       commit: nil,
       state: 0,
       arguments: arguments,
-      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
+      last_polled: DateTime.to_unix(DateTime.utc_now(), :second)
     }
   end
 
