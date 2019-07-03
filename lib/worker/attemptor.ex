@@ -207,7 +207,7 @@ defmodule BorsNG.Worker.Attemptor do
                 committer: toml.committer
                 })
             state = setup_statuses(attempt, toml)
-            now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+            now = DateTime.to_unix(DateTime.utc_now(), :second)
             attempt
             |> Attempt.changeset(%{
               state: state, commit: commit, last_polled: now})
@@ -231,7 +231,7 @@ defmodule BorsNG.Worker.Attemptor do
         url: nil,
         state: :running})
     |> Enum.each(&Repo.insert!/1)
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     attempt
     |> Attempt.changeset(%{timeout_at: now + toml.timeout_sec})
     |> Repo.update!()
@@ -248,7 +248,7 @@ defmodule BorsNG.Worker.Attemptor do
 
   defp poll_attempt(attempt, project) do
     patch = Repo.get!(Patch, attempt.patch_id)
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     if attempt.timeout_at < now do
       timeout_attempt(attempt, project, patch)
     else
@@ -268,7 +268,7 @@ defmodule BorsNG.Worker.Attemptor do
     statuses = Repo.all(AttemptStatus.all_for_attempt(attempt.id))
     state = Batcher.State.summary_database_statuses(statuses)
     maybe_complete_attempt(state, project, patch, statuses)
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     attempt
     |> Attempt.changeset(%{state: state, last_polled: now})
     |> Repo.update!()
