@@ -14,7 +14,7 @@ tasks:
           - trying
     payload:
       maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:f3b3e932d2565135ac3d1efcb52f84ba72038228a6707638b533b1a0d9025e14"
+      image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
       command:
         - /bin/bash
         - '--login'
@@ -45,7 +45,7 @@ tasks:
           - trying
     payload:
       maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:f3b3e932d2565135ac3d1efcb52f84ba72038228a6707638b533b1a0d9025e14"
+      image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
       command:
         - /bin/bash
         - '--login'
@@ -75,7 +75,7 @@ tasks:
           - trying
     payload:
       maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:f3b3e932d2565135ac3d1efcb52f84ba72038228a6707638b533b1a0d9025e14"
+      image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
       command:
         - /bin/bash
         - '--login'
@@ -105,7 +105,7 @@ tasks:
           - master
     payload:
       maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:f3b3e932d2565135ac3d1efcb52f84ba72038228a6707638b533b1a0d9025e14"
+      image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
       command:
         - /bin/bash
         - '--login'
