@@ -28,7 +28,7 @@ defmodule BorsNG.Database.Batch do
       project_id: project_id,
       commit: nil,
       state: :waiting,
-      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds),
+      last_polled: DateTime.to_unix(DateTime.utc_now(), :second),
       priority: priority
     }
   end
