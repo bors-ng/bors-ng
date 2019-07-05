@@ -4,7 +4,7 @@
   "//": "This script is required for heroku's node.js buildpack; the actual stuff is all in `assets`",
   "scripts": {
     "deploy": "cd assets && NODE_ENV=dev npm install && npm run deploy",
-    "watch": "cd assets && NODE_ENV=dev npm install && npm run watcb",
+    "watch": "cd assets && NODE_ENV=dev npm install && npm run watch",
     "webpack": "cd assets && NODE_ENV=dev npm install && npm run webpack"
   }
 }
