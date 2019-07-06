@@ -11,6 +11,7 @@ erl_crash.dump
 
 # Static artifacts
 /node_modules
+/assets/node_modules
 
 # Generated documentation
 /doc

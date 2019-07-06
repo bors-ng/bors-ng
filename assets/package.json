@@ -1,0 +1,25 @@
+{
+  "repository": {},
+  "license": "APACHE-2.0",
+  "scripts": {
+    "deploy": "webpack",
+    "watch": "webpack --mode development --watch-stdin",
+    "webpack": "webpack"
+  },
+  "dependencies": {
+    "phoenix": "file:../deps/phoenix",
+    "phoenix_html": "file:../deps/phoenix_html"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "babel-loader": "^8.0.0",
+    "copy-webpack-plugin": "^4.5.0",
+    "css-loader": "^2.1.1",
+    "mini-css-extract-plugin": "^0.4.0",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "terser-webpack-plugin": "^1.1.0",
+    "webpack": "4.4.0",
+    "webpack-cli": "^3.3.2"
+  }
+}
