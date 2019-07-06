@@ -26,7 +26,7 @@ tasks:
           mix deps.get &&
           npm install && npm run deploy &&
           mix phx.digest &&
-          mix release --env=$MIX_ENV
+          mix distillery.release --env=$MIX_ENV
     metadata:
       name: Bors-NG build release
       description: 'Run a release using distillery'
