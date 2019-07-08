@@ -1,3 +1,5 @@
+require Logger
+
 defmodule BorsNG.GitHub do
 
   @moduledoc """
@@ -67,7 +69,9 @@ defmodule BorsNG.GitHub do
 
   @spec push(tconn, binary, binary) :: {:ok, binary} | {:error, term, term}
   def push(repo_conn, sha, to) do
-    GenServer.call(BorsNG.GitHub, {:push, repo_conn, {sha, to}}, Confex.fetch_env!(:bors, :api_github_timeout))
+    Logger.info("Attempting push to master -- Stubbed")
+    {:error, :push, "failed"}
+#    GenServer.call(BorsNG.GitHub, {:push, repo_conn, {sha, to}}, Confex.fetch_env!(:bors, :api_github_timeout))
   end
 
   @spec get_branch!(tconn, binary) :: %{commit: bitstring, tree: bitstring}
@@ -112,6 +116,27 @@ defmodule BorsNG.GitHub do
       BorsNG.GitHub,
       {:synthesize_commit, repo_conn, {info}},
       Confex.fetch_env!(:bors, :api_github_timeout))
+    sha
+  end
+
+
+  @spec green_button_merge!(tconn, %{
+    owner: bitstring,
+    repo: bitstring,
+    sha: bitstring,
+    commit_message: bitstring}) :: binary
+  def green_button_merge!(repo_conn, info) do
+
+    {:ok, sha} = GenServer.call(
+      BorsNG.GitHub,
+      {:green_button_merge, repo_conn, {}},
+      Confex.fetch_env!(:bors, :api_github_timeout))
+
+
+#    {:ok, sha} = GenServer.call(
+#      BorsNG.GitHub,
+#      {:green_button_merge, repo_conn, {info}},
+#      Confex.fetch_env!(:bors, :api_github_timeout))
     sha
   end
 
@@ -199,7 +224,7 @@ defmodule BorsNG.GitHub do
 
   @spec get_app!() :: String.t()
   def get_app! do
-    {:ok, app_link} = GenServer.call(BorsNG.GitHub, :get_app, Confex.fetch_env!(:bors, :api_github_timeout))
+    {:ok, app_link} = GenServer.call(BorsNG.GitHub, :get_app, 1000000000)
     app_link
   end
 

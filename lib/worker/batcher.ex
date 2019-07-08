@@ -1,3 +1,5 @@
+require Logger
+
 defmodule BorsNG.Worker.Batcher do
   @moduledoc """
   A "Batcher" manages the backlog of batches a project has.
@@ -366,6 +368,8 @@ defmodule BorsNG.Worker.Batcher do
 
   defp maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
+    patches = Repo.all(LinkPatchBatch.from_batch(batch.id))
+    Logger.info("Patches #{inspect(patches)}")
     status = Batcher.State.summary_database_statuses(statuses)
     now = DateTime.to_unix(DateTime.utc_now(), :seconds)
     if status != :running do
@@ -386,6 +390,8 @@ defmodule BorsNG.Worker.Batcher do
   @spec complete_batch(Status.state, Batch.t, [Status.t]) :: :ok
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
+    Logger.info("Batch #{inspect(batch)}")
+    Logger.info("Batch.patches #{inspect(batch.patches)}")
     repo_conn = get_repo_conn(project)
     {:ok, _} = push_with_retry(
       repo_conn,
@@ -416,10 +422,14 @@ defmodule BorsNG.Worker.Batcher do
   # This should retry *nine times*, by the way.
   defp push_with_retry(repo_conn, commit, into_branch, timeout \\ 1) do
     Process.sleep(timeout)
-    result = GitHub.push(
-      repo_conn,
-      commit,
-      into_branch)
+    Logger.info("Green button merge section #{commit} #{into_branch}")
+    result = GitHub.green_button_merge!(
+      repo_conn, {"mrobinson", "pdaas", "24b02a73b77557d0f699e25d9dcba80bbd67d80d", "This is merging to master"}
+    )
+#    result = GitHub.push(
+#      repo_conn,
+#      commit,
+#      into_branch)
     case result do
       {:ok, _} -> result
       _ when timeout >= 512 -> result

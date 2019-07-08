@@ -80,7 +80,7 @@ defmodule BorsNG.Worker.Syncer do
         synchronize_project_collaborators_by_role(
           project, users, :members, project.auto_member_required_perm)
     do
-      Logger.debug(["Syncer: refreshed project collaborators", project])
+      Logger.debug("Syncer: refreshed project collaborators ")
       :ok
     else
       {:error, error} ->

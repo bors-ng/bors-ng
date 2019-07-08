@@ -81,6 +81,21 @@ defmodule BorsNG.GitHub.Server do
     {:reply, {:ok, list}, state}
   end
 
+  def do_handle_call(:green_button_merge, {{:raw, str_name}, 595}, {}) do
+    msg = %{commit_title: "Title to fill in later", commit_message: "This is a commit message", sha: "abcdef", merge_method: "squash"}
+
+    IO.puts(msg)
+#    case get!(repo_conn, "pulls/pr_xref") do
+#      %{body: raw, status: 200} ->
+#        pr = raw
+#             |> Poison.decode!()
+#             |> GitHub.Pr.from_json!()
+#        {:ok, pr}
+#      e ->
+#        {:error, :get_pr, e.status, "1234556"}
+#    end
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}) do
     case get!(repo_conn, "pulls/#{pr_xref}") do
       %{body: raw, status: 200} ->
@@ -110,6 +125,57 @@ defmodule BorsNG.GitHub.Server do
       token,
       "#{site()}/repositories/#{repo_xref}/pulls?state=open",
       [])}
+  end
+
+  @spec put!(tconn, binary, binary, list) :: map
+  defp put!(
+         {{:raw, token}, repo_xref},
+         path,
+         content_type \\ @content_type,
+         params \\ []
+       ) do
+    "token #{token}"
+    |> tesla_client(content_type)
+    |> Tesla.put!(URI.encode("/repositories/#{repo_xref}/#{path}"), params)
+  end
+
+  def do_handle_call(:green_button_merge, {{:installation, 10}, 595}, {}) do
+    msg = %{commit_title: "Title to fill in later", commit_message: "This is a commit message", sha: "abcdef", merge_method: "squash"}
+
+    IO.puts(msg)
+
+    |> put!("/repos/mrobinson/pdaas/pulls/17/merge", Poison.encode(msg))
+  end
+
+
+  def do_handle_call(:green_button_merge, repo_conn) do
+    msg = %{commit_title: "Title to fill in later", commit_message: "This is a commit message", sha: "abcdef", merge_method: "squash"}
+
+    IO.puts(msg)
+
+    |> put!("/repos/mrobinson/pdaas/pulls/17/merge", Poison.encode(msg))
+  end
+
+  def do_handle_call(:green_button_merge, repo_conn, timeout, other) do
+    msg = %{commit_title: "Title to fill in later", commit_message: "This is a commit message", sha: "abcdef", merge_method: "squash"}
+
+    IO.puts(msg)
+
+    |> put!("/repos/mrobinson/pdaas/pulls/17/merge", Poison.encode(msg))
+  end
+
+  def do_handle_call(:green_button_merge, repo_conn, {%{
+    owner: owner,
+    repo: repo,
+    sha: sha,
+    commit_message: commit_message
+  }}) do
+    msg = %{commit_title: "Title to fill in later", commit_message: commit_message, sha: sha, merge_method: "squash"}
+
+    IO.puts(msg)
+
+    |> put!("/repos/#{owner}/#{repo}/pulls/:pull_number/merge", Poison.encode(msg))
+
   end
 
   def do_handle_call(:push, repo_conn, {sha, to}) do
