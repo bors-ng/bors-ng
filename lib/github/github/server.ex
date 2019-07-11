@@ -120,7 +120,7 @@ defmodule BorsNG.GitHub.Server do
         {:ok, sha}
       %{body: body, status: status} ->
         IO.inspect({:error, :push, body})
-        {:error, :push, status}
+        {:error, :push, status, body}
     end
   end
 
