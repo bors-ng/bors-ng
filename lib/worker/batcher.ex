@@ -396,36 +396,49 @@ defmodule BorsNG.Worker.Batcher do
 #    Logger.info("Batch.patches #{inspect(batch.patches)}")
     repo_conn = get_repo_conn(project)
 
-    Enum.map(patches, fn patch ->
-      pr = GitHub.get_pr!(repo_conn, patch.patch.pr_xref)
+    {res,toml} = Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}")
 
-      IO.inspect(pr)
+    IO.inspect(toml)
 
-      {:ok, pr_commits} = BorsNG.GitHub.get_pr_commits(repo_conn, pr.number)
+    if toml.use_squash_merge do
 
-      IO.inspect(pr_commits)
+      Enum.map(patches, fn patch ->
+        pr = GitHub.get_pr!(repo_conn, patch.patch.pr_xref)
 
-      commit_messages = Enum.reduce(pr_commits, "", fn(x, acc) -> "#{x.commit_message}\n#{acc}" end )
+        IO.inspect(pr)
 
-      {:ok, _} = squash_with_retry(
-        repo_conn,
-        pr,
-        commit_messages)
+        {:ok, pr_commits} = BorsNG.GitHub.get_pr_commits(repo_conn, pr.number)
+
+        IO.inspect(pr_commits)
+
+        commit_messages = Enum.reduce(pr_commits, "", fn(x, acc) -> "#{x.commit_message}\n#{acc}" end )
+
+        {:ok, _} = squash_with_retry(
+          repo_conn,
+          pr,
+          commit_messages)
+        patches = batch.id
+                  |> Patch.all_for_batch()
+                  |> Repo.all()
+
+      end)
+
+      #    {:ok, _} = push_with_retry(
+      #      repo_conn,
+      #      batch.commit,
+      #      batch.into_branch)
       patches = batch.id
                 |> Patch.all_for_batch()
                 |> Repo.all()
 
-    end)
+      send_message(repo_conn, patches, {:succeeded, statuses})
 
-#    {:ok, _} = push_with_retry(
-#      repo_conn,
-#      batch.commit,
-#      batch.into_branch)
-    patches = batch.id
-    |> Patch.all_for_batch()
-    |> Repo.all()
+      else
+      Logger.error("Bors TOML use squash merge")
+      {:error, "error"}
 
-    send_message(repo_conn, patches, {:succeeded, statuses})
+    end
+
   end
 
   defp complete_batch(:error, batch, statuses) do
