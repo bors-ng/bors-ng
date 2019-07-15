@@ -396,22 +396,29 @@ defmodule BorsNG.Worker.Batcher do
 #    Logger.info("Batch.patches #{inspect(batch.patches)}")
     repo_conn = get_repo_conn(project)
 
-    pr = GitHub.get_pr(repo_conn, 18)
+    pr = GitHub.get_pr!(repo_conn, 25)
 
+    IO.inspect(pr)
+
+    {:ok, pr_commits} = BorsNG.GitHub.get_pr_commits(repo_conn, pr.number)
+
+    IO.inspect(pr_commits)
+
+    commit_messages = Enum.reduce(pr_commits, "", fn(x, acc) -> "#{x.commit_message}\n#{acc}" end )
 
     {:ok, _} = squash_with_retry(
       repo_conn,
-      batch.commit,
-      batch.into_branch)
+      pr,
+      commit_messages)
     patches = batch.id
               |> Patch.all_for_batch()
               |> Repo.all()
 
 
-    {:ok, _} = push_with_retry(
-      repo_conn,
-      batch.commit,
-      batch.into_branch)
+#    {:ok, _} = push_with_retry(
+#      repo_conn,
+#      batch.commit,
+#      batch.into_branch)
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
@@ -436,14 +443,21 @@ defmodule BorsNG.Worker.Batcher do
   # and GitHub allowing a Status-bearing commit to be pushed to master.
   # As a workaround, retry with exponential backoff.
   # This should retry *nine times*, by the way.
-  defp squash_with_retry(repo_conn, commit, into_branch, timeout \\ 1) do
+  defp squash_with_retry(repo_conn, pr, commit_messages, timeout \\ 1) do
     Process.sleep(timeout)
-    Logger.info("Green button merge section #{commit} #{into_branch}")
+    Logger.info("Green button merge section #{inspect(pr)} #{commit_messages}")
 
 #    GitHub.get_pr(repo_conn)
 
-    result = GitHub.green_button_merge!(
-      repo_conn, %{ owner: "mrobinson", repo: "pdaas", sha: "24b02a73b77557d0f699e25d9dcba80bbd67d80d", commit_message: "This is merging to master"}
+#    result = GitHub.green_button_merge!(
+#      repo_conn, %{ owner: "mrobinson", repo: "pdaas", sha: "24b02a73b77557d0f699e25d9dcba80bbd67d80d", commit_message: "This is merging to master"}
+#    )
+
+    result = BorsNG.GitHub.green_button_merge(repo_conn,
+      %{pr_number: pr.number,
+        pr_title: "#{pr.title} (##{pr.number})",
+        sha: "#{pr.head_sha}",
+        commit_message: commit_messages}
     )
     #    result = GitHub.push(
     #      repo_conn,
@@ -452,7 +466,7 @@ defmodule BorsNG.Worker.Batcher do
     case result do
       {:ok, _} -> result
       _ when timeout >= 512 -> result
-      _ -> push_with_retry(repo_conn, commit, into_branch, timeout * 2)
+      _ -> squash_with_retry(repo_conn, pr, commit_messages, timeout * 2)
     end
   end
 
@@ -464,15 +478,10 @@ defmodule BorsNG.Worker.Batcher do
     Process.sleep(timeout)
     Logger.info("Green button merge section #{commit} #{into_branch}")
 
-
-
-    result = GitHub.green_button_merge!(
-      repo_conn, %{ owner: "mrobinson", repo: "pdaas", sha: "24b02a73b77557d0f699e25d9dcba80bbd67d80d", commit_message: "This is merging to master"}
-    )
-#    result = GitHub.push(
-#      repo_conn,
-#      commit,
-#      into_branch)
+    result = GitHub.push(
+      repo_conn,
+      commit,
+      into_branch)
     case result do
       {:ok, _} -> result
       _ when timeout >= 512 -> result
