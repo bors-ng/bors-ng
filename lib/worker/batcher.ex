@@ -396,24 +396,26 @@ defmodule BorsNG.Worker.Batcher do
 #    Logger.info("Batch.patches #{inspect(batch.patches)}")
     repo_conn = get_repo_conn(project)
 
-    pr = GitHub.get_pr!(repo_conn, 25)
+    Enum.map(patches, fn patch ->
+      pr = GitHub.get_pr!(repo_conn, patch.patch.pr_xref)
 
-    IO.inspect(pr)
+      IO.inspect(pr)
 
-    {:ok, pr_commits} = BorsNG.GitHub.get_pr_commits(repo_conn, pr.number)
+      {:ok, pr_commits} = BorsNG.GitHub.get_pr_commits(repo_conn, pr.number)
 
-    IO.inspect(pr_commits)
+      IO.inspect(pr_commits)
 
-    commit_messages = Enum.reduce(pr_commits, "", fn(x, acc) -> "#{x.commit_message}\n#{acc}" end )
+      commit_messages = Enum.reduce(pr_commits, "", fn(x, acc) -> "#{x.commit_message}\n#{acc}" end )
 
-    {:ok, _} = squash_with_retry(
-      repo_conn,
-      pr,
-      commit_messages)
-    patches = batch.id
-              |> Patch.all_for_batch()
-              |> Repo.all()
+      {:ok, _} = squash_with_retry(
+        repo_conn,
+        pr,
+        commit_messages)
+      patches = batch.id
+                |> Patch.all_for_batch()
+                |> Repo.all()
 
+    end)
 
 #    {:ok, _} = push_with_retry(
 #      repo_conn,
@@ -446,12 +448,6 @@ defmodule BorsNG.Worker.Batcher do
   defp squash_with_retry(repo_conn, pr, commit_messages, timeout \\ 1) do
     Process.sleep(timeout)
     Logger.info("Green button merge section #{inspect(pr)} #{commit_messages}")
-
-#    GitHub.get_pr(repo_conn)
-
-#    result = GitHub.green_button_merge!(
-#      repo_conn, %{ owner: "mrobinson", repo: "pdaas", sha: "24b02a73b77557d0f699e25d9dcba80bbd67d80d", commit_message: "This is merging to master"}
-#    )
 
     result = BorsNG.GitHub.green_button_merge(repo_conn,
       %{pr_number: pr.number,
