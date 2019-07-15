@@ -24,6 +24,9 @@ defmodule BorsNG.Worker.BatcherTest do
     {:ok, inst: inst, proj: proj}
   end
 
+  test "Get patches" do
+  end
+
   test "cancel all", %{proj: proj} do
     patch = %Patch{
       project_id: proj.id,

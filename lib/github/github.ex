@@ -126,18 +126,11 @@ defmodule BorsNG.GitHub do
     sha: bitstring,
     commit_message: bitstring}) :: binary
   def green_button_merge!(repo_conn, info) do
-
-    {:ok, sha} = GenServer.call(
+    {:ok, commit} = GenServer.call(
       BorsNG.GitHub,
-      {:green_button_merge, repo_conn, {}},
+      {:green_button_merge, repo_conn, info},
       Confex.fetch_env!(:bors, :api_github_timeout))
-
-
-#    {:ok, sha} = GenServer.call(
-#      BorsNG.GitHub,
-#      {:green_button_merge, repo_conn, {info}},
-#      Confex.fetch_env!(:bors, :api_github_timeout))
-    sha
+    commit.sha
   end
 
   @spec force_push!(tconn, binary, binary) :: binary

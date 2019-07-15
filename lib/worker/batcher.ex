@@ -366,7 +366,7 @@ defmodule BorsNG.Worker.Batcher do
     maybe_complete_batch(batch)
   end
 
-  defp maybe_complete_batch(batch) do
+  def maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
     patches = Repo.all(LinkPatchBatch.from_batch(batch.id))
     Logger.info("Patches #{inspect(patches)}")
@@ -391,8 +391,23 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     Logger.info("Batch #{inspect(batch)}")
-    Logger.info("Batch.patches #{inspect(batch.patches)}")
+    patches = Repo.all(LinkPatchBatch.from_batch(batch.id))
+    Logger.info("Patches #{inspect(patches)}")
+#    Logger.info("Batch.patches #{inspect(batch.patches)}")
     repo_conn = get_repo_conn(project)
+
+    pr = GitHub.get_pr(repo_conn, 18)
+
+
+    {:ok, _} = squash_with_retry(
+      repo_conn,
+      batch.commit,
+      batch.into_branch)
+    patches = batch.id
+              |> Patch.all_for_batch()
+              |> Repo.all()
+
+
     {:ok, _} = push_with_retry(
       repo_conn,
       batch.commit,
@@ -416,6 +431,31 @@ defmodule BorsNG.Worker.Batcher do
     send_message(repo_conn, patches, {state, erred})
   end
 
+
+  # A delay has been observed between Bors sending the Status change
+  # and GitHub allowing a Status-bearing commit to be pushed to master.
+  # As a workaround, retry with exponential backoff.
+  # This should retry *nine times*, by the way.
+  defp squash_with_retry(repo_conn, commit, into_branch, timeout \\ 1) do
+    Process.sleep(timeout)
+    Logger.info("Green button merge section #{commit} #{into_branch}")
+
+#    GitHub.get_pr(repo_conn)
+
+    result = GitHub.green_button_merge!(
+      repo_conn, %{ owner: "mrobinson", repo: "pdaas", sha: "24b02a73b77557d0f699e25d9dcba80bbd67d80d", commit_message: "This is merging to master"}
+    )
+    #    result = GitHub.push(
+    #      repo_conn,
+    #      commit,
+    #      into_branch)
+    case result do
+      {:ok, _} -> result
+      _ when timeout >= 512 -> result
+      _ -> push_with_retry(repo_conn, commit, into_branch, timeout * 2)
+    end
+  end
+
   # A delay has been observed between Bors sending the Status change
   # and GitHub allowing a Status-bearing commit to be pushed to master.
   # As a workaround, retry with exponential backoff.
@@ -423,8 +463,11 @@ defmodule BorsNG.Worker.Batcher do
   defp push_with_retry(repo_conn, commit, into_branch, timeout \\ 1) do
     Process.sleep(timeout)
     Logger.info("Green button merge section #{commit} #{into_branch}")
+
+
+
     result = GitHub.green_button_merge!(
-      repo_conn, {"mrobinson", "pdaas", "24b02a73b77557d0f699e25d9dcba80bbd67d80d", "This is merging to master"}
+      repo_conn, %{ owner: "mrobinson", repo: "pdaas", sha: "24b02a73b77557d0f699e25d9dcba80bbd67d80d", commit_message: "This is merging to master"}
     )
 #    result = GitHub.push(
 #      repo_conn,

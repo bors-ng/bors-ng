@@ -81,19 +81,43 @@ defmodule BorsNG.GitHub.Server do
     {:reply, {:ok, list}, state}
   end
 
-  def do_handle_call(:green_button_merge, {{:raw, str_name}, 595}, {}) do
-    msg = %{commit_title: "Title to fill in later", commit_message: "This is a commit message", sha: "abcdef", merge_method: "squash"}
+  def do_handle_call(:green_button_merge, {{:raw, token}, repo_xref}, info) do
+    msg = %{commit_title: info.pr_title, commit_message: info.commit_message, sha: info.sha, merge_method: "squash"}
 
-    IO.puts(msg)
-#    case get!(repo_conn, "pulls/pr_xref") do
-#      %{body: raw, status: 200} ->
-#        pr = raw
-#             |> Poison.decode!()
-#             |> GitHub.Pr.from_json!()
-#        {:ok, pr}
-#      e ->
-#        {:error, :get_pr, e.status, "1234556"}
+#    IO.inspect(info)
+    IO.inspect(msg)
+#    IO.inspect(repo_conn)
+
+    IO.inspect(Poison.encode(msg))
+
+#    pull_number = 17
+
+    {status, result} = "token #{token}"
+    |> tesla_client("application/json")
+    |> Tesla.put(URI.encode("/repositories/#{repo_xref}/pulls/#{info.pr_number}/merge"), Poison.encode!(msg))
+
+#         do
+#      %{status: 200} -> {:ok, ""}
+#      e -> {:error, :get_pr, e.status, "1234556"}
 #    end
+
+    #    |> Tesla.put!(URI.encode("/repositories/#{repo_xref}/#{path}"), Poison.encode(msg))
+
+#    |> put!("/repos/#{info.owner}/#{info.repo}/pulls/:pull_number/merge", Poison.encode(msg))
+
+#    IO.inspect(result)
+
+#    {:ok, "abcdef"}
+
+    case result do
+      %{body: raw, status: 200} ->
+        pr = raw
+             |> Poison.decode!()
+             |> GitHub.Merge.from_json!()
+        {:ok, pr}
+      _ ->
+        {:error, result}
+    end
   end
 
   def do_handle_call(:get_pr, repo_conn, {pr_xref}) do
@@ -137,45 +161,6 @@ defmodule BorsNG.GitHub.Server do
     "token #{token}"
     |> tesla_client(content_type)
     |> Tesla.put!(URI.encode("/repositories/#{repo_xref}/#{path}"), params)
-  end
-
-  def do_handle_call(:green_button_merge, {{:installation, 10}, 595}, {}) do
-    msg = %{commit_title: "Title to fill in later", commit_message: "This is a commit message", sha: "abcdef", merge_method: "squash"}
-
-    IO.puts(msg)
-
-    |> put!("/repos/mrobinson/pdaas/pulls/17/merge", Poison.encode(msg))
-  end
-
-
-  def do_handle_call(:green_button_merge, repo_conn) do
-    msg = %{commit_title: "Title to fill in later", commit_message: "This is a commit message", sha: "abcdef", merge_method: "squash"}
-
-    IO.puts(msg)
-
-    |> put!("/repos/mrobinson/pdaas/pulls/17/merge", Poison.encode(msg))
-  end
-
-  def do_handle_call(:green_button_merge, repo_conn, timeout, other) do
-    msg = %{commit_title: "Title to fill in later", commit_message: "This is a commit message", sha: "abcdef", merge_method: "squash"}
-
-    IO.puts(msg)
-
-    |> put!("/repos/mrobinson/pdaas/pulls/17/merge", Poison.encode(msg))
-  end
-
-  def do_handle_call(:green_button_merge, repo_conn, {%{
-    owner: owner,
-    repo: repo,
-    sha: sha,
-    commit_message: commit_message
-  }}) do
-    msg = %{commit_title: "Title to fill in later", commit_message: commit_message, sha: sha, merge_method: "squash"}
-
-    IO.puts(msg)
-
-    |> put!("/repos/#{owner}/#{repo}/pulls/:pull_number/merge", Poison.encode(msg))
-
   end
 
   def do_handle_call(:push, repo_conn, {sha, to}) do
@@ -608,6 +593,9 @@ defmodule BorsNG.GitHub.Server do
   @spec get_installation_token!(number) :: binary
   def get_installation_token!(installation_xref) do
     jwt_token = get_jwt_token()
+
+    IO.inspect(jwt_token)
+    IO.puts("\n")
     %{body: raw, status: 201} = "Bearer #{jwt_token}"
     |> tesla_client(@installation_content_type)
     |> Tesla.post!("installations/#{installation_xref}/access_tokens", "")
