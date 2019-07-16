@@ -394,6 +394,12 @@ defmodule BorsNG.Worker.Batcher do
       {:ok, x} -> {:ok, x}
     end
 
+#    if toml == :fetch_failed do
+#      {res,toml} = Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}.tmp")
+#    end
+
+    IO.inspect(toml)
+
     if toml.use_squash_merge do
       patches = Repo.all(LinkPatchBatch.from_batch(batch.id))
       Enum.map(patches, fn patch ->
