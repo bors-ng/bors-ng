@@ -144,6 +144,12 @@ defmodule BorsNG.GitHub.ServerMock do
     {:reply, {:ok, list}, state}
   end
 
+  def do_handle_call(:green_button_merge, {{:raw, token}, repo_xref}, info, state) do
+        # Returns the resultant SHA from a green button merge which is basically random from Git
+        sha = :crypto.strong_rand_bytes(20) |> Base.encode16(case: :lower)
+        {:ok, %BorsNG.GitHub.Merge{ sha: sha }}
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, pulls} <- Map.fetch(repo, :pulls),

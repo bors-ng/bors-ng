@@ -84,10 +84,6 @@ defmodule BorsNG.GitHub.Server do
   def do_handle_call(:green_button_merge, {{:raw, token}, repo_xref}, info) do
     msg = %{commit_title: info.pr_title, commit_message: info.commit_message, sha: info.sha, merge_method: "squash"}
 
-#    {status, result} = "token #{token}"
-#    |> tesla_client("application/json")
-#    |> Tesla.put(URI.encode("/repositories/#{repo_xref}/pulls/#{info.pr_number}/merge"), Poison.encode!(msg))
-
     result = put!({{:raw, token}, repo_xref}, "/pulls/#{info.pr_number}/merge", Poison.encode!(msg))
 
     case result do

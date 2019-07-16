@@ -389,7 +389,16 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    {res,toml} = Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}")
+    {res,toml} = case Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}") do
+      {:error, :fetch_failed} -> Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}.tmp")
+      {:ok, x} -> {:ok, x}
+    end
+
+#    if toml == :fetch_failed do
+#      {res,toml} = Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}.tmp")
+#    end
+
+    IO.inspect(toml)
 
     if toml.use_squash_merge do
       patches = Repo.all(LinkPatchBatch.from_batch(batch.id))
