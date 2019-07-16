@@ -84,30 +84,11 @@ defmodule BorsNG.GitHub.Server do
   def do_handle_call(:green_button_merge, {{:raw, token}, repo_xref}, info) do
     msg = %{commit_title: info.pr_title, commit_message: info.commit_message, sha: info.sha, merge_method: "squash"}
 
-#    IO.inspect(info)
-    IO.inspect(msg)
-#    IO.inspect(repo_conn)
+#    {status, result} = "token #{token}"
+#    |> tesla_client("application/json")
+#    |> Tesla.put(URI.encode("/repositories/#{repo_xref}/pulls/#{info.pr_number}/merge"), Poison.encode!(msg))
 
-    IO.inspect(Poison.encode(msg))
-
-#    pull_number = 17
-
-    {status, result} = "token #{token}"
-    |> tesla_client("application/json")
-    |> Tesla.put(URI.encode("/repositories/#{repo_xref}/pulls/#{info.pr_number}/merge"), Poison.encode!(msg))
-
-#         do
-#      %{status: 200} -> {:ok, ""}
-#      e -> {:error, :get_pr, e.status, "1234556"}
-#    end
-
-    #    |> Tesla.put!(URI.encode("/repositories/#{repo_xref}/#{path}"), Poison.encode(msg))
-
-#    |> put!("/repos/#{info.owner}/#{info.repo}/pulls/:pull_number/merge", Poison.encode(msg))
-
-#    IO.inspect(result)
-
-#    {:ok, "abcdef"}
+    result = put!({{:raw, token}, repo_xref}, "/pulls/#{info.pr_number}/merge", Poison.encode!(msg))
 
     case result do
       %{body: raw, status: 200} ->
@@ -151,17 +132,7 @@ defmodule BorsNG.GitHub.Server do
       [])}
   end
 
-  @spec put!(tconn, binary, binary, list) :: map
-  defp put!(
-         {{:raw, token}, repo_xref},
-         path,
-         content_type \\ @content_type,
-         params \\ []
-       ) do
-    "token #{token}"
-    |> tesla_client(content_type)
-    |> Tesla.put!(URI.encode("/repositories/#{repo_xref}/#{path}"), params)
-  end
+
 
   def do_handle_call(:push, repo_conn, {sha, to}) do
     repo_conn
@@ -542,6 +513,18 @@ defmodule BorsNG.GitHub.Server do
     "token #{token}"
     |> tesla_client(content_type)
     |> Tesla.patch!(URI.encode("/repositories/#{repo_xref}/#{path}"), body)
+  end
+
+  @spec put!(tconn, binary, binary, list) :: map
+  defp put!(
+         {{:raw, token}, repo_xref},
+         path,
+         body,
+         content_type \\ @content_type
+       ) do
+    "token #{token}"
+    |> tesla_client(content_type)
+    |> Tesla.put!(URI.encode("/repositories/#{repo_xref}/#{path}"), body)
   end
 
   @spec get!(tconn, binary, binary, list) :: map
