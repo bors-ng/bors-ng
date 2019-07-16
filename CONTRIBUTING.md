@@ -83,6 +83,13 @@ go ahead and ask questions right in the issue's comments section,
 even if your question seems unrelated to the issue itself.
 
 
+Proposing and adding new features
+---------------------------------
+
+If you'd like to add a new feature, or make big changes to the way bors works,
+head over to the [RFC](https://forum.bors.tech/t/about-the-draft-rfcs-category/291) area in the forum and follow the instructions.
+
+
 What do the tags in the issue tracker mean?
 -------------------------------------------
 
