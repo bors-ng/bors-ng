@@ -27,7 +27,7 @@ ENV MIX_ENV=prod
 RUN mix deps.get
 RUN cd /src/ && npm install && npm run deploy
 RUN mix phx.digest
-RUN mix release --env=$MIX_ENV
+RUN mix distillery.release --env=$MIX_ENV
 
 # Make the git HEAD available to the released app
 RUN if [ -d .git ]; then \

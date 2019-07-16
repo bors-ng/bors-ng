@@ -28,7 +28,7 @@ defmodule BorsNG.Database.Attempt do
       commit: nil,
       state: 0,
       arguments: arguments,
-      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds)
+      last_polled: DateTime.to_unix(DateTime.utc_now(), :second)
     }
   end
 
@@ -77,7 +77,7 @@ defmodule BorsNG.Database.Attempt do
   end
 
   def next_poll_is_past(attempt, project) do
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     next_poll_is_past(attempt, project, now)
   end
 
@@ -87,7 +87,7 @@ defmodule BorsNG.Database.Attempt do
   end
 
   def timeout_is_past(%Attempt{timeout_at: timeout_at}) do
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     now > timeout_at
   end
 

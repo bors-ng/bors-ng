@@ -280,7 +280,7 @@ defmodule BorsNG.Worker.Batcher do
       patch_links,
       base,
       merge)
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     GitHub.delete_branch!(repo_conn, stmp)
     send_status(repo_conn, batch, status)
     batch
@@ -348,7 +348,7 @@ defmodule BorsNG.Worker.Batcher do
         url: nil,
         state: :running})
     |> Enum.each(&Repo.insert!/1)
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     batch
     |> Batch.changeset(%{timeout_at: now + toml.timeout_sec})
     |> Repo.update!()
@@ -371,7 +371,7 @@ defmodule BorsNG.Worker.Batcher do
     patches = Repo.all(LinkPatchBatch.from_batch(batch.id))
     Logger.info("Patches #{inspect(patches)}")
     status = Batcher.State.summary_database_statuses(statuses)
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     if status != :running do
       batch.project
       |> get_repo_conn()

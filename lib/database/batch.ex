@@ -28,7 +28,7 @@ defmodule BorsNG.Database.Batch do
       project_id: project_id,
       commit: nil,
       state: :waiting,
-      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds),
+      last_polled: DateTime.to_unix(DateTime.utc_now(), :second),
       priority: priority
     }
   end
@@ -97,7 +97,7 @@ defmodule BorsNG.Database.Batch do
   end
 
   def next_poll_is_past(batch) do
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     next_poll_is_past(batch, now)
   end
 
@@ -107,7 +107,7 @@ defmodule BorsNG.Database.Batch do
   end
 
   def timeout_is_past(%Batch{timeout_at: timeout_at}) do
-    now = DateTime.to_unix(DateTime.utc_now(), :seconds)
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
     now > timeout_at
   end
 

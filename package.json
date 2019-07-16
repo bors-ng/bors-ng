@@ -1,20 +1,10 @@
 {
-  "repository": {},
-  "license": "APACHE-2.0",
+  "name": "bors-ng-assets",
+  "version": "0.0.0",
+  "//": "This script is required for heroku's node.js buildpack; the actual stuff is all in `assets`",
   "scripts": {
-    "deploy": "brunch build --production",
-    "watch": "brunch watch --stdin"
-  },
-  "dependencies": {
-    "phoenix": "file:deps/phoenix",
-    "phoenix_html": "file:deps/phoenix_html"
-  },
-  "devDependencies": {
-    "babel-brunch": "~7.0.1",
-    "brunch": "^2.10.17",
-    "clean-css-brunch": "~2.10.0",
-    "css-brunch": "~2.10.0",
-    "javascript-brunch": "~2.10.0",
-    "uglify-js-brunch": "~2.10.0"
+    "deploy": "cd assets && NODE_ENV=dev npm install && npm run deploy",
+    "watch": "cd assets && NODE_ENV=dev npm install && npm run watch",
+    "webpack": "cd assets && NODE_ENV=dev npm install && npm run webpack"
   }
 }

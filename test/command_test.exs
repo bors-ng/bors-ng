@@ -410,4 +410,23 @@ defmodule BorsNG.CommandTest do
       }
     }
   end
+
+  test "command trigger is dynamically set by env" do
+    old_env = System.get_env("COMMAND_TRIGGER")
+    System.put_env("COMMAND_TRIGGER", "popo")
+
+    assert [] == Command.parse("bors try")
+    assert [] == Command.parse("bors r+")
+    assert [] == Command.parse("bors r-")
+
+    assert [{:try, ""}] == Command.parse("popo try")
+    assert [:activate] == Command.parse("popo r+")
+    assert [:deactivate] == Command.parse("popo r-")
+    
+    if old_env do
+      System.put_env("COMMAND_TRIGGER", old_env)
+    else
+      System.delete_env("COMMAND_TRIGGER")
+    end
+  end
 end

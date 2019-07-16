@@ -108,8 +108,10 @@
 
 </section></div> <!-- class=split -->
 
-<div class=wrapper>
-  <h2 class=header>Branches</h2>
+<div class=wrapper><section class=split>
+
+<section class=split-item>
+<h2 class=header>Branches</h2>
 <%= form_for @update_branches, project_path(@conn, :update_branches, @project), [as: :project], fn f -> %>
   <label for=staging_branch>staging</label>
   <%= text_input f, :staging_branch, id: "staging_branch" %>
@@ -117,6 +119,23 @@
   <%= text_input f, :trying_branch, id: "trying_branch" %>
   <div class=toolbar><%= submit "Update", class: "toolbar-item" %></div>
 <% end %>
-</div>
+</section> <!-- class=split-item -->
+
+<section class=split-item>
+<h2 class=header>Bors Badge</h2>
+<p>Put this badge in your README to show your love for Bors.</p>
+<p><a href="<%= project_url(@conn, :show, @project) %>"><img src="https://bors.tech/images/badge_small.svg" alt="Bors enabled"></a></p>
+<h3 class=header>HTML</h3>
+<textarea rows="5" cols="50" onclick="this.focus();this.select()" readonly="readonly">
+<a href="<%= project_url(@conn, :show, @project) %>"><img src="https://bors.tech/images/badge_small.svg" alt="Bors enabled"></a>
+</textarea>
+<h3 class=header>Markdown</h3>
+<textarea rows="5" cols="50" onclick="this.focus();this.select()" readonly="readonly">
+[![Bors enabled](https://bors.tech/images/badge_small.svg)](<%= project_url(@conn, :show, @project) %>)
+</textarea>
+
+</section> <!-- class=split-item -->
+
+</section></div> <!-- class=split -->
 
 </main>
