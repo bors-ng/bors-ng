@@ -25,12 +25,7 @@ config :bors, BorsNG.Endpoint,
   http: [port: 4001],
   server: false
 
-#config :bors, :server, BorsNG.GitHub.ServerMock
-#config :bors, :oauth2, BorsNG.GitHub.OAuth2Mock
-
-config :bors, :server, BorsNG.GitHub.Server
-config :bors, :oauth2, BorsNG.GitHub.OAuth2
-
-import_config "prod.secret.exs"
+config :bors, :server, BorsNG.GitHub.ServerMock
+config :bors, :oauth2, BorsNG.GitHub.OAuth2Mock
 
 config :bors, :celebrate_new_year, false
