@@ -366,10 +366,8 @@ defmodule BorsNG.Worker.Batcher do
     maybe_complete_batch(batch)
   end
 
-  def maybe_complete_batch(batch) do
+  defp maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
-    patches = Repo.all(LinkPatchBatch.from_batch(batch.id))
-    Logger.info("Patches #{inspect(patches)}")
     status = Batcher.State.summary_database_statuses(statuses)
     now = DateTime.to_unix(DateTime.utc_now(), :second)
     if status != :running do
