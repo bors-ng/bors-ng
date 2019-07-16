@@ -69,9 +69,7 @@ defmodule BorsNG.GitHub do
 
   @spec push(tconn, binary, binary) :: {:ok, binary} | {:error, term, term}
   def push(repo_conn, sha, to) do
-    Logger.info("Attempting push to master -- Stubbed")
-    {:error, :push, "failed"}
-#    GenServer.call(BorsNG.GitHub, {:push, repo_conn, {sha, to}}, Confex.fetch_env!(:bors, :api_github_timeout))
+    GenServer.call(BorsNG.GitHub, {:push, repo_conn, {sha, to}}, Confex.fetch_env!(:bors, :api_github_timeout))
   end
 
   @spec get_branch!(tconn, binary) :: %{commit: bitstring, tree: bitstring}

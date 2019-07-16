@@ -391,27 +391,14 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-
     {res,toml} = Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}")
 
     if toml.use_squash_merge do
-
-      Logger.info("Batch #{inspect(batch)}")
       patches = Repo.all(LinkPatchBatch.from_batch(batch.id))
-      Logger.info("Patches #{inspect(patches)}")
-      #    Logger.info("Batch.patches #{inspect(batch.patches)}")
-
       Enum.map(patches, fn patch ->
         pr = GitHub.get_pr!(repo_conn, patch.patch.pr_xref)
-
-        IO.inspect(pr)
-
         {:ok, pr_commits} = BorsNG.GitHub.get_pr_commits(repo_conn, pr.number)
-
-        IO.inspect(pr_commits)
-
         commit_messages = Enum.reduce(pr_commits, "", fn(x, acc) -> "#{x.commit_message}\n#{acc}" end )
-
         {:ok, _} = squash_with_retry(
           repo_conn,
           pr,
@@ -419,9 +406,7 @@ defmodule BorsNG.Worker.Batcher do
         patches = batch.id
                   |> Patch.all_for_batch()
                   |> Repo.all()
-
       end)
-
     else
           {:ok, _} = push_with_retry(
             repo_conn,
@@ -487,6 +472,7 @@ defmodule BorsNG.Worker.Batcher do
       repo_conn,
       commit,
       into_branch)
+    Logger.info("Push merge #{inspect(result)}")
     case result do
       {:ok, _} -> result
       _ when timeout >= 512 -> result
