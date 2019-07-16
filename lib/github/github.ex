@@ -227,7 +227,7 @@ defmodule BorsNG.GitHub do
 
   @spec get_app!() :: String.t()
   def get_app! do
-    {:ok, app_link} = GenServer.call(BorsNG.GitHub, :get_app, 1000000000)
+    {:ok, app_link} = GenServer.call(BorsNG.GitHub, :get_app, Confex.fetch_env!(:bors, :api_github_timeout))
     app_link
   end
 
