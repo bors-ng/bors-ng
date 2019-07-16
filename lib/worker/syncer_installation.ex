@@ -49,7 +49,6 @@ defmodule BorsNG.Worker.SyncerInstallation do
   }) when is_integer(x) and is_integer(id) do
     {:ok, _} = Registry.register(SyncerInstallation.Registry, x, {})
     allow_private = Confex.fetch_env!(:bors, BorsNG)[:allow_private_repos]
-    IO.puts("Allow private #{allow_private}")
     repos = GitHub.get_installation_repos!({:installation, x})
     projects = Repo.all(from p in Project, where: p.installation_id == ^id)
     plan_synchronize(allow_private, repos, projects)

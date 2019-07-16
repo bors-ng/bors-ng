@@ -35,7 +35,6 @@ defmodule BorsNG.ProjectController do
     allow_private_repos = Confex.fetch_env!(
       :bors, BorsNG)[:allow_private_repos]
     project = Project
-    IO.puts("Allow private repos #{allow_private_repos}")
     |> from(preload: [:installation])
     |> Repo.get!(id)
     admin? = conn.assigns.user.is_admin

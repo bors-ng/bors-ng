@@ -576,9 +576,6 @@ defmodule BorsNG.GitHub.Server do
   @spec get_installation_token!(number) :: binary
   def get_installation_token!(installation_xref) do
     jwt_token = get_jwt_token()
-
-    IO.inspect(jwt_token)
-    IO.puts("\n")
     %{body: raw, status: 201} = "Bearer #{jwt_token}"
     |> tesla_client(@installation_content_type)
     |> Tesla.post!("installations/#{installation_xref}/access_tokens", "")

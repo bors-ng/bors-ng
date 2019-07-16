@@ -449,10 +449,6 @@ defmodule BorsNG.Worker.Batcher do
         sha: "#{pr.head_sha}",
         commit_message: commit_messages}
     )
-    #    result = GitHub.push(
-    #      repo_conn,
-    #      commit,
-    #      into_branch)
     case result do
       {:ok, _} -> result
       _ when timeout >= 512 -> result
@@ -466,13 +462,10 @@ defmodule BorsNG.Worker.Batcher do
   # This should retry *nine times*, by the way.
   defp push_with_retry(repo_conn, commit, into_branch, timeout \\ 1) do
     Process.sleep(timeout)
-    Logger.info("Green button merge section #{commit} #{into_branch}")
-
     result = GitHub.push(
       repo_conn,
       commit,
       into_branch)
-    Logger.info("Push merge #{inspect(result)}")
     case result do
       {:ok, _} -> result
       _ when timeout >= 512 -> result
