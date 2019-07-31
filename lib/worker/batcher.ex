@@ -455,13 +455,25 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
+    {res,toml} = case Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}") do
+      {:error, :fetch_failed} -> Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}.tmp")
+      {:ok, x} -> {:ok, x}
+    end
+
     {:ok, _} = push_with_retry(
       repo_conn,
       batch.commit,
       batch.into_branch)
+
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
+
+    Enum.each(patches, fn patch ->
+      pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
+      pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
+      pr = GitHub.update_pr!(repo_conn, pr)
+    end)
 
     send_message(repo_conn, patches, {:succeeded, statuses})
   end
