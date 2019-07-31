@@ -129,7 +129,6 @@ defmodule BorsNG.GitHub do
   end
 
   @spec create_commit!(tconn, %{
-    branch: bitstring,
     tree: bitstring,
     parents: [bitstring],
     commit_message: bitstring,

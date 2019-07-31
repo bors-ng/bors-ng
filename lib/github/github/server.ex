@@ -190,7 +190,6 @@ defmodule BorsNG.GitHub.Server do
   end
 
   def do_handle_call(:create_commit, repo_conn, {%{
-    branch: branch,
     tree: tree,
     parents: parents,
     commit_message: commit_message,
@@ -391,7 +390,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status: 200} ->
         user = raw
         |> Poison.decode!()
-        |> GitHub.User.from_json!()
+        |> GitHub.FullUser.from_json!()
         {:ok, user}
       %{status: 404} ->
         {:ok, nil}
