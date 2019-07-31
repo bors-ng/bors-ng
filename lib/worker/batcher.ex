@@ -247,6 +247,15 @@ defmodule BorsNG.Worker.Batcher do
     patch_links = Repo.all(LinkPatchBatch.from_batch(batch.id))
     |> Enum.sort_by(&(&1.patch.pr_xref))
     stmp = "#{project.staging_branch}.tmp"
+
+#    commit_title = "Commit Title to fix"
+#    commit_message = "Commit message to fix \n\n\n More details"
+#    pr_number = 36
+#    {:ok, commits} = GitHub.get_pr_commits(repo_conn, pr_number)
+#
+#    IO.inspect(commits)
+#    Logger.info("Commits #{inspect(commits)}")
+
     base = GitHub.get_branch!(
       repo_conn,
       batch.into_branch)
@@ -272,6 +281,35 @@ defmodule BorsNG.Worker.Batcher do
             commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{patch.pr_xref}"})
       end
     end
+#
+#    do_squash_merge = fn %{patch: patch}, branch ->
+#      case branch do
+#        :conflict -> :conflict
+#        :canceled -> :canceled
+#        _ ->
+#
+#            {:ok,cpt} = GitHub.create_commit!(
+#            repo_conn,
+#            %{
+#              branch: stmp,
+#              tree: Enum.at(commits, length(commits)-1).tree_sha,
+#              parents: [base.commit],
+#              commit_message: "My commit message",
+##              commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{patch.pr_xref}",
+#              committer: nil})
+#
+#          Logger.info("Created Commit #{inspect(cpt)}")
+#
+#          GitHub.merge_branch!(
+#               repo_conn,
+#               %{
+#                 from: cpt,
+#                 to: stmp,
+#                 commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{patch.pr_xref}"})
+#      end
+#    end
+#
+
     merge = Enum.reduce(patch_links, tbase, do_merge_patch)
     {status, commit} = start_waiting_merged_batch(
       batch,
@@ -279,6 +317,7 @@ defmodule BorsNG.Worker.Batcher do
       base,
       merge)
     now = DateTime.to_unix(DateTime.utc_now(), :second)
+
     GitHub.delete_branch!(repo_conn, stmp)
     send_status(repo_conn, batch, status)
     batch
@@ -299,11 +338,40 @@ defmodule BorsNG.Worker.Batcher do
     |> Batcher.GetBorsToml.get("#{batch.project.staging_branch}.tmp")
     |> case do
       {:ok, toml} ->
-        parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
+
+        parents = if toml.use_squash_merge do
+          Logger.debug("Commit ID #{inspect(patch_links)}")
+
+          parents = Enum.map(patch_links, fn patch_link ->
+            Logger.debug("Patch Link #{inspect(patch_link)}")
+            Logger.debug("Patch #{inspect(patch_link.patch)}")
+
+            {:ok, commits} = GitHub.get_pr_commits(repo_conn, patch_link.patch.pr_xref)
+            {:ok, pr} = GitHub.get_pr(repo_conn, patch_link.patch.pr_xref)
+
+            Logger.debug("PR #{inspect(pr)}")
+
+            {:ok,cpt} = GitHub.create_commit!(
+              repo_conn,
+              %{
+                branch: batch.project.staging_branch, # to remove
+                tree: Enum.at(commits, length(commits)-1).tree_sha,
+                parents: [base.commit],
+                commit_message: "#{pr.title} (##{pr.number})\n#{pr.body}",
+                committer: nil})
+
+              cpt
+              end)
+          parents
+        else
+          parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
+          parents
+        end
         commit_message = Batcher.Message.generate_commit_message(
           patch_links,
           toml.cut_body_after,
           gather_co_authors(batch, patch_links))
+
         head = GitHub.synthesize_commit!(
           repo_conn,
           %{

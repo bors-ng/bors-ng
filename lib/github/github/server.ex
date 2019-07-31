@@ -1,3 +1,5 @@
+require Logger
+
 defmodule BorsNG.GitHub.Server do
   use GenServer
   alias BorsNG.GitHub
@@ -96,6 +98,7 @@ defmodule BorsNG.GitHub.Server do
   def do_handle_call(:get_pr_commits, repo_conn, {pr_xref}) do
     case get!(repo_conn, "pulls/#{pr_xref}/commits") do
       %{body: raw, status: 200} ->
+        Logger.info("Raw response from GH #{inspect(raw)}")
         commits = raw
         |> Poison.decode!()
         |> Enum.map(&GitHub.Commit.from_json!/1)
@@ -165,6 +168,43 @@ defmodule BorsNG.GitHub.Server do
       err ->
         {:error, :merge_branch, err}
     end
+  end
+
+  def do_handle_call(:create_commit, repo_conn, {%{
+    branch: branch,
+    tree: tree,
+    parents: parents,
+    commit_message: commit_message,
+    committer: committer}}) do
+    msg = %{parents: parents, tree: tree, message: commit_message}
+    msg = if is_nil committer do
+      msg
+    else
+      Map.put(msg, "author", %{
+        name: committer.name, email: committer.email})
+    end
+    resp = repo_conn
+    |> post!("git/commits", Poison.encode!(msg))
+    |> case do
+        %{body: raw, status: 201} ->
+          Logger.info("Raw response from GH #{inspect(raw)}")
+          data =  Poison.decode!(raw)
+          res = %{
+            commit: data["sha"],
+
+          }
+          {:ok, res.commit}
+
+        %{status: 409} ->
+          {:ok, :conflict}
+        %{status: 204} ->
+          {:ok, :conflict}
+        err ->
+          {:error, :merge_branch, err}
+      end
+#    |> Enum.map(&GitHub.Commit.from_json!/1)
+
+    {:ok, resp}
   end
 
   def do_handle_call(:synthesize_commit, repo_conn, {%{
