@@ -437,11 +437,13 @@ defmodule BorsNG.Worker.Batcher do
     |> Patch.all_for_batch()
     |> Repo.all()
 
-    Enum.each(patches, fn patch ->
-      pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
-      pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
-      pr = GitHub.update_pr!(repo_conn, pr)
-    end)
+    if toml.use_squash_merge do
+      Enum.each(patches, fn patch ->
+        pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
+        pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
+        pr = GitHub.update_pr!(repo_conn, pr)
+      end)
+    end
 
     send_message(repo_conn, patches, {:succeeded, statuses})
   end
