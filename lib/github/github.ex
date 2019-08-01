@@ -46,7 +46,8 @@ defmodule BorsNG.GitHub do
     pr
   end
 
-  @spec update_pr(tconn, integer | bitstring) :: {:ok, BorsNG.GitHub.Pr.t} | {:error, term}
+  @spec update_pr(tconn, integer | bitstring) ::
+    {:ok, BorsNG.GitHub.Pr.t} | {:error, term}
   def update_pr(repo_conn, pr) do
     GenServer.call(BorsNG.GitHub, {:update_pr, repo_conn, pr}, Confex.fetch_env!(:bors, :api_github_timeout))
   end

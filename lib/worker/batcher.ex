@@ -320,7 +320,7 @@ defmodule BorsNG.Worker.Batcher do
 
             Logger.debug("PR #{inspect(pr)}")
 
-            {:ok,cpt} = GitHub.create_commit!(
+            cpt = GitHub.create_commit!(
               repo_conn,
               %{
                 tree: Enum.at(commits, length(commits)-1).tree_sha,
