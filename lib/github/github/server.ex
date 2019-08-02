@@ -222,7 +222,7 @@ defmodule BorsNG.GitHub.Server do
       end
 #    |> Enum.map(&GitHub.Commit.from_json!/1)
 
-    {:ok, resp}
+    resp
   end
 
   def do_handle_call(:synthesize_commit, repo_conn, {%{

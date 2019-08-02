@@ -328,8 +328,9 @@ defmodule BorsNG.Worker.Batcher do
                 commit_message: "#{pr.title} (##{pr.number})\n#{pr.body}",
                 committer: %{name: user.login, email: user.email}})
 
+            Logger.info("Commit Sha #{inspect(cpt)}")
               cpt
-              end)
+          end)
           parents
         else
           parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
@@ -442,6 +443,7 @@ defmodule BorsNG.Worker.Batcher do
         pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
         pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
         pr = GitHub.update_pr!(repo_conn, pr)
+        GitHub.post_comment!(repo_conn, patch.pr_xref, "# Pull request successfully merged into master.")
       end)
     end
 

@@ -142,6 +142,18 @@ defmodule BorsNG.GitHub do
     sha
   end
 
+  @spec create_commit(tconn, %{
+    tree: bitstring,
+    parents: [bitstring],
+    commit_message: bitstring,
+    committer: tcommitter | nil}) :: {:ok, binary} | {:error, term, term}
+  def create_commit(repo_conn, info) do
+    GenServer.call(
+      BorsNG.GitHub,
+      {:create_commit, repo_conn, {info}},
+      Confex.fetch_env!(:bors, :api_github_timeout))
+  end
+
   @spec force_push!(tconn, binary, binary) :: binary
   def force_push!(repo_conn, sha, to) do
     {:ok, sha} = GenServer.call(
