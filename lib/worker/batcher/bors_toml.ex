@@ -18,6 +18,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     required_approvals: nil,
     cut_body_after: nil,
     delete_merged_branches: false,
+    use_codeowners: false,
     committer: nil
 
   @type tcommitter :: %{
@@ -32,6 +33,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     required_approvals: integer | nil,
     cut_body_after: binary | nil,
     delete_merged_branches: boolean,
+    use_codeowners: boolean,
     committer: tcommitter}
 
   @type err :: :status |
@@ -77,6 +79,9 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           delete_merged_branches: Map.get(toml,
                                           "delete_merged_branches",
                                           false),
+          use_codeowners: Map.get(toml,
+            "use_codeowners",
+            false),
           committer: committer
         }
         case toml do

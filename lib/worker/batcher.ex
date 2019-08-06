@@ -1,3 +1,5 @@
+require Logger
+
 defmodule BorsNG.Worker.Batcher do
   @moduledoc """
   A "Batcher" manages the backlog of batches a project has.
@@ -539,16 +541,55 @@ defmodule BorsNG.Worker.Batcher do
     |> Enum.map(fn {context, _} -> context end)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+
+    {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
+    {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
+    Logger.info("Files found: #{inspect(files)}")
+
+    required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
+
     passed_review = repo_conn
-    |> GitHub.get_reviews!(patch.pr_xref)
-    |> reviews_status(toml)
-    case {passed_label, passed_status, passed_review} do
-      {true, true, :sufficient} -> :ok
-      {false, _, _}             -> {:error, :blocked_labels}
-      {_, false, _}             -> {:error, :pr_status}
-      {_, _, :insufficient}     -> {:error, :insufficient_approvals}
-      {_, _, :failed}           -> {:error, :blocked_review}
-    end
+        |> GitHub.get_reviews!(patch.pr_xref)
+
+    Logger.info("Passed reviews: #{inspect(passed_review)}")
+
+    Enum.map(required_reviews, fn x ->
+      Enum.reduce(x, false, fn required, acc ->
+        Logger.info("Required reviewer: #{inspect(required)}")
+
+        if String.first(required) == "@" do
+          team_split = String.slice(required, 1, String.length(required)-1)
+          |> String.split("/")
+
+          res = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
+
+          Logger.info("Team: #{inspect(res)}")
+
+#          Enum.reduce(passed_review, false, fn x, acc ->
+#            if acc do
+#              # Someone approved it who is already on the team, skip it short
+#              acc
+#            else
+#              GitHub.is_user_on_team!(repo_conn, x, team.id)
+#            end
+#          end)
+        end
+        acc || true
+      end)
+    end)
+
+    :error
+
+#    passed_review = repo_conn
+#    |> GitHub.get_reviews!(patch.pr_xref)
+#    |> reviews_status(toml)
+#    case {passed_label, passed_status, passed_review} do
+#      {true, true, :sufficient} -> :ok
+#      {false, _, _}             -> {:error, :blocked_labels}
+#      {_, false, _}             -> {:error, :pr_status}
+#      {_, _, :insufficient}     -> {:error, :insufficient_approvals}
+#      {_, _, :failed}           -> {:error, :blocked_review}
+#    end
   end
 
   @spec reviews_status(map, Batcher.BorsToml.t) :: :sufficient | :failed | :insufficient

@@ -79,6 +79,7 @@ defmodule BorsNg.Mixfile do
       {:postgrex, "~> 0.13.5"},
       {:mariaex, "~> 0.8"},
       {:ecto, "~> 2.2"},
+      {:glob, git: "https://github.com/lindenbaum/glob.git", commit: "a0de0d0"}
     ]
   end
 end

@@ -8,16 +8,30 @@ defmodule BorsNG.GitHub.Reviews do
 
   @spec from_json!([map]) :: t
   def from_json!(json) do
-    json
+    reviews = json
     # Count only the latest review from a user,
     # by deduplicating using the user id
     |> Enum.reduce(%{}, fn
       %{"state" => "COMMENTED"}, acc ->
         acc
-      %{"user" => %{"id" => uid}, "state" => state}, acc ->
+      %{"user" => %{"login" => uid}, "state" => state}, acc ->
         Map.update(acc, uid, state, fn _ -> state end)
       end)
+
+    # Get the list of users who have approved this PR
+    approvers = reviews
+                |> Enum.flat_map(fn {_uid, state} ->
+      case state do
+        # Ignore dismissed reviews
+        "DISMISSED" -> []
+        # Pass just the username onward
+        id -> [_uid]
+      end
+    end)
+    |> Enum.uniq()
+
     # Remove reviews that don't count
+    %{"CHANGES_REQUESTED" => failed, "APPROVED" => approvals} = reviews
     |> Enum.flat_map(fn {_uid, state} ->
         case state do
           # Ignore dismissed reviews
@@ -32,5 +46,12 @@ defmodule BorsNG.GitHub.Reviews do
       fn state, acc ->
         Map.update(acc, state, 1, fn x -> x + 1 end)
       end)
+
+    %{
+      "approvers": approvers,
+       "APPROVED": approvals,
+      "CHANGES_REQUESTED": failed,
+      }
+
   end
 end
