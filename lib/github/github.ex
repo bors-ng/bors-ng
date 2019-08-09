@@ -40,13 +40,13 @@ defmodule BorsNG.GitHub do
     GenServer.call(BorsNG.GitHub, {:get_pr, repo_conn, {pr_xref}}, Confex.fetch_env!(:bors, :api_github_timeout))
   end
 
-  @spec update_pr!(tconn, integer | bitstring) :: BorsNG.GitHub.Pr.t
+  @spec update_pr!(tconn, BorsNG.GitHub.Pr.t) :: BorsNG.GitHub.Pr.t
   def update_pr!(repo_conn, pr) do
     {:ok, pr} = update_pr(repo_conn, pr)
     pr
   end
 
-  @spec update_pr(tconn, integer | bitstring) ::
+  @spec update_pr(tconn, BorsNG.GitHub.Pr.t) ::
     {:ok, BorsNG.GitHub.Pr.t} | {:error, term}
   def update_pr(repo_conn, pr) do
     GenServer.call(BorsNG.GitHub, {:update_pr, repo_conn, pr}, Confex.fetch_env!(:bors, :api_github_timeout))
