@@ -362,20 +362,20 @@ defmodule BorsNG.Worker.BatcherTest do
                branches: %{},
                commits: %{},
                comments: %{ 1 => []},
-                       pulls: %{
-               1 => %Pr{
-               number: 1,
-               title: "Test",
-               body: "Mess",
-                      state: :open,
-               base_ref: "master",
-               head_sha: "00000001",
-                          head_ref: "update",
-               base_repo_id: 14,
-               head_repo_id: 14,
-                                                                         merged: false
-                                                                         }
-                                                                         },
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "00000001",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                statuses: %{"Z" => %{"bors" => :running, "cn" => :ok}},
                files: %{"Z" => %{"bors.toml" =>
                  ~s"""
@@ -407,18 +407,18 @@ defmodule BorsNG.Worker.BatcherTest do
         statuses: %{"Z" => %{"cn" => :ok}},
         pulls: %{
                 1 => %Pr{
-                number: 1,
-                                               title: "Test",
-                                               body: "Mess",
-                                                     state: :open,
-                                             base_ref: "master",
-                                             head_sha: "00000001",
-                                                       head_ref: "update",
-                                             base_repo_id: 14,
-                                             head_repo_id: 14,
-                                             merged: false
-                                             }
-                                             },
+                  number: 1,
+                  title: "Test",
+                  body: "Mess",
+                  state: :open,
+                  base_ref: "master",
+                  head_sha: "00000001",
+                  head_ref: "update",
+                  base_repo_id: 14,
+                  head_repo_id: 14,
+                  merged: false
+                  }
+        },
         reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
         files: %{"Z" => %{"bors.toml" =>
           ~s"""
