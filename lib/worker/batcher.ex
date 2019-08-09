@@ -538,6 +538,8 @@ defmodule BorsNG.Worker.Batcher do
 
       Logger.info("Checking code owners")
     {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
+      Logger.info("CODEOWNERS file #{inspect(code_owner)}")
+
 
     {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
 #    files = GitHub.get_pr_files(repo_conn, patch.pr_xref)

@@ -35,6 +35,7 @@ defmodule BorsNG.CodeOwnerParser do
   @spec list_required_reviews(BorsNG.CodeOwners, [GitHub.File] ) :: [[bitstring]]
   def list_required_reviews(code_owners, files) do
 
+    IO.puts("List required reviews")
     IO.inspect(code_owners)
     IO.inspect(files)
 
@@ -61,6 +62,9 @@ defmodule BorsNG.CodeOwnerParser do
 
     end)
 
+    pats = Enum.filter(pats, fn x -> x != nil end)
+
+    IO.puts("Pats found")
     IO.inspect(pats)
     pats
 
