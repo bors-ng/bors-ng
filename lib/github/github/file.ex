@@ -5,11 +5,9 @@ defmodule BorsNG.GitHub.File do
 
   @type tjson :: map
   @type t :: %BorsNG.GitHub.File{
-               filename: bitstring,
-             }
-  defstruct(
-    filename: "",
-  )
+          filename: bitstring
+        }
+  defstruct(filename: "")
 
   @doc """
   Convert from Poison-decoded JSON to a Pr struct.
@@ -24,16 +22,20 @@ defmodule BorsNG.GitHub.File do
   Convert from Poison-decoded JSON to a Pr struct.
   """
   @spec from_json(tjson) :: {:ok, t} | {:error, term}
-  def from_json([%{
-    "filename" => f,
-  }]) do
-    {:ok, [%BorsNG.GitHub.File{
-      filename: f,
-    }]}
+  def from_json([
+        %{
+          "filename" => f
+        }
+      ]) do
+    {:ok,
+     [
+       %BorsNG.GitHub.File{
+         filename: f
+       }
+     ]}
   end
 
   def from_json(x) do
     {:error, x}
   end
-
 end

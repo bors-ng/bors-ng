@@ -6,13 +6,13 @@ defmodule BorsNG.GitHub.Team do
   @type tjson :: map
 
   @type t :: %BorsNG.GitHub.Team{
-               id: integer,
-               name: bitstring,
-          }
+          id: integer,
+          name: bitstring
+        }
 
   defstruct(
     id: 0,
-    name: "",
+    name: ""
   )
 
   @doc """
@@ -29,13 +29,15 @@ defmodule BorsNG.GitHub.Team do
   """
   @spec from_json(tjson) :: {:ok, t} | :err
   def from_json(%{
-    "id" => id,
-    "name" => name,
-  }) when is_integer(id) do
-    {:ok, %BorsNG.GitHub.Team{
-      id: id,
-      name: name,
-    }}
+        "id" => id,
+        "name" => name
+      })
+      when is_integer(id) do
+    {:ok,
+     %BorsNG.GitHub.Team{
+       id: id,
+       name: name
+     }}
   end
 
   def from_json(_) do
