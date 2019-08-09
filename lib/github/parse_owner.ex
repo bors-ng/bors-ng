@@ -41,23 +41,19 @@ defmodule BorsNG.CodeOwnerParser do
     pats = Enum.map(files, fn x ->
 
       pats = Enum.map(code_owners.patterns, fn owner ->
-
          if :glob.matches(x.filename, owner.file_pattern) do
            owner.approvers
          end
-
-
       end)
 
       IO.inspect(pats)
 
-      pats = Enum.reduce(pats, fn x, acc ->
+      pats = Enum.reduce(pats, nil, fn x, acc ->
         if x != nil do
           x
         else
           acc
         end
-
       end)
 
       IO.inspect(pats)
@@ -72,29 +68,38 @@ defmodule BorsNG.CodeOwnerParser do
 
   @spec parse_file(bitstring) :: BorsNG.CodeOwners
   def parse_file(file_contents) do
-    lines = String.split(file_contents, "\n")
 
-    # Remove empty lines
-    lines = Enum.filter(lines, fn x -> String.length(String.trim(x)) > 0 end)
-    # Remove comment lines
-    lines = Enum.filter(lines, fn x -> String.at(String.trim(x), 0) != "#" end)
-
-    IO.inspect(lines)
-
-    patterns = Enum.map(lines, fn x ->
-      segments = String.split(x)
-      approvers = Enum.slice(segments, 1, Enum.count(segments) - 1)
-      %BorsNG.FilePattern{
-        file_pattern: Enum.at(segments, 0),
-        approvers: approvers
+    if file_contents == nil do
+      owners = %BorsNG.CodeOwners{
+        patterns: []
       }
-    end)
+      {:ok, owners}
+    else
 
-    owners = %BorsNG.CodeOwners{
-      patterns: patterns
-    }
+      lines = String.split(file_contents, "\n")
 
-    {:ok, owners}
+      # Remove empty lines
+      lines = Enum.filter(lines, fn x -> String.length(String.trim(x)) > 0 end)
+      # Remove comment lines
+      lines = Enum.filter(lines, fn x -> String.at(String.trim(x), 0) != "#" end)
+
+      IO.inspect(lines)
+
+      patterns = Enum.map(lines, fn x ->
+        segments = String.split(x)
+        approvers = Enum.slice(segments, 1, Enum.count(segments) - 1)
+        %BorsNG.FilePattern{
+          file_pattern: Enum.at(segments, 0),
+          approvers: approvers
+        }
+      end)
+
+      owners = %BorsNG.CodeOwners{
+        patterns: patterns
+      }
+
+      {:ok, owners}
+    end
   end
 
 end

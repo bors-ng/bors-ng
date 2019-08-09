@@ -326,8 +326,10 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:is_user_on_team, {{:raw, token}, username, team_id},
-        {}) do
+  def do_handle_call(:is_user_on_team, repo_conn,
+        {username, team_id}) do
+    IO.inspect(repo_conn)
+    {{:raw, token}, installation} = repo_conn
     "token #{token}"
     |> tesla_client()
     |> Tesla.get!(URI.encode("/teams/#{team_id}/memberships/#{username}"))
