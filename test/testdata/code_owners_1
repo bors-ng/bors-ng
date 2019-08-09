@@ -11,6 +11,6 @@
 
 # PLATFORM codeowners requirements.
 # This should always be last
-cloudformation.yml         @plaid/platform-team
-secrets.json               @plaid/platform-team
-.github/CODEOWNERS         @plaid/platform-team
+cloudformation.yml         @my_org/my_team
+secrets.json               @my_org/my_team
+.github/CODEOWNERS         @my_org/my_team

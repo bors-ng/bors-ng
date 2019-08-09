@@ -1,3 +1,5 @@
+require Logger
+
 defmodule BorsNG.CodeOwners do
   @type tjson :: map
   @type t :: %BorsNG.CodeOwners{
@@ -25,11 +27,10 @@ defmodule BorsNG.CodeOwnerParser do
   # [ [A], [A, B], [A, C] -> A and (A or B) and (A or C)
   @spec list_required_reviews(%BorsNG.CodeOwners{}, [%BorsNG.GitHub.File{}]) :: [[bitstring]]
   def list_required_reviews(code_owners, files) do
-    IO.puts("List required reviews")
-    IO.inspect(code_owners)
-    IO.inspect(files)
+    Logger.debug("Code Owners: #{inspect(code_owners)}")
+    Logger.debug("Files modified: #{inspect(files)}")
 
-    pats =
+    required_reviewers =
       Enum.map(files, fn x ->
         pats =
           Enum.map(code_owners.patterns, fn owner ->
@@ -37,8 +38,6 @@ defmodule BorsNG.CodeOwnerParser do
               owner.approvers
             end
           end)
-
-        IO.inspect(pats)
 
         pats =
           Enum.reduce(pats, nil, fn x, acc ->
@@ -52,30 +51,32 @@ defmodule BorsNG.CodeOwnerParser do
         IO.inspect(pats)
       end)
 
-    pats = Enum.filter(pats, fn x -> x != nil end)
+    required_reviewers = Enum.filter(required_reviewers, fn x -> x != nil end)
 
-    IO.puts("Pats found")
-    IO.inspect(pats)
-    pats
+    Logger.debug("Required reviewers: #{inspect(required_reviewers)}")
+
+    required_reviewers
   end
 
   @spec parse_file(bitstring) :: {:ok, %BorsNG.CodeOwners{}}
   def parse_file(file_contents) do
+    # Empty codeowners file
     if file_contents == nil do
       owners = %BorsNG.CodeOwners{
         patterns: []
       }
-
       {:ok, owners}
     else
       lines = String.split(file_contents, "\n")
 
+      # Remove any comments from the file
+      lines = Enum.map(lines, fn x ->
+        String.replace(x, Regex.compile!("#.*"), "")
+
+      end)
+
       # Remove empty lines
       lines = Enum.filter(lines, fn x -> String.length(String.trim(x)) > 0 end)
-      # Remove comment lines
-      lines = Enum.filter(lines, fn x -> String.at(String.trim(x), 0) != "#" end)
-
-      IO.inspect(lines)
 
       patterns =
         Enum.map(lines, fn x ->
