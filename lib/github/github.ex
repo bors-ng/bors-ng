@@ -28,7 +28,7 @@ defmodule BorsNG.GitHub do
 
   @spec get_pr_files!(tconn, integer | bitstring) :: [BorsNG.GitHub.File.t]
   def get_pr_files!(repo_conn, pr_xref) do
-    {:ok, pr} = get_pr(repo_conn, pr_xref)
+    {:ok, pr} = get_pr_files(repo_conn, pr_xref)
     pr
   end
 

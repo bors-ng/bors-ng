@@ -12,16 +12,16 @@ defmodule BorsNG.GitHub.File do
   @doc """
   Convert from Poison-decoded JSON to a Pr struct.
   """
-  @spec from_json!(tjson) :: t
+  @spec from_json!(tjson) :: [t]
   def from_json!(json) do
-    {:ok, pr} = from_json(json)
-    pr
+    {:ok, files} = from_json(json)
+    files
   end
 
   @doc """
   Convert from Poison-decoded JSON to a Pr struct.
   """
-  @spec from_json(tjson) :: {:ok, t} | {:error, term}
+  @spec from_json(tjson) :: {:ok, [t]} | {:error}
   def from_json([
         %{
           "filename" => f

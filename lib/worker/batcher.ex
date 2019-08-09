@@ -642,7 +642,7 @@ defmodule BorsNG.Worker.Batcher do
       {_, false, _, _}             -> {:error, :pr_status}
       {_, _, :insufficient, _}     -> {:error, :insufficient_approvals}
       {_, _, :failed, _}           -> {:error, :blocked_review}
-      {_, _, _, false}           -> {:error, :missing_code_owner_approval}
+      {_, _, _, false}             -> {:error, :missing_code_owner_approval}
     end
   end
 

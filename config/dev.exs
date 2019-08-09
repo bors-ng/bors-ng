@@ -41,9 +41,14 @@ config :bors, BorsNG.Database.Repo,
 
 # On developer boxes, we do not actually talk to GitHub.
 # Use the mock instance.
-config :bors, :server, BorsNG.GitHub.ServerMock
-config :bors, :oauth2, BorsNG.GitHub.OAuth2Mock
+#config :bors, :server, BorsNG.GitHub.ServerMock
+#config :bors, :oauth2, BorsNG.GitHub.OAuth2Mock
+#
+#config :bors, BorsNG.GitHub.OAuth2,
+#  client_id: "III",
+#  client_secret: "YYY"
 
-config :bors, BorsNG.GitHub.OAuth2,
-  client_id: "III",
-  client_secret: "YYY"
+config :bors, :server, BorsNG.GitHub.Server
+config :bors, :oauth2, BorsNG.GitHub.OAuth2
+
+import_config "prod.secret.exs"

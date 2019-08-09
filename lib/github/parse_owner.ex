@@ -23,7 +23,7 @@ defmodule BorsNG.CodeOwnerParser do
   # Items in the inner lists are joined by an OR statement
   # Items in the the outer list are joined by an AND statement
   # [ [A], [A, B], [A, C] -> A and (A or B) and (A or C)
-  @spec list_required_reviews(BorsNG.CodeOwners, [GitHub.File]) :: [[bitstring]]
+  @spec list_required_reviews(%BorsNG.CodeOwners{}, [%BorsNG.GitHub.File{}]) :: [[bitstring]]
   def list_required_reviews(code_owners, files) do
     IO.puts("List required reviews")
     IO.inspect(code_owners)
@@ -59,7 +59,7 @@ defmodule BorsNG.CodeOwnerParser do
     pats
   end
 
-  @spec parse_file(bitstring) :: BorsNG.CodeOwners
+  @spec parse_file(bitstring) :: {:ok, %BorsNG.CodeOwners{}}
   def parse_file(file_contents) do
     if file_contents == nil do
       owners = %BorsNG.CodeOwners{
