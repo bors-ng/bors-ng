@@ -15,11 +15,11 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   defstruct status: [], block_labels: [], pr_status: [],
     timeout_sec: (60 * 60),
+    use_squash_merge: false,
     required_approvals: nil,
     cut_body_after: nil,
     delete_merged_branches: false,
-    committer: nil,
-    use_squash_merge: false
+    committer: nil
 
   @type tcommitter :: %{
     name: binary,
@@ -71,6 +71,9 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
         toml = %BorsNG.Worker.Batcher.BorsToml{
           status: Map.get(toml, "status", []),
+          use_squash_merge: Map.get(toml,
+                    "use_squash_merge",
+                    false)
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
@@ -79,10 +82,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           delete_merged_branches: Map.get(toml,
                                           "delete_merged_branches",
                                           false),
-          committer: committer,
-          use_squash_merge: Map.get(toml,
-             "use_squash_merge",
-             false)
+          committer: committer
         }
         case toml do
           %{status: status} when not is_list status ->
