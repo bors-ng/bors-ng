@@ -48,9 +48,9 @@ defmodule BorsNG.GitHub.Reviews do
       end)
 
     %{
-      "approvers": approvers,
-       "APPROVED": approvals,
-      "CHANGES_REQUESTED": failed,
+      "approvers" => approvers,
+      "APPROVED" => approvals,
+      "CHANGES_REQUESTED" => failed,
       }
 
   end

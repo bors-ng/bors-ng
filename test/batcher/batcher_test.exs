@@ -319,6 +319,7 @@ defmodule BorsNG.Worker.BatcherTest do
       {{:installation, 91}, 14} => %{
         branches: %{},
         commits: %{},
+
         comments: %{1 => []},
         statuses: %{"Z" => %{"cn" => :ok}},
         pulls: %{
@@ -344,7 +345,7 @@ defmodule BorsNG.Worker.BatcherTest do
           """},
           "master" => %{".github/CODEOWNERS" =>
             ~s"""
-            secrets.json               @plaid/platform-team
+            secrets.json               @my_org/my_team
             """},
         },
       }})
@@ -384,7 +385,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  """},
                  "master" => %{".github/CODEOWNERS" =>
                    ~s"""
-                   secrets.json               @plaid/platform-team
+                   secrets.json               @my_org/my_team
                    """},
                },
                reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
@@ -398,6 +399,11 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{1 => []},
+        teams: %{
+          "my_org" => %{
+            "my_team" => %{}
+          }
+        },
         statuses: %{"Z" => %{"cn" => :ok}},
         pulls: %{
                 1 => %Pr{
@@ -413,7 +419,7 @@ defmodule BorsNG.Worker.BatcherTest do
                                              merged: false
                                              }
                                              },
-        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
         files: %{"Z" => %{"bors.toml" =>
           ~s"""
           status = [ "ci" ]
@@ -422,7 +428,7 @@ defmodule BorsNG.Worker.BatcherTest do
           """},
           "master" => %{".github/CODEOWNERS" =>
             ~s"""
-            secrets.json               @plaid/platform-team
+            bors.toml               @my_org/my_team
             """},
         },
       }})
@@ -438,16 +444,40 @@ defmodule BorsNG.Worker.BatcherTest do
              {{:installation, 91}, 14} => %{
                branches: %{},
                commits: %{},
+               teams: %{
+                 "my_org" => %{
+                   "my_team" => %{}
+                 }
+               },
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "00000001",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                comments: %{
-                 1 => [":-1: Rejected because of missing code owner approval: My Team"]},
+                 1 => [":-1: Rejected because of missing code owner approval"]},
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{"Z" => %{"bors.toml" =>
                  ~s"""
                  status = [ "ci" ]
                  pr_status = [ "cn" ]
                  use_codeowners = true
-                 """}},
-               reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
+                 """},
+                 "master" => %{".github/CODEOWNERS" =>
+                   ~s"""
+                   bors.toml               @my_org/my_team
+                   """},
+               },
+               reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
              }}
     # When preflight checks reject a patch, no batch should be created!
     assert [] == Repo.all(Batch)

@@ -144,6 +144,18 @@ defmodule BorsNG.GitHub.ServerMock do
     {:reply, {:ok, list}, state}
   end
 
+
+  def do_handle_call(:get_team_by_name, repo_conn, {org_name, team}, state) do
+    with({:ok, repo} <- Map.fetch(state, repo_conn),
+      {:ok, teams} <- Map.fetch(repo, :teams),
+      {:ok, org} <- Map.fetch(teams, org_name),
+      do: Map.fetch(org, team))
+    |> case do
+         {:ok, _} = res -> {res, state}
+         _ -> {{:error, :get_pr}, state}
+       end
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, pulls} <- Map.fetch(repo, :pulls),
@@ -361,13 +373,6 @@ defmodule BorsNG.GitHub.ServerMock do
         IO.inspect(files[branch][path])
 
       end
-
-#    |> case do
-#         {:ok, _} = res -> {res, state}
-#         _ -> {{:error, :get_file}, state}
-#       end
-
-
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, files} <- Map.fetch(repo, :files),
       do:

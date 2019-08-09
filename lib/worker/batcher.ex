@@ -574,7 +574,7 @@ defmodule BorsNG.Worker.Batcher do
           Logger.info("Team: #{inspect(team)}")
 
           # Loop through reviewers, if they on the team accept their approval
-          team_approved = Enum.reduce(passed_review.approvers, false, fn x, acc ->
+          team_approved = Enum.reduce(passed_review["approvers"], false, fn x, acc ->
             if acc do
               # Someone approved it who is already on the team, skip checking all the other approvals
               acc
@@ -632,6 +632,10 @@ defmodule BorsNG.Worker.Batcher do
     passed_review = repo_conn
     |> GitHub.get_reviews!(patch.pr_xref)
     |> reviews_status(toml)
+
+
+    Logger.info("Code review status: Label Check #{passed_label} Passed Status: #{passed_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}")
+
     case {passed_label, passed_status, passed_review, code_owners_approved} do
       {true, true, :sufficient, true} -> :ok
       {false, _, _, _}             -> {:error, :blocked_labels}
@@ -644,7 +648,9 @@ defmodule BorsNG.Worker.Batcher do
 
   @spec reviews_status(map, Batcher.BorsToml.t) :: :sufficient | :failed | :insufficient
   defp reviews_status(reviews, toml) do
-    %{"CHANGES_REQUESTED" => failed, "APPROVED" => approvals} = reviews
+    failed = Map.fetch!(reviews, "CHANGES_REQUESTED")
+    approvals = Map.fetch!(reviews, "APPROVED")
+
     review_required? = is_integer(toml.required_approvals)
     approvals_needed = review_required? && toml.required_approvals || 0
     approved? = approvals >= approvals_needed
