@@ -42,7 +42,7 @@ defmodule BorsNG.ParseTest do
     Enum.each(owner_file.patterns, fn x -> assert x.approvers == ["@my_org/my_team", "@my_org/my_other_team"] end)
   end
 
-  test "File match test" do
+  test "Test direct file matching" do
 
     IO.inspect(File.cwd())
     {:ok, codeowner} = File.read("test/testdata/code_owners_1")
@@ -58,6 +58,77 @@ defmodule BorsNG.ParseTest do
     assert Enum.count(reviewers) == 1
     assert Enum.count(Enum.at(reviewers, 0)) == 1
     assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/my_team"
+  end
+
+
+  test "Test glob matching file matching" do
+
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_4")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "/src/github.com/go/double/double.go"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/go_reviewers"
+  end
+
+  test "Test infinite depth glob matching" do
+
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_4")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "/build/logs/github.com/go/double/double.go"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/my_team"
+  end
+
+  test "Test single depth glob matching - no match" do
+
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_5")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "docs/github.com/go/double/double.go"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 0
+  end
+
+  test "Test single depth glob matching - match" do
+
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_4")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "docs/double.go"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/my_other_team"
   end
 
 end

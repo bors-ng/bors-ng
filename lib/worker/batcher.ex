@@ -537,75 +537,74 @@ defmodule BorsNG.Worker.Batcher do
     else
 
       Logger.info("Checking code owners")
-    {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
+      {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
       Logger.info("CODEOWNERS file #{inspect(code_owner)}")
 
 
-    {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
-#    files = GitHub.get_pr_files(repo_conn, patch.pr_xref)
-    Logger.info("Files found: #{inspect(files)}")
+      {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
+      Logger.info("Files found: #{inspect(files)}")
 
 
-    required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
+      required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
 
-    passed_review = repo_conn
-                    |> GitHub.get_reviews!(patch.pr_xref)
+      passed_review = repo_conn
+                      |> GitHub.get_reviews!(patch.pr_xref)
 
-    Logger.info("Passed reviews: #{inspect(passed_review)}")
+      Logger.info("Passed reviews: #{inspect(passed_review)}")
 
-    # Convert the list of required reviewers into a list of true/false
-    # true indicates that the reviewers requirement was satisfied,
-    # false if it is open
-    approved_reviews = Enum.map(required_reviews, fn x ->
+      # Convert the list of required reviewers into a list of true/false
+      # true indicates that the reviewers requirement was satisfied,
+      # false if it is open
+      approved_reviews = Enum.map(required_reviews, fn x ->
 
-      # Convert a list of OR reviewers into a true or false
-      Enum.reduce(x, false, fn required, acc ->
-        Logger.info("Required reviewer: #{inspect(required)}")
+        # Convert a list of OR reviewers into a true or false
+        Enum.reduce(x, false, fn required, acc ->
+          Logger.info("Required reviewer: #{inspect(required)}")
 
-        approved = if String.contains?(required, "/") do
-          # Remove leading @ for team name
-          # Split into org name and team name
-          team_split = String.slice(required, 1, String.length(required)-1)
-                       |> String.split("/")
+          approved = if String.contains?(required, "/") do
+            # Remove leading @ for team name
+            # Split into org name and team name
+            team_split = String.slice(required, 1, String.length(required)-1)
+                         |> String.split("/")
 
-          # Lookup team ID -> needed later
-          {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
+            # Lookup team ID -> needed later
+            {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
 
-          Logger.info("Team: #{inspect(team)}")
+            Logger.info("Team: #{inspect(team)}")
 
-          # Loop through reviewers, if they on the team accept their approval
-          team_approved = Enum.reduce(passed_review["approvers"], false, fn x, acc ->
-            if acc do
-              # Someone approved it who is already on the team, skip checking all the other approvals
-              acc
-            else
-              GitHub.is_user_on_team!(repo_conn, x, team.id)
-            end
-          end)
-          Logger.info("Approved: #{inspect(team_approved)}")
-          team_approved
-        end
-        acc || approved
+            # Loop through reviewers, if they on the team accept their approval
+            team_approved = Enum.reduce(passed_review["approvers"], false, fn x, acc ->
+              if acc do
+                # Someone approved it who is already on the team, skip checking all the other approvals
+                acc
+              else
+                GitHub.is_user_on_team!(repo_conn, x, team.id)
+              end
+            end)
+            Logger.info("Approved: #{inspect(team_approved)}")
+            team_approved
+          end
+          acc || approved
+        end)
       end)
-    end)
 
-    code_owner_approval = Enum.reduce(approved_reviews, true, fn x,acc -> x && acc  end)
+      code_owner_approval = Enum.reduce(approved_reviews, true, fn x,acc -> x && acc  end)
 
-    missing_code_owners = Enum.with_index(required_reviews)
-                          |> Enum.map(fn {x, i} ->
+      missing_code_owners = Enum.with_index(required_reviews)
+                            |> Enum.map(fn {x, i} ->
 
-      if !x do
-        {""}
-      else
-        Enum.at(required_reviews, i)
-      end
-    end)
-                          |> Enum.flat_map(fn x -> x end)
+        if !x do
+          {""}
+        else
+          Enum.at(required_reviews, i)
+        end
+      end)
+                            |> Enum.flat_map(fn x -> x end)
 
 
-    Logger.info("Approved reviews: #{inspect(approved_reviews)}")
-    Logger.info("Code Owner approval: #{inspect(code_owner_approval)}")
-    Logger.info("Missing Code Owner approval: #{inspect(missing_code_owners)}")
+      Logger.info("Approved reviews: #{inspect(approved_reviews)}")
+      Logger.info("Code Owner approval: #{inspect(code_owner_approval)}")
+      Logger.info("Missing Code Owner approval: #{inspect(missing_code_owners)}")
 
       code_owner_approval
     end

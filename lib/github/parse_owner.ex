@@ -34,8 +34,14 @@ defmodule BorsNG.CodeOwnerParser do
       Enum.map(files, fn x ->
         pats =
           Enum.map(code_owners.patterns, fn owner ->
-            if :glob.matches(x.filename, owner.file_pattern) do
+            cond do
+              # glob matches has an extra '/' in it, don't match on it
+             :glob.matches(x.filename, owner.file_pattern) && !:glob.matches(x.filename, owner.file_pattern <> "/*")  ->
+                owner.approvers
+             String.starts_with?(x.filename, owner.file_pattern) ->
               owner.approvers
+             true ->
+              nil # if unknown fall through
             end
           end)
 
@@ -48,7 +54,6 @@ defmodule BorsNG.CodeOwnerParser do
             end
           end)
 
-        IO.inspect(pats)
       end)
 
     required_reviewers = Enum.filter(required_reviewers, fn x -> x != nil end)
