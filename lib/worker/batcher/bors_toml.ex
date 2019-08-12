@@ -73,7 +73,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           status: Map.get(toml, "status", []),
           use_squash_merge: Map.get(toml,
                     "use_squash_merge",
-                    false)
+                    false),
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
