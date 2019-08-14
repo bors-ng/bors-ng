@@ -103,30 +103,6 @@ defmodule BorsNG.Worker.Batcher do
     {:reply, :ok, project_id}
   end
 
-  def run(reviewer, patch, project, project_id, repo_conn) do
-    {batch, is_new_batch} = get_new_batch(
-      project_id,
-      patch.into_branch,
-      patch.priority
-    )
-    %LinkPatchBatch{}
-    |> LinkPatchBatch.changeset(%{
-          batch_id: batch.id,
-          patch_id: patch.id,
-          reviewer: reviewer})
-          |> Repo.insert!()
-    if is_new_batch do
-      put_incomplete_on_hold(get_repo_conn(project), batch)
-    end
-    poll_after_delay(project)
-    send_message(repo_conn, [patch], {:preflight, :ok})
-    send_status(repo_conn, batch.id, [patch], :waiting)
-  end
-
-  def prerun_poll(args) do
-    Process.send_after(self(), {:prerun_poll, @prerun_poll_period, args}, 0)
-  end
-
   def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
     case Repo.get(Patch.all(:awaiting_review), patch_id) do
       nil ->
@@ -243,6 +219,31 @@ defmodule BorsNG.Worker.Batcher do
     else
       :again
     end
+  end
+
+  defp prerun_poll(args) do
+    Process.send_after(self(), {:prerun_poll, @prerun_poll_period, args}, 0)
+  end
+
+  defp run(reviewer, patch, project, project_id, repo_conn) do
+    {batch, is_new_batch} = get_new_batch(
+      project_id,
+      patch.into_branch,
+      patch.priority
+    )
+    %LinkPatchBatch{}
+    |> LinkPatchBatch.changeset(%{
+          batch_id: batch.id,
+          patch_id: patch.id,
+          reviewer: reviewer})
+          |> Repo.insert!()
+    if is_new_batch do
+      put_incomplete_on_hold(get_repo_conn(project), batch)
+    end
+    poll_after_delay(project)
+    # Maybe not needed because bors adds a commit referencing this.
+    send_message(repo_conn, [patch], {:preflight, :ok})
+    send_status(repo_conn, batch.id, [patch], :waiting)
   end
 
   def sort_batches(batches) do
