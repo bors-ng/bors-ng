@@ -5,15 +5,16 @@ defmodule BorsNG.GitHub.FriendlyMock do
 
   Tries to lookup values instead of requiring full %{} associative arrays.
 
-  Does everything through webhook notifications. Do not use Repo.insert
-  directly!
+  Assumes a single GitHub instance with a single repository and single user.
+
+  Does everything through webhook notifications. Does not use
+  Database.Repo.insert directly! (Exception: adding a reviewer, normally
+  through Bors' web UI.)
   """
 
   alias BorsNG.GitHub.ServerMock
   alias BorsNG.GitHub.FriendlyMock
   alias BorsNG.GitHub.Pr
-  #alias BorsNG.Database.Installation
-  #alias BorsNG.Database.Project
   alias BorsNG.WebhookController
 
   # Defaults
@@ -31,16 +32,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
   def init_state() do
     # Creates a single installation with a single repo where
     # nothing has happened yet.
-    # Will do everything through webhook notifications. 
-    #inst = %Installation{installation_xref: @def_inst}
-    #|> Repo.insert!()
-    #proj = %Project{
-    #  installation_id: inst.id,
-    #  repo_xref: @def_repo,
-    #  staging_branch: "staging",
-    #  trying_branch: "trying"}
-    #|> Repo.insert!()
-    # Would need more if we wanted to also be able to _list_ repos!
+    # Will do everything through webhook notifications.
     ServerMock.put_state(%{
       {:installation, 91} => %{ repos: [
           %BorsNG.GitHub.Repo{
@@ -62,6 +54,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
 	pulls: %{},
 	pr_commits: %{}
       }})
+    # Notify Bors and sync.
     WebhookController.do_webhook(%{
 	  body_params: %{
 	    "installation" => %{ "id" => @def_inst },
@@ -111,12 +104,6 @@ defmodule BorsNG.GitHub.FriendlyMock do
     	    "action" => "created" }},
           "github", "pull_request")
     number
-    #%{body_params: %{
-    #	    "installation" => %{ "id" => @def_inst },
-    #	    "sender" => @def_user,
-    #	    "repository" => %{ "id" => @def_repo},
-    #	    "pull_request" => pr_to_json(pr),
-    #	    "action" => "created" }}
   end
 
   def update_mock(path, fun, repo \\ @def_repo, inst \\ @def_inst) do
@@ -132,15 +119,13 @@ defmodule BorsNG.GitHub.FriendlyMock do
     commit = %{sha: sha,
 	       author_name: author,
 	       author_email: author <> "'s email"}
-    # Could maybe prepend to make things faster
+    # Could maybe prepend instead of appending to make things faster
     update_mock([:pr_commits, pr_num], &(&1 ++ [commit]))
   end
 
   def add_comment(pr_num, body, author \\ @def_user) do
+    # Adds a reviewer comment.
     pr = Enum.find(prs(), &(match?(%{number: ^pr_num}, &1)))
-    # number = 1 + Enum.max([0 | Enum.map(comments(), fn x -> x.number end)])
-    #comment = [body]
-    #update_mock([:comments], &(Map.put(&1, pr_num, comment)))
     update_mock([:comments, pr_num], &([body | &1]))
     WebhookController.do_webhook(
       %{
@@ -161,64 +146,30 @@ defmodule BorsNG.GitHub.FriendlyMock do
 
 
   def add_reviewer(repo \\ @def_repo, user \\ @def_user) do
+    # Could try to replace this with calls to the phoenix server
+    # To avoid the call to BorsNG.ProjectController directly
     alias BorsNG.Database
     alias BorsNG.Database.Repo
-    #use Phoenix.ConnTest
-
-    #import Ecto
-    #import Ecto.Changeset
-    #import Ecto.Query
-
-    #import BorsNG.Router.Helpers
-    # Could instead post html instead of calling add_reviewer directly.
-    # See test/controllers/project_controller_test.exs
-    #phx_conn = Phoenix.ConnTest.build_conn()
     project = Repo.get_by!(Database.Project, %{repo_xref: repo})
     BorsNG.ProjectController.add_reviewer(nil, :rw, project, %{"reviewer" => user})
-    #conn = conn
-    #|> login()
-    #|> post(
-    #  project_path(conn, :add_reviewer, project),
-    #%{"reviewer" => %{"login" => "case"}})
-    #resp = conn
-    #|> get(redirected_to(conn, 302))
-    #|> html_response(200)
   end
 
   def ci_status(hash, ci_name, status) do
+    # Set CI status
     update_mock([:statuses, hash], &(Map.put(&1, ci_name, status)))
   end
 
   def full_example() do
     alias BorsNG.GitHub.FriendlyMock
     alias BorsNG.Database
-    # ServerMock.put_state(old_state)
     FriendlyMock.init_state
     FriendlyMock.make_admin
-    FriendlyMock.add_pr "first"
-    #FriendlyMock.add_pr "First pull request"
-    FriendlyMock.add_pr "Second pull request"
-    FriendlyMock.add_commit(2, "000002", "Tester")
-    FriendlyMock.add_commit(2, "000003", "Tester")
-    FriendlyMock.add_comment(2, "Hello world")
-    Database.Repo.all Database.User
-    Database.Repo.all Database.Project
-    Database.Repo.all Database.Patch
+    pr_num = FriendlyMock.add_pr "first"
     FriendlyMock.add_reviewer
-    FriendlyMock.add_comment(2, "bors r+")
-    ServerMock.get_state
-  end
-
-  def run_once() do
-    alias BorsNG.GitHub.FriendlyMock
-    alias BorsNG.Database
-    FriendlyMock.init_state
-    FriendlyMock.make_admin
-    FriendlyMock.add_pr "first"
-    FriendlyMock.add_reviewer
+    # "ci" comes from the line pr_status = [ "ci" ] in bors.toml
     FriendlyMock.ci_status("SHA-1", "ci", :running)
-    FriendlyMock.add_comment(1, "bors ping")
-    FriendlyMock.add_comment(1, "bors r+")
+    FriendlyMock.add_comment(pr_num, "bors ping")
+    FriendlyMock.add_comment(pr_num, "bors r+")
     #FriendlyMock.ci_status("SHA-1", "ci", :ok)
   end
 
