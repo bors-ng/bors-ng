@@ -36,6 +36,10 @@ defmodule BorsNG.Worker.Batcher do
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
+  @prerun_poll_period 1000
+  # Half an hour. Give up when more time is spent waiting for this amount
+  # between two successive polls.
+  @prerun_timeout 30 * 60 * 1000
 
   # Public API
 
@@ -99,6 +103,30 @@ defmodule BorsNG.Worker.Batcher do
     {:reply, :ok, project_id}
   end
 
+  def run(reviewer, patch, project, project_id, repo_conn) do
+    {batch, is_new_batch} = get_new_batch(
+      project_id,
+      patch.into_branch,
+      patch.priority
+    )
+    %LinkPatchBatch{}
+    |> LinkPatchBatch.changeset(%{
+          batch_id: batch.id,
+          patch_id: patch.id,
+          reviewer: reviewer})
+          |> Repo.insert!()
+    if is_new_batch do
+      put_incomplete_on_hold(get_repo_conn(project), batch)
+    end
+    poll_after_delay(project)
+    send_message(repo_conn, [patch], {:preflight, :ok})
+    send_status(repo_conn, batch.id, [patch], :waiting)
+  end
+
+  def prerun_poll(args) do
+    Process.send_after(self(), {:prerun_poll, @prerun_poll_period, args}, 0)
+  end
+
   def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
     case Repo.get(Patch.all(:awaiting_review), patch_id) do
       nil ->
@@ -115,22 +143,13 @@ defmodule BorsNG.Worker.Batcher do
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
-            {batch, is_new_batch} = get_new_batch(
-              project_id,
-              patch.into_branch,
-              patch.priority
-            )
-            %LinkPatchBatch{}
-            |> LinkPatchBatch.changeset(%{
-              batch_id: batch.id,
-              patch_id: patch.id,
-              reviewer: reviewer})
-            |> Repo.insert!()
-            if is_new_batch do
-              put_incomplete_on_hold(get_repo_conn(project), batch)
-            end
-            poll_after_delay(project)
-            send_status(repo_conn, batch.id, [patch], :waiting)
+	    IO.puts("Building...")
+	    run(reviewer, patch, project, project_id, repo_conn)
+          :waiting ->
+	    # Not quite right. Need to add new message.
+	    IO.puts("Should be waiting...")
+	    send_message(repo_conn, [patch], {:preflight, :waiting})
+	    prerun_poll({reviewer, patch, project, project_id, repo_conn})
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
         end
@@ -138,6 +157,7 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def do_handle_cast({:status, {commit, identifier, state, url}}, project_id) do
+    IO.inspect([:debug, "Status update", commit, identifier, state, url, project_id])
     project_id
     |> Batch.get_assoc_by_commit(commit)
     |> Repo.all()
@@ -187,6 +207,24 @@ defmodule BorsNG.Worker.Batcher do
       :again ->
         {:noreply, project_id}
     end
+  end
+
+  def handle_info({:prerun_poll, timeout, args}, proj_id) do
+    IO.puts("Prerun polling #{timeout} #{timeout > @prerun_timeout}")
+    {reviewer, patch, project, project_id, repo_conn} = args
+    case patch_preflight(repo_conn, patch) do
+      :ok ->
+	IO.puts("Done waiting. Now building...")
+	run(reviewer, patch, project, project_id, repo_conn)
+      :waiting when timeout > @prerun_timeout ->
+	IO.puts("Prerun timeout")
+	send_message(repo_conn, [patch], {:preflight, :timeout})
+      :waiting ->
+	Process.send_after(self(), {:prerun_poll, Kernel.trunc(timeout * 1.5), args}, timeout)
+      {:error, message} ->
+        send_message(repo_conn, [patch], {:preflight, message})
+    end
+    {:noreply, proj_id}
   end
 
   # Private implementation details
@@ -533,21 +571,30 @@ defmodule BorsNG.Worker.Batcher do
     |> GitHub.get_labels!(patch.pr_xref)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.block_labels))
-    passed_status = repo_conn
+    no_error_status = repo_conn
     |> GitHub.get_commit_status!(patch.commit)
-    |> Enum.filter(fn {_, status} -> status != :ok end)
+    |> Enum.filter(fn {_, status} -> status == :error end)
+    |> Enum.map(fn {context, _} -> context end)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+    no_waiting_status = repo_conn
+    |> GitHub.get_commit_status!(patch.commit)
+    |> Enum.filter(fn {_, status} -> status == :running end)
     |> Enum.map(fn {context, _} -> context end)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.pr_status))
     passed_review = repo_conn
     |> GitHub.get_reviews!(patch.pr_xref)
     |> reviews_status(toml)
-    case {passed_label, passed_status, passed_review} do
-      {true, true, :sufficient} -> :ok
-      {false, _, _}             -> {:error, :blocked_labels}
-      {_, false, _}             -> {:error, :pr_status}
-      {_, _, :insufficient}     -> {:error, :insufficient_approvals}
-      {_, _, :failed}           -> {:error, :blocked_review}
+    IO.inspect([:preflight, passed_label, no_error_status, no_waiting_status, passed_review])
+    IO.inspect([:labels, repo_conn |> GitHub.get_commit_status!(patch.commit)])
+    case {passed_label, no_error_status, no_waiting_status, passed_review} do
+      {true, true, true, :sufficient} -> :ok
+      {false, _, _, _}             -> {:error, :blocked_labels}
+      {_, _, _, :insufficient}     -> {:error, :insufficient_approvals}
+      {_, _, _, :failed}           -> {:error, :blocked_review}
+      {_, false, _, _}             -> {:error, :pr_status}
+      {true, true, false, :sufficient} -> :waiting
     end
   end
 
