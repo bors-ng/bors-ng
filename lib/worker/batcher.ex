@@ -103,7 +103,7 @@ defmodule BorsNG.Worker.Batcher do
     {:reply, :ok, project_id}
   end
 
-  def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
+  def do_handle_cast({:reviewed, patch_id, reviewer}, _project_id) do
     case Repo.get(Patch.all(:awaiting_review), patch_id) do
       nil ->
         # Patch exists (otherwise, no ID), but is not awaiting review
@@ -114,18 +114,20 @@ defmodule BorsNG.Worker.Batcher do
         |> send_message([patch], :already_running_review)
       patch ->
         # Patch exists and is awaiting review
-        # This will cause the PR to start after the patch's scheduled delay
+        # This will cause the PR to run after the patch's scheduled delay
+	# if all other conditions are met. It will poll if all conditions
+	# except CI are met and those CI are :waiting.
         project = Repo.get!(Project, patch.project_id)
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
 	    IO.puts("Building...")
-	    run(reviewer, patch, project, project_id, repo_conn)
+	    run(reviewer, patch)
           :waiting ->
 	    # Not quite right. Need to add new message.
 	    IO.puts("Should be waiting...")
 	    send_message(repo_conn, [patch], {:preflight, :waiting})
-	    prerun_poll({reviewer, patch, project, project_id, repo_conn})
+	    prerun_poll({reviewer, patch})
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
         end
@@ -187,11 +189,13 @@ defmodule BorsNG.Worker.Batcher do
 
   def handle_info({:prerun_poll, timeout, args}, proj_id) do
     IO.puts("Prerun polling #{timeout} #{timeout > @prerun_timeout}")
-    {reviewer, patch, project, project_id, repo_conn} = args
+    {reviewer, patch} = args
+    project = Repo.get(Project, patch.project_id)
+    repo_conn = get_repo_conn(project)
     case patch_preflight(repo_conn, patch) do
       :ok ->
 	IO.puts("Done waiting. Now building...")
-	run(reviewer, patch, project, project_id, repo_conn)
+	run(reviewer, patch)
       :waiting when timeout > @prerun_timeout ->
 	IO.puts("Prerun timeout")
 	send_message(repo_conn, [patch], {:preflight, :timeout})
@@ -225,9 +229,11 @@ defmodule BorsNG.Worker.Batcher do
     Process.send_after(self(), {:prerun_poll, @prerun_poll_period, args}, 0)
   end
 
-  defp run(reviewer, patch, project, project_id, repo_conn) do
+  defp run(reviewer, patch) do
+    project = Repo.get!(Project, patch.project_id)
+    repo_conn = get_repo_conn(project)
     {batch, is_new_batch} = get_new_batch(
-      project_id,
+      patch.project_id,
       patch.into_branch,
       patch.priority
     )
@@ -238,7 +244,7 @@ defmodule BorsNG.Worker.Batcher do
           reviewer: reviewer})
           |> Repo.insert!()
     if is_new_batch do
-      put_incomplete_on_hold(get_repo_conn(project), batch)
+      put_incomplete_on_hold(repo_conn, batch)
     end
     poll_after_delay(project)
     # Maybe not needed because bors adds a commit referencing this.
