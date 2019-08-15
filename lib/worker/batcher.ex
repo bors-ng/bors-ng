@@ -37,9 +37,6 @@ defmodule BorsNG.Worker.Batcher do
   # Every half-hour
   @poll_period 30 * 60 * 1000
   @prerun_poll_period 1000
-  # Half an hour. Give up when more time is spent waiting for this amount
-  # between two successive polls.
-  @prerun_timeout 30 * 60 * 1000
 
   # Public API
 
@@ -188,15 +185,17 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def handle_info({:prerun_poll, timeout, args}, proj_id) do
-    IO.puts("Prerun polling #{timeout} #{timeout > @prerun_timeout}")
     {reviewer, patch} = args
     project = Repo.get(Project, patch.project_id)
     repo_conn = get_repo_conn(project)
+    {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
+    prerun_timeout = toml.prerun_timeout_sec * 1000
+    IO.puts("Prerun polling #{timeout} #{timeout > prerun_timeout}")
     case patch_preflight(repo_conn, patch) do
       :ok ->
 	IO.puts("Done waiting. Now building...")
 	run(reviewer, patch)
-      :waiting when timeout > @prerun_timeout ->
+      :waiting when timeout > prerun_timeout ->
 	IO.puts("Prerun timeout")
 	send_message(repo_conn, [patch], {:preflight, :timeout})
       :waiting ->

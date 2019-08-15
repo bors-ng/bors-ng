@@ -26,6 +26,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
   @def_files %{".github/bors.toml" => ~s"""
     status = [ "ci" ]
     pr_status = [ "ci" ]
+    prerun_timeout_sec = 5
     delete_merged_branches = true
     """}
   
