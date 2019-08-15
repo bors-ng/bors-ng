@@ -162,7 +162,6 @@ defmodule BorsNG.GitHub.FriendlyMock do
 
   def full_example() do
     alias BorsNG.GitHub.FriendlyMock
-    alias BorsNG.Database
     FriendlyMock.init_state
     FriendlyMock.make_admin
     pr_num = FriendlyMock.add_pr "first"
