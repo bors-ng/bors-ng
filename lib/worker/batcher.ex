@@ -247,7 +247,7 @@ defmodule BorsNG.Worker.Batcher do
     end
     poll_after_delay(project)
     # Maybe not needed because bors adds a commit referencing this.
-    send_message(repo_conn, [patch], {:preflight, :ok})
+    #send_message(repo_conn, [patch], {:preflight, :ok})
     send_status(repo_conn, batch.id, [patch], :waiting)
   end
 
