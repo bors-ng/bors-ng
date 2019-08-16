@@ -338,7 +338,6 @@ defmodule BorsNG.GitHub.ServerMock do
   end
 
   def do_handle_call(:get_file, repo_conn, {branch, path}, state) do
-    IO.inspect([:debug, branch, path])
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, files} <- Map.fetch(repo, :files),
       do: {:ok, files[branch][path]})

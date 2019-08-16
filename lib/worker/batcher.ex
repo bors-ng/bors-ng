@@ -118,11 +118,9 @@ defmodule BorsNG.Worker.Batcher do
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
-	    IO.puts("Building...")
 	    run(reviewer, patch)
           :waiting ->
 	    # Not quite right. Need to add new message.
-	    IO.puts("Should be waiting...")
 	    send_message(repo_conn, [patch], {:preflight, :waiting})
 	    prerun_poll({reviewer, patch})
           {:error, message} ->
@@ -132,7 +130,6 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def do_handle_cast({:status, {commit, identifier, state, url}}, project_id) do
-    IO.inspect([:debug, "Status update", commit, identifier, state, url, project_id])
     project_id
     |> Batch.get_assoc_by_commit(commit)
     |> Repo.all()
@@ -190,13 +187,10 @@ defmodule BorsNG.Worker.Batcher do
     repo_conn = get_repo_conn(project)
     {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
     prerun_timeout = toml.prerun_timeout_sec * 1000
-    IO.puts("Prerun polling #{timeout} #{timeout > prerun_timeout}")
     case patch_preflight(repo_conn, patch) do
       :ok ->
-	IO.puts("Done waiting. Now building...")
 	run(reviewer, patch)
       :waiting when timeout > prerun_timeout ->
-	IO.puts("Prerun timeout")
 	send_message(repo_conn, [patch], {:preflight, :timeout})
       :waiting ->
 	Process.send_after(self(), {:prerun_poll, Kernel.trunc(timeout * 1.5), args}, timeout)
@@ -592,8 +586,6 @@ defmodule BorsNG.Worker.Batcher do
     passed_review = repo_conn
     |> GitHub.get_reviews!(patch.pr_xref)
     |> reviews_status(toml)
-    IO.inspect([:preflight, passed_label, no_error_status, no_waiting_status, passed_review])
-    IO.inspect([:labels, repo_conn |> GitHub.get_commit_status!(patch.commit)])
     case {passed_label, no_error_status, no_waiting_status, passed_review} do
       {true, true, true, :sufficient} -> :ok
       {false, _, _, _}             -> {:error, :blocked_labels}
