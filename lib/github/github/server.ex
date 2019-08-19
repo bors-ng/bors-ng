@@ -326,7 +326,7 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:is_user_on_team, repo_conn,
+  def do_handle_call(:belongs_to_team, repo_conn,
         {username, team_id}) do
     IO.inspect(repo_conn)
     {{:raw, token}, installation} = repo_conn
@@ -594,10 +594,6 @@ defmodule BorsNG.GitHub.Server do
     |> tesla_client(@installation_content_type)
     |> Tesla.post!("installations/#{installation_xref}/access_tokens?members=read", "")
     Poison.decode!(raw)["token"]
-
-#    IO.inspect(raw)
-
-
   end
 
   def get_jwt_token do

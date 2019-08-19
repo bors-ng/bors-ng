@@ -76,7 +76,7 @@ defmodule BorsNG.CodeOwnerParser do
 
       # Remove any comments from the file
       lines = Enum.map(lines, fn x ->
-        String.replace(x, Regex.compile!("#.*"), "")
+        String.replace(x, ~r/#.*/, "")
 
       end)
 

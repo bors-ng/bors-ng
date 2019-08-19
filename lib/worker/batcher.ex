@@ -578,7 +578,7 @@ defmodule BorsNG.Worker.Batcher do
                 # Someone approved it who is already on the team, skip checking all the other approvals
                 acc
               else
-                GitHub.is_user_on_team!(repo_conn, x, team.id)
+                GitHub.belongs_to_team?(repo_conn, x, team.id)
               end
             end)
             Logger.info("Approved: #{inspect(team_approved)}")

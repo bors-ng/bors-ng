@@ -1,8 +1,6 @@
 defmodule BorsNG.Worker.Batcher.GetCodeOwners do
   @moduledoc """
-  Get the bors configuration from a repository.
-  This will use `bors.toml`, if available,
-  or it will attempt to infer it from other files in the repo.
+  Get the CODEOWNERS file from the repository
   """
 
   alias BorsNG.GitHub
