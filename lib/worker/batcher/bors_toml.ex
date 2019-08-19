@@ -27,14 +27,14 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   @type t :: %BorsNG.Worker.Batcher.BorsToml{
     status: [binary],
+    use_squash_merge: boolean,
     block_labels: [binary],
     pr_status: [binary],
     timeout_sec: integer,
     required_approvals: integer | nil,
     cut_body_after: binary | nil,
     delete_merged_branches: boolean,
-    committer: tcommitter,
-    use_squash_merge: boolean}
+    committer: tcommitter}
 
   @type err :: :status |
     :block_labels |
