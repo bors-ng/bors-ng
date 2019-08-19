@@ -120,7 +120,6 @@ defmodule BorsNG.Worker.Batcher do
           :ok ->
 	    run(reviewer, patch)
           :waiting ->
-	    # Not quite right. Need to add new message.
 	    send_message(repo_conn, [patch], {:preflight, :waiting})
 	    prerun_poll({reviewer, patch})
           {:error, message} ->
