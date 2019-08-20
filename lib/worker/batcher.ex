@@ -319,14 +319,22 @@ defmodule BorsNG.Worker.Batcher do
              user = GitHub.get_user_by_login!(token, pr.user.login)
 
             Logger.debug("PR #{inspect(pr)}")
+            Logger.debug("User #{inspect(user)}")
 
+            # If a user doesn't have a public email address in their GH profile
+            # then get the email from the first commit to the PR
+            user_email = if user.email != nil do
+              user.email
+            else
+              Enum.at(commits, 0).author_email
+            end
             cpt = GitHub.create_commit!(
               repo_conn,
               %{
                 tree: Enum.at(commits, length(commits)-1).tree_sha,
                 parents: [base.commit],
                 commit_message: "#{pr.title} (##{pr.number})\n#{pr.body}",
-                committer: %{name: user.login, email: user.email}})
+                committer: %{name: user.login, email: user_email}})
 
             Logger.info("Commit Sha #{inspect(cpt)}")
               cpt
