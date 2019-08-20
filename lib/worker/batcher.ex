@@ -576,6 +576,9 @@ defmodule BorsNG.Worker.Batcher do
     |> GitHub.get_labels!(patch.pr_xref)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.block_labels))
+    # This seems to treat unset statuses as :ok. Dangerous is CI
+    # is slower to set an at least pending status before someone types
+    # bors r+.
     no_error_status = repo_conn
     |> GitHub.get_commit_status!(patch.commit)
     |> Enum.filter(fn {_, status} -> status == :error end)
