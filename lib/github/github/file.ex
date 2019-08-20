@@ -4,7 +4,7 @@ defmodule BorsNG.GitHub.File do
   """
 
   @type t :: %BorsNG.GitHub.File{
-          filename: bitstring
+          filename: String.t
         }
   defstruct(filename: "")
 

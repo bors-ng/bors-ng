@@ -19,16 +19,9 @@ defmodule BorsNG.GitHub.Reviews do
       end)
 
     # Get the list of users who have approved this PR
-    approvers = reviews
-                |> Enum.flat_map(fn {_uid, state} ->
-      case state do
-        # Ignore dismissed reviews
-        "DISMISSED" -> []
-        # Pass just the username onward
-        id -> [_uid]
-      end
-    end)
-    |> Enum.uniq()
+    approved_by = reviews
+                  |> Enum.reject(fn {_, state} -> state == "DISMISSED" end)
+                  |> Enum.map(fn {username, _} -> username end)
 
     # Remove reviews that don't count
     %{"CHANGES_REQUESTED" => failed, "APPROVED" => approvals} = reviews
@@ -48,7 +41,7 @@ defmodule BorsNG.GitHub.Reviews do
       end)
 
     %{
-      "approvers" => approvers,
+      "approvers" => approved_by,
       "APPROVED" => approvals,
       "CHANGES_REQUESTED" => failed,
       }

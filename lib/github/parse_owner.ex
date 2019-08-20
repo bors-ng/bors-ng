@@ -11,8 +11,8 @@ end
 defmodule BorsNG.FilePattern do
   @type tjson :: map
   @type t :: %BorsNG.FilePattern{
-          file_pattern: bitstring,
-          approvers: [bitstring]
+          file_pattern: String.t,
+          approvers: [String.t]
         }
   defstruct(
     file_pattern: "",
@@ -25,7 +25,7 @@ defmodule BorsNG.CodeOwnerParser do
   # Items in the inner lists are joined by an OR statement
   # Items in the the outer list are joined by an AND statement
   # [ [A], [A, B], [A, C] -> A and (A or B) and (A or C)
-  @spec list_required_reviews(%BorsNG.CodeOwners{}, [%BorsNG.GitHub.File{}]) :: [[bitstring]]
+  @spec list_required_reviews(%BorsNG.CodeOwners{}, [%BorsNG.GitHub.File{}]) :: [[String.t]]
   def list_required_reviews(code_owners, files) do
     Logger.debug("Code Owners: #{inspect(code_owners)}")
     Logger.debug("Files modified: #{inspect(files)}")
@@ -33,6 +33,18 @@ defmodule BorsNG.CodeOwnerParser do
     required_reviewers =
       Enum.map(files, fn x ->
         pats =
+#          Enum.flat_map(code_owners.patterns, fn owner ->
+#            cond do
+#              # glob matches has an extra '/' in it, don't match on it
+#              :glob.matches(x.filename, owner.file_pattern) && !:glob.matches(x.filename, owner.file_pattern <> "/*")  ->
+#                [owner.approvers]
+#              String.starts_with?(x.filename, owner.file_pattern) ->
+#                [owner.approvers]
+#              true ->
+#                [] # if unknown fall through
+#            end
+#          end)
+
           Enum.map(code_owners.patterns, fn owner ->
             cond do
               # glob matches has an extra '/' in it, don't match on it
@@ -63,7 +75,7 @@ defmodule BorsNG.CodeOwnerParser do
     required_reviewers
   end
 
-  @spec parse_file(bitstring) :: {:ok, %BorsNG.CodeOwners{}}
+  @spec parse_file(String.t) :: {:ok, %BorsNG.CodeOwners{}}
   def parse_file(file_contents) do
     # Empty codeowners file
     if file_contents == nil do

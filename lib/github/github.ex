@@ -202,7 +202,7 @@ defmodule BorsNG.GitHub do
   end
 
   @spec get_team_by_name(tconn, String.t, String.t) ::
-          {:ok, BorsNG.GitHub.Team.t} | {:error, bitstring}
+          {:ok, BorsNG.GitHub.Team.t} | {:error, String.t}
   def get_team_by_name(repo_conn, org_name, team_name) do
     GenServer.call(
       BorsNG.GitHub,
