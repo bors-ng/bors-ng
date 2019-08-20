@@ -36,6 +36,7 @@ defmodule BorsNG.Worker.Batcher do
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
+  @prerun_poll_period 1000
 
   # Public API
 
@@ -99,7 +100,7 @@ defmodule BorsNG.Worker.Batcher do
     {:reply, :ok, project_id}
   end
 
-  def do_handle_cast({:reviewed, patch_id, reviewer}, project_id) do
+  def do_handle_cast({:reviewed, patch_id, reviewer}, _project_id) do
     case Repo.get(Patch.all(:awaiting_review), patch_id) do
       nil ->
         # Patch exists (otherwise, no ID), but is not awaiting review
@@ -110,27 +111,23 @@ defmodule BorsNG.Worker.Batcher do
         |> send_message([patch], :already_running_review)
       patch ->
         # Patch exists and is awaiting review
-        # This will cause the PR to start after the patch's scheduled delay
+        # This will cause the PR to run after the patch's scheduled delay
+	# if all other conditions are met. It will poll if all conditions
+	# except CI are met and those CI are :waiting.
         project = Repo.get!(Project, patch.project_id)
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
-            {batch, is_new_batch} = get_new_batch(
-              project_id,
-              patch.into_branch,
-              patch.priority
-            )
-            %LinkPatchBatch{}
-            |> LinkPatchBatch.changeset(%{
-              batch_id: batch.id,
-              patch_id: patch.id,
-              reviewer: reviewer})
-            |> Repo.insert!()
-            if is_new_batch do
-              put_incomplete_on_hold(get_repo_conn(project), batch)
-            end
-            poll_after_delay(project)
-            send_status(repo_conn, batch.id, [patch], :waiting)
+	    run(reviewer, patch)
+          :waiting ->
+	    {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
+	    case toml.prerun_timeout_sec do
+	      0 ->
+		send_message(repo_conn, [patch], {:preflight, :timeout})
+	      _ ->
+		send_message(repo_conn, [patch], {:preflight, :waiting})
+		prerun_poll({reviewer, patch})
+	    end
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
         end
@@ -189,6 +186,25 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
+  def handle_info({:prerun_poll, timeout, args}, proj_id) do
+    {reviewer, patch} = args
+    project = Repo.get(Project, patch.project_id)
+    repo_conn = get_repo_conn(project)
+    {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
+    prerun_timeout = toml.prerun_timeout_sec * 1000
+    case patch_preflight(repo_conn, patch) do
+      :ok ->
+	run(reviewer, patch)
+      :waiting when timeout > prerun_timeout ->
+	send_message(repo_conn, [patch], {:preflight, :timeout})
+      :waiting ->
+	Process.send_after(self(), {:prerun_poll, Kernel.trunc(timeout * 1.5), args}, timeout)
+      {:error, message} ->
+        send_message(repo_conn, [patch], {:preflight, message})
+    end
+    {:noreply, proj_id}
+  end
+
   # Private implementation details
 
   defp poll_(project_id) do
@@ -205,6 +221,33 @@ defmodule BorsNG.Worker.Batcher do
     else
       :again
     end
+  end
+
+  defp prerun_poll(args) do
+    Process.send_after(self(), {:prerun_poll, @prerun_poll_period, args}, 0)
+  end
+
+  defp run(reviewer, patch) do
+    project = Repo.get!(Project, patch.project_id)
+    repo_conn = get_repo_conn(project)
+    {batch, is_new_batch} = get_new_batch(
+      patch.project_id,
+      patch.into_branch,
+      patch.priority
+    )
+    %LinkPatchBatch{}
+    |> LinkPatchBatch.changeset(%{
+          batch_id: batch.id,
+          patch_id: patch.id,
+          reviewer: reviewer})
+          |> Repo.insert!()
+    if is_new_batch do
+      put_incomplete_on_hold(repo_conn, batch)
+    end
+    poll_after_delay(project)
+    # Maybe not needed because bors adds a commit referencing this.
+    #send_message(repo_conn, [patch], {:preflight, :ok})
+    send_status(repo_conn, batch.id, [patch], :waiting)
   end
 
   def sort_batches(batches) do
@@ -533,21 +576,31 @@ defmodule BorsNG.Worker.Batcher do
     |> GitHub.get_labels!(patch.pr_xref)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.block_labels))
-    passed_status = repo_conn
+    # This seems to treat unset statuses as :ok. Dangerous is CI
+    # is slower to set an at least pending status before someone types
+    # bors r+.
+    no_error_status = repo_conn
     |> GitHub.get_commit_status!(patch.commit)
-    |> Enum.filter(fn {_, status} -> status != :ok end)
+    |> Enum.filter(fn {_, status} -> status == :error end)
+    |> Enum.map(fn {context, _} -> context end)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+    no_waiting_status = repo_conn
+    |> GitHub.get_commit_status!(patch.commit)
+    |> Enum.filter(fn {_, status} -> status == :running end)
     |> Enum.map(fn {context, _} -> context end)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.pr_status))
     passed_review = repo_conn
     |> GitHub.get_reviews!(patch.pr_xref)
     |> reviews_status(toml)
-    case {passed_label, passed_status, passed_review} do
-      {true, true, :sufficient} -> :ok
-      {false, _, _}             -> {:error, :blocked_labels}
-      {_, false, _}             -> {:error, :pr_status}
-      {_, _, :insufficient}     -> {:error, :insufficient_approvals}
-      {_, _, :failed}           -> {:error, :blocked_review}
+    case {passed_label, no_error_status, no_waiting_status, passed_review} do
+      {true, true, true, :sufficient} -> :ok
+      {false, _, _, _}             -> {:error, :blocked_labels}
+      {_, _, _, :insufficient}     -> {:error, :insufficient_approvals}
+      {_, _, _, :failed}           -> {:error, :blocked_review}
+      {_, false, _, _}             -> {:error, :pr_status}
+      {true, true, false, :sufficient} -> :waiting
     end
   end
 
