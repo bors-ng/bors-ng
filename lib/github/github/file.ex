@@ -5,13 +5,13 @@ defmodule BorsNG.GitHub.File do
 
   @type t :: %BorsNG.GitHub.File{
           filename: String.t
-        }
+  }
   defstruct(filename: "")
 
   @doc """
   Convert from JSON string to a File struct.
   """
-  @spec from_json!(map) :: [t]
+  @spec from_json!(map) :: t
   def from_json!(json) do
     {:ok, files} = from_json(json)
     files
@@ -20,18 +20,9 @@ defmodule BorsNG.GitHub.File do
   @doc """
   Convert from JSON string to a File struct.
   """
-  @spec from_json(map) :: {:ok, [t]} | {:error, map}
-  def from_json([
-        %{
-          "filename" => f
-        }
-      ]) do
-    {:ok,
-     [
-       %BorsNG.GitHub.File{
-         filename: f
-       }
-     ]}
+  @spec from_json(map) :: {:ok, t} | {:error, map}
+  def from_json(%{"filename" => filename}) do
+    {:ok, %BorsNG.GitHub.File{ filename: filename }}
   end
 
   def from_json(x) do

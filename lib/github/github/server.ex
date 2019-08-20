@@ -86,7 +86,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status: 200} ->
         pr = raw
              |> Poison.decode!()
-             |> GitHub.File.from_json!()
+             |> Enum.map(&GitHub.File.from_json!/1)
         {:ok, pr}
       e ->
         {:error, :get_pr_files, e.status, pr_xref}
