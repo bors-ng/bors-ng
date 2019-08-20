@@ -558,10 +558,8 @@ defmodule BorsNG.Worker.Batcher do
       approved_reviews = Enum.map(required_reviews, fn x ->
 
         # Convert a list of OR reviewers into a true or false
-        Enum.reduce(x, false, fn required, acc ->
-          Logger.info("Required reviewer: #{inspect(required)}")
-
-          approved = if String.contains?(required, "/") do
+        Enum.any?(x, fn required ->
+          if String.contains?(required, "/") do
             # Remove leading @ for team name
             # Split into org name and team name
             team_split = String.slice(required, 1, String.length(required)-1)
@@ -573,38 +571,20 @@ defmodule BorsNG.Worker.Batcher do
             Logger.info("Team: #{inspect(team)}")
 
             # Loop through reviewers, if they on the team accept their approval
-            team_approved = Enum.reduce(passed_review["approvers"], false, fn x, acc ->
-              if acc do
-                # Someone approved it who is already on the team, skip checking all the other approvals
-                acc
-              else
+            team_approved = Enum.any?(passed_review["approvers"], fn x ->
                 GitHub.belongs_to_team?(repo_conn, x, team.id)
-              end
             end)
+
             Logger.info("Approved: #{inspect(team_approved)}")
             team_approved
           end
-          acc || approved
         end)
       end)
 
       code_owner_approval = Enum.reduce(approved_reviews, true, fn x,acc -> x && acc  end)
 
-      missing_code_owners = Enum.with_index(required_reviews)
-                            |> Enum.map(fn {x, i} ->
-
-        if !x do
-          {""}
-        else
-          Enum.at(required_reviews, i)
-        end
-      end)
-                            |> Enum.flat_map(fn x -> x end)
-
-
       Logger.info("Approved reviews: #{inspect(approved_reviews)}")
       Logger.info("Code Owner approval: #{inspect(code_owner_approval)}")
-      Logger.info("Missing Code Owner approval: #{inspect(missing_code_owners)}")
 
       code_owner_approval
     end
