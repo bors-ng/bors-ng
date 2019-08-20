@@ -24,7 +24,7 @@ defmodule BorsNG.GitHub.Reviews do
                   |> Enum.map(fn {username, _} -> username end)
 
     # Remove reviews that don't count
-    %{"CHANGES_REQUESTED" => failed, "APPROVED" => approvals} = reviews
+    reviews
     |> Enum.flat_map(fn {_uid, state} ->
         case state do
           # Ignore dismissed reviews
@@ -39,12 +39,6 @@ defmodule BorsNG.GitHub.Reviews do
       fn state, acc ->
         Map.update(acc, state, 1, fn x -> x + 1 end)
       end)
-
-    %{
-      "approvers" => approved_by,
-      "APPROVED" => approvals,
-      "CHANGES_REQUESTED" => failed,
-      }
-
+    |> Map.put("approvers", approved_by)
   end
 end
