@@ -29,7 +29,7 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :waiting}) do
-    ":clock1: Waiting for PR status (Github check) to be set, probably by CI."
+    ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when the status is set."
   end
   def generate_message({:preflight, :ok}) do
     "All preflight checks passed. Batching this PR into the staging branch."
