@@ -14,7 +14,7 @@ defmodule BorsNG.GitHub.Server do
   @installation_content_type "application/vnd.github.machine-man-preview+json"
   @check_content_type "application/vnd.github.antiope-preview+json"
   @content_type_raw "application/vnd.github.v3.raw"
-  @content_type "application/vnd.github.speedy-preview+json"
+  @content_type "application/vnd.github.v3+json"
 
   @type tconn :: GitHub.tconn
   @type ttoken :: GitHub.ttoken
