@@ -13,8 +13,9 @@ defmodule BorsNG.GitHub.Server do
 
   @installation_content_type "application/vnd.github.machine-man-preview+json"
   @check_content_type "application/vnd.github.antiope-preview+json"
+  @team_content_type "application/vnd.github.hellcat-preview+json"
   @content_type_raw "application/vnd.github.v3.raw"
-  @content_type "application/vnd.github.speedy-preview+json"
+  @content_type "application/vnd.github.v3+json"
 
   @type tconn :: GitHub.tconn
   @type ttoken :: GitHub.ttoken
@@ -445,7 +446,7 @@ defmodule BorsNG.GitHub.Server do
   def get_collaborators_by_repo_(token, url, append) do
     params = get_url_params(url)
     "token #{token}"
-    |> tesla_client(@content_type)
+    |> tesla_client(@team_content_type)
     |> Tesla.get(url, query: params)
     |> case do
       {:ok, %{body: raw, status: 200, headers: headers}} ->
