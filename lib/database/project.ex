@@ -31,8 +31,8 @@ defmodule BorsNG.Database.Project do
                  on_replace: :delete
     many_to_many :members, User, join_through: LinkMemberProject,
                  on_replace: :delete
-    field :staging_branch, :string, default: "staging"
-    field :trying_branch, :string, default: "trying"
+    field :staging_branch, :string, default: "merge-staging"
+    field :trying_branch, :string, default: "merge-trying"
     field :batch_poll_period_sec, :integer, default: (60 * 30)
     field :batch_delay_sec, :integer, default: 10
     field :batch_timeout_sec, :integer, default: (60 * 60 * 2)
