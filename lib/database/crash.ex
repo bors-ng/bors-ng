@@ -32,6 +32,15 @@ defmodule BorsNG.Database.Crash do
       where: c.project_id == ^project_id
   end
 
+  def all_for_project_for_crash_updated_before(project_id, crash_id, crash_updated_at) do
+    from c in Crash,
+      where: c.project_id == ^project_id
+        and c.id < ^crash_id
+        and c.updated_at < ^crash_updated_at,
+      order_by: [desc: c.id, desc: c.updated_at],
+      limit: 10
+  end
+
   @spec days(integer) :: Ecto.Queryable.t
   def days(d) do
     ds = d * 60 * 60 * 24

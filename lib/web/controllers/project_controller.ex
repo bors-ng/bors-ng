@@ -128,13 +128,21 @@ defmodule BorsNG.ProjectController do
   def log(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
   def log(conn, :rw, project, _params) do
     batches = project.id
+    # TODO: replace `Batch.all_for_project()` with `Batch.all_updated_before_for_project()`
     |> Batch.all_for_project()
     |> Repo.all()
     |> Enum.map(fn
       %Batch{id: id} = batch ->
         %{batch | patches: Repo.all(Patch.all_for_batch(id))}
     end)
-    crashes = Repo.all(Crash.all_for_project(project.id))
+    # TODO: figure out how to pass param
+    test_crash_id = 23
+    test_crash_updated_at = ~N[2019-08-28 04:08:48.383244]
+    #test_crash_id = 14
+    #test_crash_updated_at = ~N[2019-08-28 04:08:42.731164]
+    crashes = project.id
+    |> Crash.all_for_project_for_crash_updated_before(test_crash_id, test_crash_updated_at)
+    |> Repo.all()
     entries = crashes ++ batches
     |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
     |> Enum.reverse()

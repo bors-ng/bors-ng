@@ -22,8 +22,8 @@
   <tbody>
 <%= for entry <- @entries do %>
   <%= case entry do %>
-  <% %BorsNG.Database.Crash{component: component, crash: crash, updated_at: updated_at} -> %>
-    <tr role=row>
+  <% %BorsNG.Database.Crash{id: id, component: component, crash: crash, updated_at: updated_at} -> %>
+    <tr role=row id=crash-<%= id %>>
       <td><%= htmlify_naive_datetime(updated_at) %></td>
       <td>Crash</td>
       <td><%= component %></td>
