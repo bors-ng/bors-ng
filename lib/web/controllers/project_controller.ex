@@ -125,31 +125,58 @@ defmodule BorsNG.ProjectController do
       update_branches: Project.changeset_branches(project)
   end
 
-  def log(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
-  def log(conn, :rw, project, _params) do
-    batches = project.id
-    # TODO: replace `Batch.all_for_project()` with `Batch.all_updated_before_for_project()`
+  defp seek_batch_log(project) do
+    project.id
     |> Batch.all_for_project()
     |> Repo.all()
     |> Enum.map(fn
       %Batch{id: id} = batch ->
         %{batch | patches: Repo.all(Patch.all_for_batch(id))}
     end)
-    # TODO: figure out how to pass param
-    test_crash_id = 23
-    test_crash_updated_at = ~N[2019-08-28 04:08:48.383244]
-    #test_crash_id = 14
-    #test_crash_updated_at = ~N[2019-08-28 04:08:42.731164]
-    crashes = project.id
-    |> Crash.all_for_project_for_crash_updated_before(test_crash_id, test_crash_updated_at)
+  end
+
+  defp seek_crash_log(project), do: Repo.all(Crash.seek_for_project(project.id, 5))
+  defp seek_crash_log(project, crash_id, crash_updated_at) do
+    project.id
+    |> Crash.seek_for_project(crash_id, crash_updated_at, 5)
     |> Repo.all()
-    entries = crashes ++ batches
+  end
+
+  defp seek_log(project) do
+    batches = seek_batch_log(project)
+    crashes = seek_crash_log(project)
+    crashes ++ batches
     |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
     |> Enum.reverse()
+  end
+  defp seek_log(project, crash_id, crash_updated_at) do
+    crashes = seek_crash_log(project, crash_id, crash_updated_at)
+    crashes
+    |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
+    |> Enum.reverse()
+  end
+
+  def log(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
+  def log(conn, :rw, project, _params) do
     render conn, "log.html",
       project: project,
       current_user_id: conn.assigns.user.id,
-      entries: entries
+      entries: seek_log(project)
+  end
+
+  def log_page(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
+  def log_page(conn, :rw, project, params) do
+    crash_id = params["crash_id"]
+    crash_updated_at = NaiveDateTime.from_iso8601!(params["crash_updated_at"])
+    log_page_html = Phoenix.View.render_to_string(BorsNG.ProjectView, "log_page.html",
+      %{
+        project: project,
+        entries: seek_log(project, crash_id, crash_updated_at)
+      })
+
+    log_page = %{crash_id: crash_id, crash_updated_at: crash_updated_at, html: log_page_html}
+
+    render(conn, "log_page.json", log_page: log_page)
   end
 
   def cancel_all(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
