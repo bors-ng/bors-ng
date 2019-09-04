@@ -308,7 +308,9 @@ defmodule BorsNG.Worker.Batcher do
         parents = if toml.use_squash_merge do
           Logger.debug("Commit ID #{inspect(patch_links)}")
 
-          parents = Enum.map(patch_links, fn patch_link ->
+          # Create a series of commits by commiting on top of each other
+          new_head = Enum.reduce(patch_links, base.commit, fn patch_link, prev_head ->
+
             Logger.debug("Patch Link #{inspect(patch_link)}")
             Logger.debug("Patch #{inspect(patch_link.patch)}")
 
@@ -332,14 +334,15 @@ defmodule BorsNG.Worker.Batcher do
               repo_conn,
               %{
                 tree: Enum.at(commits, length(commits)-1).tree_sha,
-                parents: [base.commit],
+                parents: [prev_head],
                 commit_message: "#{pr.title} (##{pr.number})\n#{pr.body}",
                 committer: %{name: user.login, email: user_email}})
 
             Logger.info("Commit Sha #{inspect(cpt)}")
               cpt
+
           end)
-          parents
+          [new_head]
         else
           parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
           parents
