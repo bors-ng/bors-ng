@@ -352,14 +352,21 @@ defmodule BorsNG.Worker.Batcher do
           toml.cut_body_after,
           gather_co_authors(batch, patch_links))
 
-        head = GitHub.synthesize_commit!(
-          repo_conn,
-          %{
-            branch: batch.project.staging_branch,
-            tree: tree,
-            parents: parents,
-            commit_message: commit_message,
-            committer: toml.committer})
+        head = if toml.use_squash_merge do
+                                        head = Enum.at(parents, 0)
+            GitHub.force_push!(repo_conn, head, batch.project.staging_branch)
+            head
+        else
+          GitHub.synthesize_commit!(
+            repo_conn,
+            %{
+              branch: batch.project.staging_branch,
+              tree: tree,
+              parents: parents,
+              commit_message: commit_message,
+              committer: toml.committer})
+        end
+        
         setup_statuses(batch, toml)
         {:running, head}
       {:error, message} ->
