@@ -4,10 +4,12 @@ var logsRequestButton = document.querySelector("#log-request");
 var requestLogs = function(e) {
   e.preventDefault();
   let lastLogEntryInfo = getLastLogEntryInfo();
-  let lowestCrashID = lastLogEntryInfo["crashID"];
-  let oldestCrashUpdatedAt = lastLogEntryInfo["crashUpdatedAt"];
+  let bID = lastLogEntryInfo["batchID"];
+  let bAt = lastLogEntryInfo["batchUpdatedAt"];
+  let cID = lastLogEntryInfo["crashID"];
+  let cAt = lastLogEntryInfo["crashUpdatedAt"];
   let ajax = new XMLHttpRequest();
-  ajax.open("GET", `/repositories${repoID}log_page?crash_id=${lowestCrashID}&crash_updated_at=${decodeURIComponent(oldestCrashUpdatedAt)}`, true);
+  ajax.open("GET", `/repositories${repoID}log_page?batch_id=${bID}&batch_updated_at=${decodeURIComponent(bAt)}&crash_id=${cID}&crash_updated_at=${decodeURIComponent(cAt)}`, true);
   ajax.onreadystatechange = function() {
     if (ajax.readyState === XMLHttpRequest.DONE) {
       if (ajax.status === 200) {
@@ -32,17 +34,21 @@ var requestLogs = function(e) {
 logsRequestButton.onclick = requestLogs;
 
 function getLastLogEntryInfo() {
+  let lastBatchID = 0;
+  let lastBatchUpdatedAt = "";
   let lastCrashID = 0;
   let lastCrashUpdatedAt = "";
   Array.from(logTableBody.children).forEach(entry => {
     let id = entry.id;
-    if (id.includes("crash")) {
+    if (id.includes("batch")) {
+      lastBatchID = entry.dataset.id;
+      lastBatchUpdatedAt = entry.dataset.datetime;
+    } else if (id.includes("crash")) {
       lastCrashID = entry.dataset.id;
       lastCrashUpdatedAt = entry.dataset.datetime;
     }
-    // TODO: get info for batch
   });
-  return {crashID: lastCrashID, crashUpdatedAt: lastCrashUpdatedAt};
+  return {batchID: lastBatchID, batchUpdatedAt: lastBatchUpdatedAt, crashID: lastCrashID, crashUpdatedAt: lastCrashUpdatedAt};
 }
 
 // taken from time-convert.js

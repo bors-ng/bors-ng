@@ -127,7 +127,17 @@ defmodule BorsNG.ProjectController do
 
   defp seek_batch_log(project) do
     project.id
-    |> Batch.all_for_project()
+    |> Batch.seek_for_project(5)
+    |> Repo.all()
+    |> Enum.map(fn
+      %Batch{id: id} = batch ->
+        %{batch | patches: Repo.all(Patch.all_for_batch(id))}
+    end)
+  end
+
+  defp seek_batch_log(project, batch_id, batch_updated_at) do
+    project.id
+    |> Batch.seek_for_project(batch_id, batch_updated_at, 5)
     |> Repo.all()
     |> Enum.map(fn
       %Batch{id: id} = batch ->
@@ -145,13 +155,15 @@ defmodule BorsNG.ProjectController do
   defp seek_log(project) do
     batches = seek_batch_log(project)
     crashes = seek_crash_log(project)
-    crashes ++ batches
+    batches ++ crashes
     |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
     |> Enum.reverse()
   end
-  defp seek_log(project, crash_id, crash_updated_at) do
+
+  defp seek_log(project, batch_id, batch_updated_at, crash_id, crash_updated_at) do
+    batches = seek_batch_log(project, batch_id, batch_updated_at)
     crashes = seek_crash_log(project, crash_id, crash_updated_at)
-    crashes
+    batches ++ crashes
     |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
     |> Enum.reverse()
   end
@@ -166,15 +178,21 @@ defmodule BorsNG.ProjectController do
 
   def log_page(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
   def log_page(conn, :rw, project, params) do
+    batch_id = params["batch_id"]
+    batch_updated_at = NaiveDateTime.from_iso8601!(params["batch_updated_at"])
     crash_id = params["crash_id"]
     crash_updated_at = NaiveDateTime.from_iso8601!(params["crash_updated_at"])
     log_page_html = Phoenix.View.render_to_string(BorsNG.ProjectView, "log_page.html",
       %{
         project: project,
-        entries: seek_log(project, crash_id, crash_updated_at)
+        entries: seek_log(project, batch_id, batch_updated_at, crash_id, crash_updated_at)
       })
 
-    log_page = %{crash_id: crash_id, crash_updated_at: crash_updated_at, html: log_page_html}
+    log_page = %{
+      batch_id: batch_id, batch_updated_at: batch_updated_at,
+      crash_id: crash_id, crash_updated_at: crash_updated_at,
+      html: log_page_html
+    }
 
     render(conn, "log_page.json", log_page: log_page)
   end
