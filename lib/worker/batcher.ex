@@ -289,26 +289,10 @@ defmodule BorsNG.Worker.Batcher do
     batch
     |> Batch.changeset(%{state: status, commit: commit, last_polled: now})
     |> Repo.update!()
-    Project.ping!(batch.project_id)
-    status
-  end
 
-  defp start_waiting_merged_batch(_batch, [], _, _) do
-    {:canceled, nil}
-  end
+          stmp = "#{batch.project.staging_branch}.tmp2"
+          GitHub.force_push!(repo_conn, base.commit, stmp)
 
-  defp start_waiting_merged_batch(batch, patch_links, base, %{tree: tree}) do
-    repo_conn = get_repo_conn(batch.project)
-    patches = Enum.map(patch_links, &(&1.patch))
-    repo_conn
-    |> Batcher.GetBorsToml.get("#{batch.project.staging_branch}.tmp")
-    |> case do
-      {:ok, toml} ->
-
-        parents = if toml.use_squash_merge do
-          Logger.debug("Commit ID #{inspect(patch_links)}")
-
-          # Create a series of commits by commiting on top of each other
           new_head = Enum.reduce(patch_links, base.commit, fn patch_link, prev_head ->
 
             Logger.debug("Patch Link #{inspect(patch_link)}")
@@ -330,10 +314,30 @@ defmodule BorsNG.Worker.Batcher do
             else
               Enum.at(commits, 0).author_email
             end
+
+            source_sha = Enum.at(commits, length(commits)-1).sha
+            Logger.info("Staging branch #{stmp}")
+            Logger.info("Commit sha #{source_sha}")
+
+            # Create a merge commit for each PR
+            # because each PR is merged on top of each other in stmp, we can verify against any merge conflicts
+            merge_commit = GitHub.merge_branch!(repo_conn,
+               %{
+               from: Enum.at(commits, length(commits)-1).sha,
+               to: stmp,
+                 commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{source_sha}"}
+            )
+
+            Logger.info("Merge Commit #{inspect(merge_commit)}")
+
+            Logger.info("Previous Head #{inspect(prev_head)}")
+            # Then compress the merge commit into tree into a single commit
+            # appent it to the previous commit
+            # Because the merges are iterative the contain *only* the changes from the PR vs the previous PR(or head)
             cpt = GitHub.create_commit!(
               repo_conn,
               %{
-                tree: Enum.at(commits, length(commits)-1).tree_sha,
+                tree: merge_commit.tree,
                 parents: [prev_head],
                 commit_message: "#{pr.title} (##{pr.number})\n#{pr.body}",
                 committer: %{name: user.login, email: user_email}})
@@ -342,6 +346,7 @@ defmodule BorsNG.Worker.Batcher do
               cpt
 
           end)
+          GitHub.delete_branch!(repo_conn, stmp)
           [new_head]
         else
           parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
