@@ -127,7 +127,7 @@ defmodule BorsNG.ProjectController do
 
   defp seek_batch_log(project) do
     project.id
-    |> Batch.seek_for_project(5)
+    |> Batch.seek_for_project(10)
     |> Repo.all()
     |> Enum.map(fn
       %Batch{id: id} = batch ->
@@ -135,9 +135,10 @@ defmodule BorsNG.ProjectController do
     end)
   end
 
-  defp seek_batch_log(project, batch_id, batch_updated_at) do
+  defp seek_batch_log(project, "-1", _latest_updated_at), do: seek_batch_log(project)
+  defp seek_batch_log(project, highest_id, latest_updated_at) do
     project.id
-    |> Batch.seek_for_project(batch_id, batch_updated_at, 5)
+    |> Batch.seek_for_project(highest_id, latest_updated_at, 10)
     |> Repo.all()
     |> Enum.map(fn
       %Batch{id: id} = batch ->
@@ -145,10 +146,11 @@ defmodule BorsNG.ProjectController do
     end)
   end
 
-  defp seek_crash_log(project), do: Repo.all(Crash.seek_for_project(project.id, 5))
-  defp seek_crash_log(project, crash_id, crash_updated_at) do
+  defp seek_crash_log(project), do: Repo.all(Crash.seek_for_project(project.id, 10))
+  defp seek_crash_log(project, "-1", _latest_updated_at), do: seek_crash_log(project)
+  defp seek_crash_log(project, highest_id, latest_updated_at) do
     project.id
-    |> Crash.seek_for_project(crash_id, crash_updated_at, 5)
+    |> Crash.seek_for_project(highest_id, latest_updated_at, 10)
     |> Repo.all()
   end
 
@@ -158,14 +160,16 @@ defmodule BorsNG.ProjectController do
     batches ++ crashes
     |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
     |> Enum.reverse()
+    |> Enum.take(10)
   end
 
-  defp seek_log(project, batch_id, batch_updated_at, crash_id, crash_updated_at) do
-    batches = seek_batch_log(project, batch_id, batch_updated_at)
-    crashes = seek_crash_log(project, crash_id, crash_updated_at)
+  defp seek_log(project, highest_batch_id, highest_crash_id, latest_updated_at) do
+    batches = seek_batch_log(project, highest_batch_id, latest_updated_at)
+    crashes = seek_crash_log(project, highest_crash_id, latest_updated_at)
     batches ++ crashes
     |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
     |> Enum.reverse()
+    |> Enum.take(10)
   end
 
   def log(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
@@ -179,22 +183,13 @@ defmodule BorsNG.ProjectController do
   def log_page(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
   def log_page(conn, :rw, project, params) do
     batch_id = params["batch_id"]
-    batch_updated_at = NaiveDateTime.from_iso8601!(params["batch_updated_at"])
     crash_id = params["crash_id"]
-    crash_updated_at = NaiveDateTime.from_iso8601!(params["crash_updated_at"])
-    log_page_html = Phoenix.View.render_to_string(BorsNG.ProjectView, "log_page.html",
-      %{
-        project: project,
-        entries: seek_log(project, batch_id, batch_updated_at, crash_id, crash_updated_at)
-      })
-
-    log_page = %{
-      batch_id: batch_id, batch_updated_at: batch_updated_at,
-      crash_id: crash_id, crash_updated_at: crash_updated_at,
-      html: log_page_html
-    }
-
-    render(conn, "log_page.json", log_page: log_page)
+    updated_at = NaiveDateTime.from_iso8601!(params["updated_at"])
+    conn
+    |> put_layout(false)
+    |> render "log_page.html",
+      project: project, 
+      entries: seek_log(project, batch_id, crash_id, updated_at)
   end
 
   def cancel_all(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError

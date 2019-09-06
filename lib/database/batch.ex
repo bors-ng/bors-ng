@@ -78,11 +78,11 @@ defmodule BorsNG.Database.Batch do
       limit: ^limit
   end
 
-  def seek_for_project(project_id, batch_id, batch_updated_at, limit) do
+  def seek_for_project(project_id, highest_id, latest_updated_at, limit) do
     from b in Batch,
       where: b.project_id == ^project_id
-        and b.id < ^batch_id
-        and b.updated_at < ^batch_updated_at,
+        and b.id < ^highest_id
+        and b.updated_at < ^latest_updated_at,
       order_by: [desc: b.id, desc: b.updated_at],
       limit: ^limit
   end

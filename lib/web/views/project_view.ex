@@ -42,8 +42,4 @@ defmodule BorsNG.ProjectView do
   def empty?(list) when is_list(list) do
     false
   end
-
-  def render("log_page.json", %{log_page: log_page}) do
-    log_page
-  end
 end

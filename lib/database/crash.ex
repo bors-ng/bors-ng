@@ -39,11 +39,11 @@ defmodule BorsNG.Database.Crash do
       limit: ^limit
   end
 
-  def seek_for_project(project_id, crash_id, crash_updated_at, limit) do
+  def seek_for_project(project_id, highest_id, latest_updated_at, limit) do
     from c in Crash,
       where: c.project_id == ^project_id
-        and c.id < ^crash_id
-        and c.updated_at < ^crash_updated_at,
+        and c.id < ^highest_id
+        and c.updated_at < ^latest_updated_at,
       order_by: [desc: c.id, desc: c.updated_at],
       limit: ^limit
   end
