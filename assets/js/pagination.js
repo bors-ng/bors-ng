@@ -1,3 +1,5 @@
+import { convertTime } from './time-convert.js';
+
 var repoID = window.location.pathname.match(/\/\d+\//)[0];
 var logTableBody = document.querySelector("#log-table > tbody");
 var logsRequestButton = document.querySelector("#log-request");
@@ -18,7 +20,7 @@ var requestLogs = function(e) {
           dummyTableBody.innerHTML = html;
           Array.from(dummyTableBody.children).forEach(entry => {
             let time = entry.querySelector("time");
-            prettifyDateTime(time);
+            convertTime(time);
             logTableBody.appendChild(entry);
           });
         }
@@ -46,10 +48,3 @@ function getLastLogEntryInfo() {
   });
   return {batchID: lastBatchID, crashID: lastCrashID, updatedAt: lastUpdatedAt};
 }
-
-// taken from time-convert.js
-function prettifyDateTime(time) {
-  const date = new Date(time.innerHTML);
-  time.setAttribute("title", date.toUTCString());
-  time.innerHTML = date.toLocaleString();
-};
