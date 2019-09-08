@@ -32,6 +32,22 @@ defmodule BorsNG.Database.Crash do
       where: c.project_id == ^project_id
   end
 
+  def seek_for_project(project_id, limit) do
+    from c in Crash,
+      where: c.project_id == ^project_id,
+      order_by: [desc: c.id, desc: c.updated_at],
+      limit: ^limit
+  end
+
+  def seek_for_project(project_id, highest_id, latest_updated_at, limit) do
+    from c in Crash,
+      where: c.project_id == ^project_id
+        and c.id < ^highest_id
+        and c.updated_at < ^latest_updated_at,
+      order_by: [desc: c.id, desc: c.updated_at],
+      limit: ^limit
+  end
+
   @spec days(integer) :: Ecto.Queryable.t
   def days(d) do
     ds = d * 60 * 60 * 24
