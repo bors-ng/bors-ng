@@ -8,6 +8,7 @@ defmodule BorsNG.Worker.BatcherTest do
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
+  alias BorsNG.GitHub.Pr
   alias BorsNG.Database.Status
   alias BorsNG.GitHub
 
@@ -311,6 +312,369 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
   end
 
+
+  test "Approve a patch which does not require reviewers", %{proj: proj} do
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s"""
+          status = [ "ci" ]
+          pr_status = [ "cn" ]
+          use_codeowners = true
+          """},
+          "master" => %{".github/CODEOWNERS" =>
+            ~s"""
+            secrets.json               @my_org/my_team
+            """},
+        },
+      }})
+    patch = %Patch{
+              project_id: proj.id,
+              pr_xref: 1,
+              commit: "Z",
+              into_branch: "master"}
+            |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvrr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               comments: %{ 1 => []},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "00000001",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
+               statuses: %{"Z" => %{"bors" => :running, "cn" => :ok}},
+               files: %{"Z" => %{"bors.toml" =>
+                 ~s"""
+                 status = [ "ci" ]
+                 pr_status = [ "cn" ]
+                 use_codeowners = true
+                 """},
+                 "master" => %{".github/CODEOWNERS" =>
+                   ~s"""
+                   secrets.json               @my_org/my_team
+                   """},
+               },
+               reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
+             }}
+  end
+
+  test "rejects a patch with missing require reviewers", %{proj: proj} do
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        teams: %{
+          "my_org" => %{
+            "my_team" => %{}
+          }
+        },
+        statuses: %{"Z" => %{"cn" => :ok}},
+        pulls: %{
+                1 => %Pr{
+                  number: 1,
+                  title: "Test",
+                  body: "Mess",
+                  state: :open,
+                  base_ref: "master",
+                  head_sha: "00000001",
+                  head_ref: "update",
+                  base_repo_id: 14,
+                  head_repo_id: 14,
+                  merged: false
+                  }
+        },
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s"""
+          status = [ "ci" ]
+          pr_status = [ "cn" ]
+          use_codeowners = true
+          """},
+          "master" => %{".github/CODEOWNERS" =>
+            ~s"""
+            bors.toml               @my_org/my_team
+            """},
+        },
+      }})
+    patch = %Patch{
+              project_id: proj.id,
+              pr_xref: 1,
+              commit: "Z",
+              into_branch: "master"}
+            |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvrr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               teams: %{
+                 "my_org" => %{
+                   "my_team" => %{}
+                 }
+               },
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "00000001",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
+               comments: %{
+                 1 => [":-1: Rejected because of missing code owner approval"]},
+               statuses: %{"Z" => %{"cn" => :ok}},
+               files: %{"Z" => %{"bors.toml" =>
+                 ~s"""
+                 status = [ "ci" ]
+                 pr_status = [ "cn" ]
+                 use_codeowners = true
+                 """},
+                 "master" => %{".github/CODEOWNERS" =>
+                   ~s"""
+                   bors.toml               @my_org/my_team
+                   """},
+               },
+               reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
+             }}
+    # When preflight checks reject a patch, no batch should be created!
+    assert [] == Repo.all(Batch)
+  end
+
+
+  test "rejects a patch with missing require reviewers - using prefix in CODEOWNERS", %{proj: proj} do
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        teams: %{
+          "my_org" => %{
+            "my_team" => %{}
+          }
+        },
+        statuses: %{"Z" => %{"cn" => :ok}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s"""
+          status = [ "ci" ]
+          pr_status = [ "cn" ]
+          use_codeowners = true
+          """,
+          "/lib/go-mercury/init.go" =>
+          ~s"""
+                      func init() {}
+            """},
+          "master" => %{".github/CODEOWNERS" =>
+            ~s"""
+            /lib/go-mercury/               @my_org/my_team
+            """},
+        },
+      }})
+    patch = %Patch{
+              project_id: proj.id,
+              pr_xref: 1,
+              commit: "Z",
+              into_branch: "master"}
+            |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvrr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               teams: %{
+                 "my_org" => %{
+                   "my_team" => %{}
+                 }
+               },
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "00000001",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
+               comments: %{
+                 1 => [":-1: Rejected because of missing code owner approval"]},
+               statuses: %{"Z" => %{"cn" => :ok}},
+               files: %{"Z" => %{"bors.toml" =>
+                 ~s"""
+                 status = [ "ci" ]
+                 pr_status = [ "cn" ]
+                 use_codeowners = true
+                 """,
+                 "/lib/go-mercury/init.go" =>
+                   ~s"""
+                             func init() {}
+                   """},
+                 "master" => %{".github/CODEOWNERS" =>
+                   ~s"""
+                   /lib/go-mercury/               @my_org/my_team
+                   """},
+               },
+               reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
+             }}
+    # When preflight checks reject a patch, no batch should be created!
+    assert [] == Repo.all(Batch)
+  end
+
+  test "rejects a patch with missing require reviewers - using wildcard in CODEOWNERS", %{proj: proj} do
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        teams: %{
+          "my_org" => %{
+            "my_team" => %{}
+          }
+        },
+        statuses: %{"Z" => %{"cn" => :ok}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
+        reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s"""
+          status = [ "ci" ]
+          pr_status = [ "cn" ]
+          use_codeowners = true
+          """},
+          "master" => %{".github/CODEOWNERS" =>
+            ~s"""
+            *.toml               @my_org/my_team
+            """},
+        },
+      }})
+    patch = %Patch{
+              project_id: proj.id,
+              pr_xref: 1,
+              commit: "Z",
+              into_branch: "master"}
+            |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvrr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               teams: %{
+                 "my_org" => %{
+                   "my_team" => %{}
+                 }
+               },
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "00000001",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
+               comments: %{
+                 1 => [":-1: Rejected because of missing code owner approval"]},
+               statuses: %{"Z" => %{"cn" => :ok}},
+               files: %{"Z" => %{"bors.toml" =>
+                 ~s"""
+                 status = [ "ci" ]
+                 pr_status = [ "cn" ]
+                 use_codeowners = true
+                 """},
+                 "master" => %{".github/CODEOWNERS" =>
+                   ~s"""
+                   *.toml               @my_org/my_team
+                   """},
+               },
+               reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0, "approvers" => []}},
+             }}
+    # When preflight checks reject a patch, no batch should be created!
+    assert [] == Repo.all(Batch)
+  end
+
+
   test "rejects a patch with a requested changes", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
@@ -405,6 +769,9 @@ defmodule BorsNG.Worker.BatcherTest do
                reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1}},
              }}
   end
+
+
+
 
   test "rejects a patch with too few approved reviews", %{proj: proj} do
     GitHub.ServerMock.put_state(%{

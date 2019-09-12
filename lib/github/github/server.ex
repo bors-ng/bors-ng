@@ -82,6 +82,18 @@ defmodule BorsNG.GitHub.Server do
     {:reply, {:ok, list}, state}
   end
 
+  def do_handle_call(:get_pr_files, repo_conn, {pr_xref}) do
+    case get!(repo_conn, "pulls/#{pr_xref}/files") do
+      %{body: raw, status: 200} ->
+        pr = raw
+             |> Poison.decode!()
+             |> Enum.map(&GitHub.File.from_json!/1)
+        {:ok, pr}
+      e ->
+        {:error, :get_pr_files, e.status, pr_xref}
+    end
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}) do
     case get!(repo_conn, "pulls/#{pr_xref}") do
       %{body: raw, status: 200} ->
@@ -315,6 +327,42 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
+  def do_handle_call(:belongs_to_team, repo_conn,
+        {username, team_id}) do
+    IO.inspect(repo_conn)
+    {{:raw, token}, installation} = repo_conn
+    "token #{token}"
+    |> tesla_client()
+    |> Tesla.get!(URI.encode("/teams/#{team_id}/memberships/#{username}"))
+    |> case do
+         %{body: raw, status: 200} ->
+           true
+         %{status: 404} ->
+           false
+         _ ->
+           false
+       end
+    end
+
+
+  def do_handle_call(:get_team_by_name, {{:raw, token}, installation_id}, {org_name, team_name}) do
+     IO.inspect(token)
+    "token #{token}"
+    |> tesla_client()
+    |> Tesla.get!(URI.encode("/orgs/#{org_name}/teams/#{team_name}"))
+    |> case do
+         %{body: raw, status: 200} ->
+           user = raw
+                  |> Poison.decode!()
+                  |> GitHub.Team.from_json!()
+           {:ok, user}
+         %{status: 404} ->
+           {:ok, nil}
+         %{body: raw, status: status} ->
+           {:error, raw}
+      end
+  end
+
   def do_handle_call(:get_collaborators_by_repo, {{:raw, token}, repo_xref},
                      {}) do
     get_collaborators_by_repo_(
@@ -545,7 +593,7 @@ defmodule BorsNG.GitHub.Server do
     jwt_token = get_jwt_token()
     %{body: raw, status: 201} = "Bearer #{jwt_token}"
     |> tesla_client(@installation_content_type)
-    |> Tesla.post!("installations/#{installation_xref}/access_tokens", "")
+    |> Tesla.post!("installations/#{installation_xref}/access_tokens?members=read", "")
     Poison.decode!(raw)["token"]
   end
 

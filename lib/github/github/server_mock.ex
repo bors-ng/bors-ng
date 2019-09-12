@@ -144,6 +144,18 @@ defmodule BorsNG.GitHub.ServerMock do
     {:reply, {:ok, list}, state}
   end
 
+
+  def do_handle_call(:get_team_by_name, repo_conn, {org_name, team}, state) do
+    with({:ok, repo} <- Map.fetch(state, repo_conn),
+      {:ok, teams} <- Map.fetch(repo, :teams),
+      {:ok, org} <- Map.fetch(teams, org_name),
+      do: Map.fetch(org, team))
+    |> case do
+         {:ok, _} = res -> {res, state}
+         _ -> {{:error, :get_pr}, state}
+       end
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, pulls} <- Map.fetch(repo, :pulls),
@@ -152,6 +164,21 @@ defmodule BorsNG.GitHub.ServerMock do
       {:ok, _} = res -> {res, state}
       _ -> {{:error, :get_pr}, state}
     end
+  end
+
+  def do_handle_call(:get_pr_files, repo_conn, {pr_xref}, state) do
+
+   files = with {:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, files} <- Map.fetch(repo, :files) do
+        fil = Enum.map(files["Z"], fn {k,v} ->
+          %BorsNG.GitHub.File{filename: k}
+        end)
+      else
+       err -> {{:error, :get_pr_files}, state}
+    end
+
+    {{:ok, files}, state}
+
   end
 
   def do_handle_call(:get_pr_commits, repo_conn, {pr_xref}, state) do
@@ -340,7 +367,8 @@ defmodule BorsNG.GitHub.ServerMock do
   def do_handle_call(:get_file, repo_conn, {branch, path}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, files} <- Map.fetch(repo, :files),
-      do: {:ok, files[branch][path]})
+      do:
+        {:ok, files[branch][path]})
     |> case do
       {:ok, _} = res -> {res, state}
       _ -> {{:error, :get_file}, state}

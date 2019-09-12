@@ -1,0 +1,16 @@
+# This is a CODEOWNERS file.
+#
+# Please consult https://help.github.com/articles/about-codeowners/
+# for documentation.
+
+# TODO: insert CODEOWNERS limitations for this repo
+
+
+
+
+
+# PLATFORM codeowners requirements.
+# This should always be last
+cloudformation.yml         @my_org/my_team
+secrets.json               @my_org/my_team
+.github/CODEOWNERS         @my_org/my_team
