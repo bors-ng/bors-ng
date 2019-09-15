@@ -39,33 +39,46 @@ defmodule BorsNG.CommandTest do
   test "accept the bare command" do
     assert [{:try, ""}] == Command.parse("bors try")
     assert [:activate] == Command.parse("bors r+")
+    assert [:activate] == Command.parse("bors merge")
     assert [:deactivate] == Command.parse("bors r-")
+    assert [:deactivate] == Command.parse("bors merge-")
   end
 
   test "accept the case insensity bare command" do
     assert [{:try, ""}] == Command.parse("Bors try")
     assert [:activate] == Command.parse("Bors r+")
+    assert [:activate] == Command.parse("Bors merge")
     assert [:deactivate] == Command.parse("Bors r-")
+    assert [:deactivate] == Command.parse("Bors merge-")
   end
 
   test "accept priority" do
     assert [{:set_priority, 1}, :activate] == Command.parse("bors r+ p=1")
+    assert [{:set_priority, 1}, :activate] == Command.parse("bors merge p=1")
     assert [{:set_priority, 1}, {:activate_by, "me"}] ==
       Command.parse("bors r=me p=1")
+    assert [{:set_priority, 1}, {:activate_by, "me"}] ==
+      Command.parse("bors merge=me p=1")
     assert [{:set_priority, 1}] == Command.parse("bors p=1")
   end
 
   test "accept priority case insensity" do
     assert [{:set_priority, 1}, :activate] == Command.parse("Bors r+ p=1")
+    assert [{:set_priority, 1}, :activate] == Command.parse("Bors merge p=1")
     assert [{:set_priority, 1}, {:activate_by, "me"}] ==
       Command.parse("Bors r=me p=1")
+    assert [{:set_priority, 1}, {:activate_by, "me"}] ==
+      Command.parse("Bors merge=me p=1")
     assert [{:set_priority, 1}] == Command.parse("Bors p=1")
   end
 
   test "accept negative priority" do
     assert [{:set_priority, -1}, :activate] == Command.parse("bors r+ p=-1")
+    assert [{:set_priority, -1}, :activate] == Command.parse("bors merge p=-1")
     assert [{:set_priority, -1}, {:activate_by, "me"}] ==
       Command.parse("bors r=me p=-1")
+    assert [{:set_priority, -1}, {:activate_by, "me"}] ==
+      Command.parse("bors merge=me p=-1")
     assert [{:set_priority, -1}] == Command.parse("bors p=-1")
   end
 
@@ -76,6 +89,10 @@ defmodule BorsNG.CommandTest do
 
   test "accept command with colon after it" do
     assert [{:try, ""}] == Command.parse("bors: try")
+    assert [:activate] == Command.parse("bors: r+")
+    assert [:activate] == Command.parse("bors: merge")
+    assert [:deactivate] == Command.parse("bors: r-")
+    assert [:deactivate] == Command.parse("bors: merge-")
   end
 
   test "accept the try command with an argument" do
@@ -83,14 +100,22 @@ defmodule BorsNG.CommandTest do
   end
 
   test "accept more than one command in a single comment" do
-    expected = [
+    expected_1 = [
       {:try, ""},
       :deactivate]
-    command = """
+    command_1 = """
     bors try
     bors r-
     """
-    assert expected == Command.parse(command)
+    assert expected_1 == Command.parse(command_1)
+    expected_2 = [
+      {:try, ""},
+      :deactivate]
+    command_2 = """
+    bors try
+    bors merge-
+    """
+    assert expected_2 == Command.parse(command_2)
   end
 
   test "accept the try command with more argumentation" do
@@ -424,11 +449,15 @@ defmodule BorsNG.CommandTest do
 
     assert [] == Command.parse("bors try")
     assert [] == Command.parse("bors r+")
+    assert [] == Command.parse("bors merge")
     assert [] == Command.parse("bors r-")
+    assert [] == Command.parse("bors merge-")
 
     assert [{:try, ""}] == Command.parse("popo try")
     assert [:activate] == Command.parse("popo r+")
+    assert [:activate] == Command.parse("popo merge")
     assert [:deactivate] == Command.parse("popo r-")
+    assert [:deactivate] == Command.parse("popo merge-")
     
     if old_env do
       System.put_env("COMMAND_TRIGGER", old_env)
