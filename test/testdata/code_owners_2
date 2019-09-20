@@ -1,0 +1,6 @@
+# This is a CODEOWNERS file.
+
+# PLATFORM codeowners requirements.  # extra comment
+# This should always be last
+cloudformation.yml         @my_org/my_team
+secrets.json               @my_org/my_team # comment after the line

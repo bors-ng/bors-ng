@@ -4,9 +4,13 @@ defmodule BorsNG.Database.AttemptState do
   A type to represent the attmept state.
   """
 
+  @type t :: :waiting | :running | :ok | :error | :canceled
+  @typep internal :: 0..4
+
   # Underlying storage is an integer.
   def type, do: :integer
 
+  @spec cast(t | internal) :: {:ok, t}
   # Accept the integer state values for easier translation of existing code.
   def cast(state) when is_integer(state) do
     case state do
@@ -32,10 +36,12 @@ defmodule BorsNG.Database.AttemptState do
 
   def cast(_), do: :error
 
+  @spec load(internal) :: {:ok, t}
   def load(int) when is_integer(int) do
     cast(int)
   end
 
+  @spec dump(t | internal) :: {:ok, internal}
   def dump(term) when is_atom(term) do
     case term do
       :waiting  -> {:ok, 0}

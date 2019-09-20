@@ -26,6 +26,19 @@ defmodule BorsNG.GitHub do
   @type tcollaborator :: %{user: tuser, perms: tuser_repo_perms}
   @type tcommitter :: %{name: bitstring, email: bitstring}
 
+  @spec get_pr_files!(tconn, integer) :: [BorsNG.GitHub.File.t]
+  def get_pr_files!(repo_conn, pr_xref) do
+    {:ok, pr} = get_pr_files(repo_conn, pr_xref)
+    pr
+  end
+
+  @spec get_pr_files(tconn, integer) ::
+          {:ok, [BorsNG.GitHub.File.t]} | {:error, term}
+  def get_pr_files(repo_conn, pr_xref) do
+    GenServer.call(BorsNG.GitHub, {:get_pr_files, repo_conn, {pr_xref}}, Confex.fetch_env!(:bors, :api_github_timeout))
+  end
+
+
   @spec get_pr!(tconn, integer | bitstring) :: BorsNG.GitHub.Pr.t
   def get_pr!(repo_conn, pr_xref) do
     {:ok, pr} = get_pr(repo_conn, pr_xref)
@@ -187,6 +200,25 @@ defmodule BorsNG.GitHub do
       Confex.fetch_env!(:bors, :api_github_timeout))
     user
   end
+
+  @spec get_team_by_name(tconn, String.t, String.t) ::
+          {:ok, BorsNG.GitHub.Team.t} | {:error, String.t}
+  def get_team_by_name(repo_conn, org_name, team_name) do
+    GenServer.call(
+      BorsNG.GitHub,
+      {:get_team_by_name, repo_conn, {org_name, team_name}},
+      Confex.fetch_env!(:bors, :api_github_timeout))
+  end
+
+  @spec belongs_to_team?(tconn, String.t, integer) ::
+          boolean
+  def belongs_to_team?(repo_conn, username, team_id) do
+    GenServer.call(
+      BorsNG.GitHub,
+      {:belongs_to_team, repo_conn, {username, team_id}},
+      Confex.fetch_env!(:bors, :api_github_timeout))
+  end
+
 
   @spec get_collaborators_by_repo(tconn) ::
     {:ok, [tcollaborator]} | :error

@@ -1,124 +1,112 @@
-version: 0
-allowPullRequests: public
+version: 1
+policy:
+  pullRequests: public
 tasks:
 
   # The bors build queue (build release)
-  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
-    workerType: '{{ taskcluster.docker.workerType }}'
-    extra:
-      github:
-        events:
-          - push
-        branches:
-          - staging
-          - trying
-    payload:
-      maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
-      command:
-        - /bin/bash
-        - '--login'
-        - '-c'
-        - >-
-          git clone {{event.head.repo.url}} repo && cd repo &&
-          git config advice.detachedHead false && git checkout {{event.head.sha}} &&
-          export MIX_ENV=prod &&
-          mix deps.get &&
-          npm install && npm run deploy &&
-          mix phx.digest &&
-          mix distillery.release --env=$MIX_ENV
-    metadata:
-      name: Bors-NG build release
-      description: 'Run a release using distillery'
-      owner: 'infra@bors.tech'
-      source: '{{ event.head.repo.url }}'
+  - $if: 'tasks_for == "github-push" && event["ref"] in ["refs/heads/staging", "refs/heads/trying"]'
+    then:
+      provisionerId: 'aws-provisioner-v1'
+      workerType: 'github-worker'
+      deadline: {$fromNow: 1 day}
+      expires: {$fromNow: 1 year}
+      payload:
+        maxRunTime: 3600
+        image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
+        command:
+          - /bin/bash
+          - '--login'
+          - '-c'
+          - >-
+            git clone ${event.repository.clone_url} repo && cd repo &&
+            git config advice.detachedHead false && git checkout ${event.after} &&
+            export MIX_ENV=prod &&
+            mix deps.get &&
+            npm install && npm run deploy &&
+            mix phx.digest &&
+            mix distillery.release --env=$MIX_ENV
+      metadata:
+        name: Bors-NG build release
+        description: 'Run a release using distillery'
+        owner: 'infra@bors.tech'
+        source: '${event.repository.clone_url}'
 
   # The bors build queue (test suite)
-  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
-    workerType: '{{ taskcluster.docker.workerType }}'
-    extra:
-      github:
-        events:
-          - push
-        branches:
-          - staging
-          - trying
-    payload:
-      maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
-      command:
-        - /bin/bash
-        - '--login'
-        - '-c'
-        - >-
-          git clone {{event.head.repo.url}} repo && cd repo &&
-          git config advice.detachedHead false && git checkout {{event.head.sha}} &&
-          (sudo runuser -u postgres -- /usr/lib/postgresql/9.5/bin/postgres -D /etc/postgresql/9.5/main/ 2>&1 > /dev/null &) &&
-          sleep 10 &&
-          export MIX_ENV=test &&
-          mix do deps.get, test
-    metadata:
-      name: Bors-NG test suite
-      description: 'Run unit and integration tests with no browser and a mock GitHub API'
-      owner: 'infra@bors.tech'
-      source: '{{ event.head.repo.url }}'
+  - $if: 'tasks_for == "github-push" && event["ref"] in ["refs/heads/staging", "refs/heads/trying"]'
+    then:
+      provisionerId: 'aws-provisioner-v1'
+      workerType: 'github-worker'
+      deadline: {$fromNow: 1 day}
+      expires: {$fromNow: 1 year}
+      payload:
+        maxRunTime: 3600
+        image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
+        command:
+          - /bin/bash
+          - '--login'
+          - '-c'
+          - >-
+            git clone ${event.repository.clone_url} repo && cd repo &&
+            git config advice.detachedHead false && git checkout ${event.after} &&
+            (sudo runuser -u postgres -- /usr/lib/postgresql/9.5/bin/postgres -D /etc/postgresql/9.5/main/ 2>&1 > /dev/null &) &&
+            sleep 10 &&
+            export MIX_ENV=test &&
+            mix do deps.get, test
+      metadata:
+        name: Bors-NG test suite
+        description: 'Run unit and integration tests with no browser and a mock GitHub API'
+        owner: 'infra@bors.tech'
+        source: '${event.repository.clone_url}'
 
-  # The bors build queue (static analysis)
-  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
-    workerType: '{{ taskcluster.docker.workerType }}'
-    extra:
-      github:
-        events:
-          - push
-        branches:
-          - staging
-          - trying
-    payload:
-      maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
-      command:
-        - /bin/bash
-        - '--login'
-        - '-c'
-        - >-
-          export MIX_ENV=dev &&
-          git clone {{event.head.repo.url}} repo && cd repo &&
-          git config advice.detachedHead false && git checkout {{event.head.sha}} &&
-          mix deps.get &&
-          mix dialyzer --halt-exit-status
-    metadata:
-      name: Bors-NG static analysis
-      description: 'Run static analysis (dialyzer)'
-      owner: 'infra@bors.tech'
-      source: '{{ event.head.repo.url }}'
+    # The bors build queue (static analysis)
+  - $if: 'tasks_for == "github-push" && event["ref"] in ["refs/heads/staging", "refs/heads/trying"]'
+    then:
+      provisionerId: 'aws-provisioner-v1'
+      workerType: 'github-worker'
+      deadline: {$fromNow: 1 day}
+      expires: {$fromNow: 1 year}
+      payload:
+        maxRunTime: 3600
+        image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
+        command:
+          - /bin/bash
+          - '--login'
+          - '-c'
+          - >-
+            export MIX_ENV=dev &&
+            git clone ${event.repository.clone_url} repo && cd repo &&
+            git config advice.detachedHead false && git checkout ${event.after} &&
+            mix deps.get &&
+            mix dialyzer --halt-exit-status
+      metadata:
+        name: Bors-NG static analysis
+        description: 'Run static analysis (dialyzer)'
+        owner: 'infra@bors.tech'
+        source: '${event.repository.clone_url}'
 
   # The pull request builder (static analysis)
-  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
-    workerType: '{{ taskcluster.docker.workerType }}'
-    extra:
-      github:
-        events:
-          - pull_request.opened
-          - pull_request.synchronize
-          - pull_request.reopened
-        branches:
-          - master
-    payload:
-      maxRunTime: 3600
-      image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
-      command:
-        - /bin/bash
-        - '--login'
-        - '-c'
-        - >-
-          git clone {{event.head.repo.url}} repo && cd repo &&
-          git config advice.detachedHead false && git checkout {{event.head.sha}} &&
-          export MIX_ENV=dev &&
-          mix deps.get &&
-          mix dialyzer --halt-exit-status
-    metadata:
-      name: Bors-NG style checker
-      description: 'Run "build" against a pull request'
-      owner: '{{ event.head.user.email }}'
-      source: '{{ event.head.repo.url }}'
+  - $if: 'tasks_for == "github-pull-request" && event["action"] in ["opened", "reopened", "synchronize"]'
+    then:
+      provisionerId: 'aws-provisioner-v1'
+      workerType: 'github-worker'
+      deadline: {$fromNow: 1 day}
+      expires: {$fromNow: 1 year}
+      payload:
+        maxRunTime: 3600
+        image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
+        command:
+          - /bin/bash
+          - '--login'
+          - '-c'
+          - >-
+            git clone ${event.pull_request.head.repo.clone_url} repo && cd repo &&
+            git config advice.detachedHead false && git checkout ${event.pull_request.head.sha} &&
+            export MIX_ENV=dev &&
+            mix deps.get &&
+            mix dialyzer --halt-exit-status
+      metadata:
+        name: Bors-NG style checker
+        description: 'Run "build" against a pull request'
+        owner: 'nobody@users.noreply.github.com'
+        source: '${event.pull_request.head.repo.clone_url}'
 
