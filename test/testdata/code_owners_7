@@ -1,0 +1,9 @@
+# The `docs/*` pattern will match files like
+# `docs/getting-started.md` but not further nested files like
+# `docs/build-app/troubleshooting.md`.
+src/  @my_org/another_team
+
+**/test @my_org/test_team
+src/**/core @my_org/core_team
+other/** @my_org/other_team
+src/**/test @my_org/test_team_2

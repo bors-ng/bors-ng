@@ -131,4 +131,77 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/my_other_team"
   end
 
+  test "Test Asterisk" do
+
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_6")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "some_folder/some_file"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 2
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/my_team"
+    assert Enum.at(Enum.at(reviewers, 0), 1) == "@my_org/my_other_team"
+  end
+
+  test "Test Double Asterisk in the middle" do
+
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_7")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "src/file1/test"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/test_team_2"
+  end
+
+  test "Test Double Asterisk in the beggining" do
+
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_7")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "file0/file1/test"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/test_team"
+  end
+
+  test "Test Double Asterisk in the end" do
+
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_7")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "other/file1/file2"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/other_team"
+  end
+
 end
