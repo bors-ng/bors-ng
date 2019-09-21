@@ -44,7 +44,7 @@ defmodule BorsNG.CodeOwnerParser do
               owner.approvers
              String.starts_with?(x.filename, owner.file_pattern) ->
               owner.approvers
-            true ->
+             true ->
               nil # if unknown fall through
             end
           end)
@@ -60,7 +60,7 @@ defmodule BorsNG.CodeOwnerParser do
             end
           end)
       end)
-        
+ 
     required_reviewers = Enum.filter(required_reviewers, fn x -> x != nil end)
 
     Logger.debug("Required reviewers: #{inspect(required_reviewers)}")
