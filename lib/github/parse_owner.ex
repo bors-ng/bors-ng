@@ -76,7 +76,7 @@ defmodule BorsNG.CodeOwnerParser do
         pattern = String.trim_leading(file_pattern, double_asterisk)
         String.contains?(file_name, pattern)
       String.ends_with?(file_name, double_asterisk) ->
-        pattern = String.trim_leading(file_pattern, double_asterisk)
+        pattern = String.trim_trailing(file_pattern, double_asterisk)
         String.starts_with?(file_name, pattern)
       String.contains?(file_pattern, double_asterisk) ->
         patterns = String.split(file_pattern, double_asterisk, parts: 2)
