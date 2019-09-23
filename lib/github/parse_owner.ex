@@ -35,9 +35,13 @@ defmodule BorsNG.CodeOwnerParser do
          # Convert each file to an array of matching owners
          pats = Enum.map(code_owners.patterns, fn owner ->
             cond do
-              # glob matches has an extra '/' in it, don't match on it
+             String.equivalent?("*", owner.file_pattern) ->
+              owner.approvers
+             String.contains?(owner.file_pattern, "**") && process_double_asterisk(x.filename, owner.file_pattern) ->
+              owner.approvers
+             # glob matches has an extra '/' in it, don't match on it
              :glob.matches(x.filename, owner.file_pattern) && !:glob.matches(x.filename, owner.file_pattern <> "/*")  ->
-                owner.approvers
+              owner.approvers
              String.starts_with?(x.filename, owner.file_pattern) ->
               owner.approvers
              true ->
@@ -56,12 +60,28 @@ defmodule BorsNG.CodeOwnerParser do
             end
           end)
       end)
-
+ 
     required_reviewers = Enum.filter(required_reviewers, fn x -> x != nil end)
 
     Logger.debug("Required reviewers: #{inspect(required_reviewers)}")
 
     required_reviewers
+  end
+
+  @spec process_double_asterisk(String.t, String.t) :: boolean
+  def process_double_asterisk(file_name, file_pattern) do
+    double_asterisk = "**"
+    cond do
+      String.starts_with?(file_pattern, double_asterisk) ->
+        pattern = String.trim_leading(file_pattern, double_asterisk)
+        String.contains?(file_name, pattern)
+      String.ends_with?(file_pattern, double_asterisk) ->
+        pattern = String.trim_trailing(file_pattern, double_asterisk)
+        String.starts_with?(file_name, pattern)
+      String.contains?(file_pattern, double_asterisk) ->
+        patterns = String.split(file_pattern, double_asterisk, parts: 2)
+        String.starts_with?(file_name, List.first(patterns)) && String.contains?(file_name, List.last(patterns))
+    end
   end
 
   @spec parse_file(String.t) :: {:ok, %BorsNG.CodeOwners{}}
