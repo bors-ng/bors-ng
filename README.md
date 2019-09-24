@@ -1,8 +1,9 @@
 A merge bot for GitHub pull requests
 ====================================
 
-[![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/3)
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/bors-ng/bors-ng)
+
+[![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/3)
 
 [Bors-NG] implements a continuous-testing workflow where the master branch never breaks.
 It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
