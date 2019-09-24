@@ -9,8 +9,9 @@ ENV PORT 8000
 
 # Download Elixir/OTP and PostgreSQL
 RUN which rg || (curl -L https://github.com/BurntSushi/ripgrep/releases/download/11.0.2/ripgrep_11.0.2_amd64.deb > /tmp/ripgrep.deb && sudo dpkg -i /tmp/ripgrep.deb); \
-    curl -L https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb > /tmp/erlang-solutions.deb && \
-    sudo dpkg -i /tmp/erlang-solutions.deb && \
+    echo 'deb https://packages.erlang-solutions.com/ubuntu disco contrib' | sudo tee /etc/apt/sources.list.d/erlang.list && \
+    curl -L https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc > /tmp/erlang_solutions.asc && \
+    sudo apt-key add /tmp/erlang_solutions.asc && \
     sudo apt-get update && \
     sudo apt-get -y install --no-install-recommends esl-erlang vim zlib1g-dev libssl-dev openssl libcurl4-openssl-dev libreadline6-dev libpcre3 libpcre3-dev imagemagick postgresql postgresql-contrib-9.5 libpq-dev postgresql-server-dev-9.5 advancecomp gifsicle jhead jpegoptim libjpeg-turbo-progs optipng pngcrush pngquant gnupg2 libsqlite3-dev && \
     sudo rm -rf /var/lib/apt/lists/* && \
@@ -24,7 +25,7 @@ RUN which rg || (curl -L https://github.com/BurntSushi/ripgrep/releases/download
     cd .. && \
     rm -rf elixir-src elixir-src.tar.gz && \
     mix local.hex --force && mix local.rebar --force && \
-    rm -f /tmp/ripgrep.deb /tmp/erlang-solutions.deb
+    rm -f /tmp/ripgrep.deb /tmp/erlang_solutions.asc
 
 # Set up Elixir PLTs for Dialyzer (keep the commit synced with bors-ng/bors-ng/mix.exs)
 #    git clone https://github.com/jeremyjh/dialyxir && \
