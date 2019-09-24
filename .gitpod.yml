@@ -2,7 +2,7 @@ image:
   file: script/Dockerfile.gitpod
 tasks:
   - init: script/setup
-    command: script/server
+    command: script/repl
 ports:
   - port: 8000
     onOpen: open-preview
