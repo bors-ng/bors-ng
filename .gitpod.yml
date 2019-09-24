@@ -3,4 +3,7 @@ image:
 tasks:
   - init: script/setup
     command: script/server
+ports:
+  - port: 8000
+    onOpen: open-preview
 
