@@ -13,7 +13,7 @@ RUN which rg || (curl -L https://github.com/BurntSushi/ripgrep/releases/download
     curl -L https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc > /tmp/erlang_solutions.asc && \
     sudo apt-key add /tmp/erlang_solutions.asc && \
     sudo apt-get update && \
-    sudo apt-get -y install --no-install-recommends esl-erlang vim zlib1g-dev libssl-dev openssl libcurl4-openssl-dev libreadline6-dev libpcre3 libpcre3-dev imagemagick postgresql postgresql-contrib-9.5 libpq-dev postgresql-server-dev-9.5 advancecomp gifsicle jhead jpegoptim libjpeg-turbo-progs optipng pngcrush pngquant gnupg2 libsqlite3-dev && \
+    sudo apt-get -y install --no-install-recommends esl-erlang vim zlib1g-dev libssl-dev openssl libcurl4-openssl-dev libreadline6-dev libpcre3 libpcre3-dev imagemagick libpq-dev advancecomp gifsicle jhead jpegoptim libjpeg-turbo-progs optipng pngcrush pngquant gnupg2 libsqlite3-dev && \
     sudo rm -rf /var/lib/apt/lists/* && \
     curl -L https://github.com/elixir-lang/elixir/archive/${ELIXIR_VERSION}.tar.gz > elixir-src.tar.gz && \
     echo "$ELIXIR_DOWNLOAD_SHA256 elixir-src.tar.gz" | sha256sum -c - && \
