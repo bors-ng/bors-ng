@@ -1,0 +1,6 @@
+image:
+  file: script/Dockerfile.gitpod
+tasks:
+  - init: script/setup
+    command: script/server
+
