@@ -438,6 +438,6 @@ defmodule BorsNG.Command do
     c.project.repo_xref
     |> Project.installation_connection(Repo)
     |> GitHub.post_comment!(
-      c.pr_xref, ~s/:v: #{delegatee.login} can now approve this pull request/)
+      c.pr_xref, ~s{:v: #{delegatee.login} can now approve this pull request. To approve and merge a pull request, simply reply with `bors r+`. More detailed instructions are available [here](https://bors.tech/documentation/getting-started/#reviewing-pull-requests).})
   end
 end
