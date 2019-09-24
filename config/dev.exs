@@ -33,10 +33,7 @@ config :bors, BorsNG.Endpoint,
 config :phoenix, :stacktrace_depth, 20
 config :bors, BorsNG.Database.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "Postgres1234",
-  database: "bors_dev",
-  hostname: {:system, "POSTGRES_HOST", "localhost"},
+  url: {:system, "DATABASE_URL", "postgresql://postgres:Postgres1234@localhost/bors_dev"},
   pool_size: 10
 
 # On developer boxes, we do not actually talk to GitHub.
