@@ -8,6 +8,7 @@ ENV WORKSPACE /workspace/bors-ng
 ENV PORT 8000
 
 ENV DATABASE_URL="postgresql://gitpod@localhost/bors_dev"
+ENV DATABASE_URL_TEST="postgresql://gitpod@localhost/bors_test"
 
 # Download Elixir/OTP and PostgreSQL
 RUN which rg || (curl -L https://github.com/BurntSushi/ripgrep/releases/download/11.0.2/ripgrep_11.0.2_amd64.deb > /tmp/ripgrep.deb && sudo dpkg -i /tmp/ripgrep.deb); \

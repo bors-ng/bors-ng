@@ -3,7 +3,7 @@ set -e
 while [ ! -d script ] && [ `pwd` != / ]; do
   cd ..
 done
-if [ ! -f ../janitor.json ]; then
+if [ -z $BORS_WITHIN_DOCKER ]; then
   docker start borsng-dev
   exec docker exec -it borsng-dev "$0" "$@"
 fi
