@@ -530,7 +530,7 @@ defmodule BorsNG.Worker.Batcher do
     :ok
   end
 
-  defp get_code_owners(repo_conn, patch, toml) do
+  defp get_code_owners(repo_conn, patch) do
 
     Logger.info("Checking code owners")
     {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
@@ -546,6 +546,7 @@ defmodule BorsNG.Worker.Batcher do
     passed_review = repo_conn
                     |> GitHub.get_reviews!(patch.pr_xref)
 
+    Logger.warn("Required reviews: #{inspect(required_reviews)}")
     Logger.warn("Passed reviews: #{inspect(passed_review)}")
 
     # Convert the list of required reviewers into a list of true/false
@@ -596,16 +597,17 @@ defmodule BorsNG.Worker.Batcher do
     code_owners_approved = if !toml.use_codeowners do
       true
     else
-      code_owners = get_code_owners(repo_conn, patch, toml)
+      code_owners = get_code_owners(repo_conn, patch)
 
       code_owner_approval = Enum.reduce(code_owners, true, fn x,acc -> !Enum.empty?(x) && acc  end)
+      code_owners_list = Enum.uniq(Enum.reduce(code_owners, [], fn x,y -> x ++ y end))
 
-      Logger.info("Approved reviews: #{inspect(code_owners)}")
-      Logger.info("Code Owner approval: #{inspect(code_owner_approval)}")
+      Logger.warn("Approved reviews: #{inspect(code_owners_list)}")
+      Logger.warn("Code Owner approval: #{inspect(code_owner_approval)}")
 
-      # patch
-      # |> Patch.changeset(%{code_owners: code_owners})
-      # |> Repo.update!()
+      patch
+      |> Patch.changeset(%{code_owners: code_owners_list})
+      |> Repo.update!()
 
       code_owner_approval
     

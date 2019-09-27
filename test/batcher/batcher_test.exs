@@ -683,12 +683,15 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => []},
         users: %{
           "user1" => [%{:team_id => 7}, %{:team_id => 8}],
-          "user8" => [%{:team_id => 7}]
+          "user8" => [%{:team_id => 7}],
+          "user9" => [%{:team_id => 8}],
+          "user4" => [%{:team_id => 9}]
         },
         teams: %{
           "my_org" => %{
             "my_team" => %{:id => 7},
-            "my_other_team" => %{:id => 8}
+            "my_other_team" => %{:id => 8},
+            "my_go_team" => %{:id => 9},
         }},
         statuses: %{"Z" => %{"cn" => :ok}},
         pulls: %{
@@ -705,16 +708,21 @@ defmodule BorsNG.Worker.BatcherTest do
             merged: false
           }
         },
-        reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0, "approvers" => ["user8"]}},
+        reviews: %{1 => %{"APPROVED" => 3, "CHANGES_REQUESTED" => 0, "approvers" => ["user8", "user9", "user4"]}},
         files: %{"Z" => %{"bors.toml" =>
           ~s"""
           status = [ "ci" ]
           pr_status = [ "cn" ]
           use_codeowners = true
-          """},
+          """,
+          "/lib/go-mercury/init.go" =>
+            ~s"""
+                      func init() {}
+            """},
           "master" => %{".github/CODEOWNERS" =>
             ~s"""
             *.toml               @my_org/my_team @my_org/my_other_team
+            *.go                 @my_org/my_team @my_org/my_go_team
             """},
         },
       }})
@@ -733,12 +741,15 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{ 1 => []},
                users: %{
                 "user1" => [%{:team_id => 7}, %{:team_id => 8}],
-                "user8" => [%{:team_id => 7}]
+                "user8" => [%{:team_id => 7}],
+                "user9" => [%{:team_id => 8}],
+                "user4" => [%{:team_id => 9}]
                 },
                teams: %{
                 "my_org" => %{
                   "my_team" => %{:id => 7},
-                  "my_other_team" => %{:id => 8}
+                  "my_other_team" => %{:id => 8},
+                  "my_go_team" => %{:id => 9},
                   }},
                pulls: %{
                  1 => %Pr{
@@ -760,13 +771,18 @@ defmodule BorsNG.Worker.BatcherTest do
                  status = [ "ci" ]
                  pr_status = [ "cn" ]
                  use_codeowners = true
-                 """},
+                 """,
+                 "/lib/go-mercury/init.go" =>
+                   ~s"""
+                             func init() {}
+                   """},
                  "master" => %{".github/CODEOWNERS" =>
                    ~s"""
                    *.toml               @my_org/my_team @my_org/my_other_team
+                   *.go                 @my_org/my_team @my_org/my_go_team
                    """},
                },
-               reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0, "approvers" => ["user8"]}},
+               reviews: %{1 => %{"APPROVED" => 3, "CHANGES_REQUESTED" => 0, "approvers" => ["user8", "user9", "user4"]}},
              }}
   end
 
