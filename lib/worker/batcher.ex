@@ -532,62 +532,57 @@ defmodule BorsNG.Worker.Batcher do
 
   defp check_code_owner(repo_conn, patch, toml) do
 
-    if !toml.use_codeowners do
-      true
-    else
-
-      Logger.info("Checking code owners")
-      {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
-      Logger.info("CODEOWNERS file #{inspect(code_owner)}")
+    Logger.info("Checking code owners")
+    {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
+    Logger.info("CODEOWNERS file #{inspect(code_owner)}")
 
 
-      {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
-      Logger.info("Files found: #{inspect(files)}")
+    {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
+    Logger.info("Files found: #{inspect(files)}")
 
 
-      required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
+    required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
 
-      passed_review = repo_conn
-                      |> GitHub.get_reviews!(patch.pr_xref)
+    passed_review = repo_conn
+                    |> GitHub.get_reviews!(patch.pr_xref)
 
-      Logger.info("Passed reviews: #{inspect(passed_review)}")
+    Logger.warn("Passed reviews: #{inspect(passed_review)}")
 
-      # Convert the list of required reviewers into a list of true/false
-      # true indicates that the reviewers requirement was satisfied,
-      # false if it is open
-      approved_reviews = Enum.map(required_reviews, fn x ->
+    # Convert the list of required reviewers into a list of true/false
+    # true indicates that the reviewers requirement was satisfied,
+    # false if it is open
+    approved_reviews = Enum.map(required_reviews, fn x ->
 
-        # Convert a list of OR reviewers into a true or false
-        Enum.any?(x, fn required ->
-          if String.contains?(required, "/") do
-            # Remove leading @ for team name
-            # Split into org name and team name
-            team_split = String.slice(required, 1, String.length(required)-1)
-                         |> String.split("/")
+      # Convert a list of OR reviewers into a true or false
+      Enum.filter(x, fn required ->
+        if String.contains?(required, "/") do
+          # Remove leading @ for team name
+          # Split into org name and team name
+          team_split = String.slice(required, 1, String.length(required)-1)
+                        |> String.split("/")
 
-            # Lookup team ID -> needed later
-            {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
+          # Lookup team ID -> needed later
+          {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
 
-            Logger.info("Team: #{inspect(team)}")
+          Logger.info("Team: #{inspect(team)}")
 
-            # Loop through reviewers, if they on the team accept their approval
-            team_approved = Enum.any?(passed_review["approvers"], fn x ->
-                GitHub.belongs_to_team?(repo_conn, x, team.id)
-            end)
+          # Loop through reviewers, if they on the team accept their approval
+          team_approved = Enum.any?(passed_review["approvers"], fn x ->
+              GitHub.belongs_to_team?(repo_conn, x, team.id)
+          end)
 
-            Logger.info("Approved: #{inspect(team_approved)}")
-            team_approved
-          end
-        end)
+          Logger.info("Approved: #{inspect(team_approved)}")
+          team_approved
+        end
       end)
+    end)
 
-      code_owner_approval = Enum.reduce(approved_reviews, true, fn x,acc -> x && acc  end)
+    code_owner_approval = Enum.reduce(approved_reviews, true, fn x,acc -> !Enum.empty?(x) && acc  end)
 
-      Logger.info("Approved reviews: #{inspect(approved_reviews)}")
-      Logger.info("Code Owner approval: #{inspect(code_owner_approval)}")
+    Logger.warn("Approved reviews: #{inspect(approved_reviews)}")
+    Logger.warn("Code Owner approval: #{inspect(code_owner_approval)}")
 
-      code_owner_approval
-    end
+    code_owner_approval
 
   end
 
@@ -604,9 +599,18 @@ defmodule BorsNG.Worker.Batcher do
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.pr_status))
 
-    code_owners_approved = check_code_owner(repo_conn, patch, toml)
+    code_owners_approved = if !toml.use_codeowners do
+      true
+    else
+      code_owners = check_code_owner(repo_conn, patch, toml)
 
-#    {:error, {:missing_code_owner_approval, "My team"}}
+      # patch
+      # |> Patch.changeset(%{code_owners: inspect(code_owners)})
+      # |> Repo.update!()
+
+      code_owners
+    
+    end
 
     passed_review = repo_conn
     |> GitHub.get_reviews!(patch.pr_xref)
@@ -662,7 +666,8 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def get_new_batch(project_id, into_branch, priority) do
-    Batch
+
+    batch = Batch
     |> where([b], b.project_id == ^project_id)
     |> where([b], b.state == ^(:waiting))
     |> where([b], b.into_branch == ^into_branch)
@@ -671,9 +676,21 @@ defmodule BorsNG.Worker.Batcher do
     |> limit(1)
     |> Repo.all()
     |> case do
-      [batch] -> {batch, false}
+      [batch] -> 
+        {batch, false}
       _ -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
     end
+
+    # if batch do
+    #   patches = batch.id
+    #   |> Patch.all_for_batch()
+    #   |> Repo.all()
+
+    #   {batch, false}
+    # else
+    #   {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
+    # end
+  
   end
 
   defp raise_batch_priority(%Batch{priority: old_priority} = batch, priority) when old_priority < priority do
