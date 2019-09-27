@@ -530,7 +530,7 @@ defmodule BorsNG.Worker.Batcher do
     :ok
   end
 
-  defp check_code_owner(repo_conn, patch, toml) do
+  defp get_code_owners(repo_conn, patch, toml) do
 
     Logger.info("Checking code owners")
     {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
@@ -564,26 +564,20 @@ defmodule BorsNG.Worker.Batcher do
           # Lookup team ID -> needed later
           {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
 
-          Logger.info("Team: #{inspect(team)}")
+          Logger.warn("Team: #{inspect(team)}")
 
-          # Loop through reviewers, if they on the team accept their approval
+          # Loop through reviewers, if they are on the team accept their approval
           team_approved = Enum.any?(passed_review["approvers"], fn x ->
               GitHub.belongs_to_team?(repo_conn, x, team.id)
           end)
 
-          Logger.info("Approved: #{inspect(team_approved)}")
+          Logger.warn("Approved: #{inspect(team_approved)}")
           team_approved
         end
       end)
     end)
 
-    code_owner_approval = Enum.reduce(approved_reviews, true, fn x,acc -> !Enum.empty?(x) && acc  end)
-
-    Logger.warn("Approved reviews: #{inspect(approved_reviews)}")
-    Logger.warn("Code Owner approval: #{inspect(code_owner_approval)}")
-
-    code_owner_approval
-
+    approved_reviews
   end
 
 
@@ -602,13 +596,18 @@ defmodule BorsNG.Worker.Batcher do
     code_owners_approved = if !toml.use_codeowners do
       true
     else
-      code_owners = check_code_owner(repo_conn, patch, toml)
+      code_owners = get_code_owners(repo_conn, patch, toml)
+
+      code_owner_approval = Enum.reduce(code_owners, true, fn x,acc -> !Enum.empty?(x) && acc  end)
+
+      Logger.info("Approved reviews: #{inspect(code_owners)}")
+      Logger.info("Code Owner approval: #{inspect(code_owner_approval)}")
 
       # patch
-      # |> Patch.changeset(%{code_owners: inspect(code_owners)})
+      # |> Patch.changeset(%{code_owners: code_owners})
       # |> Repo.update!()
 
-      code_owners
+      code_owner_approval
     
     end
 

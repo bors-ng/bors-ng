@@ -364,6 +364,16 @@ defmodule BorsNG.GitHub.ServerMock do
     end
   end
 
+  def do_handle_call(:belongs_to_team, repo_conn, {username, team_id}, state) do
+    with({:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, users} <- Map.fetch(repo, :users),
+      do: {:ok, Enum.any?(users[username], fn u -> Map.get(u, :team_id) == team_id end)})
+    |> case do
+      {:ok, true} -> {true, state}
+      _ -> {false, state}
+    end
+  end
+
   def do_handle_call(:get_file, repo_conn, {branch, path}, state) do
     with({:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, files} <- Map.fetch(repo, :files),
