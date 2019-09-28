@@ -120,7 +120,8 @@ defmodule BorsNG.Worker.Batcher do
             {batch, is_new_batch} = get_new_batch(
               project_id,
               patch.into_branch,
-              patch.priority
+              patch.priority, 
+              patch.code_owners
             )
             %LinkPatchBatch{}
             |> LinkPatchBatch.changeset(%{
@@ -666,7 +667,7 @@ defmodule BorsNG.Worker.Batcher do
     batch
   end
 
-  def get_new_batch(project_id, into_branch, priority) do
+  def get_new_batch(project_id, into_branch, priority, code_owners) do
 
     batch = Batch
     |> where([b], b.project_id == ^project_id)
@@ -678,19 +679,27 @@ defmodule BorsNG.Worker.Batcher do
     |> Repo.all()
     |> case do
       [batch] -> 
-        {batch, false}
+        is_the_same_code_owner_batch = batch.id
+        |> Patch.all_for_batch()
+        |> limit(1)
+        |> Repo.all()
+        |> case do
+          [patch] -> 
+            if patch.code_owners && code_owners && Enum.empty?(patch.code_owners -- code_owners) do
+              true
+            else
+              false
+            end
+          _ -> false
+          end
+
+        if is_the_same_code_owner_batch do
+          {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
+        else
+          {batch, false}
+        end
       _ -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
     end
-
-    # if batch do
-    #   patches = batch.id
-    #   |> Patch.all_for_batch()
-    #   |> Repo.all()
-
-    #   {batch, false}
-    # else
-    #   {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
-    # end
   
   end
 

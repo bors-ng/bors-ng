@@ -786,6 +786,151 @@ defmodule BorsNG.Worker.BatcherTest do
              }}
   end
 
+  test "accepts a patch with required reviewers using wildcard in CODEOWNERS in different batches", %{proj: proj} do
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        users: %{
+          "user1" => [%{:team_id => 7}, %{:team_id => 8}],
+          "user8" => [%{:team_id => 7}],
+          "user9" => [%{:team_id => 8}],
+          "user4" => [%{:team_id => 9}]
+        },
+        teams: %{
+          "my_org" => %{
+            "my_team" => %{:id => 7},
+            "my_other_team" => %{:id => 8},
+            "my_go_team" => %{:id => 9},
+        }},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test 2",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000002",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
+        reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0, "approvers" => ["user9"]},
+        2 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0, "approvers" => ["user4"]}},
+        files: %{"Z" => %{"bors.toml" =>
+          ~s"""
+          status = [ "ci" ]
+          pr_status = [ "cn" ]
+          use_codeowners = true
+          """},
+          "Y" => %{"/lib/go-mercury/init.go" =>
+            ~s"""
+            func init() {}
+            """},
+          "master" => %{".github/CODEOWNERS" =>
+            ~s"""
+            *.toml               @my_org/my_team @my_org/my_other_team
+            *.go                 @my_org/my_team @my_org/my_go_team
+            """},
+        },
+      }})
+    patch = %Patch{
+              project_id: proj.id,
+              pr_xref: 1,
+              commit: "Z",
+              into_branch: "master"}
+            |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch.id, "rvrr"}, proj.id)
+    patch_2 = %Patch{
+              project_id: proj.id,
+              pr_xref: 2,
+              commit: "Y",
+              into_branch: "master"}
+            |> Repo.insert!()
+    Batcher.handle_cast({:reviewed, patch_2.id, "rvrr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               comments: %{ 1 => []},
+               users: %{
+                "user1" => [%{:team_id => 7}, %{:team_id => 8}],
+                "user8" => [%{:team_id => 7}],
+                "user9" => [%{:team_id => 8}],
+                "user4" => [%{:team_id => 9}]
+                },
+               teams: %{
+                "my_org" => %{
+                  "my_team" => %{:id => 7},
+                  "my_other_team" => %{:id => 8},
+                  "my_go_team" => %{:id => 9},
+                  }},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "00000001",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test 2",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "00000002",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
+               statuses: %{"Z" => %{"bors" => :running, "cn" => :ok}, "Y" => %{"bors" => :waiting, "cn" => :ok}},
+               files: %{"Z" => %{"bors.toml" =>
+                 ~s"""
+                 status = [ "ci" ]
+                 pr_status = [ "cn" ]
+                 use_codeowners = true
+                 """},
+                 "Y" => %{"/lib/go-mercury/init.go" =>
+                 ~s"""
+                 func init() {}
+                 """},
+                 "master" => %{".github/CODEOWNERS" =>
+                   ~s"""
+                   *.toml               @my_org/my_team @my_org/my_other_team
+                   *.go                 @my_org/my_team @my_org/my_go_team
+                   """},
+               },
+               reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0, "approvers" => ["user9"]},
+               2 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0, "approvers" => ["user4"]}},
+             }}
+  end
+
 
   test "rejects a patch with a requested changes", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
