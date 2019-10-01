@@ -132,7 +132,6 @@ defmodule BorsNG.Worker.Batcher do
               patch.priority, 
               code_owners
             )
-            Logger.warn("Batch: #{inspect(batch)} #{inspect(is_new_batch)}" )
             %LinkPatchBatch{}
             |> LinkPatchBatch.changeset(%{
               batch_id: batch.id,
@@ -534,7 +533,7 @@ defmodule BorsNG.Worker.Batcher do
     if toml.use_codeowners do
       code_owners_list = Enum.uniq(Enum.reduce(code_owners, [], fn x,y -> x ++ y end))
 
-      Logger.warn("Approved reviews: #{inspect(code_owners_list)}")
+      Logger.info("Approved reviews: #{inspect(code_owners_list)}")
 
       patch
       |> Patch.changeset(%{code_owners: code_owners_list})
@@ -551,22 +550,17 @@ defmodule BorsNG.Worker.Batcher do
   defp get_code_owners(repo_conn, patch, {:ok, toml}) do
 
     if toml.use_codeowners do
-      Logger.warn("Checking code owners for #{inspect(patch)}")
       {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
-      Logger.warn("CODEOWNERS file #{inspect(code_owner)}")
-
 
       {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
-      Logger.warn("Files found: #{inspect(files)}")
-
 
       required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
 
       passed_review = repo_conn
                       |> GitHub.get_reviews!(patch.pr_xref)
 
-      Logger.warn("Required reviews: #{inspect(required_reviews)}")
-      Logger.warn("Passed reviews: #{inspect(passed_review)}")
+      Logger.info("Required reviews: #{inspect(required_reviews)}")
+      Logger.info("Passed reviews: #{inspect(passed_review)}")
 
       # Convert the list of required reviewers into a list of true/false
       # true indicates that the reviewers requirement was satisfied,
@@ -579,19 +573,17 @@ defmodule BorsNG.Worker.Batcher do
             # Remove leading @ for team name
             # Split into org name and team name
             team_split = String.slice(required, 1, String.length(required)-1)
-                          |> String.split("/")
+                         |> String.split("/")
 
             # Lookup team ID -> needed later
             {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
-
-            Logger.warn("Team: #{inspect(team)}")
 
             # Loop through reviewers, if they are on the team accept their approval
             team_approved = Enum.any?(passed_review["approvers"], fn x ->
                 GitHub.belongs_to_team?(repo_conn, x, team.id)
             end)
 
-            Logger.warn("Approved: #{inspect(team_approved)}")
+            Logger.info("Approved: #{inspect(team_approved)}")
             team_approved
           end
         end)
@@ -689,7 +681,7 @@ defmodule BorsNG.Worker.Batcher do
 
   def get_new_batch(project_id, into_branch, priority, code_owners) do
 
-    batch = Batch
+    Batch
     |> where([b], b.project_id == ^project_id)
     |> where([b], b.state == ^(:waiting))
     |> where([b], b.into_branch == ^into_branch)
@@ -700,15 +692,13 @@ defmodule BorsNG.Worker.Batcher do
     |> case do
       [batch] -> 
         if code_owners do
-          is_not_the_same_code_owner_batch = batch.id
+          is_the_same_code_owner_batch = batch.id
           |> Patch.all_for_batch()
           |> limit(1)
           |> Repo.all()
           |> case do
             [patch] -> 
-              Logger.warn("Code owners here: #{inspect(code_owners)} #{inspect(patch.code_owners)}")
               if patch.code_owners && !Enum.empty?(patch.code_owners -- code_owners) do
-                Logger.warn("Hereee")
                 true
               else
                 false
@@ -716,8 +706,7 @@ defmodule BorsNG.Worker.Batcher do
             _ -> false
             end
 
-          if is_not_the_same_code_owner_batch do
-            Logger.warn("Hereee2")
+          if is_the_same_code_owner_batch do
             {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
           else
             {batch, false}
@@ -727,8 +716,6 @@ defmodule BorsNG.Worker.Batcher do
         end
       _ -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
     end
-
-    batch
   
   end
 
