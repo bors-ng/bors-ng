@@ -168,9 +168,11 @@ defmodule BorsNG.GitHub.ServerMock do
 
   def do_handle_call(:get_pr_files, repo_conn, {pr_xref}, state) do
 
+   helper_file_map = %{1 => "Z", 2 => "Y"}
+
    files = with {:ok, repo} <- Map.fetch(state, repo_conn),
          {:ok, files} <- Map.fetch(repo, :files) do
-        fil = Enum.map(files["Z"], fn {k,v} ->
+        fil = Enum.map(files[helper_file_map[pr_xref]], fn {k,v} ->
           %BorsNG.GitHub.File{filename: k}
         end)
       else

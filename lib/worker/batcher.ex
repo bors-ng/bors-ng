@@ -115,14 +115,24 @@ defmodule BorsNG.Worker.Batcher do
         # This will cause the PR to start after the patch's scheduled delay
         project = Repo.get!(Project, patch.project_id)
         repo_conn = get_repo_conn(project)
-        case patch_preflight(repo_conn, patch) do
+        
+        toml = Batcher.GetBorsToml.get(
+          repo_conn,
+          patch.commit)
+
+        code_owners = get_code_owners(repo_conn, patch, toml)
+
+        patch = update_patch_code_owners(code_owners, patch, toml)
+        
+        case patch_preflight(repo_conn, patch, code_owners, toml) do
           :ok ->
             {batch, is_new_batch} = get_new_batch(
               project_id,
               patch.into_branch,
               patch.priority, 
-              patch.code_owners
+              code_owners
             )
+            Logger.warn("Batch: #{inspect(batch)} #{inspect(is_new_batch)}" )
             %LinkPatchBatch{}
             |> LinkPatchBatch.changeset(%{
               batch_id: batch.id,
@@ -516,118 +526,128 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  defp patch_preflight(repo_conn, patch) do
-    if Patch.ci_skip?(patch) do
-      {:error, :ci_skip}
-    else
-      toml = Batcher.GetBorsToml.get(
-        repo_conn,
-        patch.commit)
-      patch_preflight(repo_conn, patch, toml)
-    end
+  defp update_patch_code_owners(_code_owners, patch, {:error, _}) do
+    patch
   end
 
-  defp patch_preflight(_repo_conn, _patch, {:error, _}) do
-    :ok
-  end
-
-  defp get_code_owners(repo_conn, patch) do
-
-    Logger.info("Checking code owners")
-    {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
-    Logger.info("CODEOWNERS file #{inspect(code_owner)}")
-
-
-    {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
-    Logger.info("Files found: #{inspect(files)}")
-
-
-    required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
-
-    passed_review = repo_conn
-                    |> GitHub.get_reviews!(patch.pr_xref)
-
-    Logger.warn("Required reviews: #{inspect(required_reviews)}")
-    Logger.warn("Passed reviews: #{inspect(passed_review)}")
-
-    # Convert the list of required reviewers into a list of true/false
-    # true indicates that the reviewers requirement was satisfied,
-    # false if it is open
-    approved_reviews = Enum.map(required_reviews, fn x ->
-
-      # Convert a list of OR reviewers into a true or false
-      Enum.filter(x, fn required ->
-        if String.contains?(required, "/") do
-          # Remove leading @ for team name
-          # Split into org name and team name
-          team_split = String.slice(required, 1, String.length(required)-1)
-                        |> String.split("/")
-
-          # Lookup team ID -> needed later
-          {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
-
-          Logger.warn("Team: #{inspect(team)}")
-
-          # Loop through reviewers, if they are on the team accept their approval
-          team_approved = Enum.any?(passed_review["approvers"], fn x ->
-              GitHub.belongs_to_team?(repo_conn, x, team.id)
-          end)
-
-          Logger.warn("Approved: #{inspect(team_approved)}")
-          team_approved
-        end
-      end)
-    end)
-
-    approved_reviews
-  end
-
-
-  defp patch_preflight(repo_conn, patch, {:ok, toml}) do
-    passed_label = repo_conn
-    |> GitHub.get_labels!(patch.pr_xref)
-    |> MapSet.new()
-    |> MapSet.disjoint?(MapSet.new(toml.block_labels))
-    passed_status = repo_conn
-    |> GitHub.get_commit_status!(patch.commit)
-    |> Enum.filter(fn {_, status} -> status != :ok end)
-    |> Enum.map(fn {context, _} -> context end)
-    |> MapSet.new()
-    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
-
-    code_owners_approved = if !toml.use_codeowners do
-      true
-    else
-      code_owners = get_code_owners(repo_conn, patch)
-
-      code_owner_approval = Enum.reduce(code_owners, true, fn x,acc -> !Enum.empty?(x) && acc  end)
+  defp update_patch_code_owners(code_owners, patch, {:ok, toml}) do
+    if toml.use_codeowners do
       code_owners_list = Enum.uniq(Enum.reduce(code_owners, [], fn x,y -> x ++ y end))
 
       Logger.warn("Approved reviews: #{inspect(code_owners_list)}")
-      Logger.warn("Code Owner approval: #{inspect(code_owner_approval)}")
 
       patch
       |> Patch.changeset(%{code_owners: code_owners_list})
       |> Repo.update!()
-
-      code_owner_approval
-    
+    else
+      patch
     end
+  end
 
-    passed_review = repo_conn
-    |> GitHub.get_reviews!(patch.pr_xref)
-    |> reviews_status(toml)
+  defp get_code_owners(_repo_conn, _patch, {:error, _}) do
+    []
+  end
+
+  defp get_code_owners(repo_conn, patch, {:ok, toml}) do
+
+    if toml.use_codeowners do
+      Logger.warn("Checking code owners for #{inspect(patch)}")
+      {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
+      Logger.warn("CODEOWNERS file #{inspect(code_owner)}")
 
 
-    Logger.info("Code review status: Label Check #{passed_label} Passed Status: #{passed_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}")
+      {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
+      Logger.warn("Files found: #{inspect(files)}")
 
-    case {passed_label, passed_status, passed_review, code_owners_approved} do
-      {true, true, :sufficient, true} -> :ok
-      {false, _, _, _}             -> {:error, :blocked_labels}
-      {_, false, _, _}             -> {:error, :pr_status}
-      {_, _, :insufficient, _}     -> {:error, :insufficient_approvals}
-      {_, _, :failed, _}           -> {:error, :blocked_review}
-      {_, _, _, false}             -> {:error, :missing_code_owner_approval}
+
+      required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
+
+      passed_review = repo_conn
+                      |> GitHub.get_reviews!(patch.pr_xref)
+
+      Logger.warn("Required reviews: #{inspect(required_reviews)}")
+      Logger.warn("Passed reviews: #{inspect(passed_review)}")
+
+      # Convert the list of required reviewers into a list of true/false
+      # true indicates that the reviewers requirement was satisfied,
+      # false if it is open
+      approved_reviews = Enum.map(required_reviews, fn x ->
+
+        # Convert a list of OR reviewers into a true or false
+        Enum.filter(x, fn required ->
+          if String.contains?(required, "/") do
+            # Remove leading @ for team name
+            # Split into org name and team name
+            team_split = String.slice(required, 1, String.length(required)-1)
+                          |> String.split("/")
+
+            # Lookup team ID -> needed later
+            {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
+
+            Logger.warn("Team: #{inspect(team)}")
+
+            # Loop through reviewers, if they are on the team accept their approval
+            team_approved = Enum.any?(passed_review["approvers"], fn x ->
+                GitHub.belongs_to_team?(repo_conn, x, team.id)
+            end)
+
+            Logger.warn("Approved: #{inspect(team_approved)}")
+            team_approved
+          end
+        end)
+      end)
+
+      approved_reviews
+    else
+      []
+    end
+  
+  end
+
+  defp patch_preflight(_repo_conn, patch, _code_owners, {:error, _}) do
+    if Patch.ci_skip?(patch) do
+      {:error, :ci_skip}
+    else
+      :ok
+    end
+  end
+
+  defp patch_preflight(repo_conn, patch, code_owners, {:ok, toml}) do
+    if Patch.ci_skip?(patch) do
+      {:error, :ci_skip}
+    else
+      passed_label = repo_conn
+      |> GitHub.get_labels!(patch.pr_xref)
+      |> MapSet.new()
+      |> MapSet.disjoint?(MapSet.new(toml.block_labels))
+      passed_status = repo_conn
+      |> GitHub.get_commit_status!(patch.commit)
+      |> Enum.filter(fn {_, status} -> status != :ok end)
+      |> Enum.map(fn {context, _} -> context end)
+      |> MapSet.new()
+      |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+
+      code_owners_approved = if Enum.empty?(code_owners) do
+        true
+      else
+        Enum.reduce(code_owners, true, fn x,acc -> !Enum.empty?(x) && acc  end)
+      end
+
+      passed_review = repo_conn
+      |> GitHub.get_reviews!(patch.pr_xref)
+      |> reviews_status(toml)
+
+
+      Logger.info("Code review status: Label Check #{passed_label} Passed Status: #{passed_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}")
+
+      case {passed_label, passed_status, passed_review, code_owners_approved} do
+        {true, true, :sufficient, true} -> :ok
+        {false, _, _, _}             -> {:error, :blocked_labels}
+        {_, false, _, _}             -> {:error, :pr_status}
+        {_, _, :insufficient, _}     -> {:error, :insufficient_approvals}
+        {_, _, :failed, _}           -> {:error, :blocked_review}
+        {_, _, _, false}             -> {:error, :missing_code_owner_approval}
+      end
     end
   end
 
@@ -679,27 +699,36 @@ defmodule BorsNG.Worker.Batcher do
     |> Repo.all()
     |> case do
       [batch] -> 
-        is_the_same_code_owner_batch = batch.id
-        |> Patch.all_for_batch()
-        |> limit(1)
-        |> Repo.all()
-        |> case do
-          [patch] -> 
-            if patch.code_owners && code_owners && Enum.empty?(patch.code_owners -- code_owners) do
-              true
-            else
-              false
+        if code_owners do
+          is_not_the_same_code_owner_batch = batch.id
+          |> Patch.all_for_batch()
+          |> limit(1)
+          |> Repo.all()
+          |> case do
+            [patch] -> 
+              Logger.warn("Code owners here: #{inspect(code_owners)} #{inspect(patch.code_owners)}")
+              if patch.code_owners && !Enum.empty?(patch.code_owners -- code_owners) do
+                Logger.warn("Hereee")
+                true
+              else
+                false
+              end
+            _ -> false
             end
-          _ -> false
-          end
 
-        if is_the_same_code_owner_batch do
-          {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
+          if is_not_the_same_code_owner_batch do
+            Logger.warn("Hereee2")
+            {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
+          else
+            {batch, false}
+          end
         else
           {batch, false}
         end
       _ -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
     end
+
+    batch
   
   end
 
