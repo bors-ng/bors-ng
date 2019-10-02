@@ -539,24 +539,24 @@ defmodule BorsNG.Worker.Batcher do
 
       all_code_owners = patch.id
       |> CodeOwnerReviewer.all_for_patch()
+      |> Repo.all()
 
       for co <- code_owners_list do
-        all_code_owners
-        |> where([c], c.name == ^co)
-        |> case do
-          [code_owner] ->
+        if !Enum.empty?(all_code_owners) do
+          for code_owner_reviewer <- all_code_owners do
             %LinkPatchCodeOwnerReviewer{}
             |> LinkPatchCodeOwnerReviewer.changeset(%{
               patch_id: patch.id,
-              code_owner_reviewer_id: code_owner.id})
+              code_owner_reviewer_id: code_owner_reviewer.id})
             |> Repo.insert!()
-          _ ->
-            code_owner = Repo.insert!(%CodeOwnerReviewer{name: co})
-            %LinkPatchCodeOwnerReviewer{}
-            |> LinkPatchCodeOwnerReviewer.changeset(%{
-              patch_id: patch.id,
-              code_owner_reviewer_id: code_owner.id})
-            |> Repo.insert!()
+          end
+        else
+          code_owner_reviewer = Repo.insert!(%CodeOwnerReviewer{name: co})
+          %LinkPatchCodeOwnerReviewer{}
+          |> LinkPatchCodeOwnerReviewer.changeset(%{
+            patch_id: patch.id,
+            code_owner_reviewer_id: code_owner_reviewer.id})
+          |> Repo.insert!()
         end
       end
     end
