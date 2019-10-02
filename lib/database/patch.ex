@@ -21,7 +21,7 @@ defmodule BorsNG.Database.Patch do
     field :commit, :string
     field :open, :boolean, default: true
     field :priority, :integer, default: 0
-    field :code_owners, {:array, :string}
+    has_many :code_owners, LinkPatchCodeOwners 
     belongs_to :author, User
     timestamps()
   end

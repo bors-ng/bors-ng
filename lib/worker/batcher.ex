@@ -27,10 +27,12 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Batch
   alias BorsNG.Database.BatchState
+  alias BorsNG.Database.CodeOwners
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Status
   alias BorsNG.Database.LinkPatchBatch
+  alias BorsNG.Database.LinkPatchCodeOwners
   alias BorsNG.GitHub
   alias BorsNG.Endpoint
   import BorsNG.Router.Helpers
@@ -535,12 +537,29 @@ defmodule BorsNG.Worker.Batcher do
 
       Logger.info("Approved reviews: #{inspect(code_owners_list)}")
 
-      patch
-      |> Patch.changeset(%{code_owners: code_owners_list})
-      |> Repo.update!()
-    else
-      patch
+      all_code_owners = patch.id
+      |> CodeOwners.all_for_patch()
+
+      for co <- code_owners_list do
+        all_code_owners
+        |> where([c], c.name == ^co)
+        |> case do
+          [code_owner] ->
+            %LinkPatchCodeOwners{}
+            |> LinkPatchCodeOwners.changeset(%{
+              patch_id: patch.id,
+              code_owner_id: code_owner.id})
+          _ ->
+            code_owner = Repo.insert!(%CodeOwners{name: co})
+            %LinkPatchCodeOwners{}
+            |> LinkPatchCodeOwners.changeset(%{
+              patch_id: patch.id,
+              code_owner_id: code_owner.id})
+        end
+      end
     end
+
+    patch
   end
 
   defp get_code_owners(_repo_conn, _patch, {:error, _}) do
@@ -698,7 +717,9 @@ defmodule BorsNG.Worker.Batcher do
           |> Repo.all()
           |> case do
             [patch] -> 
-              if patch.code_owners && !Enum.empty?(patch.code_owners -- code_owners) do
+              patch_code_owners = CodeOwners.all_for_patch(patch.id)
+              |> Repo.all()
+              if patch_code_owners && !Enum.empty?(patch_code_owners -- code_owners) do
                 true
               else
                 false
