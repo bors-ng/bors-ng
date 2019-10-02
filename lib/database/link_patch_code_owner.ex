@@ -1,5 +1,8 @@
 defmodule BorsNG.Database.LinkPatchCodeOwnerReviewer do
-
+  @moduledoc """
+  The connection between a Patch and the Code Owners Reviewers, with that
+  you can get all the code owners reviewers for a single Patch.
+  """
   use BorsNG.Database.Model
   
   schema "link_patch_code_owner_reviewers" do

@@ -583,12 +583,9 @@ defmodule BorsNG.Worker.Batcher do
       Logger.info("Required reviews: #{inspect(required_reviews)}")
       Logger.info("Passed reviews: #{inspect(passed_review)}")
 
-      # Convert the list of required reviewers into a list of true/false
-      # true indicates that the reviewers requirement was satisfied,
-      # false if it is open
       approved_reviews = Enum.map(required_reviews, fn x ->
 
-        # Convert a list of OR reviewers into a true or false
+        # Filter teams that owns the code and approved the PR
         Enum.filter(x, fn required ->
           if String.contains?(required, "/") do
             # Remove leading @ for team name

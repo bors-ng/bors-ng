@@ -1,4 +1,7 @@
 defmodule BorsNG.Database.CodeOwnerReviewer do
+  @moduledoc """
+  Code Owner Reviewers, they come from the .github/CODEOWNERS file.
+  """
 
   use BorsNG.Database.Model
   
