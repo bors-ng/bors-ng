@@ -549,12 +549,14 @@ defmodule BorsNG.Worker.Batcher do
             |> LinkPatchCodeOwners.changeset(%{
               patch_id: patch.id,
               code_owner_id: code_owner.id})
+            |> Repo.insert!()
           _ ->
             code_owner = Repo.insert!(%CodeOwners{name: co})
             %LinkPatchCodeOwners{}
             |> LinkPatchCodeOwners.changeset(%{
               patch_id: patch.id,
               code_owner_id: code_owner.id})
+            |> Repo.insert!()
         end
       end
     end

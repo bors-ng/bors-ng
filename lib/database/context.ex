@@ -22,8 +22,10 @@ defmodule BorsNG.Database.Context do
       alias BorsNG.Database.Attempt
       alias BorsNG.Database.AttemptStatus
       alias BorsNG.Database.Batch
+      alias BorsNG.Database.CodeOwners
       alias BorsNG.Database.Installation
       alias BorsNG.Database.LinkPatchBatch
+      alias BorsNG.Database.LinkPatchCodeOwners
       alias BorsNG.Database.LinkUserProject
       alias BorsNG.Database.LinkMemberProject
       alias BorsNG.Database.Log
