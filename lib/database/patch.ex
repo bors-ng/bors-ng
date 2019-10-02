@@ -21,8 +21,8 @@ defmodule BorsNG.Database.Patch do
     field :commit, :string
     field :open, :boolean, default: true
     field :priority, :integer, default: 0
-    has_many :code_owners, LinkPatchCodeOwners 
     belongs_to :author, User
+    has_many :code_owners, LinkPatchCodeOwnerReviewer 
     timestamps()
   end
 
@@ -41,8 +41,7 @@ defmodule BorsNG.Database.Patch do
       :author_id,
       :open,
       :into_branch,
-      :priority,
-      :code_owners])
+      :priority])
     |> unique_constraint(:pr_xref, name: :patches_pr_xref_index)
   end
 

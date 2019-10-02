@@ -1,11 +1,11 @@
-defmodule BorsNG.Database.CodeOwners do
+defmodule BorsNG.Database.CodeOwnerReviewer do
 
   use BorsNG.Database.Model
   
   @type t :: %__MODULE__{}
   @type id :: pos_integer
   
-  schema "code_owners" do
+  schema "code_owner_reviewers" do
     field :name, :string
   end
 
@@ -17,13 +17,13 @@ defmodule BorsNG.Database.CodeOwners do
     struct
     |> cast(params, [
       :name])
-    |> unique_constraint(:name, name: :code_owners_name_index)
+    |> unique_constraint(:name, name: :code_owner_reviewer_name_index)
   end
 
   @spec all_for_patch(Patch.id) :: Ecto.Queryable.t
   def all_for_patch(patch_id) do
-    from c in CodeOwners,
-      join: l in LinkPatchCodeOwners, on: l.code_owners_id == c.id,
+    from c in CodeOwnerReviewer,
+      join: l in LinkPatchCodeOwnerReviewer, on: l.code_owner_reviewer_id == c.id,
       where: l.patch_id == ^patch_id
   end
 end

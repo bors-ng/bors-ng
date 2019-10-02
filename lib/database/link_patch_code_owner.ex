@@ -1,10 +1,10 @@
-defmodule BorsNG.Database.LinkPatchCodeOwners do
+defmodule BorsNG.Database.LinkPatchCodeOwnerReviewer do
 
   use BorsNG.Database.Model
   
-  schema "link_patch_code_owners" do
+  schema "link_patch_code_owner_reviewers" do
     belongs_to :patch, Patch
-    belongs_to :code_owners, CodeOwners
+    belongs_to :code_owner_reviewer, CodeOwnerReviewer
   end
 
   @doc """
@@ -12,8 +12,8 @@ defmodule BorsNG.Database.LinkPatchCodeOwners do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:patch_id, :code_owners_id])
-    |> validate_required([:patch_id, :code_owners_id])
+    |> cast(params, [:patch_id, :code_owner_reviewer_id])
+    |> validate_required([:patch_id, :code_owner_reviewer_id])
   end
 end
   

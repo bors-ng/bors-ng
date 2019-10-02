@@ -27,12 +27,12 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Batch
   alias BorsNG.Database.BatchState
-  alias BorsNG.Database.CodeOwners
+  alias BorsNG.Database.CodeOwnerReviewer
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Status
   alias BorsNG.Database.LinkPatchBatch
-  alias BorsNG.Database.LinkPatchCodeOwners
+  alias BorsNG.Database.LinkPatchCodeOwnerReviewer
   alias BorsNG.GitHub
   alias BorsNG.Endpoint
   import BorsNG.Router.Helpers
@@ -538,24 +538,24 @@ defmodule BorsNG.Worker.Batcher do
       Logger.info("Approved reviews: #{inspect(code_owners_list)}")
 
       all_code_owners = patch.id
-      |> CodeOwners.all_for_patch()
+      |> CodeOwnerReviewer.all_for_patch()
 
       for co <- code_owners_list do
         all_code_owners
         |> where([c], c.name == ^co)
         |> case do
           [code_owner] ->
-            %LinkPatchCodeOwners{}
-            |> LinkPatchCodeOwners.changeset(%{
+            %LinkPatchCodeOwnerReviewer{}
+            |> LinkPatchCodeOwnerReviewer.changeset(%{
               patch_id: patch.id,
-              code_owner_id: code_owner.id})
+              code_owner_reviewer_id: code_owner.id})
             |> Repo.insert!()
           _ ->
-            code_owner = Repo.insert!(%CodeOwners{name: co})
-            %LinkPatchCodeOwners{}
-            |> LinkPatchCodeOwners.changeset(%{
+            code_owner = Repo.insert!(%CodeOwnerReviewer{name: co})
+            %LinkPatchCodeOwnerReviewer{}
+            |> LinkPatchCodeOwnerReviewer.changeset(%{
               patch_id: patch.id,
-              code_owner_id: code_owner.id})
+              code_owner_reviewer_id: code_owner.id})
             |> Repo.insert!()
         end
       end
@@ -719,7 +719,7 @@ defmodule BorsNG.Worker.Batcher do
           |> Repo.all()
           |> case do
             [patch] -> 
-              patch_code_owners = CodeOwners.all_for_patch(patch.id)
+              patch_code_owners = CodeOwnerReviewer.all_for_patch(patch.id)
               |> Repo.all()
               if patch_code_owners && !Enum.empty?(patch_code_owners -- code_owners) do
                 true
