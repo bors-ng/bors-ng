@@ -3,7 +3,7 @@ defmodule BorsNG.Database.Repo.Migrations.AddCodeOwnersPatch do
 
   def change do
     create table(:code_owner_reviewers) do
-      add :name, :text
+      add :name, :string, size: 150
     end
     
     create index(:code_owner_reviewers, [:name], 
