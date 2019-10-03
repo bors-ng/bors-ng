@@ -109,7 +109,6 @@ defmodule BorsNG.GitHub.Server do
                 |> GitHub.Pr.from_json!()
            {:ok, pr}
          %{body: body, status: status} ->
-           IO.inspect({:error, :push, body})
            {:error, :push, status, body}
        end
   end
