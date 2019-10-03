@@ -220,7 +220,6 @@ defmodule BorsNG.GitHub.Server do
         err ->
           {:error, :merge_branch, err}
       end
-#    |> Enum.map(&GitHub.Commit.from_json!/1)
 
     resp
   end
