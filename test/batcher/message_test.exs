@@ -49,6 +49,18 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     assert expected_message == actual_message
   end
 
+  test "generate denied message" do
+    expected_message = "# Merge denied"
+    actual_message = Message.generate_message({:denied, :failed})
+    assert expected_message == actual_message
+  end
+
+  test "generate denied/retry message" do
+    expected_message = "# Merge denied (retrying...)"
+    actual_message = Message.generate_message({:denied, :retrying})
+    assert expected_message == actual_message
+  end
+
   test "generate commit message" do
     expected_message = """
     Merge #1 #2

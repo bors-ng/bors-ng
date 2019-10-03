@@ -24,6 +24,9 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_status(:conflict) do
     {"Merge conflict", :error}
   end
+  def generate_status(:denied) do
+    {"Merge denied", :error}
+  end
   def generate_status(:delayed) do
     {"Delayed for higher-priority pull requests", :running}
   end
@@ -69,6 +72,12 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
   def generate_message({:canceled, :retrying}) do
     "# Canceled (will resume)"
+  end
+  def generate_message({:denied, :failed}) do
+    "# Merge denied"
+  end
+  def generate_message({:denied, :retrying}) do
+    "# Merge denied (retrying...)"
   end
   def generate_message({state, statuses}) do
     is_new_year = get_is_new_year()

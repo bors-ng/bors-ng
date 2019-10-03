@@ -389,15 +389,29 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    {:ok, _} = push_with_retry(
+    result = push_with_retry(
       repo_conn,
       batch.commit,
       batch.into_branch)
-    patches = batch.id
-    |> Patch.all_for_batch()
-    |> Repo.all()
 
-    send_message(repo_conn, patches, {:succeeded, statuses})
+    case result do
+      {:ok, _} ->
+        patches = batch.id
+        |> Patch.all_for_batch()
+        |> Repo.all()
+        send_message(repo_conn, patches, {:succeeded, statuses})
+      {:error, :push, status, _} ->
+        patch_links = batch.id
+        |> LinkPatchBatch.from_batch()
+        |> Repo.all()
+        patches = Enum.map(patch_links, &(&1.patch))
+        state = bisect(patch_links, batch)
+        if status == 422 do
+          send_message(repo_conn, patches, {:denied, state})
+        else
+          send_message(repo_conn, patches, {:error, state})
+        end
+    end
   end
 
   defp complete_batch(:error, batch, statuses) do
@@ -424,6 +438,7 @@ defmodule BorsNG.Worker.Batcher do
       into_branch)
     case result do
       {:ok, _} -> result
+      {:error, _} -> result
       _ when timeout >= 512 -> result
       _ -> push_with_retry(repo_conn, commit, into_branch, timeout * 2)
     end
