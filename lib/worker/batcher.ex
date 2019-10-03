@@ -290,6 +290,23 @@ defmodule BorsNG.Worker.Batcher do
     |> Batch.changeset(%{state: status, commit: commit, last_polled: now})
     |> Repo.update!()
 
+    Project.ping!(batch.project_id)
+    status
+  end
+
+  defp start_waiting_merged_batch(_batch, [], _, _) do
+    {:canceled, nil}
+  end
+
+  defp start_waiting_merged_batch(batch, patch_links, base, %{tree: tree}) do
+    repo_conn = get_repo_conn(batch.project)
+    patches = Enum.map(patch_links, &(&1.patch))
+
+    repo_conn
+    |> Batcher.GetBorsToml.get("#{batch.project.staging_branch}.tmp")
+    |> case do
+      {:ok, toml} ->
+        parents = if toml.use_squash_merge do
           stmp = "#{batch.project.staging_branch}.tmp2"
           GitHub.force_push!(repo_conn, base.commit, stmp)
 
@@ -353,16 +370,18 @@ defmodule BorsNG.Worker.Batcher do
           parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
           parents
         end
-        commit_message = Batcher.Message.generate_commit_message(
-          patch_links,
-          toml.cut_body_after,
-          gather_co_authors(batch, patch_links))
 
         head = if toml.use_squash_merge do
+          # This will avoid creating a merge commit, which is important since it will prevent
+          # bors from polluting th git blame history with it's own name
             head = Enum.at(parents, 0)
             GitHub.force_push!(repo_conn, head, batch.project.staging_branch)
             head
         else
+          commit_message = Batcher.Message.generate_commit_message(
+            patch_links,
+            toml.cut_body_after,
+            gather_co_authors(batch, patch_links))
           GitHub.synthesize_commit!(
             repo_conn,
             %{
@@ -372,7 +391,7 @@ defmodule BorsNG.Worker.Batcher do
               commit_message: commit_message,
               committer: toml.committer})
         end
-        
+
         setup_statuses(batch, toml)
         {:running, head}
       {:error, message} ->
