@@ -315,7 +315,8 @@ defmodule BorsNG.Worker.Batcher do
               Enum.at(commits, 0).author_email
             end
 
-            source_sha = Enum.at(commits, length(commits)-1).sha
+            # The head sha is the final commit in the PR.
+            source_sha =  pr.head_sha
             Logger.info("Staging branch #{stmp}")
             Logger.info("Commit sha #{source_sha}")
 
@@ -323,7 +324,7 @@ defmodule BorsNG.Worker.Batcher do
             # because each PR is merged on top of each other in stmp, we can verify against any merge conflicts
             merge_commit = GitHub.merge_branch!(repo_conn,
                %{
-               from: Enum.at(commits, length(commits)-1).sha,
+               from: source_sha,
                to: stmp,
                  commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{source_sha}"}
             )
@@ -358,7 +359,7 @@ defmodule BorsNG.Worker.Batcher do
           gather_co_authors(batch, patch_links))
 
         head = if toml.use_squash_merge do
-                                        head = Enum.at(parents, 0)
+            head = Enum.at(parents, 0)
             GitHub.force_push!(repo_conn, head, batch.project.staging_branch)
             head
         else
