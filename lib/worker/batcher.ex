@@ -438,7 +438,7 @@ defmodule BorsNG.Worker.Batcher do
       into_branch)
     case result do
       {:ok, _} -> result
-      {:error, _} -> result
+      {:error, _, _, _} -> result
       _ when timeout >= 512 -> result
       _ -> push_with_retry(repo_conn, commit, into_branch, timeout * 2)
     end
