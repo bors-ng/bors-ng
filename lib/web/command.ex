@@ -134,6 +134,10 @@ defmodule BorsNG.Command do
   def parse_cmd("r+" <> _), do: [:activate]
   def parse_cmd("r-" <> _), do: [:deactivate]
   def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
+  def parse_cmd("merge-" <> _), do: [:deactivate]
+  def parse_cmd("merge p=" <> rest), do: parse_priority(rest) ++ [:activate]
+  def parse_cmd("merge=" <> arguments), do: parse_activation_args(arguments)
+  def parse_cmd("merge" <> _), do: [:activate]
   def parse_cmd("delegate+" <> _), do: [:delegate]
   def parse_cmd("delegate=" <> arguments), do: parse_delegation_args(arguments)
   def parse_cmd("d+" <> _), do: [:delegate]
