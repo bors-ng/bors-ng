@@ -1,3 +1,5 @@
+require Logger
+
 defmodule BorsNG.GitHub do
 
   @moduledoc """
@@ -49,6 +51,18 @@ defmodule BorsNG.GitHub do
     {:ok, BorsNG.GitHub.Pr.t} | {:error, term}
   def get_pr(repo_conn, pr_xref) do
     GenServer.call(BorsNG.GitHub, {:get_pr, repo_conn, {pr_xref}}, Confex.fetch_env!(:bors, :api_github_timeout))
+  end
+
+  @spec update_pr!(tconn, BorsNG.GitHub.Pr.t) :: BorsNG.GitHub.Pr.t
+  def update_pr!(repo_conn, pr) do
+    {:ok, pr} = update_pr(repo_conn, pr)
+    pr
+  end
+
+  @spec update_pr(tconn, BorsNG.GitHub.Pr.t) ::
+    {:ok, BorsNG.GitHub.Pr.t} | {:error, term}
+  def update_pr(repo_conn, pr) do
+    GenServer.call(BorsNG.GitHub, {:update_pr, repo_conn, pr}, Confex.fetch_env!(:bors, :api_github_timeout))
   end
 
   @spec get_pr_commits!(tconn, integer | bitstring) :: [BorsNG.GitHub.Commit.t]
@@ -126,6 +140,31 @@ defmodule BorsNG.GitHub do
       {:synthesize_commit, repo_conn, {info}},
       Confex.fetch_env!(:bors, :api_github_timeout))
     sha
+  end
+
+  @spec create_commit!(tconn, %{
+    tree: bitstring,
+    parents: [bitstring],
+    commit_message: bitstring,
+    committer: tcommitter | nil}) :: binary
+  def create_commit!(repo_conn, info) do
+    {:ok, sha} = GenServer.call(
+      BorsNG.GitHub,
+      {:create_commit, repo_conn, {info}},
+      Confex.fetch_env!(:bors, :api_github_timeout))
+    sha
+  end
+
+  @spec create_commit(tconn, %{
+    tree: bitstring,
+    parents: [bitstring],
+    commit_message: bitstring,
+    committer: tcommitter | nil}) :: {:ok, binary} | {:error, term, term}
+  def create_commit(repo_conn, info) do
+    GenServer.call(
+      BorsNG.GitHub,
+      {:create_commit, repo_conn, {info}},
+      Confex.fetch_env!(:bors, :api_github_timeout))
   end
 
   @spec force_push!(tconn, binary, binary) :: binary

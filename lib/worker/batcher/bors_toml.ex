@@ -15,6 +15,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   defstruct status: [], block_labels: [], pr_status: [],
     timeout_sec: (60 * 60),
+    use_squash_merge: false,
     required_approvals: nil,
     cut_body_after: nil,
     delete_merged_branches: false,
@@ -27,6 +28,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   @type t :: %BorsNG.Worker.Batcher.BorsToml{
     status: [binary],
+    use_squash_merge: boolean,
     block_labels: [binary],
     pr_status: [binary],
     timeout_sec: integer,
@@ -71,6 +73,9 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
         toml = %BorsNG.Worker.Batcher.BorsToml{
           status: Map.get(toml, "status", []),
+          use_squash_merge: Map.get(toml,
+                    "use_squash_merge",
+                    false),
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
