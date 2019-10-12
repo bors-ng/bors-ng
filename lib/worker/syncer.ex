@@ -151,11 +151,25 @@ defmodule BorsNG.Worker.Syncer do
   @spec sync_user(GitHub.User.t) :: %User{}
   def sync_user(gh_user) do
     case Repo.get_by(User, user_xref: gh_user.id) do
-      nil -> Repo.insert!(%User{
-        user_xref: gh_user.id,
-        login: gh_user.login})
+      nil ->
+        case Repo.get_by(User, login: gh_user.login) do
+          nil ->
+            Repo.insert!(%User{
+              user_xref: gh_user.id,
+              login: gh_user.login})
+          user ->
+            if user.user_xref != gh_user.id do
+              Logger.debug("Syncer: sync_user: github user #{inspect(gh_user.login)} changed id from #{inspect(user.user_xref)} to #{inspect(gh_user.id)}")
+              user
+              |> User.changeset(%{user_xref: gh_user.id})
+              |> Repo.update!()
+            else
+              user
+            end
+        end
       user ->
         if user.login != gh_user.login do
+          Logger.debug("Syncer: sync_user: github user id #{inspect(gh_user.user_xref)} changed username from #{inspect(user.login)} to #{inspect(gh_user.login)}")
           user
           |> User.changeset(%{login: gh_user.login})
           |> Repo.update!()
