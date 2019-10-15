@@ -160,9 +160,14 @@ defmodule BorsNG.Worker.Syncer do
           user ->
             if user.user_xref != gh_user.id do
               Logger.debug("Syncer: sync_user: github user #{inspect(gh_user.login)} changed id from #{inspect(user.user_xref)} to #{inspect(gh_user.id)}")
+              # Rename the user we had in the database to a login that's not a valid github login
               user
-              |> User.changeset(%{user_xref: gh_user.id})
+              |> User.changeset(%{login: "#{user.login}/renamed/#{user.id}"})
               |> Repo.update!()
+              # And then insert a new one for the actual new user
+              Repo.insert!(%User{
+                user_xref: gh_user.id,
+                login: gh_user.login})
             else
               user
             end
