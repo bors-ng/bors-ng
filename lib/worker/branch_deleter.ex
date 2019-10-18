@@ -72,7 +72,7 @@ defmodule BorsNG.Worker.BranchDeleter do
 
     pr_squash_merged = String.starts_with?(pr.title, "[Merged by Bors] - ")
 
-    if pr_in_same_repo && delete_merged_branches && (pr.merged || pr_closed) do
+    if pr_in_same_repo && delete_merged_branches do
       cond do
         pr.merged ->
           GitHub.delete_branch!(conn, pr.head_ref)
