@@ -6,8 +6,8 @@ tasks:
   # The bors build queue (build release)
   - $if: 'tasks_for == "github-push" && event["ref"] in ["refs/heads/staging", "refs/heads/trying"]'
     then:
-      provisionerId: 'aws-provisioner-v1'
-      workerType: 'github-worker'
+      provisionerId: 'proj-bors-ng'
+      workerType: 'ci'
       deadline: {$fromNow: 1 day}
       expires: {$fromNow: 1 year}
       payload:
@@ -34,8 +34,8 @@ tasks:
   # The bors build queue (test suite)
   - $if: 'tasks_for == "github-push" && event["ref"] in ["refs/heads/staging", "refs/heads/trying"]'
     then:
-      provisionerId: 'aws-provisioner-v1'
-      workerType: 'github-worker'
+      provisionerId: 'proj-bors-ng'
+      workerType: 'ci'
       deadline: {$fromNow: 1 day}
       expires: {$fromNow: 1 year}
       payload:
@@ -61,8 +61,8 @@ tasks:
     # The bors build queue (static analysis)
   - $if: 'tasks_for == "github-push" && event["ref"] in ["refs/heads/staging", "refs/heads/trying"]'
     then:
-      provisionerId: 'aws-provisioner-v1'
-      workerType: 'github-worker'
+      provisionerId: 'proj-bors-ng'
+      workerType: 'ci'
       deadline: {$fromNow: 1 day}
       expires: {$fromNow: 1 year}
       payload:
@@ -87,8 +87,8 @@ tasks:
   # The pull request builder (static analysis)
   - $if: 'tasks_for == "github-pull-request" && event["action"] in ["opened", "reopened", "synchronize"]'
     then:
-      provisionerId: 'aws-provisioner-v1'
-      workerType: 'github-worker'
+      provisionerId: 'proj-bors-ng'
+      workerType: 'ci'
       deadline: {$fromNow: 1 day}
       expires: {$fromNow: 1 year}
       payload:
