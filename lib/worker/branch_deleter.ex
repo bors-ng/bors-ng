@@ -43,6 +43,8 @@ defmodule BorsNG.Worker.BranchDeleter do
     case GitHub.get_pr(conn, patch.pr_xref) do
       {:ok, %{merged: true} = pr} ->
         delete_branch(conn, pr)
+      {:ok, %{state: :closed} = pr} ->
+        delete_branch(conn, pr)
       {:ok, %{state: :open}} when attempt < @retries ->
         Process.send_after(self(),
           {:retry_delete, patch, attempt + 1},
@@ -66,8 +68,19 @@ defmodule BorsNG.Worker.BranchDeleter do
       _ -> false
     end
 
-    if pr_in_same_repo && delete_merged_branches && pr.merged do
-      GitHub.delete_branch!(conn, pr.head_ref)
+    pr_closed = pr.state == :closed
+
+    pr_squash_merged = String.starts_with?(pr.title, "[Merged by Bors] - ")
+
+    if pr_in_same_repo && delete_merged_branches do
+      cond do
+        pr.merged ->
+          GitHub.delete_branch!(conn, pr.head_ref)
+        pr_closed && pr_squash_merged ->
+          GitHub.delete_branch!(conn, pr.head_ref)
+        true ->
+          nil  
+      end
     end
   end
 
