@@ -166,7 +166,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
     	    "sender" => @def_user,
 	    "repository" => %{ "id" => @def_repo},
     	    "pull_request" => pr_to_json(pr),
-    	    "action" => "created" }},
+	    "action" => "opened" }},
           "github", "pull_request")
     number
   end
