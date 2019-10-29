@@ -73,7 +73,6 @@ defmodule BorsNG.GitHub.FriendlyMock do
   """
 
   alias BorsNG.GitHub.ServerMock
-  alias BorsNG.GitHub.FriendlyMock
   alias BorsNG.GitHub.Pr
   alias BorsNG.WebhookController
 
@@ -113,22 +112,22 @@ defmodule BorsNG.GitHub.FriendlyMock do
         comments: %{},
         statuses: %{},
         files: %{"master" => @def_files,
-		 "staging.tmp" => @def_files},
-	collaborators: %{},
-	pulls: %{},
-	pr_commits: %{}
+                 "staging.tmp" => @def_files},
+        collaborators: %{},
+        pulls: %{},
+        pr_commits: %{}
       }})
     # Notify Bors and sync.
     WebhookController.do_webhook(%{
-	  body_params: %{
-	    "installation" => %{ "id" => @def_inst },
-	    "sender" => @def_user,
-	    "action" => "created" }}, "github", "installation")
+          body_params: %{
+            "installation" => %{ "id" => @def_inst },
+            "sender" => @def_user,
+            "action" => "created" }}, "github", "installation")
     BorsNG.Worker.SyncerInstallation.wait_hot_spin_xref(@def_inst)
   end
 
   def prs(repo \\ @def_repo, inst \\ @def_inst) do
-    # How can I get both open and unopen PRs?
+    # Get open PRs
     BorsNG.GitHub.get_open_prs!({{:installation, inst}, repo})
   end
 
@@ -207,7 +206,6 @@ defmodule BorsNG.GitHub.FriendlyMock do
     Database.Repo.update! Database.User.changeset(user, %{is_admin: true})
   end
 
-
   def add_reviewer(repo \\ @def_repo, user \\ @def_user) do
     # Could try to replace this with calls to the phoenix server
     # to avoid the direct call to BorsNG.ProjectController
@@ -221,6 +219,10 @@ defmodule BorsNG.GitHub.FriendlyMock do
   end
 
   def full_example() do
+    # Example function.
+    # Call from iex with
+    #   iex> FriendlyMock.full_example
+    # Then modify, `recompile()` and run again.
     alias BorsNG.GitHub.FriendlyMock
     FriendlyMock.init_state
     FriendlyMock.make_admin
@@ -261,5 +263,9 @@ defmodule BorsNG.GitHub.FriendlyMock do
     "user" => user,
     "merged_at" => "some non-nul time :)",
     }
+  end
+
+  def get_state() do
+    ServerMock.get_state
   end
 end
