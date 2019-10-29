@@ -697,7 +697,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => [":clock1: Waiting for PR status (Github check) to be set, probably by CI."]},
+          1 => [":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."]},
         statuses: %{"Z" => %{"cn" => :running}},
         files: %{"Z" => %{"bors.toml" =>
           ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
@@ -713,7 +713,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => [":-1: Rejected by PR status", ":clock1: Waiting for PR status (Github check) to be set, probably by CI."]},
+          1 => [":-1: Rejected by PR status", ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."]},
         statuses: %{"Z" => %{"cn" => :error}},
         files: %{"Z" => %{"bors.toml" =>
           ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
@@ -743,7 +743,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => [":clock1: Waiting for PR status (Github check) to be set, probably by CI."]},
+          1 => [":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."]},
         statuses: %{"Z" => %{"cn" => :running}},
         files: %{"Z" => %{"bors.toml" =>
           ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
@@ -759,7 +759,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => [":clock1: Waiting for PR status (Github check) to be set, probably by CI."]},
+          1 => [":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."]},
         statuses: %{"Z" => %{"cn" => :ok, "bors" => :running}},
         files: %{"Z" => %{"bors.toml" =>
           ~s/status = [ "ci" ]\npr_status = [ "cn" ]/}},
