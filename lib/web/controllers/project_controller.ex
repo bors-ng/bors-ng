@@ -331,13 +331,9 @@ defmodule BorsNG.ProjectController do
             {:ok, "Successfully added #{user.login} as a reviewer"}
         end
     end
-    case conn do
-      nil -> msg
-      conn ->
-        conn
-        |> put_flash(state, msg)
-        |> redirect(to: project_path(conn, :settings, project))
-    end
+    conn
+    |> put_flash(state, msg)
+    |> redirect(to: project_path(conn, :settings, project))
   end
 
   def add_member(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
