@@ -756,7 +756,7 @@ defmodule BorsNG.Worker.Batcher do
     passed_review = repo_conn
     |> GitHub.get_reviews!(patch.pr_xref)
     |> reviews_status(toml)
-    Logger.info("Code review status: Label Check #{passed_label} Passed Status: #{passed_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}")
+    Logger.info("Code review status: Label Check #{passed_label} Passed Status: #{no_error_status and no_waiting_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}")
 
     case {passed_label, no_error_status, no_waiting_status, passed_review, code_owners_approved} do
       {true, true, true, :sufficient, true} -> :ok
