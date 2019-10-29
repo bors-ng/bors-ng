@@ -8,14 +8,17 @@ defmodule BorsNG.GitHub.FriendlyMock do
   Assumes a single GitHub instance with a single repository and single user.
 
   Does everything through webhook notifications. Does not use
-  Database.Repo.insert directly! (Exception: adding a reviewer, normally
-  through Bors' web UI.)
+  Database.Repo.insert directly! (One exception: adding a reviewer,
+  which is normally done through Bors' web UI.)
   """
 
   alias BorsNG.GitHub.ServerMock
   alias BorsNG.GitHub.FriendlyMock
   alias BorsNG.GitHub.Pr
   alias BorsNG.WebhookController
+
+  alias BorsNG.Database
+  alias BorsNG.Database.Repo
 
   # Defaults
   @def_user %{"id" => 7,
@@ -79,6 +82,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
 
   def add_pr(title, body \\ nil) do
     # branch name == title for now
+    # This function could be expanded later to be more parametrizable.
     number = 1 + Enum.max([0 | Enum.map(prs(), fn x -> x.number end)])
     sha = "SHA-#{number}"
     ref = title
@@ -100,7 +104,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
     	  body_params: %{
     	    "installation" => %{ "id" => @def_inst },
     	    "sender" => @def_user,
-    	    "repository" => %{ "id" => @def_repo},
+	    "repository" => %{ "id" => @def_repo},
     	    "pull_request" => pr_to_json(pr),
     	    "action" => "created" }},
           "github", "pull_request")
@@ -120,7 +124,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
     commit = %{sha: sha,
 	       author_name: author,
 	       author_email: author <> "'s email"}
-    # Could maybe prepend instead of appending to make things faster
+    # Could eventually prepend instead of appending to make things faster
     update_mock([:pr_commits, pr_num], &(&1 ++ [commit]))
   end
 
@@ -128,8 +132,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
     # Adds a reviewer comment.
     pr = Enum.find(prs(), &(match?(%{number: ^pr_num}, &1)))
     update_mock([:comments, pr_num], &([body | &1]))
-    WebhookController.do_webhook(
-      %{
+    WebhookController.do_webhook(%{
 	  body_params: %{
 	    "sender" => author,
     	    "repository" => %{ "id" => @def_repo},
@@ -140,7 +143,6 @@ defmodule BorsNG.GitHub.FriendlyMock do
   end
 
   def make_admin(username \\ @def_user["login"]) do
-    alias BorsNG.Database
     user = Database.Repo.get_by! Database.User, login: username
     Database.Repo.update! Database.User.changeset(user, %{is_admin: true})
   end
@@ -148,9 +150,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
 
   def add_reviewer(repo \\ @def_repo, user \\ @def_user) do
     # Could try to replace this with calls to the phoenix server
-    # To avoid the call to BorsNG.ProjectController directly
-    alias BorsNG.Database
-    alias BorsNG.Database.Repo
+    # to avoid the direct call to BorsNG.ProjectController
     project = Repo.get_by!(Database.Project, %{repo_xref: repo})
     BorsNG.ProjectController.add_reviewer(nil, :rw, project, %{"reviewer" => user})
   end
