@@ -152,7 +152,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
     # Could try to replace this with calls to the phoenix server
     # to avoid the direct call to BorsNG.ProjectController
     project = Repo.get_by!(Database.Project, %{repo_xref: repo})
-    BorsNG.ProjectController.add_reviewer(nil, :rw, project, %{"reviewer" => user})
+    BorsNG.ProjectController.add_reviewer(project, %{"reviewer" => user})
   end
 
   def ci_status(hash, ci_name, status) do

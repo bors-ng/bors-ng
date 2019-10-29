@@ -295,7 +295,13 @@ defmodule BorsNG.ProjectController do
     |> put_flash(:error, "Please enter a GitHub user's nickname")
     |> redirect(to: project_path(conn, :settings, project))
   end
-  def add_reviewer(conn, :rw, project, %{"reviewer" => %{"login" => login}}) do
+  def add_reviewer(conn, :rw, project, reviewer) do
+    {state, msg} = add_reviewer(project, reviewer)
+    conn
+    |> put_flash(state, msg)
+    |> redirect(to: project_path(conn, :settings, project))
+  end
+  def add_reviewer(project, %{"reviewer" => %{"login" => login}}) do
     user = case Repo.get_by(User, login: login) do
       nil ->
         {:installation, project.installation.installation_xref}
@@ -331,9 +337,7 @@ defmodule BorsNG.ProjectController do
             {:ok, "Successfully added #{user.login} as a reviewer"}
         end
     end
-    conn
-    |> put_flash(state, msg)
-    |> redirect(to: project_path(conn, :settings, project))
+    {state, msg}
   end
 
   def add_member(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
