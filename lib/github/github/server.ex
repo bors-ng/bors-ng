@@ -1,3 +1,5 @@
+require Logger
+
 defmodule BorsNG.GitHub.Server do
   use GenServer
   alias BorsNG.GitHub
@@ -13,8 +15,9 @@ defmodule BorsNG.GitHub.Server do
 
   @installation_content_type "application/vnd.github.machine-man-preview+json"
   @check_content_type "application/vnd.github.antiope-preview+json"
+  @team_content_type "application/vnd.github.hellcat-preview+json"
   @content_type_raw "application/vnd.github.v3.raw"
-  @content_type "application/vnd.github.speedy-preview+json"
+  @content_type "application/vnd.github.v3+json"
 
   @type tconn :: GitHub.tconn
   @type ttoken :: GitHub.ttoken
@@ -81,6 +84,18 @@ defmodule BorsNG.GitHub.Server do
     {:reply, {:ok, list}, state}
   end
 
+  def do_handle_call(:get_pr_files, repo_conn, {pr_xref}) do
+    case get!(repo_conn, "pulls/#{pr_xref}/files") do
+      %{body: raw, status: 200} ->
+        pr = raw
+             |> Poison.decode!()
+             |> Enum.map(&GitHub.File.from_json!/1)
+        {:ok, pr}
+      e ->
+        {:error, :get_pr_files, e.status, pr_xref}
+    end
+  end
+
   def do_handle_call(:get_pr, repo_conn, {pr_xref}) do
     case get!(repo_conn, "pulls/#{pr_xref}") do
       %{body: raw, status: 200} ->
@@ -93,9 +108,28 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
+  def do_handle_call(:update_pr, repo_conn, pr) do
+    repo_conn
+    |> patch!("pulls/#{pr.number}", Poison.encode!(%{
+      title: pr.title,
+      body: pr.body,
+      state: pr.state,
+    }))
+    |> case do
+         %{body: raw, status: 200} ->
+           pr = raw
+                |> Poison.decode!()
+                |> GitHub.Pr.from_json!()
+           {:ok, pr}
+         %{body: body, status: status} ->
+           {:error, :push, status, body}
+       end
+  end
+
   def do_handle_call(:get_pr_commits, repo_conn, {pr_xref}) do
     case get!(repo_conn, "pulls/#{pr_xref}/commits") do
       %{body: raw, status: 200} ->
+        Logger.info("Raw response from GH #{inspect(raw)}")
         commits = raw
         |> Poison.decode!()
         |> Enum.map(&GitHub.Commit.from_json!/1)
@@ -165,6 +199,41 @@ defmodule BorsNG.GitHub.Server do
       err ->
         {:error, :merge_branch, err}
     end
+  end
+
+  def do_handle_call(:create_commit, repo_conn, {%{
+    tree: tree,
+    parents: parents,
+    commit_message: commit_message,
+    committer: committer}}) do
+    msg = %{parents: parents, tree: tree, message: commit_message}
+    msg = if is_nil committer do
+      msg
+    else
+      Map.put(msg, "author", %{
+        name: committer.name, email: committer.email})
+    end
+    resp = repo_conn
+    |> post!("git/commits", Poison.encode!(msg))
+    |> case do
+        %{body: raw, status: 201} ->
+          Logger.info("Raw response from GH #{inspect(raw)}")
+          data =  Poison.decode!(raw)
+          res = %{
+            commit: data["sha"],
+
+          }
+          {:ok, res.commit}
+
+        %{status: 409} ->
+          {:ok, :conflict}
+        %{status: 204} ->
+          {:ok, :conflict}
+        err ->
+          {:error, :merge_branch, err}
+      end
+
+    resp
   end
 
   def do_handle_call(:synthesize_commit, repo_conn, {%{
@@ -314,6 +383,42 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
+  def do_handle_call(:belongs_to_team, repo_conn,
+        {username, team_id}) do
+    IO.inspect(repo_conn)
+    {{:raw, token}, installation} = repo_conn
+    "token #{token}"
+    |> tesla_client()
+    |> Tesla.get!(URI.encode("/teams/#{team_id}/memberships/#{username}"))
+    |> case do
+         %{body: raw, status: 200} ->
+           true
+         %{status: 404} ->
+           false
+         _ ->
+           false
+       end
+    end
+
+
+  def do_handle_call(:get_team_by_name, {{:raw, token}, installation_id}, {org_name, team_name}) do
+     IO.inspect(token)
+    "token #{token}"
+    |> tesla_client()
+    |> Tesla.get!(URI.encode("/orgs/#{org_name}/teams/#{team_name}"))
+    |> case do
+         %{body: raw, status: 200} ->
+           user = raw
+                  |> Poison.decode!()
+                  |> GitHub.Team.from_json!()
+           {:ok, user}
+         %{status: 404} ->
+           {:ok, nil}
+         %{body: raw, status: status} ->
+           {:error, raw}
+      end
+  end
+
   def do_handle_call(:get_collaborators_by_repo, {{:raw, token}, repo_xref},
                      {}) do
     get_collaborators_by_repo_(
@@ -332,7 +437,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status: 200} ->
         user = raw
         |> Poison.decode!()
-        |> GitHub.User.from_json!()
+        |> GitHub.FullUser.from_json!()
         {:ok, user}
       %{status: 404} ->
         {:ok, nil}
@@ -445,7 +550,7 @@ defmodule BorsNG.GitHub.Server do
   def get_collaborators_by_repo_(token, url, append) do
     params = get_url_params(url)
     "token #{token}"
-    |> tesla_client(@content_type)
+    |> tesla_client(@team_content_type)
     |> Tesla.get(url, query: params)
     |> case do
       {:ok, %{body: raw, status: 200, headers: headers}} ->
@@ -544,7 +649,7 @@ defmodule BorsNG.GitHub.Server do
     jwt_token = get_jwt_token()
     %{body: raw, status: 201} = "Bearer #{jwt_token}"
     |> tesla_client(@installation_content_type)
-    |> Tesla.post!("installations/#{installation_xref}/access_tokens", "")
+    |> Tesla.post!("installations/#{installation_xref}/access_tokens?members=read", "")
     Poison.decode!(raw)["token"]
   end
 

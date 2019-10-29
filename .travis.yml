@@ -11,6 +11,10 @@ branches:
       - staging
       - trying
 
+services:
+  - postgresql
+  - mysql
+
 cache:
   directories:
     - _build

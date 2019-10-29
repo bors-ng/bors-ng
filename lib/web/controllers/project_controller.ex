@@ -125,23 +125,71 @@ defmodule BorsNG.ProjectController do
       update_branches: Project.changeset_branches(project)
   end
 
-  def log(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
-  def log(conn, :rw, project, _params) do
-    batches = project.id
-    |> Batch.all_for_project()
+  defp seek_batch_log(project) do
+    project.id
+    |> Batch.seek_for_project(10)
     |> Repo.all()
     |> Enum.map(fn
       %Batch{id: id} = batch ->
         %{batch | patches: Repo.all(Patch.all_for_batch(id))}
     end)
-    crashes = Repo.all(Crash.all_for_project(project.id))
-    entries = crashes ++ batches
+  end
+
+  defp seek_batch_log(project, "-1", _latest_updated_at), do: seek_batch_log(project)
+  defp seek_batch_log(project, highest_id, latest_updated_at) do
+    project.id
+    |> Batch.seek_for_project(highest_id, latest_updated_at, 10)
+    |> Repo.all()
+    |> Enum.map(fn
+      %Batch{id: id} = batch ->
+        %{batch | patches: Repo.all(Patch.all_for_batch(id))}
+    end)
+  end
+
+  defp seek_crash_log(project), do: Repo.all(Crash.seek_for_project(project.id, 10))
+  defp seek_crash_log(project, "-1", _latest_updated_at), do: seek_crash_log(project)
+  defp seek_crash_log(project, highest_id, latest_updated_at) do
+    project.id
+    |> Crash.seek_for_project(highest_id, latest_updated_at, 10)
+    |> Repo.all()
+  end
+
+  defp seek_log(project) do
+    batches = seek_batch_log(project)
+    crashes = seek_crash_log(project)
+    batches ++ crashes
     |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
     |> Enum.reverse()
+    |> Enum.take(10)
+  end
+
+  defp seek_log(project, highest_batch_id, highest_crash_id, latest_updated_at) do
+    batches = seek_batch_log(project, highest_batch_id, latest_updated_at)
+    crashes = seek_crash_log(project, highest_crash_id, latest_updated_at)
+    batches ++ crashes
+    |> Enum.sort_by(fn %{updated_at: at} -> NaiveDateTime.to_iso8601(at) end)
+    |> Enum.reverse()
+    |> Enum.take(10)
+  end
+
+  def log(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
+  def log(conn, :rw, project, _params) do
     render conn, "log.html",
       project: project,
       current_user_id: conn.assigns.user.id,
-      entries: entries
+      entries: seek_log(project)
+  end
+
+  def log_page(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError
+  def log_page(conn, :rw, project, params) do
+    batch_id = params["batch_id"]
+    crash_id = params["crash_id"]
+    updated_at = NaiveDateTime.from_iso8601!(params["updated_at"])
+    conn
+    |> put_layout(false)
+    |> render "log_page.html",
+      project: project, 
+      entries: seek_log(project, batch_id, crash_id, updated_at)
   end
 
   def cancel_all(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError

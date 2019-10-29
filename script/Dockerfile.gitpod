@@ -1,0 +1,40 @@
+FROM gitpod/workspace-postgres
+
+ENV ELIXIR_VERSION v1.8.1
+ENV ELIXIR_DOWNLOAD_SHA256 de8c636ea999392496ccd9a204ccccbc8cb7f417d948fd12692cda2bd02d9822
+
+ENV BORS_WITHIN_DOCKER 1
+ENV WORKSPACE /workspace/bors-ng
+ENV PORT 8000
+
+ENV DATABASE_URL="postgresql://gitpod@localhost/bors_dev"
+ENV DATABASE_URL_TEST="postgresql://gitpod@localhost/bors_test"
+
+# Download Elixir/OTP and PostgreSQL
+RUN which rg || (curl -L https://github.com/BurntSushi/ripgrep/releases/download/11.0.2/ripgrep_11.0.2_amd64.deb > /tmp/ripgrep.deb && sudo dpkg -i /tmp/ripgrep.deb); \
+    echo 'deb https://packages.erlang-solutions.com/ubuntu disco contrib' | sudo tee /etc/apt/sources.list.d/erlang.list && \
+    curl -L https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc > /tmp/erlang_solutions.asc && \
+    sudo apt-key add /tmp/erlang_solutions.asc && \
+    sudo apt-get update && \
+    sudo apt-get -y install --no-install-recommends esl-erlang vim zlib1g-dev libssl-dev openssl libcurl4-openssl-dev libreadline6-dev libpcre3 libpcre3-dev imagemagick libpq-dev advancecomp gifsicle jhead jpegoptim libjpeg-turbo-progs optipng pngcrush pngquant gnupg2 libsqlite3-dev && \
+    sudo rm -rf /var/lib/apt/lists/* && \
+    curl -L https://github.com/elixir-lang/elixir/archive/${ELIXIR_VERSION}.tar.gz > elixir-src.tar.gz && \
+    echo "$ELIXIR_DOWNLOAD_SHA256 elixir-src.tar.gz" | sha256sum -c - && \
+    mkdir elixir-src && \
+    tar -xzC elixir-src --strip-components=1 -f elixir-src.tar.gz && \
+    cd elixir-src && \
+    make clean test && \
+    sudo make install && \
+    cd .. && \
+    rm -rf elixir-src elixir-src.tar.gz && \
+    mix local.hex --force && mix local.rebar --force && \
+    rm -f /tmp/ripgrep.deb /tmp/erlang_solutions.asc
+
+# Set up Elixir PLTs for Dialyzer (keep the commit synced with bors-ng/bors-ng/mix.exs)
+#    git clone https://github.com/jeremyjh/dialyxir && \
+#    cd dialyxir && \
+#    git checkout f380868 && \
+#    mix do deps.get, dialyzer --plt && \
+#    cd .. && \
+#    rm -rf dialyxir
+

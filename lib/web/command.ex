@@ -134,8 +134,14 @@ defmodule BorsNG.Command do
   def parse_cmd("r+" <> _), do: [:activate]
   def parse_cmd("r-" <> _), do: [:deactivate]
   def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
+  def parse_cmd("merge-" <> _), do: [:deactivate]
+  def parse_cmd("merge p=" <> rest), do: parse_priority(rest) ++ [:activate]
+  def parse_cmd("merge=" <> arguments), do: parse_activation_args(arguments)
+  def parse_cmd("merge" <> _), do: [:activate]
   def parse_cmd("delegate+" <> _), do: [:delegate]
   def parse_cmd("delegate=" <> arguments), do: parse_delegation_args(arguments)
+  def parse_cmd("d+" <> _), do: [:delegate]
+  def parse_cmd("d=" <> arguments), do: parse_delegation_args(arguments)
   def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
   def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
   def parse_cmd("ping" <> _), do: [:ping]
@@ -436,6 +442,6 @@ defmodule BorsNG.Command do
     c.project.repo_xref
     |> Project.installation_connection(Repo)
     |> GitHub.post_comment!(
-      c.pr_xref, ~s/:v: #{delegatee.login} can now approve this pull request/)
+      c.pr_xref, ~s{:v: #{delegatee.login} can now approve this pull request. To approve and merge a pull request, simply reply with `bors r+`. More detailed instructions are available [here](https://bors.tech/documentation/getting-started/#reviewing-pull-requests).})
   end
 end

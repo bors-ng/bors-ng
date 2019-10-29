@@ -8,8 +8,10 @@ defmodule BorsNG.Database.Project do
   use BorsNG.Database.Model
   alias BorsNG.Database.ProjectPermission
 
-  @type t :: %Project{}
+  @type t :: %__MODULE__{}
+  @type id :: pos_integer
 
+  @spec ping!(id) :: :ok | no_return
   @doc """
   After modifying the underlying model,
   call this to notify the UI.
@@ -40,6 +42,7 @@ defmodule BorsNG.Database.Project do
     timestamps()
   end
 
+  @spec active() :: Ecto.Queryable.t
   def active do
     from p in Project,
       join: b in Batch, on: p.id == b.project_id,
@@ -47,6 +50,8 @@ defmodule BorsNG.Database.Project do
              or b.state == ^(:running)
   end
 
+  @spec installation_project_connection(id, module) ::
+    {{:installation, Installation.xref}, repo_xref :: integer()}
   def installation_project_connection(project_id, repo) do
     {installation_xref, repo_xref} = from(p in Project,
       join: i in Installation, on: i.id == p.installation_id,
@@ -56,6 +61,8 @@ defmodule BorsNG.Database.Project do
     {{:installation, installation_xref}, repo_xref}
   end
 
+  @spec installation_connection(repo_xref, module) ::
+    {{:installation, Installation.xref}, repo_xref} when repo_xref: integer
   def installation_connection(repo_xref, repo) do
     {installation_xref, repo_xref} = from(p in Project,
       join: i in Installation, on: i.id == p.installation_id,
@@ -65,6 +72,7 @@ defmodule BorsNG.Database.Project do
     {{:installation, installation_xref}, repo_xref}
   end
 
+  @spec changeset(t | Ecto.Changeset.t, map) :: Ecto.Changeset.t
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """
@@ -73,15 +81,21 @@ defmodule BorsNG.Database.Project do
     |> cast(params, [:repo_xref, :name, :auto_reviewer_required_perm,
                      :auto_member_required_perm])
   end
+
+  @spec changeset_branches(t | Ecto.Changeset.t, map) :: Ecto.Changeset.t
   def changeset_branches(struct, params \\ %{}) do
     struct
     |> cast(params, [:staging_branch, :trying_branch])
     |> validate_required([:staging_branch, :trying_branch])
   end
+
+  @spec changeset_reviewer_settings(t | Ecto.Changeset.t, map) :: Ecto.Changeset.t
   def changeset_reviewer_settings(struct, params \\ %{}) do
     struct
     |> cast(params, [:auto_reviewer_required_perm])
   end
+
+  @spec changeset_member_settings(t | Ecto.Changeset.t, map) :: Ecto.Changeset.t
   def changeset_member_settings(struct, params \\ %{}) do
     struct
     |> cast(params, [:auto_member_required_perm])
@@ -90,6 +104,7 @@ defmodule BorsNG.Database.Project do
   # Red flag queries
   # These should always return [].
 
+  @spec orphans() :: Ecto.Queryable.t
   def orphans do
     from p in Project,
       left_join: l in LinkUserProject, on: p.id == l.project_id,

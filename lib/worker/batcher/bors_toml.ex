@@ -18,9 +18,11 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     # Half an hour. Give up when more time is spent waiting for this amount
     # between two successive polls.
     prerun_timeout_sec: (30 * 60),
+    use_squash_merge: false,
     required_approvals: nil,
     cut_body_after: nil,
     delete_merged_branches: false,
+    use_codeowners: false,
     committer: nil
 
   @type tcommitter :: %{
@@ -29,6 +31,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   @type t :: %BorsNG.Worker.Batcher.BorsToml{
     status: [binary],
+    use_squash_merge: boolean,
     block_labels: [binary],
     pr_status: [binary],
     timeout_sec: integer,
@@ -36,6 +39,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
     required_approvals: integer | nil,
     cut_body_after: binary | nil,
     delete_merged_branches: boolean,
+    use_codeowners: boolean,
     committer: tcommitter}
 
   @type err :: :status |
@@ -74,6 +78,9 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
         toml = %BorsNG.Worker.Batcher.BorsToml{
           status: Map.get(toml, "status", []),
+          use_squash_merge: Map.get(toml,
+                    "use_squash_merge",
+                    false),
           block_labels: Map.get(toml, "block_labels", []),
           pr_status: Map.get(toml, "pr_status", []),
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
@@ -83,6 +90,9 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           delete_merged_branches: Map.get(toml,
                                           "delete_merged_branches",
                                           false),
+          use_codeowners: Map.get(toml,
+            "use_codeowners",
+            false),
           committer: committer
         }
         case toml do

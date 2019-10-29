@@ -7,6 +7,8 @@ defmodule BorsNG.Database.Installation do
 
   use BorsNG.Database.Model
 
+  @type xref :: integer
+
   schema "installations" do
     field :installation_xref, :integer
 

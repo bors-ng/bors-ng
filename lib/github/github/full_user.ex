@@ -1,17 +1,20 @@
-defmodule BorsNG.GitHub.User do
+defmodule BorsNG.GitHub.FullUser do
   @moduledoc """
-  The GitHub structure of a user account.  This is different from FullUser since this has many fewer fields.
+  The GitHub structure of a detailed user account.
+
+  See https://developer.github.com/v3/users/#get-a-single-user
   """
 
-  defstruct id: 0, login: "", avatar_url: ""
+  defstruct id: 0, login: "", avatar_url: "", email: ""
 
   @type tjson :: map
 
-  @type t :: %BorsNG.GitHub.User{
-    id: integer,
-    login: bitstring,
-    avatar_url: bitstring,
-  }
+  @type t :: %BorsNG.GitHub.FullUser{
+               id: integer,
+               login: bitstring,
+               avatar_url: bitstring,
+               email: bitstring,
+             }
 
 
   @doc """
@@ -31,11 +34,13 @@ defmodule BorsNG.GitHub.User do
     "id" => id,
     "login" => login,
     "avatar_url" => avatar_url,
+    "email" => email,
   }) when is_integer(id) do
-    {:ok, %BorsNG.GitHub.User{
+    {:ok, %BorsNG.GitHub.FullUser{
       id: id,
       login: login,
       avatar_url: avatar_url,
+      email: email,
     }}
   end
 

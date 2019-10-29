@@ -3,7 +3,7 @@ defmodule BorsNG.GitHub.Commit do
   The structure of GitHub commit data.
   """
 
-  defstruct sha: "", author_name: "", author_email: ""
+  defstruct sha: "", author_name: "", author_email: "", commit_message: "", tree_sha: ""
 
   @type tjson :: map
 
@@ -11,6 +11,8 @@ defmodule BorsNG.GitHub.Commit do
     sha: bitstring,
     author_name: bitstring,
     author_email: bitstring,
+    commit_message: bitstring,
+    tree_sha: bitstring,
   }
 
   @doc """
@@ -33,12 +35,18 @@ defmodule BorsNG.GitHub.Commit do
         "name" => author_name,
         "email" => author_email,
       },
+      "message" => commit_message,
+      "tree" => %{
+        "sha" => tree_sha,
+      },
     },
   }) do
     {:ok, %BorsNG.GitHub.Commit{
       sha: sha,
       author_name: author_name,
       author_email: author_email,
+      commit_message: commit_message,
+      tree_sha: tree_sha,
     }}
   end
 

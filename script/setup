@@ -11,4 +11,4 @@ if [ -z $BORS_WITHIN_DOCKER ]; then
   exec docker exec -it borsng-dev "$0" "$@"
 fi
 mix do clean, deps.get, ecto.drop, ecto.create, ecto.migrate, compile
-npm install
+cd assets; npm install; cd ..

@@ -1,3 +1,5 @@
+require Logger
+
 defmodule BorsNG.Worker.Batcher do
   @moduledoc """
   A "Batcher" manages the backlog of batches a project has.
@@ -290,6 +292,7 @@ defmodule BorsNG.Worker.Batcher do
     patch_links = Repo.all(LinkPatchBatch.from_batch(batch.id))
     |> Enum.sort_by(&(&1.patch.pr_xref))
     stmp = "#{project.staging_branch}.tmp"
+
     base = GitHub.get_branch!(
       repo_conn,
       batch.into_branch)
@@ -315,6 +318,7 @@ defmodule BorsNG.Worker.Batcher do
             commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{patch.pr_xref}"})
       end
     end
+
     merge = Enum.reduce(patch_links, tbase, do_merge_patch)
     {status, commit} = start_waiting_merged_batch(
       batch,
@@ -322,11 +326,13 @@ defmodule BorsNG.Worker.Batcher do
       base,
       merge)
     now = DateTime.to_unix(DateTime.utc_now(), :second)
+
     GitHub.delete_branch!(repo_conn, stmp)
     send_status(repo_conn, batch, status)
     batch
     |> Batch.changeset(%{state: status, commit: commit, last_polled: now})
     |> Repo.update!()
+
     Project.ping!(batch.project_id)
     status
   end
@@ -338,23 +344,97 @@ defmodule BorsNG.Worker.Batcher do
   defp start_waiting_merged_batch(batch, patch_links, base, %{tree: tree}) do
     repo_conn = get_repo_conn(batch.project)
     patches = Enum.map(patch_links, &(&1.patch))
+
     repo_conn
     |> Batcher.GetBorsToml.get("#{batch.project.staging_branch}.tmp")
     |> case do
       {:ok, toml} ->
-        parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
-        commit_message = Batcher.Message.generate_commit_message(
-          patch_links,
-          toml.cut_body_after,
-          gather_co_authors(batch, patch_links))
-        head = GitHub.synthesize_commit!(
-          repo_conn,
-          %{
-            branch: batch.project.staging_branch,
-            tree: tree,
-            parents: parents,
-            commit_message: commit_message,
-            committer: toml.committer})
+        parents = if toml.use_squash_merge do
+          stmp = "#{batch.project.staging_branch}.tmp2"
+          GitHub.force_push!(repo_conn, base.commit, stmp)
+
+          new_head = Enum.reduce(patch_links, base.commit, fn patch_link, prev_head ->
+
+            Logger.debug("Patch Link #{inspect(patch_link)}")
+            Logger.debug("Patch #{inspect(patch_link.patch)}")
+
+            {:ok, commits} = GitHub.get_pr_commits(repo_conn, patch_link.patch.pr_xref)
+            {:ok, pr} = GitHub.get_pr(repo_conn, patch_link.patch.pr_xref)
+
+            {token, _} = repo_conn
+             user = GitHub.get_user_by_login!(token, pr.user.login)
+
+            Logger.debug("PR #{inspect(pr)}")
+            Logger.debug("User #{inspect(user)}")
+
+            # If a user doesn't have a public email address in their GH profile
+            # then get the email from the first commit to the PR
+            user_email = if user.email != nil do
+              user.email
+            else
+              Enum.at(commits, 0).author_email
+            end
+
+            # The head sha is the final commit in the PR.
+            source_sha =  pr.head_sha
+            Logger.info("Staging branch #{stmp}")
+            Logger.info("Commit sha #{source_sha}")
+
+            # Create a merge commit for each PR
+            # because each PR is merged on top of each other in stmp, we can verify against any merge conflicts
+            merge_commit = GitHub.merge_branch!(repo_conn,
+               %{
+               from: source_sha,
+               to: stmp,
+                 commit_message: "[ci skip][skip ci][skip netlify] -bors-staging-tmp-#{source_sha}"}
+            )
+
+            Logger.info("Merge Commit #{inspect(merge_commit)}")
+
+            Logger.info("Previous Head #{inspect(prev_head)}")
+            # Then compress the merge commit into tree into a single commit
+            # appent it to the previous commit
+            # Because the merges are iterative the contain *only* the changes from the PR vs the previous PR(or head)
+            cpt = GitHub.create_commit!(
+              repo_conn,
+              %{
+                tree: merge_commit.tree,
+                parents: [prev_head],
+                commit_message: "#{pr.title} (##{pr.number})\n\n#{pr.body}",
+                committer: %{name: user.login, email: user_email}})
+
+            Logger.info("Commit Sha #{inspect(cpt)}")
+              cpt
+
+          end)
+          GitHub.delete_branch!(repo_conn, stmp)
+          [new_head]
+        else
+          parents = [base.commit | Enum.map(patch_links, &(&1.patch.commit))]
+          parents
+        end
+
+        head = if toml.use_squash_merge do
+          # This will avoid creating a merge commit, which is important since it will prevent
+          # bors from polluting th git blame history with it's own name
+            head = Enum.at(parents, 0)
+            GitHub.force_push!(repo_conn, head, batch.project.staging_branch)
+            head
+        else
+          commit_message = Batcher.Message.generate_commit_message(
+            patch_links,
+            toml.cut_body_after,
+            gather_co_authors(batch, patch_links))
+          GitHub.synthesize_commit!(
+            repo_conn,
+            %{
+              branch: batch.project.staging_branch,
+              tree: tree,
+              parents: parents,
+              commit_message: commit_message,
+              committer: toml.committer})
+        end
+
         setup_statuses(batch, toml)
         {:running, head}
       {:error, message} ->
@@ -430,13 +510,28 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
+    {res,toml} = case Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}") do
+      {:error, :fetch_failed} -> Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}.tmp")
+      {:ok, x} -> {:ok, x}
+    end
+
     {:ok, _} = push_with_retry(
       repo_conn,
       batch.commit,
       batch.into_branch)
+
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
+
+    if toml.use_squash_merge do
+      Enum.each(patches, fn patch ->
+        pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
+        pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
+        pr = GitHub.update_pr!(repo_conn, pr)
+        GitHub.post_comment!(repo_conn, patch.pr_xref, "# Pull request successfully merged into master.")
+      end)
+    end
 
     send_message(repo_conn, patches, {:succeeded, statuses})
   end
@@ -571,6 +666,68 @@ defmodule BorsNG.Worker.Batcher do
     :ok
   end
 
+  defp check_code_owner(repo_conn, patch, toml) do
+
+    if !toml.use_codeowners do
+      true
+    else
+
+      Logger.info("Checking code owners")
+      {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
+      Logger.info("CODEOWNERS file #{inspect(code_owner)}")
+
+
+      {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
+      Logger.info("Files found: #{inspect(files)}")
+
+
+      required_reviews = BorsNG.CodeOwnerParser.list_required_reviews(code_owner, files)
+
+      passed_review = repo_conn
+                      |> GitHub.get_reviews!(patch.pr_xref)
+
+      Logger.info("Passed reviews: #{inspect(passed_review)}")
+
+      # Convert the list of required reviewers into a list of true/false
+      # true indicates that the reviewers requirement was satisfied,
+      # false if it is open
+      approved_reviews = Enum.map(required_reviews, fn x ->
+
+        # Convert a list of OR reviewers into a true or false
+        Enum.any?(x, fn required ->
+          if String.contains?(required, "/") do
+            # Remove leading @ for team name
+            # Split into org name and team name
+            team_split = String.slice(required, 1, String.length(required)-1)
+                         |> String.split("/")
+
+            # Lookup team ID -> needed later
+            {:ok, team} = GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
+
+            Logger.info("Team: #{inspect(team)}")
+
+            # Loop through reviewers, if they on the team accept their approval
+            team_approved = Enum.any?(passed_review["approvers"], fn x ->
+                GitHub.belongs_to_team?(repo_conn, x, team.id)
+            end)
+
+            Logger.info("Approved: #{inspect(team_approved)}")
+            team_approved
+          end
+        end)
+      end)
+
+      code_owner_approval = Enum.reduce(approved_reviews, true, fn x,acc -> x && acc  end)
+
+      Logger.info("Approved reviews: #{inspect(approved_reviews)}")
+      Logger.info("Code Owner approval: #{inspect(code_owner_approval)}")
+
+      code_owner_approval
+    end
+
+  end
+
+
   defp patch_preflight(repo_conn, patch, {:ok, toml}) do
     passed_label = repo_conn
     |> GitHub.get_labels!(patch.pr_xref)
@@ -591,22 +748,32 @@ defmodule BorsNG.Worker.Batcher do
     |> Enum.map(fn {context, _} -> context end)
     |> MapSet.new()
     |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+
+    code_owners_approved = check_code_owner(repo_conn, patch, toml)
+
+#    {:error, {:missing_code_owner_approval, "My team"}}
+
     passed_review = repo_conn
     |> GitHub.get_reviews!(patch.pr_xref)
     |> reviews_status(toml)
-    case {passed_label, no_error_status, no_waiting_status, passed_review} do
-      {true, true, true, :sufficient} -> :ok
-      {false, _, _, _}             -> {:error, :blocked_labels}
-      {_, _, _, :insufficient}     -> {:error, :insufficient_approvals}
-      {_, _, _, :failed}           -> {:error, :blocked_review}
-      {_, false, _, _}             -> {:error, :pr_status}
-      {true, true, false, :sufficient} -> :waiting
+    Logger.info("Code review status: Label Check #{passed_label} Passed Status: #{passed_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}")
+
+    case {passed_label, no_error_status, no_waiting_status, passed_review, code_owners_approved} do
+      {true, true, true, :sufficient, true} -> :ok
+      {false, _, _, _, _}             -> {:error, :blocked_labels}
+      {_, _, _, :insufficient, _}     -> {:error, :insufficient_approvals}
+      {_, _, _, :failed, _}           -> {:error, :blocked_review}
+      {_, _, _, _, false}             -> {:error, :missing_code_owner_approval}
+      {_, false, _, _, _}             -> {:error, :pr_status}
+      {true, true, false, :sufficient, true} -> :waiting
     end
   end
 
   @spec reviews_status(map, Batcher.BorsToml.t) :: :sufficient | :failed | :insufficient
   defp reviews_status(reviews, toml) do
-    %{"CHANGES_REQUESTED" => failed, "APPROVED" => approvals} = reviews
+    failed = Map.fetch!(reviews, "CHANGES_REQUESTED")
+    approvals = Map.fetch!(reviews, "APPROVED")
+
     review_required? = is_integer(toml.required_approvals)
     approvals_needed = review_required? && toml.required_approvals || 0
     approved? = approvals >= approvals_needed

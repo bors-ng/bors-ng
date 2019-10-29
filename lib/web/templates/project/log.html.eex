@@ -18,31 +18,14 @@
 
 <main role=main><div class=wrapper>
 
-<table class="table">
+<table id="log-table" class="table">
   <tbody>
-<%= for entry <- @entries do %>
-  <%= case entry do %>
-  <% %BorsNG.Database.Crash{component: component, crash: crash, updated_at: updated_at} -> %>
-    <tr role=row>
-      <td><%= htmlify_naive_datetime(updated_at) %></td>
-      <td>Crash</td>
-      <td><%= component %></td>
-      <td><pre><code><%= crash %></code></pre></td>
-    </tr>
-  <% %BorsNG.Database.Batch{id: id, state: state, patches: patches, updated_at: updated_at} -> %>
-    <tr role=row id=batch-<%= id %>>
-      <td><%= htmlify_naive_datetime(updated_at) %></td>
-      <td>Batch</td>
-      <td><%= stringify_state(state) %></td>
-      <td>
-      <%= for patch <- patches do %>
-        <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">#<%= patch.pr_xref %></a>
-      <% end %>
-      </td>
-    </tr>
-  <% end %>
-<% end %>
+<%= render "log_page.html", project: @project, entries: @entries%>
   </tbody>
 </table>
+
+<div style="text-align: center;">
+  <a id="log-request" href="">Older</a>
+</div>
 
 </div></main>

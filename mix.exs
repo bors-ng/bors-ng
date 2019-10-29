@@ -64,7 +64,7 @@ defmodule BorsNg.Mixfile do
       {:gettext, "~> 0.15"},
       {:cowboy, "~> 1.0"},
       {:plug_cowboy, "~> 1.0"},
-      {:tesla, "~> 1.2.1"},
+      {:tesla, "~> 1.3.0"},
       {:toml, "~> 0.5"},
       {:hackney, "~> 1.12"},
       {:ex_link_header, "~> 0.0.5"},
@@ -79,6 +79,8 @@ defmodule BorsNg.Mixfile do
       {:postgrex, "~> 0.13.5"},
       {:mariaex, "~> 0.8"},
       {:ecto, "~> 2.2"},
+      {:ex_parameterized, "~> 1.3.6", only: [:dev, :test]},
+      {:glob, git: "https://github.com/lindenbaum/glob.git", commit: "a0de0d0"},
     ]
   end
 end
