@@ -73,7 +73,6 @@ defmodule BorsNG.GitHub.FriendlyMock do
   """
 
   alias BorsNG.GitHub.ServerMock
-  alias BorsNG.GitHub.FriendlyMock
   alias BorsNG.GitHub.Pr
   alias BorsNG.WebhookController
 
@@ -207,7 +206,6 @@ defmodule BorsNG.GitHub.FriendlyMock do
     Database.Repo.update! Database.User.changeset(user, %{is_admin: true})
   end
 
-
   def add_reviewer(repo \\ @def_repo, user \\ @def_user) do
     # Could try to replace this with calls to the phoenix server
     # to avoid the direct call to BorsNG.ProjectController
@@ -221,6 +219,10 @@ defmodule BorsNG.GitHub.FriendlyMock do
   end
 
   def full_example() do
+    # Example function.
+    # Call from iex with
+    #   iex> FriendlyMock.full_example
+    # Then modify, `recompile()` and run again.
     alias BorsNG.GitHub.FriendlyMock
     FriendlyMock.init_state
     FriendlyMock.make_admin
@@ -261,5 +263,9 @@ defmodule BorsNG.GitHub.FriendlyMock do
     "user" => user,
     "merged_at" => "some non-nul time :)",
     }
+  end
+
+  def get_state() do
+    ServerMock.get_state
   end
 end
