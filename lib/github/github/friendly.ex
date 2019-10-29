@@ -10,6 +10,66 @@ defmodule BorsNG.GitHub.FriendlyMock do
   Does everything through webhook notifications. Does not use
   Database.Repo.insert directly! (One exception: adding a reviewer,
   which is normally done through Bors' web UI.)
+
+  For example, I can run `iex -S mix phx.server` and do this:
+
+      iex> alias BorsNG.GitHub.FriendlyMock
+      iex> FriendlyMock.init_state
+      iex> FriendlyMock.make_admin
+      iex> pr_num = FriendlyMock.add_pr "first"
+      iex> FriendlyMock.add_reviewer
+      iex> FriendlyMock.ci_status("SHA-1", "ci", :running)
+      iex> FriendlyMock.add_comment(pr_num, "bors ping")
+      iex> FriendlyMock.add_comment(pr_num, "bors r+")
+      iex> FriendlyMock.get_state
+	%{
+	  {:installation, 91} => %{
+		repos: [
+		  %BorsNG.GitHub.Repo{
+		    id: 14,
+		    name: "test/repo",
+		    owner: %{avatar_url: "", id: 7, login: "tester", type: :user},
+		    private: false
+		  }
+		]
+	  },
+	  {{:installation, 91}, 14} => %{
+		branches: %{"first" => "SHA-1", "master" => "ini"},
+		collaborators: %{},
+		comments: %{
+		  1 => [":-1: Rejected by PR status", "bors r+", "pong", "bors ping"]
+		},
+		commits: %{},
+		files: %{
+		  "SHA-1" => %{
+		    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
+		  },
+		  "master" => %{
+		    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
+		  },
+		  "staging.tmp" => %{
+		    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
+		  }
+		},
+		pr_commits: %{1 => []},
+		pulls: %{
+		  1 => %BorsNG.GitHub.Pr{
+		    base_ref: "master",
+		    base_repo_id: 0,
+		    body: nil,
+		    head_ref: "first",
+		    head_repo_id: 0,
+		    head_sha: "SHA-1",
+		    merged: false,
+		    number: 1,
+		    state: :open,
+		    title: "first",
+		    user: %{"avatar_url" => "", "id" => 7, "login" => "tester"}
+		  }
+		},
+		statuses: %{"SHA-1" => %{"ci" => :running}}
+	  }
+	}
   """
 
   alias BorsNG.GitHub.ServerMock
