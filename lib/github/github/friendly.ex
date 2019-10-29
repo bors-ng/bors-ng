@@ -22,54 +22,54 @@ defmodule BorsNG.GitHub.FriendlyMock do
       iex> FriendlyMock.add_comment(pr_num, "bors ping")
       iex> FriendlyMock.add_comment(pr_num, "bors r+")
       iex> FriendlyMock.get_state
-	%{
-	  {:installation, 91} => %{
-		repos: [
-		  %BorsNG.GitHub.Repo{
-		    id: 14,
-		    name: "test/repo",
-		    owner: %{avatar_url: "", id: 7, login: "tester", type: :user},
-		    private: false
-		  }
-		]
-	  },
-	  {{:installation, 91}, 14} => %{
-		branches: %{"first" => "SHA-1", "master" => "ini"},
-		collaborators: %{},
-		comments: %{
-		  1 => [":-1: Rejected by PR status", "bors r+", "pong", "bors ping"]
-		},
-		commits: %{},
-		files: %{
-		  "SHA-1" => %{
-		    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
-		  },
-		  "master" => %{
-		    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
-		  },
-		  "staging.tmp" => %{
-		    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
-		  }
-		},
-		pr_commits: %{1 => []},
-		pulls: %{
-		  1 => %BorsNG.GitHub.Pr{
-		    base_ref: "master",
-		    base_repo_id: 0,
-		    body: nil,
-		    head_ref: "first",
-		    head_repo_id: 0,
-		    head_sha: "SHA-1",
-		    merged: false,
-		    number: 1,
-		    state: :open,
-		    title: "first",
-		    user: %{"avatar_url" => "", "id" => 7, "login" => "tester"}
-		  }
-		},
-		statuses: %{"SHA-1" => %{"ci" => :running}}
-	  }
-	}
+        %{
+          {:installation, 91} => %{
+                repos: [
+                  %BorsNG.GitHub.Repo{
+                    id: 14,
+                    name: "test/repo",
+                    owner: %{avatar_url: "", id: 7, login: "tester", type: :user},
+                    private: false
+                  }
+                ]
+          },
+          {{:installation, 91}, 14} => %{
+                branches: %{"first" => "SHA-1", "master" => "ini"},
+                collaborators: %{},
+                comments: %{
+                  1 => [":-1: Rejected by PR status", "bors r+", "pong", "bors ping"]
+                },
+                commits: %{},
+                files: %{
+                  "SHA-1" => %{
+                    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
+                  },
+                  "master" => %{
+                    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
+                  },
+                  "staging.tmp" => %{
+                    ".github/bors.toml" => "status = [ \"ci\" ]\npr_status = [ \"ci\" ]\nprerun_timeout_sec = 5\ndelete_merged_branches = true\n"
+                  }
+                },
+                pr_commits: %{1 => []},
+                pulls: %{
+                  1 => %BorsNG.GitHub.Pr{
+                    base_ref: "master",
+                    base_repo_id: 0,
+                    body: nil,
+                    head_ref: "first",
+                    head_repo_id: 0,
+                    head_sha: "SHA-1",
+                    merged: false,
+                    number: 1,
+                    state: :open,
+                    title: "first",
+                    user: %{"avatar_url" => "", "id" => 7, "login" => "tester"}
+                  }
+                },
+                statuses: %{"SHA-1" => %{"ci" => :running}}
+          }
+        }
   """
 
   alias BorsNG.GitHub.ServerMock
@@ -81,8 +81,8 @@ defmodule BorsNG.GitHub.FriendlyMock do
 
   # Defaults
   @def_user %{"id" => 7,
-	      "login" => "tester",
-	      "avatar_url" => "" }
+              "login" => "tester",
+              "avatar_url" => "" }
   @def_inst 91
   @def_repo 14
   @def_files %{".github/bors.toml" => ~s"""
@@ -91,7 +91,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
     prerun_timeout_sec = 5
     delete_merged_branches = true
     """}
-  
+
   def init_state() do
     # Creates a single installation with a single repo where
     # nothing has happened yet.
@@ -99,12 +99,12 @@ defmodule BorsNG.GitHub.FriendlyMock do
     ServerMock.put_state(%{
       {:installation, 91} => %{ repos: [
           %BorsNG.GitHub.Repo{
-	    id: @def_repo,
-	    name: "test/repo",
-	    owner: %{type: :user,
-		     id: @def_user["id"],
-		     login: @def_user["login"],
-		     avatar_url: @def_user["avatar_url"]}}
+            id: @def_repo,
+            name: "test/repo",
+            owner: %{type: :user,
+                     id: @def_user["id"],
+                     login: @def_user["login"],
+                     avatar_url: @def_user["avatar_url"]}}
       ] },
       {{:installation, @def_inst}, @def_repo} => %{
         branches: %{"master" => "ini"},
@@ -146,13 +146,13 @@ defmodule BorsNG.GitHub.FriendlyMock do
     sha = "SHA-#{number}"
     ref = title
     pr = %Pr{number: number,
-	     title: title,
-	     state: :open,
-	     base_ref: "master",
-	     head_sha: sha,
-	     head_ref: ref,
-	     body: body,
-	     user: @def_user}
+             title: title,
+             state: :open,
+             base_ref: "master",
+             head_sha: sha,
+             head_ref: ref,
+             body: body,
+             user: @def_user}
     update_mock([:pulls], &(Map.put(&1, number, pr)))
     update_mock([:pr_commits], &(Map.put(&1, number, [])))
     update_mock([:comments], &(Map.put(&1, number, [])))
@@ -160,12 +160,12 @@ defmodule BorsNG.GitHub.FriendlyMock do
     update_mock([:files], &(Map.put(&1, sha, @def_files)))
     update_mock([:statuses], &(Map.put(&1, sha, %{})))
     WebhookController.do_webhook(%{
-    	  body_params: %{
-    	    "installation" => %{ "id" => @def_inst },
-    	    "sender" => @def_user,
-	    "repository" => %{ "id" => @def_repo},
-    	    "pull_request" => pr_to_json(pr),
-	    "action" => "opened" }},
+              body_params: %{
+                "installation" => %{ "id" => @def_inst },
+                "sender" => @def_user,
+            "repository" => %{ "id" => @def_repo},
+                "pull_request" => pr_to_json(pr),
+            "action" => "opened" }},
           "github", "pull_request")
     number
   end
@@ -181,8 +181,8 @@ defmodule BorsNG.GitHub.FriendlyMock do
 
   def add_commit(pr_num, sha, author) do
     commit = %{sha: sha,
-	       author_name: author,
-	       author_email: author <> "'s email"}
+               author_name: author,
+               author_email: author <> "'s email"}
     # Could eventually prepend instead of appending to make things faster
     update_mock([:pr_commits, pr_num], &(&1 ++ [commit]))
   end
@@ -192,13 +192,13 @@ defmodule BorsNG.GitHub.FriendlyMock do
     pr = Enum.find(prs(), &(match?(%{number: ^pr_num}, &1)))
     update_mock([:comments, pr_num], &([body | &1]))
     WebhookController.do_webhook(%{
-	  body_params: %{
-	    "sender" => author,
-    	    "repository" => %{ "id" => @def_repo},
-	    "comment" => %{ "user" => author,
-			    "body" => body },
-	    "pull_request" => pr_to_json(pr),
-	    "action" => "created" }} , "github", "pull_request_review_comment")
+          body_params: %{
+            "sender" => author,
+                "repository" => %{ "id" => @def_repo},
+            "comment" => %{ "user" => author,
+                            "body" => body },
+            "pull_request" => pr_to_json(pr),
+            "action" => "created" }} , "github", "pull_request_review_comment")
   end
 
   def make_admin(username \\ @def_user["login"]) do
@@ -236,12 +236,12 @@ defmodule BorsNG.GitHub.FriendlyMock do
   end
 
   def pr_to_json(%Pr{number: number,
-		     title: title,
-		     state: state,
-		     base_ref: base_ref,
-		     head_sha: head_sha,
-		     body: body,
-		     user: user}) do
+                     title: title,
+                     state: state,
+                     base_ref: base_ref,
+                     head_sha: head_sha,
+                     body: body,
+                     user: user}) do
     %{
     "number" => number,
     "title" => title,
