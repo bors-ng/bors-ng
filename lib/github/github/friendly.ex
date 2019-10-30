@@ -238,6 +238,10 @@ defmodule BorsNG.GitHub.FriendlyMock do
   Then modify, `recompile()` and run again.
   """
   def full_example() do
+    # Example function.
+    # Call from iex with
+    #   iex> FriendlyMock.full_example
+    # Then modify, `recompile()` and run again.
     alias BorsNG.GitHub.FriendlyMock
     FriendlyMock.init_state
     FriendlyMock.make_admin
