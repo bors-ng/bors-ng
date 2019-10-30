@@ -70,6 +70,12 @@ defmodule BorsNG.GitHub.FriendlyMock do
                 statuses: %{"SHA-1" => %{"ci" => :running}}
           }
         }
+
+  Now try
+
+      iex> FriendlyMock.ci_status("SHA-1", "ci", :ok)
+
+  instead of :running above.
   """
 
   alias BorsNG.GitHub.ServerMock
@@ -92,10 +98,11 @@ defmodule BorsNG.GitHub.FriendlyMock do
     delete_merged_branches = true
     """}
 
+  @doc """
+  Creates a single installation with a single repo where
+  nothing has happened yet.
+  """
   def init_state() do
-    # Creates a single installation with a single repo where
-    # nothing has happened yet.
-    # Will do everything through webhook notifications.
     ServerMock.put_state(%{
       {:installation, 91} => %{ repos: [
           %BorsNG.GitHub.Repo{
@@ -126,8 +133,10 @@ defmodule BorsNG.GitHub.FriendlyMock do
     BorsNG.Worker.SyncerInstallation.wait_hot_spin_xref(@def_inst)
   end
 
+  @doc """
+  Get open PRs
+  """
   def prs(repo \\ @def_repo, inst \\ @def_inst) do
-    # Get open PRs
     BorsNG.GitHub.get_open_prs!({{:installation, inst}, repo})
   end
 
@@ -187,8 +196,10 @@ defmodule BorsNG.GitHub.FriendlyMock do
     update_mock([:pr_commits, pr_num], &(&1 ++ [commit]))
   end
 
+  @doc """
+  Adds a reviewer comment.
+  """
   def add_comment(pr_num, body, author \\ @def_user) do
-    # Adds a reviewer comment.
     pr = Enum.find(prs(), &(match?(%{number: ^pr_num}, &1)))
     update_mock([:comments, pr_num], &([body | &1]))
     WebhookController.do_webhook(%{
@@ -213,16 +224,20 @@ defmodule BorsNG.GitHub.FriendlyMock do
     BorsNG.ProjectController.add_reviewer(project, %{"reviewer" => user})
   end
 
+  @doc "Set CI status"
   def ci_status(hash, ci_name, status) do
-    # Set CI status
     update_mock([:statuses, hash], &(Map.put(&1, ci_name, status)))
   end
 
+  @doc """
+  An example function.
+  Call from iex with
+
+     iex> FriendlyMock.full_example
+
+  Then modify, `recompile()` and run again.
+  """
   def full_example() do
-    # Example function.
-    # Call from iex with
-    #   iex> FriendlyMock.full_example
-    # Then modify, `recompile()` and run again.
     alias BorsNG.GitHub.FriendlyMock
     FriendlyMock.init_state
     FriendlyMock.make_admin
