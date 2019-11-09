@@ -1,3 +1,4 @@
-status = [ "continuous-integration/travis-ci/push", "Taskcluster (push)" ]
+status = [ "continuous-integration/travis-ci/push", "Community-TC (push)" ]
 block_labels = [ "S-do-not-merge-yet" ]
 cut_body_after = "<details>"
+timeout_sec = 36000 # ten hours
