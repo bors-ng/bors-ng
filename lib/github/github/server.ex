@@ -432,7 +432,7 @@ defmodule BorsNG.GitHub.Server do
   ) do
     "token #{token}"
     |> tesla_client()
-    |> Tesla.get!(URI.encode("/users/#{login}"))
+    |> Tesla.get!("/users/#{URI.encode_www_form(login)}")
     |> case do
       %{body: raw, status: 200} ->
         user = raw
