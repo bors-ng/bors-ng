@@ -518,7 +518,7 @@ defmodule BorsNG.Worker.BatcherTest do
           pr_status = [ "cn" ]
           use_codeowners = true
           """,
-          "/lib/go-mercury/init.go" =>
+          "lib/go-mercury/init.go" =>
           ~s"""
                       func init() {}
             """},
@@ -568,7 +568,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  pr_status = [ "cn" ]
                  use_codeowners = true
                  """,
-                 "/lib/go-mercury/init.go" =>
+                 "lib/go-mercury/init.go" =>
                    ~s"""
                              func init() {}
                    """},
