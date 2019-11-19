@@ -69,7 +69,7 @@ defmodule BorsNG.ParseTest do
     {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
 
     files = [%BorsNG.GitHub.File{
-      filename: "/src/github.com/go/double/double.go"
+      filename: "src/github.com/go/double/double.go"
     }]
 
     reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
@@ -87,7 +87,7 @@ defmodule BorsNG.ParseTest do
     {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
 
     files = [%BorsNG.GitHub.File{
-      filename: "/build/logs/github.com/go/double/double.go"
+      filename: "build/logs/github.com/go/double/double.go"
     }]
 
     reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
@@ -202,6 +202,83 @@ defmodule BorsNG.ParseTest do
     assert Enum.count(reviewers) == 1
     assert Enum.count(Enum.at(reviewers, 0)) == 1
     assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/other_team"
+  end
+
+  test "Test double asterix matches rule with leading slash (specific rule matches)" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "foo/a/b/c.yaml"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 2
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/team-b"
+    assert Enum.at(Enum.at(reviewers, 0), 1) == "@my_org/team-c"
+  end
+
+  test "Test double asterix matches rule with leading slash (catch all rule matches)" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [%BorsNG.GitHub.File{
+      filename: "something/else.exs"
+    }]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/catch-all"
+  end
+
+  test "Test double asterix matches rule with leading slash (require catch all and specific)" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{filename: "foo/a/b/c.yaml"},
+      %BorsNG.GitHub.File{filename: "something/else.exs"}
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 2
+    assert Enum.count(Enum.at(reviewers, 0)) == 2
+    assert Enum.count(Enum.at(reviewers, 1)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/team-b"
+    assert Enum.at(Enum.at(reviewers, 0), 1) == "@my_org/team-c"
+    assert Enum.at(Enum.at(reviewers, 1), 0) == "@my_org/catch-all"
+  end
+
+  test "Test double asterix matches rule without leading slash (catch all rule matches)" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{filename: "bar/hello/world.css"},
+      %BorsNG.GitHub.File{filename: "something/else.exs"}
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 2
+    assert Enum.count(Enum.at(reviewers, 0)) == 2
+    assert Enum.count(Enum.at(reviewers, 1)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/team-d"
+    assert Enum.at(Enum.at(reviewers, 0), 1) == "@my_org/team-e"
+    assert Enum.at(Enum.at(reviewers, 1), 0) == "@my_org/catch-all"
   end
 
 end
