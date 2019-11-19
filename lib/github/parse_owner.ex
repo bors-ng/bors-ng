@@ -110,7 +110,7 @@ defmodule BorsNG.CodeOwnerParser do
           approvers = Enum.slice(segments, 1, Enum.count(segments) - 1)
 
           %BorsNG.FilePattern{
-            file_pattern: Enum.at(segments, 0),
+            file_pattern: String.trim_leading(Enum.at(segments, 0), "/"),
             approvers: approvers
           }
         end)

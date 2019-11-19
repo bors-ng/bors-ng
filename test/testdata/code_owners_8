@@ -1,0 +1,6 @@
+* @my_org/catch-all
+
+/foo/**/*.yaml @my_org/team-b @my_org/team-c
+bar/**/*.css @my_org/team-d @my_org/team-e
+
+/docs/ @my_org/team-f
