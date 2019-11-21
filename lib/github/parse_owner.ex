@@ -39,10 +39,23 @@ defmodule BorsNG.CodeOwnerParser do
               owner.approvers
              String.contains?(owner.file_pattern, "**") && process_double_asterisk(x.filename, owner.file_pattern) ->
               owner.approvers
-             # glob matches has an extra '/' in it, don't match on it
-             :glob.matches(x.filename, owner.file_pattern) && !:glob.matches(x.filename, owner.file_pattern <> "/*")  ->
+
+             # If the patterh starts with a slask, only match the root dir
+             String.starts_with?(owner.file_pattern, "/") &&
+             :glob.matches("/" <> x.filename, owner.file_pattern) &&
+             !:glob.matches(x.filename, owner.file_pattern <> "/*")  ->
               owner.approvers
-             String.starts_with?(x.filename, owner.file_pattern) ->
+
+              # For patterns that doesn't start with a leading /, the pattern is
+              # the equivalent of "**/{pattern}"
+             !String.starts_with?(owner.file_pattern, "/") &&
+             :glob.matches(x.filename, "**" <> owner.file_pattern) && !:glob.matches(x.filename, owner.file_pattern <> "/*") ->
+               owner.approvers
+
+             # For non glob patterns, if the patterh starts with a slash, only match the root dir
+             String.starts_with?(owner.file_pattern, "/") && String.starts_with?("/" <> x.filename, owner.file_pattern) ->
+              owner.approvers
+             !String.starts_with?(owner.file_pattern, "/") && String.contains?(x.filename, owner.file_pattern) ->
               owner.approvers
              true ->
               nil # if unknown fall through
@@ -110,7 +123,7 @@ defmodule BorsNG.CodeOwnerParser do
           approvers = Enum.slice(segments, 1, Enum.count(segments) - 1)
 
           %BorsNG.FilePattern{
-            file_pattern: String.trim_leading(Enum.at(segments, 0), "/"),
+            file_pattern: Enum.at(segments, 0),
             approvers: approvers
           }
         end)

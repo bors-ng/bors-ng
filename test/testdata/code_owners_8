@@ -3,4 +3,16 @@
 /foo/**/*.yaml @my_org/team-b @my_org/team-c
 bar/**/*.css @my_org/team-d @my_org/team-e
 
+# This matches all files in a dir called no_leading,
+# for example "/no_leading/hey.txt" and "/a/no_leading/hey.txt"
+#
+# https://git-scm.com/docs/gitignore#_pattern_format
+# > The pattern foo/ will match a directory foo and paths underneath it, but
+# > will not match a regular file or a symbolic link foo (this is consistent
+# > with the way how pathspec works in general in Git)
+no_leading/ @my_org/team-no-leading
+
+# This matches only files in the root /with_leading/ directory
+/with_leading/ @my_org/team-with-leading
+
 /docs/ @my_org/team-f
