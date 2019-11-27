@@ -281,4 +281,90 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 1), 0) == "@my_org/catch-all"
   end
 
+  test "Test double asterix matches rule without leading slash anywhere in tree" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{filename: "somewhere/deep/below/bar/hello/world.css"},
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 2
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/team-d"
+    assert Enum.at(Enum.at(reviewers, 0), 1) == "@my_org/team-e"
+  end
+
+  test "Test no leading slash matches any dir (matches subdir)" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{filename: "another/path/no_leading/foo.txt"}
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/team-no-leading"
+  end
+
+  test "Test no leading slash matches any dir (matches root)" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{filename: "/no_leading/foo.txt"}
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/team-no-leading"
+  end
+
+  test "Test with leading slash matches only root" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{filename: "with_leading/foo.txt"}
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/team-with-leading"
+  end
+
+  test "Test with leading slash does not match non root dir" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_8")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{filename: "something_else/with_leading/foo.txt"}
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/catch-all"
+  end
+
 end
