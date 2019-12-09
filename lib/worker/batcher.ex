@@ -193,11 +193,11 @@ defmodule BorsNG.Worker.Batcher do
     project = Repo.get(Project, patch.project_id)
     repo_conn = get_repo_conn(project)
     {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
-    prerun_timeout = toml.prerun_timeout_sec * 1000
+    prerun_timeout_ms = toml.prerun_timeout_sec * 1000
     case patch_preflight(repo_conn, patch) do
       :ok ->
 	run(reviewer, patch)
-      :waiting when timeout > prerun_timeout ->
+      :waiting when timeout > prerun_timeout_ms ->
 	send_message(repo_conn, [patch], {:preflight, :timeout})
       :waiting ->
 	Process.send_after(self(), {:prerun_poll, Kernel.trunc(timeout * 1.5), args}, timeout)

@@ -35,7 +35,7 @@ defmodule BorsNG.Worker.Batcher.Message do
     "All preflight checks passed. Batching this PR into the staging branch."
   end
   def generate_message({:preflight, :timeout}) do
-    "Timeout waiting for PR status (Github check). Likely CI was taking too long."
+    "GitHub status checks took too long to complete, so bors is giving up. You can adjust bors configuration to have it wait longer if you like."
   end
   def generate_message({:preflight, :blocked_labels}) do
     ":-1: Rejected by label"
