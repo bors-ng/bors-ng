@@ -15,8 +15,10 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
   defstruct status: [], block_labels: [], pr_status: [],
     timeout_sec: (60 * 60),
-    # Half an hour. Give up when more time is spent waiting for this amount
-    # between two successive polls.
+    # prerun_timeout_sec controls how long bors will wait for all GitHub status checks to be completed before taking action.
+    # If this value is set to 0, bors will not wait for status checks to be completed. Otherwise, Bors will poll status checks
+    # with exponential backoff. If prerun_timeout_sec or more ellapsed in the latest poll, Bors will return an error message.
+    # Half an hour by default.
     prerun_timeout_sec: (30 * 60),
     use_squash_merge: false,
     required_approvals: nil,
