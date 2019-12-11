@@ -28,6 +28,15 @@ defmodule BorsNG.Worker.Batcher.Message do
     {"Delayed for higher-priority pull requests", :running}
   end
 
+  def generate_message({:preflight, :waiting}) do
+    ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+  end
+  def generate_message({:preflight, :ok}) do
+    "All preflight checks passed. Batching this PR into the staging branch."
+  end
+  def generate_message({:preflight, :timeout}) do
+    "GitHub status checks took too long to complete, so bors is giving up. You can adjust bors configuration to have it wait longer if you like."
+  end
   def generate_message({:preflight, :blocked_labels}) do
     ":-1: Rejected by label"
   end
