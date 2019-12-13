@@ -44,7 +44,7 @@ defmodule BorsNG.Worker.BatcherMessageTest do
   end
 
   test "generate conflict/retry message" do
-    expected_message = "# Merge conflict (retrying...)"
+    expected_message = "This PR was included in a batch with a merge conflict, it will be automatically retried"
     actual_message = Message.generate_message({:conflict, :retrying})
     assert expected_message == actual_message
   end

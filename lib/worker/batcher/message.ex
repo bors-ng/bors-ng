@@ -65,19 +65,19 @@ defmodule BorsNG.Worker.Batcher.Message do
     "# Merge conflict"
   end
   def generate_message({:conflict, :retrying}) do
-    "# Merge conflict (retrying...)"
+    "This PR was included in a batch with a merge conflict, it will be automatically retried"
   end
   def generate_message({:timeout, :failed}) do
     "# Timed out"
   end
   def generate_message({:timeout, :retrying}) do
-    "# Timed out (retrying...)"
+    "This PR was included in a batch that timed out, it will be automatically retried"
   end
   def generate_message({:canceled, :failed}) do
     "# Canceled"
   end
   def generate_message({:canceled, :retrying}) do
-    "# Canceled (will resume)"
+    "This PR was included in a batch that was canceled, it will be automatically retried"
   end
   def generate_message({state, statuses}) do
     is_new_year = get_is_new_year()
