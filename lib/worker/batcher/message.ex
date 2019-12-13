@@ -89,6 +89,9 @@ defmodule BorsNG.Worker.Batcher.Message do
     end
     Enum.reduce(statuses, "# #{msg}", &gen_status_link/2)
   end
+  def generate_message({:merged, :squashed, target_branch}) do
+    "# Pull request successfully merged into #{target_branch}."
+  end
   defp gen_status_link(status, acc) do
     status_link = case status.url do
       nil -> status.identifier

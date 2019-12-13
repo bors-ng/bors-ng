@@ -49,6 +49,12 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     assert expected_message == actual_message
   end
 
+  test "generate merged into master message" do
+    expected_message = "# Pull request successfully merged into master."
+    actual_message = Message.generate_message({:merged, :squashed, "master"})
+    assert expected_message == actual_message
+  end
+
   test "generate commit message" do
     expected_message = """
     Merge #1 #2
