@@ -529,7 +529,7 @@ defmodule BorsNG.Worker.Batcher do
         pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
         pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
         pr = GitHub.update_pr!(repo_conn, pr)
-        send_message(repo_conn, [patch], {:merged, :squashed, "master"})
+        send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch})
       end)
     end
 
