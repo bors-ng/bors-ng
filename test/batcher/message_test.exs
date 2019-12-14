@@ -49,6 +49,30 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     assert expected_message == actual_message
   end
 
+  test "generate canceled message" do
+    expected_message = "# Canceled"
+    actual_message = Message.generate_message({:canceled, :failed})
+    assert expected_message == actual_message
+  end
+
+  test "generate canceled/retry message" do
+    expected_message = "This PR was included in a batch that was canceled, it will be automatically retried"
+    actual_message = Message.generate_message({:canceled, :retrying})
+    assert expected_message == actual_message
+  end
+
+  test "generate timeout message" do
+    expected_message = "# Timed out"
+    actual_message = Message.generate_message({:timeout, :failed})
+    assert expected_message == actual_message
+  end
+
+  test "generate timeout/retry message" do
+    expected_message = "This PR was included in a batch that timed out, it will be automatically retried"
+    actual_message = Message.generate_message({:timeout, :retrying})
+    assert expected_message == actual_message
+  end
+
   test "generate merged into master message" do
     expected_message = "# Pull request successfully merged into master."
     actual_message = Message.generate_message({:merged, :squashed, "master"})
