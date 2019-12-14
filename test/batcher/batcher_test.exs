@@ -179,7 +179,7 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{
           1 => ["# Canceled"],
-          2 => ["# Canceled (will resume)"]},
+          2 => ["This PR was included in a batch that was canceled, it will be automatically retried"]},
         statuses: %{
           "N" => %{"bors" => :error},
           "P" => %{"bors" => :error}},
@@ -2408,8 +2408,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{
-          1 => ["# Timed out (retrying...)"],
-          2 => ["# Timed out (retrying...)"]},
+          1 => ["This PR was included in a batch that timed out, it will be automatically retried"],
+          2 => ["This PR was included in a batch that timed out, it will be automatically retried"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "N" => %{"bors" => :error},
@@ -2447,8 +2447,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{
-          1 => ["# Timed out (retrying...)"],
-          2 => ["# Timed out (retrying...)"]},
+          1 => ["This PR was included in a batch that timed out, it will be automatically retried"],
+          2 => ["This PR was included in a batch that timed out, it will be automatically retried"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "N" => %{"bors" => :running},
@@ -2486,8 +2486,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{
-          1 => ["# Timed out", "# Timed out (retrying...)"],
-          2 => ["# Timed out (retrying...)"]},
+          1 => ["# Timed out", "This PR was included in a batch that timed out, it will be automatically retried"],
+          2 => ["This PR was included in a batch that timed out, it will be automatically retried"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "iniN" => %{"bors" => :error},
@@ -2528,8 +2528,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{
-          1 => ["# Timed out", "# Timed out (retrying...)"],
-          2 => ["# Timed out (retrying...)"]},
+          1 => ["# Timed out", "This PR was included in a batch that timed out, it will be automatically retried"],
+          2 => ["This PR was included in a batch that timed out, it will be automatically retried"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "iniN" => %{"bors" => :error},
@@ -2572,8 +2572,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{
-          1 => ["# Timed out", "# Timed out (retrying...)"],
-          2 => ["# Timed out", "# Timed out (retrying...)"]},
+          1 => ["# Timed out", "This PR was included in a batch that timed out, it will be automatically retried"],
+          2 => ["# Timed out", "This PR was included in a batch that timed out, it will be automatically retried"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "iniN" => %{"bors" => :error},
