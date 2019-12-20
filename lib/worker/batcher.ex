@@ -524,16 +524,16 @@ defmodule BorsNG.Worker.Batcher do
     |> Patch.all_for_batch()
     |> Repo.all()
 
+    send_message(repo_conn, patches, {:succeeded, statuses})
+
     if toml.use_squash_merge do
       Enum.each(patches, fn patch ->
+        send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch})
         pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
         pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
         pr = GitHub.update_pr!(repo_conn, pr)
-        send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch})
       end)
     end
-
-    send_message(repo_conn, patches, {:succeeded, statuses})
   end
 
   defp complete_batch(:error, batch, statuses) do
@@ -886,7 +886,7 @@ defmodule BorsNG.Worker.Batcher do
     |> where([s], s.batch_id in ^ids)
     |> Repo.delete_all()
 
-    
+
     Enum.each(batches, &send_status(repo_conn, &1, :delayed))
     Batch
     |> where([b], b.id in ^ids)
