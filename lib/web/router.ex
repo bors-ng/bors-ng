@@ -45,6 +45,14 @@ defmodule BorsNG.Router do
     get "/", PageController, :index
   end
 
+  scope "/batches", BorsNG do
+    pipe_through :browser_page
+    pipe_through :browser_session
+    pipe_through :browser_login
+
+    get "/:id", BatchController, :show
+  end
+
   scope "/repositories", BorsNG do
     pipe_through :browser_page
     pipe_through :browser_session
