@@ -1,39 +1,29 @@
 <main role=main><div class=wrapper>
 
-<h2 class=header>Batch details</h2>
+<h2 class=header>Batch Details</h2>
 
-<table id="batch-details-table" class="table">
-  <tbody>
-    <%= if @batch do %>
-      <tr>
-        <td>State</td>
-        <td><%= @batch.state %></td>
-      </tr>
-      <tr>
-        <td>Priority</td>
-        <td><%= @batch.priority %></td>
-      </tr>
-
-      <tr>
-        <td>Pull requests</td>
-        <td>
-          <%= for patch <- @patches do %>
-            <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">#<%= patch.pr_xref %></a>
-          <% end %>
-        </td>
-      </tr>
-      <tr>
-        <td>Statuses</td>
-        <td>
-          <%= for status <- @statuses do %>
-            <a href="<%= status.url %>"><%= status.identifier %></a>
-          <% end %>
-        </td>
-      </tr>
-  <% else %>
-    There is no such batch
+<%= if @batch do %>
+<p>Priority: <%= @batch.priority %></p>
+<p>State: <%= stringify_state(@batch.state) %></p>
+<p>
+  Status:
+  <%= for status <- @statuses do %>
+    <%= if status.url do %>
+    <a href="<%= status.url %>"><%= status.identifier %></a>
+    <% else %>
+    <span><%= status.identifier %></span>
+    <% end %>
   <% end %>
-  </tbody>
-</table>
+</p>
+<p>
+  Pull Requests:
+  <%= for patch <- @patches do %>
+  <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">#<%= patch.pr_xref %></a>
+  <% end %>
+</p>
+
+<% else %>
+There is no such batch
+<% end %>
 
 </div></main>

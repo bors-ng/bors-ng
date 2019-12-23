@@ -3,6 +3,7 @@
   <% %BorsNG.Database.Crash{id: id, component: component, crash: crash, updated_at: updated_at} -> %>
     <tr role=row id="crash-<%= id %>" data-id="<%= id %>" data-datetime="<%= updated_at %>">
       <td><%= htmlify_naive_datetime(updated_at) %></td>
+      <td></td>
       <td>Crash</td>
       <td><%= component %></td>
       <td><pre><code><%= crash %></code></pre></td>
@@ -10,6 +11,7 @@
   <% %BorsNG.Database.Batch{id: id, state: state, patches: patches, updated_at: updated_at} -> %>
     <tr role=row id="batch-<%= id %>" data-id="<%= id %>" data-datetime="<%= updated_at %>">
       <td><%= htmlify_naive_datetime(updated_at) %></td>
+      <td><a href="/batches/<%= id %>"><%= id %></a></td>
       <td>Batch</td>
       <td><%= stringify_state(state) %></td>
       <td>
