@@ -4,6 +4,8 @@ defmodule BorsNG.BatchControllerTest do
   alias BorsNG.Database.Batch
   alias BorsNG.Database.Installation
   alias BorsNG.Database.LinkPatchBatch
+  alias BorsNG.Database.LinkMemberProject
+  alias BorsNG.Database.LinkUserProject
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
@@ -31,7 +33,20 @@ defmodule BorsNG.BatchControllerTest do
       project_id: project.id,
       priority: 33
     })
-    {:ok, installation: installation, project: project, user: user, batch: batch, patch: patch}
+    Repo.insert!(%LinkPatchBatch{
+      patch_id: patch.id,
+      batch_id: batch.id,
+    })
+    Repo.insert!(%Status{
+      batch_id: batch.id,
+      identifier: "some-identifier"
+    })
+    Repo.insert!(%Status{
+      batch_id: batch.id,
+      identifier: "with-url-identifier",
+      url: "http://example.com"
+    })
+    {:ok, installation: installation, project: project, user: user, batch: batch, user: user}
   end
 
   test "need to log in to see this", %{conn: conn, batch: batch} do
@@ -51,19 +66,18 @@ defmodule BorsNG.BatchControllerTest do
     conn
   end
 
-  test "shows the batch details", %{conn: conn, patch: patch, batch: batch} do
-    Repo.insert!(%LinkPatchBatch{
-      patch_id: patch.id,
-      batch_id: batch.id,
-    })
-    Repo.insert!(%Status{
-      batch_id: batch.id,
-      identifier: "some-identifier"
-    })
-    Repo.insert!(%Status{
-      batch_id: batch.id,
-      identifier: "with-url-identifier",
-      url: "http://example.com"
+  test "hides batch details from unlinked user", %{conn: conn, batch: batch} do
+    conn = login conn
+
+    assert_raise BorsNG.PermissionDeniedError, fn ->
+      get conn, "/batches/#{batch.id}"
+    end
+  end
+
+  test "shows the batch details as a reviewer", %{conn: conn, batch: batch, user: user, project: project} do
+    Repo.insert!(%LinkUserProject{
+      user_id: user.id,
+      project_id: project.id
     })
 
     conn = login conn
@@ -77,4 +91,25 @@ defmodule BorsNG.BatchControllerTest do
     assert html_response(conn, 200) =~ ~S(<a href="http://example.com">with-url-identifier</a>)
   end
 
+  test "hides batch details from a member", %{conn: conn, batch: batch, user: user, project: project} do
+    Repo.insert!(%LinkMemberProject{
+      user_id: user.id,
+      project_id: project.id
+    })
+
+    conn = login conn
+
+    assert_raise BorsNG.PermissionDeniedError, fn ->
+      get conn, "/batches/#{batch.id}"
+    end
+  end
+
+  test "shows the batch details for an admin", %{conn: conn, batch: batch, user: user} do
+    Repo.update!(User.changeset(user, %{is_admin: true}))
+
+    conn = login conn
+    conn = get conn, "/batches/#{batch.id}"
+
+    assert html_response(conn, 200) =~ "Batch Details"
+  end
 end
