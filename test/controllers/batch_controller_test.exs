@@ -39,12 +39,14 @@ defmodule BorsNG.BatchControllerTest do
     })
     Repo.insert!(%Status{
       batch_id: batch.id,
-      identifier: "some-identifier"
+      identifier: "some-identifier",
+      state: :running
     })
     Repo.insert!(%Status{
       batch_id: batch.id,
       identifier: "with-url-identifier",
-      url: "http://example.com"
+      url: "http://example.com",
+      state: :waiting
     })
     {:ok, installation: installation, project: project, user: user, batch: batch, user: user}
   end
@@ -87,8 +89,8 @@ defmodule BorsNG.BatchControllerTest do
     assert html_response(conn, 200) =~ "Priority: 33"
     assert html_response(conn, 200) =~ "State: Invalid"
     assert html_response(conn, 200) =~ "#43"
-    assert html_response(conn, 200) =~ "<span>some-identifier</span>"
-    assert html_response(conn, 200) =~ ~S(<a href="http://example.com">with-url-identifier</a>)
+    assert html_response(conn, 200) =~ "<span>some-identifier (Running)</span>"
+    assert html_response(conn, 200) =~ ~s(<a href="http://example.com">with-url-identifier (Waiting to run\)</a>)
   end
 
   test "hides batch details from a member", %{conn: conn, batch: batch, user: user, project: project} do

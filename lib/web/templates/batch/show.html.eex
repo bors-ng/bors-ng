@@ -9,9 +9,9 @@
   Status:
   <%= for status <- @statuses do %>
     <%= if status.url do %>
-    <a href="<%= status.url %>"><%= status.identifier %></a>
+    <a href="<%= status.url %>"><%= status.identifier %> (<%= stringify_state(status.state) %>)</a>
     <% else %>
-    <span><%= status.identifier %></span>
+    <span><%= status.identifier %> (<%= stringify_state(status.state) %>)</span>
     <% end %>
   <% end %>
 </p>
