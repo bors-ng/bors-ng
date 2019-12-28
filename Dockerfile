@@ -47,7 +47,7 @@ ENV DOCKERIZE_VERSION=v0.6.0
 RUN curl -Ls https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz | \
     tar xzv -C /usr/local/bin
 
-ADD ./docker-entrypoint /usr/local/bin/bors-ng-entrypoint
+ADD ./script/docker-entrypoint /usr/local/bin/bors-ng-entrypoint
 COPY --from=builder /src/_build/prod/rel/ /app/
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
