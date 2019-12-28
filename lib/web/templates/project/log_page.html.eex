@@ -10,7 +10,7 @@
   <% %BorsNG.Database.Batch{id: id, state: state, patches: patches, updated_at: updated_at} -> %>
     <tr role=row id="batch-<%= id %>" data-id="<%= id %>" data-datetime="<%= updated_at %>">
       <td><%= htmlify_naive_datetime(updated_at) %></td>
-      <td>Batch</td>
+      <td><a href="/batches/<%= id %>">Batch <%= id %></a></td>
       <td><%= stringify_state(state) %></td>
       <td>
       <%= for patch <- patches do %>
