@@ -28,5 +28,8 @@ defmodule BorsNG.Database.LinkPatchBatch do
     struct
     |> cast(params, [:patch_id, :batch_id, :reviewer])
     |> validate_required([:patch_id, :batch_id, :reviewer])
+    |> unique_constraint(
+      :patch_id,
+      name: :link_patch_batch_patch_id_batch_id_index)
   end
 end
