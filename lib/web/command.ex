@@ -91,6 +91,7 @@ defmodule BorsNG.Command do
     {:try, binary} |
     :try_cancel |
     {:activate_by, binary} |
+    {:set_is_single, integer()} |
     {:set_priority, integer()} |
     :activate |
     :deactivate |
@@ -130,6 +131,7 @@ defmodule BorsNG.Command do
 
   def parse_cmd("try-"), do: [:try_cancel]
   def parse_cmd("try" <> arguments), do: [{:try, arguments}]
+  def parse_cmd("r+ single" <> rest), do: parse_single_patch(rest) ++ [:activate]
   def parse_cmd("r+ p=" <> rest), do: parse_priority(rest) ++ [:activate]
   def parse_cmd("r+" <> _), do: [:activate]
   def parse_cmd("r-" <> _), do: [:deactivate]
@@ -289,6 +291,9 @@ defmodule BorsNG.Command do
     [{:set_priority, p}]
   end
 
+  def parse_single_patch("on" <> _), do: [{:set_is_single, true}]
+  def parse_single_patch("off" <> _), do: [{:set_is_single, false}]
+
   @doc """
   Given a populated struct, run everything.
   """
@@ -376,6 +381,10 @@ defmodule BorsNG.Command do
   def run(c, {:activate_by, username}) do
     batcher = Batcher.Registry.get(c.project.id)
     Batcher.reviewed(batcher, c.patch.id, username)
+  end
+  def run(c, {:set_is_single, is_single}) do
+    batcher = Batcher.Registry.get(c.project.id)
+    Batcher.set_is_single(batcher, c.patch.id, is_single)
   end
   def run(c, {:set_priority, priority}) do
     batcher = Batcher.Registry.get(c.project.id)

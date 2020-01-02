@@ -21,6 +21,7 @@ defmodule BorsNG.Database.Patch do
     field :commit, :string
     field :open, :boolean, default: true
     field :priority, :integer, default: 0
+    field :is_single, :boolean, default: false
     belongs_to :author, User
     timestamps()
   end
@@ -40,7 +41,8 @@ defmodule BorsNG.Database.Patch do
       :author_id,
       :open,
       :into_branch,
-      :priority])
+      :priority,
+      :is_single])
     |> unique_constraint(:pr_xref, name: :patches_pr_xref_index)
   end
 
