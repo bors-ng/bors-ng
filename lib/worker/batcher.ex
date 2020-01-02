@@ -96,11 +96,9 @@ defmodule BorsNG.Worker.Batcher do
       nil -> nil
       %{is_single: ^is_single} -> nil
       patch ->
-        if is_single do
-          patch
-          |> Patch.changeset(%{is_single: true})
-          |> Repo.update!()
-        end
+        patch
+        |> Patch.changeset(%{is_single: is_single})
+        |> Repo.update!()
     end
 
     {:reply, :ok, project_id}

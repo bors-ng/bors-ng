@@ -2875,6 +2875,66 @@ defmodule BorsNG.Worker.BatcherTest do
     assert status.identifier == "ci"
   end
 
+  test "set single patch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    Batcher.handle_call({:set_is_single, patch.id, true}, nil, nil)
+    assert Repo.one!(Patch).is_single == true
+    Batcher.handle_call({:set_is_single, patch.id, false}, nil, nil)
+    assert Repo.one!(Patch).is_single == false
+    Batcher.handle_call({:set_is_single, patch.id, true}, nil, nil)
+    assert Repo.one!(Patch).is_single == true
+  end
+
+  test "single patches get solo batched" do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: :running,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+
+    Batcher.handle_call({:set_is_single, patch2.id, true}, nil, proj.id)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+
+    # test that patch2 is solo batched
+  end
+
   test "sets patch priorities", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
