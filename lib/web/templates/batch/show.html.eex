@@ -1,8 +1,24 @@
+<nav>
+
+<div class=wrapper>
+  <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/">
+    <%= @project.name %>
+  </a>
+  ›
+  <a href="<%= project_path(@conn, :log, @project) %>">
+    History
+  </a>
+  <h1>
+  Batch Details
+  </h1>
+</div>
+
+</nav>
+
 <main role=main><div class=wrapper>
 
-<h2 class=header>Batch Details</h2>
-
 <%= if @batch do %>
+<p>Date: <%= htmlify_naive_datetime(@batch.updated_at) %></p>
 <p>Priority: <%= @batch.priority %></p>
 <p>State: <%= stringify_state(@batch.state) %></p>
 <p>
