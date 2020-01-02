@@ -291,8 +291,14 @@ defmodule BorsNG.Command do
     [{:set_priority, p}]
   end
 
-  def parse_single_patch("on" <> _), do: [{:set_is_single, true}]
-  def parse_single_patch("off" <> _), do: [{:set_is_single, false}]
+  def parse_single_patch(binary) do
+    case String.trim(binary) do
+      "on" <> _ ->
+        [{:set_is_single, true}]
+      "off" <> _ ->
+        [{:set_is_single, false}]
+    end
+  end
 
   @doc """
   Given a populated struct, run everything.

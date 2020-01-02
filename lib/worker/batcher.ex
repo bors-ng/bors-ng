@@ -868,26 +868,10 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-<<<<<<< HEAD
-  def get_new_batch(project_id, into_branch, priority) do
-=======
-  defp clone_batch(patch_links, project_id, into_branch) do
-    batch = Repo.insert!(Batch.new(project_id, into_branch))
-    patch_links
-    |> Enum.map(&%{
-      batch_id: batch.id,
-      patch_id: &1.patch_id,
-      reviewer: &1.reviewer})
-    |> Enum.map(&LinkPatchBatch.changeset(%LinkPatchBatch{}, &1))
-    |> Enum.each(&Repo.insert!/1)
-    batch
-  end
-
   def get_new_batch(project_id, into_branch, priority, true) do
     {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
   end
   def get_new_batch(project_id, into_branch, priority, _force) do
->>>>>>> Initial attempt.
     Batch
     |> where([b], b.project_id == ^project_id)
     |> where([b], b.state == ^(:waiting))
@@ -896,23 +880,15 @@ defmodule BorsNG.Worker.Batcher do
     |> order_by([b], [desc: b.updated_at])
     |> Repo.all()
     |> Enum.reject(fn b ->
-      b.id
-      |> LinkPatchBatch.from_batch()
-      |> Repo.all()
-      |> Enum.any?(fn l -> l.patch_is_single
-          #TODO: filter out solo batch runs
+      Repo.all(LinkPatchBatch.from_batch(b.id))
+      |> Enum.any?(fn l ->
+        Repo.get!(Patch, l.patch_id).is_single
       end)
     end)
     |> case do
       [batch | _] -> {batch, false}
       _ -> get_new_batch(project_id, into_branch, priority, true)
     end
-  end
-
-  defp filter_out_solo_batch(batches) do
-    Enum.filter(enumerable, fun)?(batches, fn b do
-      patch_links = Repo.all(LinkPatchBatch.from_batch(b.id))
-    end)
   end
 
   defp raise_batch_priority(%Batch{priority: old_priority} = batch, priority) when old_priority < priority do

@@ -4,5 +4,6 @@ defmodule BorsNG.Database.Repo.Migrations.PatchIsSingle do
   def change do
     alter table(:patches) do
       add :is_single, :boolean, default: false
+    end
   end
 end
