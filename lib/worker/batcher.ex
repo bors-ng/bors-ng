@@ -869,13 +869,14 @@ defmodule BorsNG.Worker.Batcher do
   def get_new_batch(project_id, into_branch, priority, true) do
     {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
   end
+
   def get_new_batch(project_id, into_branch, priority, _force) do
     Batch
     |> where([b], b.project_id == ^project_id)
-    |> where([b], b.state == ^(:waiting))
+    |> where([b], b.state == ^:waiting)
     |> where([b], b.into_branch == ^into_branch)
     |> where([b], b.priority == ^priority)
-    |> order_by([b], [desc: b.updated_at])
+    |> order_by([b], desc: b.updated_at)
     |> Repo.all()
     |> Enum.reject(fn b ->
       Repo.all(LinkPatchBatch.from_batch(b.id))
@@ -884,7 +885,7 @@ defmodule BorsNG.Worker.Batcher do
       end)
     end)
     |> case do
-      [batch | _] -> {batch, false}
+      [batch] -> {batch, false}
       _ -> get_new_batch(project_id, into_branch, priority, true)
     end
   end
