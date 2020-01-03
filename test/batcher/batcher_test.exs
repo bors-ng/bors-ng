@@ -2898,7 +2898,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert Repo.one!(Patch).is_single == true
   end
 
-  test "single patches get solo batched" do
+  test "single patches get solo batched", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{},
@@ -2922,7 +2922,7 @@ defmodule BorsNG.Worker.BatcherTest do
     |> Repo.insert!()
     batch = %Batch{
       project_id: proj.id,
-      state: :running,
+      state: :waiting,
       into_branch: "master"}
     |> Repo.insert!()
 
@@ -2932,7 +2932,54 @@ defmodule BorsNG.Worker.BatcherTest do
     Batcher.handle_call({:set_is_single, patch2.id, true}, nil, proj.id)
     Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
 
-    # test that patch2 is solo batched
+    projBatches = proj.id |> Batch.all_for_project() |> Repo.all()
+    [patchBatch] = patch.id |> Batch.all_for_patch() |> Repo.all()
+    [patch2Batch] = patch2.id |> Batch.all_for_patch() |> Repo.all()
+    assert length(projBatches) == 2
+    assert patchBatch.id != patch2Batch.id
+  end
+
+  test "single patches in solo batches stay solo batched", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master",
+      is_single: true
+    }
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"
+    }
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: :waiting,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+
+    projBatches = proj.id |> Batch.all_for_project() |> Repo.all()
+    [patchBatch] = patch.id |> Batch.all_for_patch() |> Repo.all()
+    [patch2Batch] = patch2.id |> Batch.all_for_patch() |> Repo.all()
+    assert length(projBatches) == 2
+    assert patchBatch.id != patch2Batch.id
   end
 
   test "sets patch priorities", %{proj: proj} do
