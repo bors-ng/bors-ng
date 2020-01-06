@@ -12,6 +12,7 @@ defmodule BorsNG.GitHub.Pr do
     base_ref: bitstring,
     head_sha: bitstring,
     user: BorsNG.GitHub.User.t,
+    mergeable: boolean | nil,
   }
   defstruct(
     number: 0,
@@ -24,7 +25,8 @@ defmodule BorsNG.GitHub.Pr do
     head_ref: "",
     head_repo_id: 0,
     base_repo_id: 0,
-    merged: false
+    merged: false,
+    mergeable: nil
     )
 
   @doc """
@@ -64,6 +66,7 @@ defmodule BorsNG.GitHub.Pr do
       "avatar_url" => user_avatar_url,
     },
     "merged_at" => merged_at,
+    "mergeable" => mergeable,
   }) when is_integer(number) do
     {:ok, %BorsNG.GitHub.Pr{
       number: number,
@@ -89,7 +92,8 @@ defmodule BorsNG.GitHub.Pr do
         login: user_login,
         avatar_url: user_avatar_url,
       },
-      merged: not is_nil merged_at
+      merged: (not is_nil merged_at),
+      mergeable: mergeable
     }}
   end
 

@@ -452,8 +452,10 @@ defmodule BorsNG.Worker.Batcher do
   defp start_waiting_merged_batch(batch, patch_links, _base, :conflict) do
     repo_conn = get_repo_conn(batch.project)
     patches = Enum.map(patch_links, &(&1.patch))
-    state = bisect(patch_links, batch)
+    state = bisect_for_conflict_batch(patch_links, batch)
+
     send_message(repo_conn, patches, {:conflict, state})
+
     {:conflict, nil}
   end
 
@@ -549,7 +551,7 @@ defmodule BorsNG.Worker.Batcher do
     |> LinkPatchBatch.from_batch()
     |> Repo.all()
     patches = Enum.map(patch_links, &(&1.patch))
-    state = bisect(patch_links, batch)
+    state = bisect_for_failed_batch(patch_links, batch)
     send_message(repo_conn, patches, {state, erred})
   end
 
@@ -576,7 +578,7 @@ defmodule BorsNG.Worker.Batcher do
     |> LinkPatchBatch.from_batch()
     |> Repo.all()
     patches = Enum.map(patch_links, &(&1.patch))
-    state = bisect(patch_links, batch)
+    state = bisect_for_failed_batch(patch_links, batch)
     project
     |> get_repo_conn()
     |> send_message(patches, {:timeout, state})
@@ -643,12 +645,58 @@ defmodule BorsNG.Worker.Batcher do
     send_message(repo_conn, [patch], {:canceled, :failed})
   end
 
-  defp bisect(patch_links, %Batch{project: project, into_branch: into}) do
+  defp bisect(patch_links, project_id, into) do
+    count = Enum.count(patch_links)
+
+    {lo, hi} = Enum.split(patch_links, div(count, 2))
+    clone_batch(lo, project_id, into)
+    clone_batch(hi, project_id, into)
+  end
+
+  defp isolate_unmergeable_patch_links(patch_links, repo_conn) do
+    patch_link_map =
+      patch_links
+      |> Enum.group_by (fn patch_link -> is_patch_mergeable(patch_link.patch, repo_conn) end)
+
+    {patch_link_map[true]||[], patch_link_map[false]||[]}
+  end
+
+  defp is_patch_mergeable(patch, repo_conn) do
+    pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
+    pr.mergeable == true || pr.mergeable == nil
+  end
+
+  defp bisect_for_conflict_batch(patch_links, %Batch{project: project, into_branch: into}) do
+    repo_conn = get_repo_conn(project)
+
+    # if mergeable 0 and unmergeable = 1 -> fail no retry
+    #              0                   2 create single batches for unmergeable patches
+    #              1                   0 impossible
+    #              1                   1+ create single batches for both
+    #              2                   0+ bisect for mergeable patches, create single batches for unmergeable patches
+    case isolate_unmergeable_patch_links(patch_links, repo_conn) do
+      {[], [single_unmergeable_patch_link]} -> :failed
+      {mergeable_patch_links, unmergeable_patch_links} ->
+        Enum.each unmergeable_patch_links, fn patch_link ->
+          clone_batch([patch_link], project.id, into)
+        end
+
+        case mergeable_patch_links do
+          [] -> :ok
+          [single_mergeable_patch_link] ->
+            clone_batch([single_mergeable_patch_link], project.id, into)
+          multiple_mergeable_patch_link ->
+            bisect(multiple_mergeable_patch_link, project.id, into)
+        end
+        poll_after_delay(project)
+        :retrying
+    end
+  end
+
+  defp bisect_for_failed_batch(patch_links, %Batch{project: project, into_branch: into}) do
     count = Enum.count(patch_links)
     if count > 1 do
-      {lo, hi} = Enum.split(patch_links, div(count, 2))
-      clone_batch(lo, project.id, into)
-      clone_batch(hi, project.id, into)
+      bisect(patch_links, project.id, into)
       poll_after_delay(project)
       :retrying
     else
