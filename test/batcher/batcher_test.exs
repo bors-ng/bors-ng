@@ -1420,7 +1420,7 @@ defmodule BorsNG.Worker.BatcherTest do
              }}
   end
 
-  test "merge conflict", %{proj: proj} do
+  test "merge conflict with master", %{proj: proj} do
     # Projects are created with a "waiting" state
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
@@ -1428,6 +1428,21 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{"iniN" => %{}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false,
+            mergeable: false,
+          }
+        },
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
         pr_commits: %{1 => [
           %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
@@ -1463,6 +1478,21 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]}},
         comments: %{1 => ["# Merge conflict"]},
         statuses: %{"N" => %{"bors" => :error}, "iniN" => %{}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false,
+            mergeable: false,
+          }
+        },
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
         pr_commits: %{1 => [
           %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
