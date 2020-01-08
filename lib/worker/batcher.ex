@@ -670,13 +670,15 @@ defmodule BorsNG.Worker.Batcher do
     repo_conn = get_repo_conn(project)
 
     # if mergeable 0 and unmergeable = 1 -> fail no retry
-    #              0                   2 create single batches for unmergeable patches
-    #              1                   0 impossible
+    #              0                   2  create single batches for unmergeable patches
+    #              1                   0  impossible
     #              1                   1+ create single batches for both
-    #              2                   0+ bisect for mergeable patches, create single batches for unmergeable patches
+    #              2+                  0  bisect for mergeable patches
+    #              2+                  1+ one batch for mergeable patches, create single batches for unmergeable patches
     case isolate_unmergeable_patch_links(patch_links, repo_conn) do
       {[], [single_unmergeable_patch_link]} -> :failed
       {mergeable_patch_links, unmergeable_patch_links} ->
+        # create batches for unmergeable patches first, so they will fail immediately right after the current batch
         Enum.each unmergeable_patch_links, fn patch_link ->
           clone_batch([patch_link], project.id, into)
         end
@@ -686,7 +688,10 @@ defmodule BorsNG.Worker.Batcher do
           [single_mergeable_patch_link] ->
             clone_batch([single_mergeable_patch_link], project.id, into)
           multiple_mergeable_patch_link ->
-            bisect(multiple_mergeable_patch_link, project.id, into)
+            case unmergeable_patch_links do
+              [] -> bisect(multiple_mergeable_patch_link, project.id, into)
+              _ -> clone_batch(multiple_mergeable_patch_link, project.id, into)
+            end
         end
         poll_after_delay(project)
         :retrying
