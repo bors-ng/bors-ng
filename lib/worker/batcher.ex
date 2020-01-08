@@ -670,43 +670,41 @@ defmodule BorsNG.Worker.Batcher do
     repo_conn = get_repo_conn(project)
 
     # if mergeable 0 and unmergeable = 1 -> fail no retry
-    #              0                   2  create single batches for unmergeable patches
+    #              0                   2+  create single batches for unmergeable patches
     #              1                   0  impossible
     #              1                   1+ create single batches for both
     #              2+                  0  bisect for mergeable patches
     #              2+                  1+ one batch for mergeable patches, create single batches for unmergeable patches
+    # Create batches for unmergeable patches first, so they will be picked up first and fail first.
     case isolate_unmergeable_patch_links(patch_links, repo_conn) do
-      {[], [single_unmergeable_patch_link]} ->
+      {[], [single_unmergeable]} ->
         :failed
 
-      {mergeable_patch_links, unmergeable_patch_links} ->
-        # create batches for unmergeable patches first, so they will fail immediately right after the current batch
-        Enum.each unmergeable_patch_links, fn patch_link ->
+      {[], multiple_unmergeable} ->
+        Enum.each multiple_unmergeable, fn patch_link ->
           clone_batch([patch_link], project.id, into)
         end
+        poll_after_delay(project)
+        :retrying
 
-#        case mergeable_patch_links do
-#          [] -> :ok
-#          [single_mergeable_patch_link] ->
-#            clone_batch([single_mergeable_patch_link], project.id, into)
-#          multiple_mergeable_patch_link ->
-#            case unmergeable_patch_links do
-#              [] -> bisect(multiple_mergeable_patch_link, project.id, into)
-#              _ -> clone_batch(multiple_mergeable_patch_link, project.id, into)
-#            end
-#        end
-
-        case {mergeable_patch_links, unmergeable_patch_links} do
-          {[], _} ->
-            :ok
-          {[single_mergeable], _} ->
-            clone_batch([single_mergeable], project.id, into)
-          {multiple_mergeable, []} ->
-            bisect(multiple_mergeable, project.id, into)
-          {multiple_mergeable, _} ->
-            clone_batch(multiple_mergeable, project.id, into)
+      {[single_mergeable], multiple_unmergeable} ->
+        Enum.each multiple_unmergeable, fn patch_link ->
+          clone_batch([patch_link], project.id, into)
         end
+        clone_batch([single_mergeable], project.id, into)
+        poll_after_delay(project)
+        :retrying
 
+      {multiple_mergeable, []} ->
+        bisect(multiple_mergeable, project.id, into)
+        poll_after_delay(project)
+        :retrying
+
+      {multiple_mergeable, multiple_unmergeable} ->
+        Enum.each multiple_unmergeable, fn patch_link ->
+          clone_batch([patch_link], project.id, into)
+        end
+        clone_batch(multiple_mergeable, project.id, into)
         poll_after_delay(project)
         :retrying
     end
