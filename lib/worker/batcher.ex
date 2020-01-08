@@ -676,23 +676,37 @@ defmodule BorsNG.Worker.Batcher do
     #              2+                  0  bisect for mergeable patches
     #              2+                  1+ one batch for mergeable patches, create single batches for unmergeable patches
     case isolate_unmergeable_patch_links(patch_links, repo_conn) do
-      {[], [single_unmergeable_patch_link]} -> :failed
+      {[], [single_unmergeable_patch_link]} ->
+        :failed
+
       {mergeable_patch_links, unmergeable_patch_links} ->
         # create batches for unmergeable patches first, so they will fail immediately right after the current batch
         Enum.each unmergeable_patch_links, fn patch_link ->
           clone_batch([patch_link], project.id, into)
         end
 
-        case mergeable_patch_links do
-          [] -> :ok
-          [single_mergeable_patch_link] ->
-            clone_batch([single_mergeable_patch_link], project.id, into)
-          multiple_mergeable_patch_link ->
-            case unmergeable_patch_links do
-              [] -> bisect(multiple_mergeable_patch_link, project.id, into)
-              _ -> clone_batch(multiple_mergeable_patch_link, project.id, into)
-            end
+#        case mergeable_patch_links do
+#          [] -> :ok
+#          [single_mergeable_patch_link] ->
+#            clone_batch([single_mergeable_patch_link], project.id, into)
+#          multiple_mergeable_patch_link ->
+#            case unmergeable_patch_links do
+#              [] -> bisect(multiple_mergeable_patch_link, project.id, into)
+#              _ -> clone_batch(multiple_mergeable_patch_link, project.id, into)
+#            end
+#        end
+
+        case {mergeable_patch_links, unmergeable_patch_links} do
+          {[], _} ->
+            :ok
+          {[single_mergeable], _} ->
+            clone_batch([single_mergeable], project.id, into)
+          {multiple_mergeable, []} ->
+            bisect(multiple_mergeable, project.id, into)
+          {multiple_mergeable, _} ->
+            clone_batch(multiple_mergeable, project.id, into)
         end
+
         poll_after_delay(project)
         :retrying
     end
