@@ -455,9 +455,7 @@ defmodule BorsNG.Worker.Batcher do
     repo_conn = get_repo_conn(project)
     patches = Enum.map(patch_links, &(&1.patch))
     state = Divider.split_batch_with_conflicts(patch_links, batch)
-    if state == :retrying do
-      poll_after_delay(project)
-    end
+    poll_after_delay(project)
 
     send_message(repo_conn, patches, {:conflict, state})
 
