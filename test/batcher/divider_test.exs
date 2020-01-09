@@ -65,8 +65,40 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
     %LinkPatchBatch{link | patch: patch}
   end
 
-  describe "split_batch_with_conflicts" do
+  describe "split_batch" do
+    test "a batch containing one patch", %{proj: proj, batch: batch, patch1: patch} do
+      link = create_link(patch, batch)
 
+      result = Divider.split_batch([link], batch)
+
+      assert result == :failed
+      batches = Repo.all Batch, project_id: proj.id
+      assert (Enum.count batches) == 1
+    end
+
+    test "a batch containing many patches", %{proj: proj, batch: batch, patch1: patch1, patch2: patch2, patch3: patch3, patch4: patch4} do
+      link1 = create_link(patch1, batch)
+      link2 = create_link(patch2, batch)
+      link3 = create_link(patch3, batch)
+      link4 = create_link(patch4, batch)
+
+      result = Divider.split_batch([link1, link2, link3, link4], batch)
+
+      assert result == :retrying
+
+      [original_batch, new_batch1, new_batch2] = Repo.all(from b in Batch, where: b.project_id == ^proj.id, order_by: [asc: b.id])
+
+      assert batch.id == original_batch.id
+
+      links_for_new_batch1 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch1.id)
+      assert Enum.map(links_for_new_batch1, &(&1.patch_id)) == [patch1.id, patch2.id]
+
+      links_for_new_batch2 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch2.id)
+      assert Enum.map(links_for_new_batch2, &(&1.patch_id)) == [patch3.id, patch4.id]
+    end
+  end
+
+  describe "split_batch_with_conflicts" do
     test "single PR that conflicts with master fails", %{proj: proj, batch: batch, patch1: patch} do
       # Projects are created with a "waiting" state
       GitHub.ServerMock.put_state(%{
@@ -426,6 +458,35 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
       links_for_new_batch1 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch1.id)
       assert Enum.map(links_for_new_batch1, &(&1.patch_id)) == [patch.id]
     end
+  end
 
+  describe "clone_batch" do
+    test "creates a new batch with same links", %{proj: proj, batch: batch, patch1: patch1, patch2: patch2} do
+      link1 = create_link(patch1, batch)
+      link2 = create_link(patch2, batch)
+
+
+      result = Divider.clone_batch([link1, link2], proj.id, "some-cloned-branch")
+
+
+      assert result.id != batch.id
+      assert result.project_id == proj.id
+      assert result.into_branch == "some-cloned-branch"
+
+      [original, cloned] = Repo.all(from b in Batch, where: b.project_id == ^proj.id, order_by: [asc: b.id], preload: [:patches])
+      assert original.id == batch.id
+      assert cloned.id == result.id
+
+      assert Enum.count(cloned.patches) == 2
+      assert Enum.map(cloned.patches, &(&1.patch_id)) == [patch1.id, patch2.id]
+      assert Enum.map(cloned.patches, &(&1.reviewer)) == ["some_user", "some_user"]
+
+      original_link_ids = [link1.id, link2.id] |> Enum.sort
+      assert (Enum.map(cloned.patches, &(&1.id)) |> Enum.sort) != original_link_ids
+
+      Enum.each cloned.patches, fn cloned_link ->
+        assert Enum.member?(original_link_ids, cloned_link.id) == false
+      end
+    end
   end
 end
