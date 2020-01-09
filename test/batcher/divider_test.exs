@@ -1,7 +1,6 @@
 defmodule BorsNG.Worker.Batcher.DividerTest do
   use BorsNG.Worker.TestCase
 
-  alias BorsNG.Worker.Batcher
   alias BorsNG.Worker.Batcher.Divider
   alias BorsNG.Database.Batch
   alias BorsNG.Database.Installation
@@ -10,7 +9,6 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
   alias BorsNG.GitHub.Pr
-  alias BorsNG.Database.Status
   alias BorsNG.GitHub
 
   import Ecto.Query
