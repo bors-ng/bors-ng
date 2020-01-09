@@ -166,11 +166,16 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
 
 
       assert result == :retrying
-      batches = Repo.all Batch, project_id: proj.id
-      assert (Enum.count batches) == 3 # original, plus new batch for patch1, plus new batch for patch2
 
-      # TODO: check batch 2 contains link1
-      # TODO: check batch 3 contains link2
+      [original_batch, new_batch1, new_batch2] = Repo.all(from b in Batch, where: b.project_id == ^proj.id, order_by: [asc: b.id])
+
+      assert batch.id == original_batch.id
+
+      links_for_new_batch1 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch1.id)
+      assert Enum.map(links_for_new_batch1, &(&1.patch_id)) == [patch1.id]
+
+      links_for_new_batch2 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch2.id)
+      assert Enum.map(links_for_new_batch2, &(&1.patch_id)) == [patch2.id]
     end
 
     test "multiple PRs without conflicts with master are retried via a bisect", %{proj: proj, batch: batch, patch1: patch1, patch2: patch2, patch3: patch3, patch4: patch4} do
@@ -273,10 +278,16 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
 
 
       assert result == :retrying
-      batches = Repo.all Batch, project_id: proj.id
-      assert (Enum.count batches) == 3 # original, plus new batch for patch1, plus new batch for patch2
-      # TODO: check batch 2 contains link1 and link2
-      # TODO: check batch 3 contains link3 and link4
+
+      [original_batch, new_batch1, new_batch2] = Repo.all(from b in Batch, where: b.project_id == ^proj.id, order_by: [asc: b.id])
+
+      assert batch.id == original_batch.id
+
+      links_for_new_batch1 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch1.id)
+      assert Enum.map(links_for_new_batch1, &(&1.patch_id)) == [patch1.id, patch2.id]
+
+      links_for_new_batch2 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch2.id)
+      assert Enum.map(links_for_new_batch2, &(&1.patch_id)) == [patch3.id, patch4.id]
     end
 
     test "multiple PRs with and without conflicts with master", %{proj: proj, batch: batch, patch1: patch1, patch2: patch2, patch3: patch3, patch4: patch4} do
@@ -377,13 +388,20 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
 
       result = Divider.split_batch_with_conflicts([link1, link2, link3, link4], batch)
 
-
       assert result == :retrying
-      batches = Repo.all Batch, project_id: proj.id
-      assert (Enum.count batches) == 4 # original
-      # TODO: check batch 2 contains link1
-      # TODO: check batch 3 contains link2
-      # TODO: check batch 4 contains link3 and link4
+
+      [original_batch, new_batch1, new_batch2, new_batch3] = Repo.all(from b in Batch, where: b.project_id == ^proj.id, order_by: [asc: b.id])
+
+      assert batch.id == original_batch.id
+
+      links_for_new_batch1 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch1.id)
+      assert Enum.map(links_for_new_batch1, &(&1.patch_id)) == [patch1.id]
+
+      links_for_new_batch2 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch2.id)
+      assert Enum.map(links_for_new_batch2, &(&1.patch_id)) == [patch2.id]
+
+      links_for_new_batch3 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch3.id)
+      assert Enum.map(links_for_new_batch3, &(&1.patch_id)) == [patch3.id, patch4.id]
     end
 
     test "single PR that with unknown mergeable value is retried", %{proj: proj, batch: batch, patch1: patch} do
@@ -426,9 +444,13 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
 
 
       assert result == :retrying
-      batches = Repo.all Batch, project_id: proj.id
-      assert (Enum.count batches) == 2
-      # TODO: assert batch 2 contains link1
+
+      [original_batch, new_batch1] = Repo.all(from b in Batch, where: b.project_id == ^proj.id, order_by: [asc: b.id])
+
+      assert batch.id == original_batch.id
+
+      links_for_new_batch1 =  Repo.all(from l in LinkPatchBatch, where: l.batch_id == ^new_batch1.id)
+      assert Enum.map(links_for_new_batch1, &(&1.patch_id)) == [patch.id]
     end
 
   end
