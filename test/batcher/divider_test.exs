@@ -59,6 +59,14 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
     {:ok, inst: inst, proj: proj, batch: batch, patch1: patch1, patch2: patch2, patch3: patch3, patch4: patch4}
   end
 
+  defp create_link(patch, batch) do
+    link = %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id, reviewer: "some_user"}
+            |> Repo.insert!()
+
+    # manually preload
+    %LinkPatchBatch{link | patch: patch}
+  end
+
   describe "split_batch_with_conflicts" do
 
     test "single PR that conflicts with master fails", %{proj: proj, batch: batch, patch1: patch} do
@@ -92,9 +100,7 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
         :merge_conflict => 0,
       })
 
-      link = %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link = %LinkPatchBatch{link | patch: patch} # fake the preloading of our test records
+      link = create_link(patch, batch)
 
 
       result = Divider.split_batch_with_conflicts([link], batch)
@@ -153,13 +159,8 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
         :merge_conflict => 0,
       })
 
-      link1 = %LinkPatchBatch{patch_id: patch1.id, batch_id: batch.id, reviewer: "some_user"}
-             |> Repo.insert!()
-      link1 = %LinkPatchBatch{link1 | patch: patch1} # fake the preloading of our test records
-
-      link2 = %LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link2 = %LinkPatchBatch{link2 | patch: patch2} # fake the preloading of our test records
+      link1 = create_link(patch1, batch)
+      link2 = create_link(patch2, batch)
 
 
       result = Divider.split_batch_with_conflicts([link1, link2], batch)
@@ -257,22 +258,10 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
         :merge_conflict => 0,
       })
 
-      link1 = %LinkPatchBatch{patch_id: patch1.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link1 = %LinkPatchBatch{link1 | patch: patch1} # fake the preloading of our test records
-
-      link2 = %LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link2 = %LinkPatchBatch{link2 | patch: patch2} # fake the preloading of our test records
-
-      link3 = %LinkPatchBatch{patch_id: patch3.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link3 = %LinkPatchBatch{link3 | patch: patch3} # fake the preloading of our test records
-
-      link4 = %LinkPatchBatch{patch_id: patch4.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link4 = %LinkPatchBatch{link4 | patch: patch4} # fake the preloading of our test records
-
+      link1 = create_link(patch1, batch)
+      link2 = create_link(patch2, batch)
+      link3 = create_link(patch3, batch)
+      link4 = create_link(patch4, batch)
 
       result = Divider.split_batch_with_conflicts([link1, link2, link3, link4], batch)
 
@@ -369,21 +358,10 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
         :merge_conflict => 0,
       })
 
-      link1 = %LinkPatchBatch{patch_id: patch1.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link1 = %LinkPatchBatch{link1 | patch: patch1} # fake the preloading of our test records
-
-      link2 = %LinkPatchBatch{patch_id: patch2.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link2 = %LinkPatchBatch{link2 | patch: patch2} # fake the preloading of our test records
-
-      link3 = %LinkPatchBatch{patch_id: patch3.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link3 = %LinkPatchBatch{link3 | patch: patch3} # fake the preloading of our test records
-
-      link4 = %LinkPatchBatch{patch_id: patch4.id, batch_id: batch.id, reviewer: "some_user"}
-              |> Repo.insert!()
-      link4 = %LinkPatchBatch{link4 | patch: patch4} # fake the preloading of our test records
+      link1 = create_link(patch1, batch)
+      link2 = create_link(patch2, batch)
+      link3 = create_link(patch3, batch)
+      link4 = create_link(patch4, batch)
 
 
       result = Divider.split_batch_with_conflicts([link1, link2, link3, link4], batch)
@@ -435,9 +413,7 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
         :merge_conflict => 0,
       })
 
-      link = %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id, reviewer: "some_user"}
-             |> Repo.insert!()
-      link = %LinkPatchBatch{link | patch: patch} # fake the preloading of our test records
+      link = create_link(patch, batch)
 
 
       result = Divider.split_batch_with_conflicts([link], batch)
