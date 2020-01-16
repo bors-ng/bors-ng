@@ -161,7 +161,8 @@ defmodule BorsNG.GitHub.FriendlyMock do
              head_sha: sha,
              head_ref: ref,
              body: body,
-             user: @def_user}
+             user: @def_user,
+             mergeable: true}
     update_mock([:pulls], &(Map.put(&1, number, pr)))
     update_mock([:pr_commits], &(Map.put(&1, number, [])))
     update_mock([:comments], &(Map.put(&1, number, [])))
@@ -260,7 +261,8 @@ defmodule BorsNG.GitHub.FriendlyMock do
                      base_ref: base_ref,
                      head_sha: head_sha,
                      body: body,
-                     user: user}) do
+                     user: user,
+                     mergeable: mergeable}) do
     %{
     "number" => number,
     "title" => title,
@@ -281,6 +283,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
     },
     "user" => user,
     "merged_at" => "some non-nul time :)",
+    "mergeable" => mergeable,
     }
   end
 

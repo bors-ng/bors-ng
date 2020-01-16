@@ -49,6 +49,7 @@ defmodule BorsNG.WebhookControllerTest do
           },
         },
         "merged_at" => nil,
+        "mergeable" => true,
         "user" => %{
           "id" => 23,
           "login" => "ghost",
@@ -88,6 +89,7 @@ defmodule BorsNG.WebhookControllerTest do
           },
         },
         "merged_at" => nil,
+        "mergeable" => true,
         "user" => %{
           "id" => 23,
           "login" => "ghost",
@@ -162,6 +164,7 @@ defmodule BorsNG.WebhookControllerTest do
           },
         },
         "merged_at" => "time",
+        "mergeable" => true,
         "user" => %{
           "id" => 23,
           "login" => "ghost",
