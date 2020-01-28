@@ -537,17 +537,20 @@ defmodule BorsNG.Worker.Batcher do
       batch.commit,
       batch.into_branch)
 
-    push_success = case push_result do
+    known_push_failure = case push_result do
       {:error, :push, 422, raw_error_content} ->
-        if String.contains?(raw_error_content, "Update is not a fast forward") do
-          false
-        else
-          {:ok, _} = push_result
-          true
-        end
+        String.contains?(raw_error_content, "Update is not a fast forward")
       _ ->
-        {:ok, _} = push_result
-        true
+        false
+    end
+
+    # Check for "unknown" push failures
+    push_success = if known_push_failure do
+      false
+    else
+      # Force "unknown" failure (that didn't match the above `case push_result`) to crash here
+      {:ok, _} = push_result
+      true
     end
 
     patches = batch.id

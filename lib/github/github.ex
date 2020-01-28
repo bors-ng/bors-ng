@@ -92,7 +92,7 @@ defmodule BorsNG.GitHub do
     sha
   end
 
-  @spec push(tconn, binary, binary) :: {:ok, binary} | {:error, term, term}
+  @spec push(tconn, binary, binary) :: {:ok, binary} | {:error, term, term, term}
   def push(repo_conn, sha, to) do
     GenServer.call(BorsNG.GitHub, {:push, repo_conn, {sha, to}}, Confex.fetch_env!(:bors, :api_github_timeout))
   end
