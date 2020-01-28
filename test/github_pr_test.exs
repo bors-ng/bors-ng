@@ -1,8 +1,8 @@
 defmodule BorsNG.GitHub.GitHubPrTest do
   use BorsNG.ConnCase
 
-  test "can parse a Poison-decoded JSON *without* mergeable field" do
-    result = BorsNG.GitHub.Pr.from_json %{
+  setup do
+    pr_standard = %{
       "number" => 1,
       "title" => "T",
       "body" => "B",
@@ -20,6 +20,14 @@ defmodule BorsNG.GitHub.GitHubPrTest do
         "id" => 23,
         "login" => "ghost",
         "avatar_url" => "U"}}
+
+    {:ok, pr_standard: pr_standard}
+  end
+
+  test "can parse a Poison-decoded JSON *without* mergeable field", %{pr_standard: pr_standard} do
+    pr_without_field = pr_standard
+
+    result = BorsNG.GitHub.Pr.from_json pr_without_field
 
     assert result == {:ok, %BorsNG.GitHub.Pr{
       number: 1,
@@ -41,26 +49,10 @@ defmodule BorsNG.GitHub.GitHubPrTest do
     }}
   end
 
-  test "can parse a Poison-decoded JSON *with* mergeable field" do
-    result = BorsNG.GitHub.Pr.from_json %{
-      "number" => 1,
-      "title" => "T",
-      "body" => "B",
-      "state" => "open",
-      "base" => %{"ref" => "OTHER_BRANCH", "repo" => %{"id" => 456}},
-      "head" => %{
-        "sha" => "B",
-        "ref" => "BAR_BRANCH",
-        "repo" => %{
-          "id" => 345
-        },
-      },
-      "merged_at" => nil,
-      "mergeable" => true,
-      "user" => %{
-        "id" => 23,
-        "login" => "ghost",
-        "avatar_url" => "U"}}
+  test "can parse a Poison-decoded JSON *with* mergeable field", %{pr_standard: pr_standard} do
+    pr_with_field = Map.put(pr_standard, "mergeable", true)
+
+    result = BorsNG.GitHub.Pr.from_json pr_with_field
 
     assert result == {:ok, %BorsNG.GitHub.Pr{
       number: 1,
