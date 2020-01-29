@@ -12,7 +12,7 @@ defmodule BorsNG.GitHub.Pr do
     base_ref: bitstring,
     head_sha: bitstring,
     user: BorsNG.GitHub.User.t,
-    mergeable: boolean | nil,
+    mergeable: boolean | nil, # not all PRs have this field populated
   }
   defstruct(
     number: 0,
@@ -95,6 +95,58 @@ defmodule BorsNG.GitHub.Pr do
       merged: (not is_nil merged_at),
       mergeable: mergeable
     }}
+  end
+  def from_json(%{
+    "number" => number,
+    "title" => title,
+    "body" => body,
+    "state" => state,
+    "base" => %{
+      "ref" => base_ref,
+      "repo" => %{
+        "id" => base_repo_id
+      }
+    },
+    "head" => %{
+      "sha" => head_sha,
+      "ref" => head_ref,
+      "repo" => %{
+        "id" => head_repo_id
+      }
+    },
+    "user" => %{
+      "id" => user_id,
+      "login" => user_login,
+      "avatar_url" => user_avatar_url,
+    },
+    "merged_at" => merged_at,
+  }) when is_integer(number) do
+    from_json %{
+      "number" => number,
+      "title" => title,
+      "body" => body,
+      "state" => state,
+      "base" => %{
+        "ref" => base_ref,
+        "repo" => %{
+          "id" => base_repo_id
+        }
+      },
+      "head" => %{
+        "sha" => head_sha,
+        "ref" => head_ref,
+        "repo" => %{
+          "id" => head_repo_id
+        }
+      },
+      "user" => %{
+        "id" => user_id,
+        "login" => user_login,
+        "avatar_url" => user_avatar_url,
+      },
+      "merged_at" => merged_at,
+      "mergeable" => nil,
+    }
   end
 
   def from_json(x) do
