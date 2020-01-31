@@ -401,12 +401,13 @@ defmodule BorsNG.Worker.Batcher do
             # Then compress the merge commit into tree into a single commit
             # appent it to the previous commit
             # Because the merges are iterative the contain *only* the changes from the PR vs the previous PR(or head)
+            message_body = Batcher.Message.cut_body(pr.body, toml.cut_body_after)
             cpt = GitHub.create_commit!(
               repo_conn,
               %{
                 tree: merge_commit.tree,
                 parents: [prev_head],
-                commit_message: "#{pr.title} (##{pr.number})\n\n#{pr.body}",
+                commit_message: "#{pr.title} (##{pr.number})\n\n#{message_body}",
                 committer: %{name: user.login, email: user_email}})
 
             Logger.info("Commit Sha #{inspect(cpt)}")
