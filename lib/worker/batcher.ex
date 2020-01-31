@@ -502,16 +502,15 @@ defmodule BorsNG.Worker.Batcher do
     statuses = Repo.all(Status.all_for_batch(batch.id))
     initial_status = Batcher.State.summary_database_statuses(statuses)
     now = DateTime.to_unix(DateTime.utc_now(), :second)
+    repo_conn = get_repo_conn(batch.project)
     next_status = if initial_status != :running do
+      # some repositories require an OK status to push
+      send_status(repo_conn, batch, :ok)
       # need to change status (could go from :ok to :error if non-ff push)
       maybe_completed_status = complete_batch(initial_status, batch, statuses)
-
       # status can change so send_status should come after complete_batch
-      batch.project
-      |> get_repo_conn()
-      |> send_status(batch, maybe_completed_status)
+      send_status(repo_conn, batch, maybe_completed_status)
       Project.ping!(batch.project_id)
-
       maybe_completed_status
     else
       initial_status
