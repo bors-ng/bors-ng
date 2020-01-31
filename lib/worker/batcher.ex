@@ -500,24 +500,31 @@ defmodule BorsNG.Worker.Batcher do
 
   defp maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
-    status = Batcher.State.summary_database_statuses(statuses)
+    initial_status = Batcher.State.summary_database_statuses(statuses)
     now = DateTime.to_unix(DateTime.utc_now(), :second)
-    if status != :running do
+    next_status = if initial_status != :running do
+      # need to change status (could go from :ok to :error if non-ff push)
+      maybe_completed_status = complete_batch(initial_status, batch, statuses)
+
+      # status can change so send_status should come after complete_batch
       batch.project
       |> get_repo_conn()
-      |> send_status(batch, status)
+      |> send_status(batch, maybe_completed_status)
       Project.ping!(batch.project_id)
-      complete_batch(status, batch, statuses)
+
+      maybe_completed_status
+    else
+      initial_status
     end
     batch
-    |> Batch.changeset(%{state: status, last_polled: now})
+    |> Batch.changeset(%{state: next_status, last_polled: now})
     |> Repo.update!()
-    if status != :running do
+    if next_status != :running do
       poll_(batch.project_id)
     end
   end
 
-  @spec complete_batch(Status.state, Batch.t, [Status.t]) :: :ok
+  @spec complete_batch(Status.state, Batch.t, [Status.t]) :: Status.state
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
@@ -526,24 +533,58 @@ defmodule BorsNG.Worker.Batcher do
       {:ok, x} -> {:ok, x}
     end
 
-    {:ok, _} = push_with_retry(
+    push_result = push_with_retry(
       repo_conn,
       batch.commit,
       batch.into_branch)
+
+    known_push_failure = case push_result do
+      {:error, :push, 422, raw_error_content} ->
+        String.contains?(raw_error_content, "Update is not a fast forward")
+      _ ->
+        false
+    end
+
+    # Check for "unknown" push failures
+    push_success = if known_push_failure do
+      false
+    else
+      # Force "unknown" failure (that didn't match the above `case push_result`) to crash here
+      {:ok, _} = push_result
+      true
+    end
 
     patches = batch.id
     |> Patch.all_for_batch()
     |> Repo.all()
 
-    send_message(repo_conn, patches, {:succeeded, statuses})
+    case push_success do
+      true ->
+        send_message(repo_conn, patches, {:succeeded, statuses})
 
-    if toml.use_squash_merge do
-      Enum.each(patches, fn patch ->
-        send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch})
-        pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
-        pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
-        pr = GitHub.update_pr!(repo_conn, pr)
-      end)
+        if toml.use_squash_merge do
+          Enum.each(patches, fn patch ->
+            send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch})
+            pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
+            pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
+            pr = GitHub.update_pr!(repo_conn, pr)
+          end)
+        end
+
+        :ok
+
+      false ->
+        # retry the complete batch (no bisect required as build passed all statuses)
+        patch_links = batch.id
+        |> LinkPatchBatch.from_batch()
+        |> Repo.all()
+        reattempting_batch = Divider.clone_batch(patch_links, project.id, batch.into_branch)
+        poll_after_delay(project)
+
+        # send appropriate message to failed patches
+        send_message(repo_conn, patches, {:push_failed_non_ff, batch.into_branch})
+
+        :error
     end
   end
 
@@ -560,6 +601,8 @@ defmodule BorsNG.Worker.Batcher do
       poll_after_delay(project)
     end
     send_message(repo_conn, patches, {state, erred})
+
+    :error
   end
 
   # A delay has been observed between Bors sending the Status change

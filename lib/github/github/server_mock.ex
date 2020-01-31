@@ -213,16 +213,24 @@ defmodule BorsNG.GitHub.ServerMock do
 
   def do_handle_call(:push, repo_conn, {sha, to}, state) do
     with {:ok, repo} <- Map.fetch(state, repo_conn),
-         {:ok, branches} <- Map.fetch(repo, :branches) do
-      branches = %{branches | to => sha}
-      repo = %{repo | branches: branches}
-      state = %{state | repo_conn => repo}
-      {{:ok, sha}, state}
+         {:ok, branches} <- Map.fetch(repo, :branches),
+         push_errors <- Map.get(repo, :push_errors, %{}) do
+      case Map.fetch(push_errors, to) do
+        {:ok, error} ->
+          {{:error, :push, error[:error_code], error[:response]}, state}
+
+        _ ->
+          branches = %{branches | to => sha}
+          repo = %{repo | branches: branches}
+          state = %{state | repo_conn => repo}
+          {{:ok, sha}, state}
+      end
     end
     |> case do
-      {{:ok, _}, _} = res -> res
-      _ -> {{:error, :push}, state}
-    end
+         {{:ok, _}, _} = res -> res
+         {{:error, :push, _, _}, _} = res -> res
+         _ -> {{:error, :push}, state}
+       end
   end
 
   def do_handle_call(:get_branch, repo_conn, {from}, state) do

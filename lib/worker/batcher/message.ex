@@ -79,6 +79,9 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message({:canceled, :retrying}) do
     "This PR was included in a batch that was canceled, it will be automatically retried"
   end
+  def generate_message({:push_failed_non_ff, target_branch}) do
+    "This PR was included in a batch that successfully built, but then failed to merge into #{target_branch} (it was a non-fast-forward update). It will be automatically retried."
+  end
   def generate_message({state, statuses}) do
     is_new_year = get_is_new_year()
     msg = case state do
