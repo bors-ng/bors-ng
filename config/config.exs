@@ -9,13 +9,14 @@ case Mix.env do
     config :logger, level: :info
     config :logger, :console,
       format: "$time $metadata[$level] $message\n",
-      metadata: [:request_id]
+      metadata: [:request_id, :pid]
   :test ->
     config :logger, level: :warn
     config :logger, :console, format: "$message\n"
   _ ->
     config :logger, :console,
-      format: "[$level] $message\n"
+      format: "[$level] $message\n",
+      metadata: [:request_id, :pid]
 end
 
 config :bors,
