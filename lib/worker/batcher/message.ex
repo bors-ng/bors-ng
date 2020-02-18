@@ -65,7 +65,7 @@ defmodule BorsNG.Worker.Batcher.Message do
     "# Merge conflict"
   end
   def generate_message({:conflict, :retrying}) do
-    "This PR was included in a batch with a merge conflict, it will be automatically retried"
+    nil
   end
   def generate_message({:timeout, :failed}) do
     "# Timed out"
