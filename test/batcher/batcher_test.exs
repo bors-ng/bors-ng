@@ -750,8 +750,8 @@ defmodule BorsNG.Worker.BatcherTest do
       }}
     path = [{{:installation, 91}, 14}, :statuses, "Z"]
     GitHub.ServerMock.put_state(update_in(GitHub.ServerMock.get_state,
-	  path,
-	  &(Map.put(&1, "cn", :ok))))
+      path,
+      &(Map.put(&1, "cn", :ok))))
     Batcher.handle_info({:prerun_poll, 1000, {"rvr", patch}}, proj.id)
     state = GitHub.ServerMock.get_state()
     assert state == %{
