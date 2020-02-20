@@ -122,6 +122,10 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     assert "aa" == Message.cut_body("aabcbd", "b")
   end
 
+  test "cut whole body" do
+    assert "" == Message.cut_body("abc", "")
+  end
+
   test "cut body with no match" do
     assert "ac" == Message.cut_body("ac", "b")
   end
