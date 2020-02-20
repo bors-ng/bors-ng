@@ -115,22 +115,22 @@ defmodule BorsNG.Worker.Batcher do
       patch ->
         # Patch exists and is awaiting review
         # This will cause the PR to run after the patch's scheduled delay
-	# if all other conditions are met. It will poll if all conditions
-	# except CI are met and those CI are :waiting.
+        # if all other conditions are met. It will poll if all conditions
+        # except CI are met and those CI are :waiting.
         project = Repo.get!(Project, patch.project_id)
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
-	    run(reviewer, patch)
+            run(reviewer, patch)
           :waiting ->
-	    {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
-	    case toml.prerun_timeout_sec do
-	      0 ->
-		send_message(repo_conn, [patch], {:preflight, :timeout})
-	      _ ->
-		send_message(repo_conn, [patch], {:preflight, :waiting})
-		prerun_poll({reviewer, patch})
-	    end
+            {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
+            case toml.prerun_timeout_sec do
+              0 ->
+                send_message(repo_conn, [patch], {:preflight, :timeout})
+              _ ->
+                send_message(repo_conn, [patch], {:preflight, :waiting})
+                prerun_poll({reviewer, patch})
+            end
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
         end
