@@ -23,7 +23,7 @@ RUN which rg || (curl -L https://github.com/BurntSushi/ripgrep/releases/download
     mkdir elixir-src && \
     tar -xzC elixir-src --strip-components=1 -f elixir-src.tar.gz && \
     cd elixir-src && \
-    make clean test && \
+    make clean && make -j4 && \
     sudo make install && \
     cd .. && \
     rm -rf elixir-src elixir-src.tar.gz && \
