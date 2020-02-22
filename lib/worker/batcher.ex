@@ -82,11 +82,13 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def handle_cast(args, project_id) do
+    check_self(project_id)
     do_handle_cast(args, project_id)
     {:noreply, project_id}
   end
 
   def handle_call({:set_priority, patch_id, priority}, _from, project_id) do
+    check_self(project_id)
     case Repo.get(Patch, patch_id) do
       nil -> nil
       %{priority: ^priority} -> nil
@@ -178,6 +180,7 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def handle_info({:poll, repetition}, project_id) do
+    check_self(project_id)
     if repetition != :once do
       Process.send_after(self(), {:poll, repetition}, @poll_period)
     end
@@ -190,6 +193,7 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   def handle_info({:prerun_poll, timeout, args}, proj_id) do
+    check_self(proj_id)
     {reviewer, patch} = args
     case Repo.get(Patch.all(:awaiting_review), patch.id) do
       nil ->
@@ -934,5 +938,15 @@ defmodule BorsNG.Worker.Batcher do
   defp poll_after_delay(project) do
     poll_at = (project.batch_delay_sec + 1) * 1000
     Process.send_after(self(), {:poll, :once}, poll_at)
+  end
+
+  # Validate that there are no duplicate running batchers for the same project
+  defp check_self(project_id) do
+    if Application.get_env(:bors, :is_test) do
+      :ok
+    else
+      self = self()
+      ^self = BorsNG.Worker.Batcher.Registry.get(project_id)
+    end
   end
 end
