@@ -131,7 +131,10 @@ defmodule BorsNG.Worker.Batcher do
                 send_message(repo_conn, [patch], {:preflight, :timeout})
               _ ->
                 send_message(repo_conn, [patch], {:preflight, :waiting})
-                prerun_poll({reviewer, patch})
+                Process.send_after(
+                  self(),
+                  {:prerun_poll, 0, @prerun_poll_period, {reviewer, patch}},
+                  0)
             end
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
@@ -192,28 +195,40 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  def handle_info({:prerun_poll, timeout, args}, proj_id) do
+  def handle_info({:prerun_poll, elapsed, period, args}, proj_id) do
     check_self(proj_id)
     {reviewer, patch} = args
+
     case Repo.get(Patch.all(:awaiting_review), patch.id) do
       nil ->
         Logger.info("Patch #{patch.id} already left prerun, exiting prerun poll loop")
+
       _ ->
         project = Repo.get(Project, patch.project_id)
         repo_conn = get_repo_conn(project)
         {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
+
         prerun_timeout_ms = toml.prerun_timeout_sec * 1000
+
         case patch_preflight(repo_conn, patch) do
           :ok ->
             run(reviewer, patch)
-          :waiting when timeout > prerun_timeout_ms ->
+
+          :waiting when elapsed > prerun_timeout_ms ->
             send_message(repo_conn, [patch], {:preflight, :timeout})
+
           :waiting ->
-            Process.send_after(self(), {:prerun_poll, Kernel.trunc(timeout * 1.5), args}, timeout)
+            elapsed = elapsed + period
+            Process.send_after(
+              self(),
+              {:prerun_poll, elapsed, Kernel.trunc(period * 1.5), args},
+              period)
+
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
         end
     end
+
     {:noreply, proj_id}
   end
 
@@ -233,10 +248,6 @@ defmodule BorsNG.Worker.Batcher do
     else
       :again
     end
-  end
-
-  defp prerun_poll(args) do
-    Process.send_after(self(), {:prerun_poll, @prerun_poll_period, args}, 0)
   end
 
   defp run(reviewer, patch) do
