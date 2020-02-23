@@ -39,7 +39,7 @@ defmodule BorsNG.Worker.Batcher do
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
-  @prerun_poll_period 1000
+  @prerun_poll_period 5 * 60 * 1000
 
   # Public API
 
@@ -117,22 +117,22 @@ defmodule BorsNG.Worker.Batcher do
       patch ->
         # Patch exists and is awaiting review
         # This will cause the PR to run after the patch's scheduled delay
-	# if all other conditions are met. It will poll if all conditions
-	# except CI are met and those CI are :waiting.
+        # if all other conditions are met. It will poll if all conditions
+        # except CI are met and those CI are :waiting.
         project = Repo.get!(Project, patch.project_id)
         repo_conn = get_repo_conn(project)
         case patch_preflight(repo_conn, patch) do
           :ok ->
-	    run(reviewer, patch)
+            run(reviewer, patch)
           :waiting ->
-	    {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
-	    case toml.prerun_timeout_sec do
-	      0 ->
-		send_message(repo_conn, [patch], {:preflight, :timeout})
-	      _ ->
-		send_message(repo_conn, [patch], {:preflight, :waiting})
-		prerun_poll({reviewer, patch})
-	    end
+            {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
+            case toml.prerun_timeout_sec do
+              0 ->
+                send_message(repo_conn, [patch], {:preflight, :timeout})
+              _ ->
+                send_message(repo_conn, [patch], {:preflight, :waiting})
+                Process.send_after(self(), {:prerun_poll, 0, {reviewer, patch}}, 0)
+            end
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
         end
@@ -192,28 +192,37 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  def handle_info({:prerun_poll, timeout, args}, proj_id) do
+  def handle_info({:prerun_poll, try_num, args}, proj_id) do
     check_self(proj_id)
     {reviewer, patch} = args
+
     case Repo.get(Patch.all(:awaiting_review), patch.id) do
       nil ->
         Logger.info("Patch #{patch.id} already left prerun, exiting prerun poll loop")
+
       _ ->
         project = Repo.get(Project, patch.project_id)
         repo_conn = get_repo_conn(project)
         {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
+
         prerun_timeout_ms = toml.prerun_timeout_sec * 1000
+        elapsed = try_num * @prerun_poll_period
+
         case patch_preflight(repo_conn, patch) do
           :ok ->
             run(reviewer, patch)
-          :waiting when timeout > prerun_timeout_ms ->
+
+          :waiting when elapsed > prerun_timeout_ms ->
             send_message(repo_conn, [patch], {:preflight, :timeout})
+
           :waiting ->
-            Process.send_after(self(), {:prerun_poll, Kernel.trunc(timeout * 1.5), args}, timeout)
+            Process.send_after(self(), {:prerun_poll, try_num + 1, args}, @prerun_poll_period)
+
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
         end
     end
+
     {:noreply, proj_id}
   end
 
@@ -233,10 +242,6 @@ defmodule BorsNG.Worker.Batcher do
     else
       :again
     end
-  end
-
-  defp prerun_poll(args) do
-    Process.send_after(self(), {:prerun_poll, @prerun_poll_period, args}, 0)
   end
 
   defp run(reviewer, patch) do
