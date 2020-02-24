@@ -15,7 +15,9 @@ config :bors, BorsNG.Endpoint,
   server: true,
   root: ".",
   version: Application.spec(:myapp, :vsn),
-  secret_key_base: {:system, "SECRET_KEY_BASE"}
+  secret_key_base: {:system, "SECRET_KEY_BASE"},
+  ssl: {:system, :boolean, 'FORCE_SSL', true},
+  force_ssl: [rewrite_on: [:x_forwarded_proto]]
 
 config :bors, BorsNG.WebhookParserPlug,
   webhook_secret: {:system, "GITHUB_WEBHOOK_SECRET"}
