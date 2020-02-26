@@ -131,6 +131,7 @@ defmodule BorsNG.Command do
 
   def parse_cmd("try-"), do: [:try_cancel]
   def parse_cmd("try" <> arguments), do: [{:try, arguments}]
+  def parse_cmd("single" <> rest), do: parse_single_patch(rest)
   def parse_cmd("r+ single" <> rest), do: parse_single_patch(rest) ++ [:activate]
   def parse_cmd("r+ p=" <> rest), do: parse_priority(rest) ++ [:activate]
   def parse_cmd("r+" <> _), do: [:activate]

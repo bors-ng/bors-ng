@@ -55,6 +55,8 @@ defmodule BorsNG.CommandTest do
   test "accept single patch" do
     assert [{:set_is_single, true}, :activate] == Command.parse("bors r+ single on")
     assert [{:set_is_single, false}, :activate] == Command.parse("bors r+ single off")
+    assert [{:set_is_single, true}] == Command.parse("bors single on")
+    assert [{:set_is_single, false}] == Command.parse("bors single off")
   end
 
   test "do not parse single patch after try command" do
