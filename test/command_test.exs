@@ -52,6 +52,18 @@ defmodule BorsNG.CommandTest do
     assert [:deactivate] == Command.parse("Bors merge-")
   end
 
+  test "accept single patch" do
+    assert [{:set_is_single, true}, :activate] == Command.parse("bors r+ single on")
+    assert [{:set_is_single, false}, :activate] == Command.parse("bors r+ single off")
+    assert [{:set_is_single, true}] == Command.parse("bors single on")
+    assert [{:set_is_single, false}] == Command.parse("bors single off")
+  end
+
+  test "do not parse single patch after try command" do
+    assert [{:try, " single on"}] == Command.parse("bors try single on")
+    assert [{:try, " single screwy"}] == Command.parse("bors try single screwy")
+  end
+
   test "accept priority" do
     assert [{:set_priority, 1}, :activate] == Command.parse("bors r+ p=1")
     assert [{:set_priority, 1}, :activate] == Command.parse("bors merge p=1")
@@ -458,7 +470,7 @@ defmodule BorsNG.CommandTest do
     assert [:activate] == Command.parse("popo merge")
     assert [:deactivate] == Command.parse("popo r-")
     assert [:deactivate] == Command.parse("popo merge-")
-    
+
     if old_env do
       System.put_env("COMMAND_TRIGGER", old_env)
     else

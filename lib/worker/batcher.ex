@@ -51,6 +51,10 @@ defmodule BorsNG.Worker.Batcher do
     GenServer.cast(pid, {:reviewed, patch_id, reviewer})
   end
 
+  def set_is_single(pid, patch_id, is_single) when is_integer(patch_id) do
+    GenServer.call(pid, {:set_is_single, patch_id, is_single})
+  end
+
   def set_priority(pid, patch_id, priority) when is_integer(patch_id) do
     GenServer.call(pid, {:set_priority, patch_id, priority})
   end
@@ -85,6 +89,19 @@ defmodule BorsNG.Worker.Batcher do
     check_self(project_id)
     do_handle_cast(args, project_id)
     {:noreply, project_id}
+  end
+
+  def handle_call({:set_is_single, patch_id, is_single}, _from, project_id) do
+    case Repo.get(Patch, patch_id) do
+      nil -> nil
+      %{is_single: ^is_single} -> nil
+      patch ->
+        patch
+        |> Patch.changeset(%{is_single: is_single})
+        |> Repo.update!()
+    end
+
+    {:reply, :ok, project_id}
   end
 
   def handle_call({:set_priority, patch_id, priority}, _from, project_id) do
@@ -250,7 +267,8 @@ defmodule BorsNG.Worker.Batcher do
     {batch, is_new_batch} = get_new_batch(
       patch.project_id,
       patch.into_branch,
-      patch.priority
+      patch.priority,
+      patch.is_single
     )
     %LinkPatchBatch{}
     |> LinkPatchBatch.changeset(%{
@@ -848,18 +866,27 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  def get_new_batch(project_id, into_branch, priority) do
+  def get_new_batch(project_id, into_branch, priority, true) do
+    {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
+  end
+
+  def get_new_batch(project_id, into_branch, priority, _force) do
     Batch
     |> where([b], b.project_id == ^project_id)
-    |> where([b], b.state == ^(:waiting))
+    |> where([b], b.state == ^:waiting)
     |> where([b], b.into_branch == ^into_branch)
     |> where([b], b.priority == ^priority)
-    |> order_by([b], [desc: b.updated_at])
-    |> limit(1)
+    |> order_by([b], desc: b.updated_at)
     |> Repo.all()
+    |> Enum.reject(fn b ->
+      Repo.all(LinkPatchBatch.from_batch(b.id))
+      |> Enum.any?(fn l ->
+        Repo.get!(Patch, l.patch_id).is_single
+      end)
+    end)
     |> case do
       [batch] -> {batch, false}
-      _ -> {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
+      _ -> get_new_batch(project_id, into_branch, priority, true)
     end
   end
 

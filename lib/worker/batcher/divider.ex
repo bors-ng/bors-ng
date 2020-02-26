@@ -2,6 +2,7 @@ defmodule BorsNG.Worker.Batcher.Divider do
 
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Batch
+  alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
@@ -9,6 +10,12 @@ defmodule BorsNG.Worker.Batcher.Divider do
   def split_batch(patch_links, %Batch{project: project, into_branch: into}) do
     count = Enum.count(patch_links)
     if count > 1 do
+      {single_patch_links, patch_links} = patch_links
+      |> Enum.split_with(fn l ->
+        Repo.get!(Patch, l.patch_id).is_single
+      end)
+      single_patch_links
+      |> Enum.each(&clone_batch([&1], project.id, into))
       bisect(patch_links, project.id, into)
       :retrying
     else

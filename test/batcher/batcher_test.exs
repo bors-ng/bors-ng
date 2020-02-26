@@ -2875,6 +2875,189 @@ defmodule BorsNG.Worker.BatcherTest do
     assert status.identifier == "ci"
   end
 
+  test "set single patch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    Batcher.handle_call({:set_is_single, patch.id, true}, nil, nil)
+    assert Repo.one!(Patch).is_single == true
+    Batcher.handle_call({:set_is_single, patch.id, false}, nil, nil)
+    assert Repo.one!(Patch).is_single == false
+    Batcher.handle_call({:set_is_single, patch.id, true}, nil, nil)
+    assert Repo.one!(Patch).is_single == true
+  end
+
+  test "single patches get solo batched", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"}
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"}
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: :waiting,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+
+    Batcher.handle_call({:set_is_single, patch2.id, true}, nil, proj.id)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+
+    projBatches = proj.id |> Batch.all_for_project() |> Repo.all()
+    [patchBatch] = patch.id |> Batch.all_for_patch() |> Repo.all()
+    [patch2Batch] = patch2.id |> Batch.all_for_patch() |> Repo.all()
+    assert length(projBatches) == 2
+    assert patchBatch.id != patch2Batch.id
+  end
+
+  test "single patches in solo batches stay solo batched", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{}
+      }})
+
+    patch = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master",
+      is_single: true
+    }
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"
+    }
+    |> Repo.insert!()
+    batch = %Batch{
+      project_id: proj.id,
+      state: :waiting,
+      into_branch: "master"}
+    |> Repo.insert!()
+
+    %LinkPatchBatch{patch_id: patch.id, batch_id: batch.id}
+    |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+
+    projBatches = proj.id |> Batch.all_for_project() |> Repo.all()
+    [patchBatch] = patch.id |> Batch.all_for_patch() |> Repo.all()
+    [patch2Batch] = patch2.id |> Batch.all_for_patch() |> Repo.all()
+    assert length(projBatches) == 2
+    assert patchBatch.id != patch2Batch.id
+  end
+
+  test "singled patches in solo bataches stay solo batched when bisected", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
+        comments: %{1 => [], 2 => [], 3 => [], 4 => []},
+        statuses: %{},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}],
+          2 => [
+            %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}],
+          3 => [
+            %GitHub.Commit{sha: "9101", author_name: "i", author_email: "m"}],
+          4 => [
+            %GitHub.Commit{sha: "1121", author_name: "j", author_email: "m"}]
+        },
+      }
+    })
+
+    patch1 = %Patch{
+      project_id: proj.id,
+      pr_xref: 1,
+      commit: "N",
+      into_branch: "master"
+    }
+    |> Repo.insert!()
+    patch2 = %Patch{
+      project_id: proj.id,
+      pr_xref: 2,
+      commit: "O",
+      into_branch: "master"
+    }
+    |> Repo.insert!()
+    patch3 = %Patch{
+      project_id: proj.id,
+      pr_xref: 3,
+      commit: "P",
+      into_branch: "master"
+    }
+    |> Repo.insert!()
+    patch4 = %Patch{
+      project_id: proj.id,
+      pr_xref: 4,
+      commit: "Q",
+      into_branch: "master"
+    }
+    |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch1.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch3.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch4.id, "rvr"}, proj.id)
+    Batcher.handle_call({:set_is_single, patch1.id, true}, nil, proj.id)
+    Batcher.handle_cast({:reviewed, patch1.id, "rvr"}, proj.id)
+
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :waiting
+
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by! Batch, project_id: proj.id
+    assert batch.state == :running
+
+    Batcher.do_handle_cast({:status, {"iniNOPQ", "ci", :error, nil}}, proj.id)
+    batch = Repo.get! Batch, batch.id
+    assert batch.state == :error
+    batches = ordered_batches(proj)
+    assert length(batches) == 3
+    patch1Batches = patch1.id |> Batch.all_for_patch() |> Repo.all()
+    assert length(Enum.reject(patch1Batches, &(&1.state == :error))) == 1
+  end
+
   test "sets patch priorities", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
