@@ -56,7 +56,7 @@ defmodule BorsNg.Mixfile do
   defp deps do
     [
       {:phoenix_ecto, "~> 3.0"},
-      {:phoenix_html, "~> 2.13.4"},
+      {:phoenix_html, "~> 2.14.0"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:phoenix, "~> 1.4.3"},
       {:phoenix_pubsub, "~> 1.0"},
