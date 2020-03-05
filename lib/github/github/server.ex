@@ -378,8 +378,8 @@ defmodule BorsNG.GitHub.Server do
     |> case do
       %{status: 201} ->
         :ok
-      _ ->
-        {:error, :post_commit_status}
+      %{status: status, body: raw} ->
+        {:error, :post_commit_status, status, raw}
     end
   end
 
