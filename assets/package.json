@@ -11,7 +11,7 @@
     "phoenix_html": "file:../deps/phoenix_html"
   },
   "devDependencies": {
-    "@babel/core": "^7.8.6",
+    "@babel/core": "^7.8.7",
     "@babel/preset-env": "^7.7.7",
     "babel-loader": "^8.0.0",
     "copy-webpack-plugin": "^5.1.1",
