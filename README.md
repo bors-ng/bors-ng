@@ -8,6 +8,8 @@ A merge bot for GitHub pull requests
 [Bors-NG] implements a continuous-testing workflow where the master branch never breaks.
 It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
 
+Other resources:
+
 * [Home page](https://bors.tech/)
 * [Documentation](https://bors.tech/documentation/)
 * [Support forum](https://forum.bors.tech/)
@@ -69,7 +71,7 @@ this workflow.
 
 Bors is a [GitHub Application], so (assuming you already have Travis CI set up), getting bors set up requires two steps:
 
- 1. Add the app to your repo in GitHub.
+ 1. Add the app to your repo in GitHub. [Click here to use the publicly hosted instance.](https://github.com/apps/bors/installations/new)
  2. Commit a bors.toml with these contents:
 
         status = ["continuous-integration/travis-ci/push"]
