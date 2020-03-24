@@ -231,7 +231,7 @@ defmodule BorsNG.GitHub do
       Confex.fetch_env!(:bors, :api_github_timeout))
     case first_try do
       :ok -> :ok
-      msg =>
+      msg ->
         Process.sleep(1_000)
         :ok = GenServer.call(
           BorsNG.GitHub,
