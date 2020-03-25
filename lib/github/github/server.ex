@@ -649,7 +649,7 @@ defmodule BorsNG.GitHub.Server do
     jwt_token = get_jwt_token()
     %{body: raw, status: 201} = "Bearer #{jwt_token}"
     |> tesla_client(@installation_content_type)
-    |> Tesla.post!("installations/#{installation_xref}/access_tokens?members=read", "")
+    |> Tesla.post!("app/installations/#{installation_xref}/access_tokens", "")
     Poison.decode!(raw)["token"]
   end
 
