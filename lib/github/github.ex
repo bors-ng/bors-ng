@@ -224,10 +224,20 @@ defmodule BorsNG.GitHub do
 
   @spec post_commit_status!(tconn, {binary, tstatus, binary, binary}) :: :ok
   def post_commit_status!(repo_conn, {sha, status, msg, url}) do
-    :ok = GenServer.call(
+    # Auto-retry
+    first_try = GenServer.call(
       BorsNG.GitHub,
       {:post_commit_status, repo_conn, {sha, status, msg, url}},
       Confex.fetch_env!(:bors, :api_github_timeout))
+    case first_try do
+      :ok -> :ok
+      _ ->
+        Process.sleep(1_000)
+        :ok = GenServer.call(
+          BorsNG.GitHub,
+          {:post_commit_status, repo_conn, {sha, status, msg, url}},
+          Confex.fetch_env!(:bors, :api_github_timeout))
+    end
     :ok
   end
 
