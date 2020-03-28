@@ -230,7 +230,7 @@ defmodule BorsNG.GitHub.Server do
         %{status: 204} ->
           {:ok, :conflict}
         err ->
-          {:error, :merge_branch, err}
+          {:error, :create_commit, err}
       end
 
     resp
