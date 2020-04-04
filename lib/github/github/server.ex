@@ -386,12 +386,12 @@ defmodule BorsNG.GitHub.Server do
   def do_handle_call(:belongs_to_team, repo_conn,
         {username, team_id}) do
     IO.inspect(repo_conn)
-    {{:raw, token}, installation} = repo_conn
+    {{:raw, token}, _installation_id} = repo_conn
     "token #{token}"
     |> tesla_client()
     |> Tesla.get!(URI.encode("/teams/#{team_id}/memberships/#{username}"))
     |> case do
-         %{body: raw, status: 200} ->
+         %{status: 200} ->
            true
          %{status: 404} ->
            false
@@ -401,7 +401,7 @@ defmodule BorsNG.GitHub.Server do
     end
 
 
-  def do_handle_call(:get_team_by_name, {{:raw, token}, installation_id}, {org_name, team_name}) do
+  def do_handle_call(:get_team_by_name, {{:raw, token}, _installation_id}, {org_name, team_name}) do
      IO.inspect(token)
     "token #{token}"
     |> tesla_client()
@@ -414,7 +414,7 @@ defmodule BorsNG.GitHub.Server do
            {:ok, user}
          %{status: 404} ->
            {:ok, nil}
-         %{body: raw, status: status} ->
+         %{body: raw} ->
            {:error, raw}
       end
   end

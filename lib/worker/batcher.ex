@@ -554,7 +554,7 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    {res,toml} = case Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}") do
+    {_, toml} = case Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}") do
       {:error, :fetch_failed} -> Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}.tmp")
       {:ok, x} -> {:ok, x}
     end
@@ -593,7 +593,7 @@ defmodule BorsNG.Worker.Batcher do
             send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch})
             pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
             pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
-            pr = GitHub.update_pr!(repo_conn, pr)
+            GitHub.update_pr!(repo_conn, pr)
           end)
         end
 
@@ -604,7 +604,7 @@ defmodule BorsNG.Worker.Batcher do
         patch_links = batch.id
         |> LinkPatchBatch.from_batch()
         |> Repo.all()
-        reattempting_batch = Divider.clone_batch(patch_links, project.id, batch.into_branch)
+        Divider.clone_batch(patch_links, project.id, batch.into_branch)
         poll_after_delay(project)
 
         # send appropriate message to failed patches
