@@ -40,17 +40,25 @@ defmodule BorsNG.Worker.BranchDeleter do
   def handle_cast({:delete, patch, attempt}, state) do
     patch = Repo.preload(patch, :project)
     conn = Project.installation_connection(patch.project.repo_xref, Repo)
+
     case GitHub.get_pr(conn, patch.pr_xref) do
       {:ok, %{merged: true} = pr} ->
         delete_branch(conn, pr)
+
       {:ok, %{state: :closed} = pr} ->
         delete_branch(conn, pr)
+
       {:ok, %{state: :open}} when attempt < @retries ->
-        Process.send_after(self(),
+        Process.send_after(
+          self(),
           {:retry_delete, patch, attempt + 1},
-          attempt_delay(attempt))
-      _ -> nil
+          attempt_delay(attempt)
+        )
+
+      _ ->
+        nil
     end
+
     {:noreply, state}
   end
 
@@ -59,14 +67,17 @@ defmodule BorsNG.Worker.BranchDeleter do
   end
 
   defp delete_branch(conn, pr) do
-    pr_in_same_repo = pr.head_repo_id > 0 &&
-                      pr.head_repo_id == pr.base_repo_id
+    pr_in_same_repo =
+      pr.head_repo_id > 0 &&
+        pr.head_repo_id == pr.base_repo_id
 
     toml_result = Batcher.GetBorsToml.get(conn, pr.head_ref)
-    delete_merged_branches = case toml_result do
-      {:ok, toml} -> toml.delete_merged_branches
-      _ -> false
-    end
+
+    delete_merged_branches =
+      case toml_result do
+        {:ok, toml} -> toml.delete_merged_branches
+        _ -> false
+      end
 
     pr_closed = pr.state == :closed
 
@@ -76,10 +87,12 @@ defmodule BorsNG.Worker.BranchDeleter do
       cond do
         pr.merged ->
           GitHub.delete_branch!(conn, pr.head_ref)
+
         pr_closed && pr_squash_merged ->
           GitHub.delete_branch!(conn, pr.head_ref)
+
         true ->
-          nil  
+          nil
       end
     end
   end

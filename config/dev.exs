@@ -11,11 +11,17 @@ config :bors, BorsNG.Endpoint,
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
-  watchers: [node: ["node_modules/webpack/bin/webpack.js", "--mode", "development", "--watch-stdin",
-                    cd: Path.expand("../assets", __DIR__)]]
+  watchers: [
+    node: [
+      "node_modules/webpack/bin/webpack.js",
+      "--mode",
+      "development",
+      "--watch-stdin",
+      cd: Path.expand("../assets", __DIR__)
+    ]
+  ]
 
-config :bors, BorsNG.WebhookParserPlug,
-  webhook_secret: "XXX"
+config :bors, BorsNG.WebhookParserPlug, webhook_secret: "XXX"
 
 # Watch static and templates for browser reloading.
 config :bors, BorsNG.Endpoint,
@@ -31,6 +37,7 @@ config :bors, BorsNG.Endpoint,
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
+
 config :bors, BorsNG.Database.Repo,
   adapter: Ecto.Adapters.Postgres,
   url: {:system, "DATABASE_URL", "postgresql://postgres:Postgres1234@localhost/bors_dev"},

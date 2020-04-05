@@ -80,7 +80,8 @@ defmodule BorsNG.WebhookController do
   """
   def webhook(conn, %{"provider" => "github"}) do
     event = hd(get_req_header(conn, "x-github-event"))
-    do_webhook conn, "github", event
+    do_webhook(conn, "github", event)
+
     conn
     |> send_resp(200, "")
   end
@@ -98,18 +99,25 @@ defmodule BorsNG.WebhookController do
   def do_webhook(conn, "github", "installation") do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
+
     case payload["action"] do
-      "deleted" -> Repo.delete_all(from(
-        i in Installation,
-        where: i.installation_xref == ^installation_xref
-      ))
-      "created" -> SyncerInstallation.start_synchronize_installation(
-        %Installation{
+      "deleted" ->
+        Repo.delete_all(
+          from(
+            i in Installation,
+            where: i.installation_xref == ^installation_xref
+          )
+        )
+
+      "created" ->
+        SyncerInstallation.start_synchronize_installation(%Installation{
           installation_xref: installation_xref
-        }
-      )
-      _ -> nil
+        })
+
+      _ ->
+        nil
     end
+
     :ok
   end
 
@@ -124,71 +132,97 @@ defmodule BorsNG.WebhookController do
     project = Repo.get_by!(Project, repo_xref: repo_xref)
     pr = BorsNG.GitHub.Pr.from_json!(conn.body_params["pull_request"])
     patch = Syncer.sync_patch(project.id, pr)
+
     do_webhook_pr(conn, %{
       action: conn.body_params["action"],
       project: project,
       patch: patch,
       author: patch.author,
-      pr: pr})
+      pr: pr
+    })
   end
 
   def do_webhook(conn, "github", "issue_comment") do
     is_created = conn.body_params["action"] == "created"
     is_pr = Map.has_key?(conn.body_params["issue"], "pull_request")
+
     if is_created and is_pr do
-      project = Repo.get_by!(Project,
-        repo_xref: conn.body_params["repository"]["id"])
-      commenter = conn.body_params["comment"]["user"]
-      |> GitHub.User.from_json!()
-      |> Syncer.sync_user()
+      project =
+        Repo.get_by!(Project,
+          repo_xref: conn.body_params["repository"]["id"]
+        )
+
+      commenter =
+        conn.body_params["comment"]["user"]
+        |> GitHub.User.from_json!()
+        |> Syncer.sync_user()
+
       comment = conn.body_params["comment"]["body"]
+
       %Command{
         project: project,
         commenter: commenter,
         comment: comment,
-        pr_xref: conn.body_params["issue"]["number"]}
+        pr_xref: conn.body_params["issue"]["number"]
+      }
       |> Command.run()
     end
   end
 
   def do_webhook(conn, "github", "pull_request_review_comment") do
     is_created = conn.body_params["action"] == "created"
+
     if is_created do
-      project = Repo.get_by!(Project,
-        repo_xref: conn.body_params["repository"]["id"])
-      commenter = conn.body_params["comment"]["user"]
-      |> GitHub.User.from_json!()
-      |> Syncer.sync_user()
+      project =
+        Repo.get_by!(Project,
+          repo_xref: conn.body_params["repository"]["id"]
+        )
+
+      commenter =
+        conn.body_params["comment"]["user"]
+        |> GitHub.User.from_json!()
+        |> Syncer.sync_user()
+
       comment = conn.body_params["comment"]["body"]
       pr = GitHub.Pr.from_json!(conn.body_params["pull_request"])
+
       %Command{
         project: project,
         commenter: commenter,
         comment: comment,
         pr_xref: conn.body_params["pull_request"]["number"],
         pr: pr,
-        patch: Syncer.sync_patch(project.id, pr)}
+        patch: Syncer.sync_patch(project.id, pr)
+      }
       |> Command.run()
     end
   end
 
   def do_webhook(conn, "github", "pull_request_review") do
     is_submitted = conn.body_params["action"] == "submitted"
+
     if is_submitted do
-      project = Repo.get_by!(Project,
-        repo_xref: conn.body_params["repository"]["id"])
-      commenter = conn.body_params["review"]["user"]
-      |> GitHub.User.from_json!()
-      |> Syncer.sync_user()
+      project =
+        Repo.get_by!(Project,
+          repo_xref: conn.body_params["repository"]["id"]
+        )
+
+      commenter =
+        conn.body_params["review"]["user"]
+        |> GitHub.User.from_json!()
+        |> Syncer.sync_user()
+
       comment = conn.body_params["review"]["body"]
       pr = GitHub.Pr.from_json!(conn.body_params["pull_request"])
+
       %Command{
         project: project,
         commenter: commenter,
         comment: comment,
         pr_xref: conn.body_params["pull_request"]["number"],
         pr: pr,
-        patch: Syncer.sync_patch(project.id, pr)}
+        patch: Syncer.sync_patch(project.id, pr)
+      }
       |> Command.run()
     end
   end
@@ -203,18 +237,23 @@ defmodule BorsNG.WebhookController do
     project = Repo.get_by!(Project, repo_xref: repo_xref)
     staging_branch = project.staging_branch
     trying_branch = project.trying_branch
+
     case {action, branch} do
       {"completed", ^staging_branch} ->
         Batch
         |> Repo.get_by!(commit: sha, project_id: project.id)
         |> Batch.changeset(%{last_polled: 0})
         |> Repo.update!()
+
         batcher = Batcher.Registry.get(project.id)
         Batcher.poll(batcher)
+
       {"completed", ^trying_branch} ->
         attemptor = Attemptor.Registry.get(project.id)
         Attemptor.poll(attemptor)
-      _ -> :ok
+
+      _ ->
+        :ok
     end
   end
 
@@ -226,8 +265,10 @@ defmodule BorsNG.WebhookController do
         repo_xref = conn.body_params["repository"]["id"]
         commit = conn.body_params["check_run"]["head_sha"]
         url = conn.body_params["check_run"]["html_url"]
-        identifier = conn.body_params["check_run"]["name"]
-        |> GitHub.map_changed_status()
+
+        identifier =
+          conn.body_params["check_run"]["name"]
+          |> GitHub.map_changed_status()
 
         conclusion = conn.body_params["check_run"]["conclusion"]
         state = GitHub.map_state_to_status(conclusion)
@@ -239,15 +280,20 @@ defmodule BorsNG.WebhookController do
 
         attemptor = Attemptor.Registry.get(project.id)
         Attemptor.status(attemptor, {commit, identifier, state, url})
-      _ -> :ok
+
+      _ ->
+        :ok
     end
   end
 
   def do_webhook(conn, "github", "status") do
     repo_xref = conn.body_params["repository"]["id"]
     commit = conn.body_params["commit"]["sha"]
-    identifier = conn.body_params["context"]
-    |> GitHub.map_changed_status()
+
+    identifier =
+      conn.body_params["context"]
+      |> GitHub.map_changed_status()
+
     url = conn.body_params["target_url"]
     state = GitHub.map_state_to_status(conn.body_params["state"])
     project = Repo.get_by!(Project, repo_xref: repo_xref)
@@ -260,34 +306,36 @@ defmodule BorsNG.WebhookController do
   def do_webhook_installation_sync(conn) do
     payload = conn.body_params
     installation_xref = payload["installation"]["id"]
-    SyncerInstallation.start_synchronize_installation(
-      %Installation{
-        installation_xref: installation_xref
-      }
-    )
+
+    SyncerInstallation.start_synchronize_installation(%Installation{
+      installation_xref: installation_xref
+    })
   end
 
   def do_webhook_pr(conn, %{
-    action: "opened",
-    project: project,
-    author: author,
-    pr: pr,
-    patch: patch
-  }) do
+        action: "opened",
+        project: project,
+        author: author,
+        pr: pr,
+        patch: patch
+      }) do
     Project.ping!(project.id)
+
     %{
       "pull_request" => %{
         "body" => body,
-        "number" => number,
-      },
+        "number" => number
+      }
     } = conn.body_params
+
     %Command{
       project: project,
       commenter: author,
       comment: body,
       pr_xref: number,
       pr: pr,
-      patch: patch}
+      patch: patch
+    }
     |> Command.run()
   end
 
@@ -315,13 +363,17 @@ defmodule BorsNG.WebhookController do
       "pull_request" => %{
         "title" => title,
         "body" => body,
-        "base" => %{"ref" => base_ref},
-      },
+        "base" => %{"ref" => base_ref}
+      }
     } = conn.body_params
-    Repo.update!(Patch.changeset(patch, %{
-      title: title,
-      body: body,
-      into_branch: base_ref}))
+
+    Repo.update!(
+      Patch.changeset(patch, %{
+        title: title,
+        body: body,
+        into_branch: base_ref
+      })
+    )
   end
 
   def do_webhook_pr(_conn, %{action: action}) do

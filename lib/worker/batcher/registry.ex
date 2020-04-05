@@ -32,13 +32,17 @@ defmodule BorsNG.Worker.Batcher.Registry do
   # Server callbacks
 
   def init(:ok) do
-    names = Project.active
-    |> Repo.all()
-    |> Enum.map(&{&1.id, do_start(&1.id)})
-    |> Map.new()
-    refs = names
-    |> Enum.map(&{Process.monitor(elem(&1, 1)), elem(&1, 0)})
-    |> Map.new()
+    names =
+      Project.active()
+      |> Repo.all()
+      |> Enum.map(&{&1.id, do_start(&1.id)})
+      |> Map.new()
+
+    refs =
+      names
+      |> Enum.map(&{Process.monitor(elem(&1, 1)), elem(&1, 0)})
+      |> Map.new()
+
     {:ok, {names, refs}}
   end
 
@@ -56,12 +60,15 @@ defmodule BorsNG.Worker.Batcher.Registry do
   end
 
   def handle_call({:get, project_id}, _from, {names, _refs} = state) do
-    {pid, state} = case names[project_id] do
-      nil ->
-        start_and_insert(project_id, state)
-      pid ->
-        {pid, state}
-    end
+    {pid, state} =
+      case names[project_id] do
+        nil ->
+          start_and_insert(project_id, state)
+
+        pid ->
+          {pid, state}
+      end
+
     {:reply, pid, state}
   end
 
@@ -75,10 +82,13 @@ defmodule BorsNG.Worker.Batcher.Registry do
     project_id = refs[ref]
     {pid, state} = start_and_insert(project_id, state)
     Batcher.cancel_all(pid)
+
     Repo.insert(%Crash{
       project_id: project_id,
       component: "batch",
-      crash: inspect(reason, pretty: true, width: 60)})
+      crash: inspect(reason, pretty: true, width: 60)
+    })
+
     {:noreply, state}
   end
 

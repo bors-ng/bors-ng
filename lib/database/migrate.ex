@@ -34,35 +34,43 @@ defmodule BorsNG.Database.Migrate do
     # we start the Ecto Repo directly.
     Application.load(:bors)
     Enum.each(@start_apps, &Application.ensure_all_started/1)
-    Enum.each(repos(), &(&1.start_link(pool_size: 1)))
+    Enum.each(repos(), & &1.start_link(pool_size: 1))
 
-    Enum.each repos(), fn(repo) ->
+    Enum.each(repos(), fn repo ->
       case create_storage_for(repo) do
         :seed ->
           run_migrations_for(repo)
           run_seeds_for(repo)
+
         :migrate ->
           run_migrations_for(repo)
       end
-    end
+    end)
   end
 
   def create_storage_for(repo) do
     case repo.__adapter__.storage_up(repo.config) do
-      :ok -> :seed
-      {:error, :already_up} -> :migrate
+      :ok ->
+        :seed
+
+      {:error, :already_up} ->
+        :migrate
+
       {:error, term} when is_binary(term) ->
-        raise RuntimeError, "The database for #{inspect repo} couldn't be " <>
-                            "created: #{term}"
+        raise RuntimeError,
+              "The database for #{inspect(repo)} couldn't be " <>
+                "created: #{term}"
+
       {:error, term} ->
-        raise RuntimeError, "The database for #{inspect repo} couldn't be " <>
-                            "created: #{inspect term}"
+        raise RuntimeError,
+              "The database for #{inspect(repo)} couldn't be " <>
+                "created: #{inspect(term)}"
     end
   end
 
   def run_migrations_for(repo) do
     app = Keyword.get(repo.config, :otp_app)
-    IO.puts "Running migrations for #{app}"
+    IO.puts("Running migrations for #{app}")
 
     Ecto.Migrator.run(repo, migrations_path(repo), :up, all: true)
   end
@@ -72,7 +80,7 @@ defmodule BorsNG.Database.Migrate do
 
     if File.exists?(seed_script) do
       app = Keyword.get(repo.config, :otp_app)
-      IO.puts "Running seed script for #{app}"
+      IO.puts("Running seed script for #{app}")
 
       Code.eval_file(seed_script)
     end
@@ -86,7 +94,7 @@ defmodule BorsNG.Database.Migrate do
 
   def priv_path_for(repo, filename) do
     app = Keyword.get(repo.config, :otp_app)
-    repo_underscore = repo |> Module.split |> List.last |> Macro.underscore
+    repo_underscore = repo |> Module.split() |> List.last() |> Macro.underscore()
     Path.join([priv_dir(app), repo_underscore, filename])
   end
 end

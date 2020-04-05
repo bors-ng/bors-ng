@@ -8,14 +8,18 @@ defmodule BorsNG.Database.BatchTest do
   alias BorsNG.Database.Project
 
   setup do
-    installation = Repo.insert!(%Installation{
-      installation_xref: 31,
+    installation =
+      Repo.insert!(%Installation{
+        installation_xref: 31
       })
-    project = Repo.insert!(%Project{
-      installation_id: installation.id,
-      repo_xref: 13,
-      name: "example/project",
+
+    project =
+      Repo.insert!(%Project{
+        installation_id: installation.id,
+        repo_xref: 13,
+        name: "example/project"
       })
+
     {:ok, installation: installation, project: project}
   end
 
@@ -44,7 +48,7 @@ defmodule BorsNG.Database.BatchTest do
   test "get batch by patch", %{project: project} do
     batch = Repo.insert!(%Batch{project: project, state: 0})
     patch = Repo.insert!(%Patch{project: project})
-    Repo.insert! %LinkPatchBatch{batch: batch, patch: patch}
+    Repo.insert!(%LinkPatchBatch{batch: batch, patch: patch})
     [batch_] = Repo.all(Batch.all_for_patch(patch.id))
     assert batch_.id == batch.id
   end
@@ -57,7 +61,7 @@ defmodule BorsNG.Database.BatchTest do
   test "is not empty", %{project: project} do
     batch = Repo.insert!(%Batch{project: project, state: 0})
     patch = Repo.insert!(%Patch{project: project})
-    Repo.insert! %LinkPatchBatch{batch: batch, patch: patch}
+    Repo.insert!(%LinkPatchBatch{batch: batch, patch: patch})
     refute Batch.is_empty(batch.id, Repo)
   end
 

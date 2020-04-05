@@ -11,7 +11,7 @@ defmodule BorsNG.UserSocket do
   alias BorsNG.Database.User
 
   # Channels
-  channel "project_ping:*", BorsNG.ProjectPingChannel
+  channel("project_ping:*", BorsNG.ProjectPingChannel)
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
@@ -25,16 +25,20 @@ defmodule BorsNG.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   def connect(%{"token" => token}, socket) do
-    vfy = Phoenix.Token.verify(
-      socket,
-      "channel:current_user",
-      token,
-      max_age: 60 * 60)
+    vfy =
+      Phoenix.Token.verify(
+        socket,
+        "channel:current_user",
+        token,
+        max_age: 60 * 60
+      )
+
     case vfy do
       {:ok, current_user} ->
-        user = Repo.get! User, current_user
+        user = Repo.get!(User, current_user)
         socket = assign(socket, :user, user)
         {:ok, socket}
+
       {:error, _} ->
         :error
     end

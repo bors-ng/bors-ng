@@ -21,10 +21,13 @@ defmodule BorsNG.Application do
       worker(BorsNG.Worker.Attemptor.Registry, []),
       supervisor(Task.Supervisor, [[name: BorsNG.Worker.Syncer.Supervisor]]),
       supervisor(Registry, [:unique, BorsNG.Worker.Syncer.Registry]),
-      supervisor(Registry,
-        [:unique, BorsNG.Worker.SyncerInstallation.Registry], id: Installation),
+      supervisor(
+        Registry,
+        [:unique, BorsNG.Worker.SyncerInstallation.Registry],
+        id: Installation
+      ),
       worker(BorsNG.Worker.BranchDeleter, []),
-      supervisor(BorsNG.Endpoint, []),
+      supervisor(BorsNG.Endpoint, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

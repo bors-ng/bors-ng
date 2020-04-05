@@ -24,6 +24,7 @@ install:
   - mix do local.rebar --force, local.hex --force, deps.get
 
 script:
+  - mix format --check-formatted
   - mix test
 
 env:

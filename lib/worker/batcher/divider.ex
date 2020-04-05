@@ -1,5 +1,4 @@
 defmodule BorsNG.Worker.Batcher.Divider do
-
   alias BorsNG.Database.Repo
   alias BorsNG.Database.Batch
   alias BorsNG.Database.Patch
@@ -9,13 +8,17 @@ defmodule BorsNG.Worker.Batcher.Divider do
 
   def split_batch(patch_links, %Batch{project: project, into_branch: into}) do
     count = Enum.count(patch_links)
+
     if count > 1 do
-      {single_patch_links, patch_links} = patch_links
-      |> Enum.split_with(fn l ->
-        Repo.get!(Patch, l.patch_id).is_single
-      end)
+      {single_patch_links, patch_links} =
+        patch_links
+        |> Enum.split_with(fn l ->
+          Repo.get!(Patch, l.patch_id).is_single
+        end)
+
       single_patch_links
       |> Enum.each(&clone_batch([&1], project.id, into))
+
       bisect(patch_links, project.id, into)
       :retrying
     else
@@ -38,15 +41,17 @@ defmodule BorsNG.Worker.Batcher.Divider do
         :failed
 
       {[], multiple_unmergeable} ->
-        Enum.each multiple_unmergeable, fn patch_link ->
+        Enum.each(multiple_unmergeable, fn patch_link ->
           clone_batch([patch_link], project.id, into)
-        end
+        end)
+
         :retrying
 
       {[single_mergeable], multiple_unmergeable} ->
-        Enum.each multiple_unmergeable, fn patch_link ->
+        Enum.each(multiple_unmergeable, fn patch_link ->
           clone_batch([patch_link], project.id, into)
-        end
+        end)
+
         clone_batch([single_mergeable], project.id, into)
         :retrying
 
@@ -55,9 +60,10 @@ defmodule BorsNG.Worker.Batcher.Divider do
         :retrying
 
       {multiple_mergeable, multiple_unmergeable} ->
-        Enum.each multiple_unmergeable, fn patch_link ->
+        Enum.each(multiple_unmergeable, fn patch_link ->
           clone_batch([patch_link], project.id, into)
-        end
+        end)
+
         clone_batch(multiple_mergeable, project.id, into)
         :retrying
     end
@@ -65,13 +71,18 @@ defmodule BorsNG.Worker.Batcher.Divider do
 
   def clone_batch(patch_links, project_id, into_branch) do
     batch = Repo.insert!(Batch.new(project_id, into_branch))
+
     patch_links
-    |> Enum.map(&%{
-      batch_id: batch.id,
-      patch_id: &1.patch_id,
-      reviewer: &1.reviewer})
+    |> Enum.map(
+      &%{
+        batch_id: batch.id,
+        patch_id: &1.patch_id,
+        reviewer: &1.reviewer
+      }
+    )
     |> Enum.map(&LinkPatchBatch.changeset(%LinkPatchBatch{}, &1))
     |> Enum.each(&Repo.insert!/1)
+
     batch
   end
 
@@ -88,7 +99,7 @@ defmodule BorsNG.Worker.Batcher.Divider do
       patch_links
       |> Enum.group_by(fn patch_link -> is_patch_mergeable(patch_link.patch, repo_conn) end)
 
-    {patch_link_map[true]||[], patch_link_map[false]||[]}
+    {patch_link_map[true] || [], patch_link_map[false] || []}
   end
 
   defp is_patch_mergeable(patch, repo_conn) do

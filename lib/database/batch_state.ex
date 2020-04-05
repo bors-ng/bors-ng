@@ -21,13 +21,13 @@ defmodule BorsNG.Database.BatchState do
 
   def cast(state) when is_atom(state) do
     case state do
-      :waiting  -> {:ok, :waiting}
-      :running  -> {:ok, :running}
-      :ok       -> {:ok, :ok}
-      :error    -> {:ok, :error}
+      :waiting -> {:ok, :waiting}
+      :running -> {:ok, :running}
+      :ok -> {:ok, :ok}
+      :error -> {:ok, :error}
       :conflict -> {:ok, :error}
       :canceled -> {:ok, :canceled}
-      _         -> :error
+      _ -> :error
     end
   end
 
@@ -39,10 +39,10 @@ defmodule BorsNG.Database.BatchState do
 
   def dump(term) when is_atom(term) do
     case term do
-      :waiting  -> {:ok, 0}
-      :running  -> {:ok, 1}
-      :ok       -> {:ok, 2}
-      :error    -> {:ok, 3}
+      :waiting -> {:ok, 0}
+      :running -> {:ok, 1}
+      :ok -> {:ok, 2}
+      :error -> {:ok, 3}
       :conflict -> {:ok, 3}
       :canceled -> {:ok, 4}
       _ -> :error

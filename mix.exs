@@ -2,37 +2,41 @@ defmodule BorsNg.Mixfile do
   use Mix.Project
 
   def project do
-    [ name: "Bors-NG",
+    [
+      name: "Bors-NG",
       app: :bors,
       version: "0.1.0",
       source_url: "https://github.com/bors-ng/bors-ng",
       homepage_url: "https://bors.tech/",
       docs: [
         main: "hacking",
-        extras: [ "HACKING.md", "CONTRIBUTING.md", "README.md" ] ],
-      build_embedded: Mix.env == :prod,
-      start_permanent: Mix.env == :prod,
+        extras: ["HACKING.md", "CONTRIBUTING.md", "README.md"]
+      ],
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      compilers: [:phoenix, :gettext] ++ Mix.compilers,
-      elixirc_paths: elixirc_paths(Mix.env),
+      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
         flags: [
           "-Wno_unused",
           "-Werror_handling",
-          "-Wrace_conditions" ],
-        plt_add_apps: [:mix] ] ]
+          "-Wrace_conditions"
+        ],
+        plt_add_apps: [:mix]
+      ]
+    ]
   end
 
   # Configuration for the OTP application.
   def application do
-    [mod: {BorsNG.Application, []},
-      extra_applications: [:logger]]
+    [mod: {BorsNG.Application, []}, extra_applications: [:logger]]
   end
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_),     do: ["lib"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run ecto setup before running tests.
   defp aliases do
@@ -70,7 +74,11 @@ defmodule BorsNg.Mixfile do
       {:ex_link_header, "~> 0.0.5"},
       {:oauth2, "~> 2.0.0"},
       {:joken, "~> 2.0"},
-      {:dialyxir, git: "https://github.com/jeremyjh/dialyxir.git", commit: "78ecd45", only: [ :dev ], runtime: false},
+      {:dialyxir,
+       git: "https://github.com/jeremyjh/dialyxir.git",
+       commit: "78ecd45",
+       only: [:dev],
+       runtime: false},
       {:distillery, "~> 2.0", runtime: false},
       {:edeliver, "~> 1.5", runtime: false},
       {:ex_doc, "~> 0.18", only: :dev},
@@ -80,7 +88,7 @@ defmodule BorsNg.Mixfile do
       {:mariaex, "~> 0.8"},
       {:ecto, "~> 2.2"},
       {:ex_parameterized, "~> 1.3.6", only: [:dev, :test]},
-      {:glob, git: "https://github.com/lindenbaum/glob.git", commit: "a0de0d0"},
+      {:glob, git: "https://github.com/lindenbaum/glob.git", commit: "a0de0d0"}
     ]
   end
 end

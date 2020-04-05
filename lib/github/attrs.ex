@@ -14,8 +14,10 @@ defmodule BorsNG.Attrs do
 
   @spec get_github_integration_url :: String.t()
   def get_github_integration_url do
-    link = Agent.get(__MODULE__, &Map.get(&1, :github_app_public_link)) ||
-      "#{Confex.fetch_env!(:bors, :html_github_root)}/apps/bors"
+    link =
+      Agent.get(__MODULE__, &Map.get(&1, :github_app_public_link)) ||
+        "#{Confex.fetch_env!(:bors, :html_github_root)}/apps/bors"
+
     "#{link}/installations/new"
   end
 

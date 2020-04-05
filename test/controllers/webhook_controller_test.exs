@@ -10,28 +10,37 @@ defmodule BorsNG.WebhookControllerTest do
   alias BorsNG.GitHub
 
   setup do
-    installation = Repo.insert!(%Installation{
-      installation_xref: 31,
+    installation =
+      Repo.insert!(%Installation{
+        installation_xref: 31
       })
-    project = Repo.insert!(%Project{
-      installation_id: installation.id,
-      repo_xref: 13,
-      name: "example/project",
+
+    project =
+      Repo.insert!(%Project{
+        installation_id: installation.id,
+        repo_xref: 13,
+        name: "example/project"
       })
-    user = Repo.insert!(%User{
-      user_xref: 23,
-      login: "ghost",
+
+    user =
+      Repo.insert!(%User{
+        user_xref: 23,
+        login: "ghost"
       })
+
     {:ok, installation: installation, project: project, user: user}
   end
 
   test "edit PR", %{conn: conn, project: project} do
-    patch = Repo.insert!(%Patch{
-      title: "T",
-      body: "B",
-      pr_xref: 1,
-      project_id: project.id,
-      into_branch: "SOME_BRANCH"})
+    patch =
+      Repo.insert!(%Patch{
+        title: "T",
+        body: "B",
+        pr_xref: 1,
+        project_id: project.id,
+        into_branch: "SOME_BRANCH"
+      })
+
     body_params = %{
       "repository" => %{"id" => 13},
       "action" => "edited",
@@ -46,17 +55,22 @@ defmodule BorsNG.WebhookControllerTest do
           "ref" => "BAR_BRANCH",
           "repo" => %{
             "id" => 345
-          },
+          }
         },
         "merged_at" => nil,
         "mergeable" => true,
         "user" => %{
           "id" => 23,
           "login" => "ghost",
-          "avatar_url" => "U"}}}
+          "avatar_url" => "U"
+        }
+      }
+    }
+
     conn
     |> put_req_header("x-github-event", "pull_request")
     |> post(webhook_path(conn, :webhook, "github"), body_params)
+
     patch2 = Repo.get!(Patch, patch.id)
     assert "U" == patch2.title
     assert "C" == patch2.body
@@ -64,14 +78,17 @@ defmodule BorsNG.WebhookControllerTest do
   end
 
   test "sync PR on reopen", %{conn: conn, project: project} do
-    patch = Repo.insert!(%Patch{
-      title: "T",
-      body: "B",
-      pr_xref: 1,
-      project_id: project.id,
-      commit: "A",
-      open: false,
-      into_branch: "SOME_BRANCH"})
+    patch =
+      Repo.insert!(%Patch{
+        title: "T",
+        body: "B",
+        pr_xref: 1,
+        project_id: project.id,
+        commit: "A",
+        open: false,
+        into_branch: "SOME_BRANCH"
+      })
+
     body_params = %{
       "repository" => %{"id" => 13},
       "action" => "reopened",
@@ -86,17 +103,22 @@ defmodule BorsNG.WebhookControllerTest do
           "ref" => "BAR_BRANCH",
           "repo" => %{
             "id" => 345
-          },
+          }
         },
         "merged_at" => nil,
         "mergeable" => true,
         "user" => %{
           "id" => 23,
           "login" => "ghost",
-          "avatar_url" => "U"}}}
+          "avatar_url" => "U"
+        }
+      }
+    }
+
     conn
     |> put_req_header("x-github-event", "pull_request")
     |> post(webhook_path(conn, :webhook, "github"), body_params)
+
     patch2 = Repo.get!(Patch, patch.id)
     assert "B" == patch2.commit
     assert patch2.open
@@ -122,7 +144,7 @@ defmodule BorsNG.WebhookControllerTest do
         comments: %{1 => []},
         statuses: %{},
         pulls: %{
-          1 => pr,
+          1 => pr
         },
         files: %{
           "master" => %{
@@ -138,13 +160,15 @@ defmodule BorsNG.WebhookControllerTest do
             """
           }
         }
-      }})
+      }
+    })
 
     %Patch{
       project_id: proj.id,
       pr_xref: 1,
       commit: "foo",
-      into_branch: "master"}
+      into_branch: "master"
+    }
     |> Repo.insert!()
 
     body_params = %{
@@ -161,33 +185,40 @@ defmodule BorsNG.WebhookControllerTest do
           "ref" => "BAR_BRANCH",
           "repo" => %{
             "id" => 345
-          },
+          }
         },
         "merged_at" => "time",
         "mergeable" => true,
         "user" => %{
           "id" => 23,
           "login" => "ghost",
-          "avatar_url" => "U"}}}
+          "avatar_url" => "U"
+        }
+      }
+    }
+
     conn
     |> put_req_header("x-github-event", "pull_request")
     |> post(webhook_path(conn, :webhook, "github"), body_params)
 
     wait_until_other_branch_is_removed()
 
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 31}, 13})
-    |> Map.get(:branches)
-    |> Map.keys
+    branches =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 31}, 13})
+      |> Map.get(:branches)
+      |> Map.keys()
 
     assert branches == ["master"]
   end
 
   def wait_until_other_branch_is_removed do
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 31}, 13})
-    |> Map.get(:branches)
-    |> Map.keys
+    branches =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 31}, 13})
+      |> Map.get(:branches)
+      |> Map.keys()
+
     if branches == ["master"] do
       :ok
     else

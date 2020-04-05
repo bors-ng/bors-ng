@@ -10,7 +10,7 @@ defmodule BorsNG.Database.Installation do
   @type xref :: integer
 
   schema "installations" do
-    field :installation_xref, :integer
+    field(:installation_xref, :integer)
 
     timestamps()
   end

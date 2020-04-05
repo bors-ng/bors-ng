@@ -4,7 +4,7 @@ config :bors, BorsNG.Database.Repo,
   adapter: Ecto.Adapters.Postgres,
   url: {:system, "DATABASE_URL"},
   pool_size: {:system, :integer, "POOL_SIZE", 10},
-  loggers:  [{Ecto.LogEntry, :log, []}],
+  loggers: [{Ecto.LogEntry, :log, []}],
   ssl: {:system, :boolean, "DATABASE_USE_SSL", true}
 
 config :bors, BorsNG.Endpoint,
@@ -19,8 +19,7 @@ config :bors, BorsNG.Endpoint,
   ssl: {:system, :boolean, "FORCE_SSL", true},
   force_ssl: [rewrite_on: [:x_forwarded_proto]]
 
-config :bors, BorsNG.WebhookParserPlug,
-  webhook_secret: {:system, "GITHUB_WEBHOOK_SECRET"}
+config :bors, BorsNG.WebhookParserPlug, webhook_secret: {:system, "GITHUB_WEBHOOK_SECRET"}
 
 config :bors, BorsNG.GitHub.OAuth2,
   client_id: {:system, "GITHUB_CLIENT_ID"},

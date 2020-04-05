@@ -10,13 +10,12 @@ defmodule BorsNG.GitHub.FullUser do
   @type tjson :: map
 
   @type t :: %BorsNG.GitHub.FullUser{
-               id: integer,
-               login: bitstring,
-               avatar_url: bitstring,
-               email: bitstring,
-               name: bitstring,
-             }
-
+          id: integer,
+          login: bitstring,
+          avatar_url: bitstring,
+          email: bitstring,
+          name: bitstring
+        }
 
   @doc """
   Convert from Poison-decoded JSON to a User struct.
@@ -32,19 +31,21 @@ defmodule BorsNG.GitHub.FullUser do
   """
   @spec from_json(tjson) :: {:ok, t} | :err
   def from_json(%{
-    "id" => id,
-    "login" => login,
-    "avatar_url" => avatar_url,
-    "email" => email,
-    "name" => name,
-  }) when is_integer(id) do
-    {:ok, %BorsNG.GitHub.FullUser{
-      id: id,
-      login: login,
-      avatar_url: avatar_url,
-      email: email,
-      name: name,
-    }}
+        "id" => id,
+        "login" => login,
+        "avatar_url" => avatar_url,
+        "email" => email,
+        "name" => name
+      })
+      when is_integer(id) do
+    {:ok,
+     %BorsNG.GitHub.FullUser{
+       id: id,
+       login: login,
+       avatar_url: avatar_url,
+       email: email,
+       name: name
+     }}
   end
 
   def from_json(_) do

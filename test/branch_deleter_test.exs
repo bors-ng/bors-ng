@@ -10,13 +10,17 @@ defmodule BorsNG.Worker.BranchDeleterTest do
   alias BorsNG.Database.Repo
 
   setup do
-    inst = %Installation{installation_xref: 91}
-    |> Repo.insert!()
-    proj = %Project{
-      installation_id: inst.id,
-      repo_xref: 14,
-      staging_branch: "staging"}
-    |> Repo.insert!()
+    inst =
+      %Installation{installation_xref: 91}
+      |> Repo.insert!()
+
+    proj =
+      %Project{
+        installation_id: inst.id,
+        repo_xref: 14,
+        staging_branch: "staging"
+      }
+      |> Repo.insert!()
 
     %{proj: proj, inst: inst}
   end
@@ -56,21 +60,26 @@ defmodule BorsNG.Worker.BranchDeleterTest do
             """
           }
         }
-      }})
+      }
+    })
 
-    patch = %Patch{
-      project_id: proj.id,
-      pr_xref: 1,
-      commit: "foo",
-      into_branch: "master"}
-    |> Repo.insert!()
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "foo",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
 
     BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
 
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 91}, 14})
-    |> Map.get(:branches)
-    |> Map.keys
+    branches =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 91}, 14})
+      |> Map.get(:branches)
+      |> Map.keys()
+
     assert branches == ["master"]
   end
 
@@ -111,21 +120,26 @@ defmodule BorsNG.Worker.BranchDeleterTest do
             """
           }
         }
-      }})
+      }
+    })
 
-    patch = %Patch{
-      project_id: proj.id,
-      pr_xref: 1,
-      commit: "foo",
-      into_branch: "master"}
-    |> Repo.insert!()
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "foo",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
 
     BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
 
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 91}, 14})
-    |> Map.get(:branches)
-    |> Map.keys
+    branches =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 91}, 14})
+      |> Map.get(:branches)
+      |> Map.keys()
+
     assert branches == ["master"]
   end
 
@@ -166,21 +180,26 @@ defmodule BorsNG.Worker.BranchDeleterTest do
             """
           }
         }
-      }})
+      }
+    })
 
-    patch = %Patch{
-      project_id: proj.id,
-      pr_xref: 1,
-      commit: "foo",
-      into_branch: "master"}
-    |> Repo.insert!()
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "foo",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
 
     BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
 
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 91}, 14})
-    |> Map.get(:branches)
-    |> Map.keys
+    branches =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 91}, 14})
+      |> Map.get(:branches)
+      |> Map.keys()
+
     assert branches == ["master", "update"]
   end
 
@@ -219,23 +238,28 @@ defmodule BorsNG.Worker.BranchDeleterTest do
             """
           }
         }
-      }})
+      }
+    })
 
-    patch = %Patch{
-      project_id: proj.id,
-      pr_xref: 1,
-      commit: "foo",
-      into_branch: "master"}
-    |> Repo.insert!()
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "foo",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
 
     BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
 
     assert_receive {:retry_delete, _patch, 1}
 
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 91}, 14})
-    |> Map.get(:branches)
-    |> Map.keys
+    branches =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 91}, 14})
+      |> Map.get(:branches)
+      |> Map.keys()
+
     assert branches == ["master", "update"]
   end
 
@@ -274,21 +298,26 @@ defmodule BorsNG.Worker.BranchDeleterTest do
             """
           }
         }
-      }})
+      }
+    })
 
-    patch = %Patch{
-      project_id: proj.id,
-      pr_xref: 1,
-      commit: "foo",
-      into_branch: "master"}
-    |> Repo.insert!()
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "foo",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
 
     BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
 
-    branches = GitHub.ServerMock.get_state()
-    |> Map.get({{:installation, 91}, 14})
-    |> Map.get(:branches)
-    |> Map.keys
+    branches =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 91}, 14})
+      |> Map.get(:branches)
+      |> Map.keys()
+
     assert branches == ["master", "update"]
   end
 end

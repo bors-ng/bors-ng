@@ -7,15 +7,13 @@ defmodule BorsNG.AdminView do
 
   use BorsNG.Web, :view
 
-  def truncate_commit(<<t :: binary - size(7), _ :: binary>>), do: t
+  def truncate_commit(<<t::binary-size(7), _::binary>>), do: t
   def truncate_commit(t) when is_binary(t), do: t
   def truncate_commit(nil), do: "[nil]"
   def truncate_commit(_), do: "[invalid]"
 
   def htmlify_naive_datetime(datetime) do
-    [ "<time class=time-convert>",
-      NaiveDateTime.to_iso8601(datetime),
-      "+00:00</time>" ]
+    ["<time class=time-convert>", NaiveDateTime.to_iso8601(datetime), "+00:00</time>"]
     |> Phoenix.HTML.raw()
   end
 end

@@ -50,7 +50,9 @@ defmodule BorsNG.Worker.BatcherMessageTest do
   end
 
   test "generate canceled/retry message" do
-    expected_message = "This PR was included in a batch that was canceled, it will be automatically retried"
+    expected_message =
+      "This PR was included in a batch that was canceled, it will be automatically retried"
+
     actual_message = Message.generate_message({:canceled, :retrying})
     assert expected_message == actual_message
   end
@@ -62,7 +64,9 @@ defmodule BorsNG.Worker.BatcherMessageTest do
   end
 
   test "generate timeout/retry message" do
-    expected_message = "This PR was included in a batch that timed out, it will be automatically retried"
+    expected_message =
+      "This PR was included in a batch that timed out, it will be automatically retried"
+
     actual_message = Message.generate_message({:timeout, :retrying})
     assert expected_message == actual_message
   end
@@ -88,21 +92,28 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     Co-authored-by: foo
     Co-authored-by: bar
     """
+
     patches = [
       %{
         patch: %{
           pr_xref: 1,
           title: "Alpha",
           body: "a",
-          author: %{login: "lag"}},
-        reviewer: "r"},
+          author: %{login: "lag"}
+        },
+        reviewer: "r"
+      },
       %{
         patch: %{
           pr_xref: 2,
           title: "Beta",
           body: "b",
-          author: %{login: "leg"}},
-        reviewer: "s"}]
+          author: %{login: "leg"}
+        },
+        reviewer: "s"
+      }
+    ]
+
     co_authors = ["foo", "bar"]
     actual_message = Message.generate_commit_message(patches, nil, co_authors)
     assert expected_message == actual_message
@@ -138,7 +149,9 @@ defmodule BorsNG.Worker.BatcherMessageTest do
 
     Co-authored-by: foo
     """
+
     title = "Synchronize background and foreground processing"
+
     body = """
     Fixes that annoying bug.
 
@@ -153,19 +166,28 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     - [ ] This PR fixes #___ (fill in if it exists)
     - [ ] Make sure your commit messages make sense
     """
+
     patches = [
       %{
         patch: %{
           pr_xref: 1,
           title: title,
           body: body,
-          author: %{login: "pea"}},
-      reviewer: "bill"} ]
+          author: %{login: "pea"}
+        },
+        reviewer: "bill"
+      }
+    ]
+
     co_authors = ["foo"]
-    actual_message = Message.generate_commit_message(
-      patches,
-      "\n\n<!-- boilerplate follows -->",
-      co_authors)
+
+    actual_message =
+      Message.generate_commit_message(
+        patches,
+        "\n\n<!-- boilerplate follows -->",
+        co_authors
+      )
+
     assert expected_message == actual_message
   end
 
@@ -177,7 +199,9 @@ defmodule BorsNG.Worker.BatcherMessageTest do
 
     Co-authored-by: B <b@b>
     """
+
     title = "Synchronize background and foreground processing"
+
     body = """
     Fixes that annoying bug.
 
@@ -192,18 +216,30 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     - [ ] This PR fixes #___ (fill in if it exists)
     - [ ] Make sure your commit messages make sense
     """
+
     user_email = "a@a"
+
     pr = %{
       number: 1,
       title: title,
-      body: body}
+      body: body
+    }
+
     commits = [
       %{author_email: user_email, author_name: "A"},
       %{author_email: "b@b", author_name: "B"},
       %{author_email: user_email, author_name: "A"},
-      %{author_email: "b@b", author_name: "B"}]
-    actual_message = Message.generate_squash_commit_message(
-      pr, commits, user_email, "\n\n<!-- boilerplate follows -->")
+      %{author_email: "b@b", author_name: "B"}
+    ]
+
+    actual_message =
+      Message.generate_squash_commit_message(
+        pr,
+        commits,
+        user_email,
+        "\n\n<!-- boilerplate follows -->"
+      )
+
     assert expected_message == actual_message
   end
 end

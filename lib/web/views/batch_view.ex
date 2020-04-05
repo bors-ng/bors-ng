@@ -7,19 +7,17 @@ defmodule BorsNG.BatchView do
 
   def stringify_state(state) do
     case state do
-      :waiting  -> "Waiting to run"
-      :running  -> "Running"
-      :ok       -> "Succeeded"
-      :error    -> "Failed"
+      :waiting -> "Waiting to run"
+      :running -> "Running"
+      :ok -> "Succeeded"
+      :error -> "Failed"
       :canceled -> "Canceled"
-      _         -> "Invalid"
+      _ -> "Invalid"
     end
   end
 
   def htmlify_naive_datetime(datetime) do
-    [ "<td><time class=time-convert>",
-      NaiveDateTime.to_iso8601(datetime),
-      "+00:00</time></td>" ]
+    ["<td><time class=time-convert>", NaiveDateTime.to_iso8601(datetime), "+00:00</time></td>"]
     |> Phoenix.HTML.raw()
   end
 end

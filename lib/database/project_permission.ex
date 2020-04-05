@@ -6,16 +6,18 @@ defmodule BorsNG.Database.ProjectPermission do
 
   def type, do: :string
 
-  def select_list, do: [
-    {"None", nil},
-    {"Admin", :admin},
-    {"Push", :push},
-    {"Pull", :pull},
-  ]
+  def select_list,
+    do: [
+      {"None", nil},
+      {"Admin", :admin},
+      {"Push", :push},
+      {"Pull", :pull}
+    ]
 
   def cast("") do
     {:ok, nil}
   end
+
   def cast(data) when data in ["nil", "admin", "push", "pull"] do
     {:ok, String.to_atom(data)}
   end

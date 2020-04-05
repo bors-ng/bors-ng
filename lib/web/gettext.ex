@@ -21,12 +21,13 @@ defmodule BorsNG.Gettext do
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
 
-  @dialyzer [{:nowarn_function, 'MACRO-dgettext': 3},
-             {:nowarn_function, 'MACRO-dgettext': 4},
-             {:nowarn_function, 'MACRO-dngettext': 5},
-             {:nowarn_function, 'MACRO-dngettext': 6},
-             {:nowarn_function, 'MACRO-ngettext_noop': 3},
-            ]
+  @dialyzer [
+    {:nowarn_function, "MACRO-dgettext": 3},
+    {:nowarn_function, "MACRO-dgettext": 4},
+    {:nowarn_function, "MACRO-dngettext": 5},
+    {:nowarn_function, "MACRO-dngettext": 6},
+    {:nowarn_function, "MACRO-ngettext_noop": 3}
+  ]
 
   use Gettext, otp_app: :bors
 end
