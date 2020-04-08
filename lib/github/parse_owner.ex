@@ -64,16 +64,15 @@ defmodule BorsNG.CodeOwnerParser do
 
         # Remove any nil entries (indicating review not required)
         # Pick the last matching entry (entries further down in the file have higher priority
-        pats =
-          Enum.reduce(pats, nil, fn x, acc ->
-            if x != nil do
-              x
-            else
-              acc
-            end
-          end)
+        Enum.reduce(pats, nil, fn x, acc ->
+          if x != nil do
+            x
+          else
+            acc
+          end
+        end)
       end)
- 
+
     required_reviewers = Enum.filter(required_reviewers, fn x -> x != nil end)
 
     Logger.debug("Required reviewers: #{inspect(required_reviewers)}")

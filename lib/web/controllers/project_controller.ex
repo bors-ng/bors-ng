@@ -187,9 +187,10 @@ defmodule BorsNG.ProjectController do
     updated_at = NaiveDateTime.from_iso8601!(params["updated_at"])
     conn
     |> put_layout(false)
-    |> render "log_page.html",
-      project: project, 
-      entries: seek_log(project, batch_id, crash_id, updated_at)
+    |> render(
+      "log_page.html",
+      project: project,
+      entries: seek_log(project, batch_id, crash_id, updated_at))
   end
 
   def cancel_all(_, :ro, _, _), do: raise BorsNG.PermissionDeniedError

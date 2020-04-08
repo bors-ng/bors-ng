@@ -554,7 +554,7 @@ defmodule BorsNG.Worker.Batcher do
   defp complete_batch(:ok, batch, statuses) do
     project = batch.project
     repo_conn = get_repo_conn(project)
-    {res,toml} = case Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}") do
+    {_, toml} = case Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}") do
       {:error, :fetch_failed} -> Batcher.GetBorsToml.get(repo_conn, "#{batch.project.staging_branch}.tmp")
       {:ok, x} -> {:ok, x}
     end
@@ -593,7 +593,7 @@ defmodule BorsNG.Worker.Batcher do
             send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch})
             pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
             pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
-            pr = GitHub.update_pr!(repo_conn, pr)
+            GitHub.update_pr!(repo_conn, pr)
           end)
         end
 
@@ -604,7 +604,7 @@ defmodule BorsNG.Worker.Batcher do
         patch_links = batch.id
         |> LinkPatchBatch.from_batch()
         |> Repo.all()
-        reattempting_batch = Divider.clone_batch(patch_links, project.id, batch.into_branch)
+        Divider.clone_batch(patch_links, project.id, batch.into_branch)
         poll_after_delay(project)
 
         # send appropriate message to failed patches
@@ -739,6 +739,47 @@ defmodule BorsNG.Worker.Batcher do
     :ok
   end
 
+  defp patch_preflight(repo_conn, patch, {:ok, toml}) do
+    passed_label = repo_conn
+    |> GitHub.get_labels!(patch.pr_xref)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.block_labels))
+    # This seems to treat unset statuses as :ok. Dangerous is CI
+    # is slower to set an at least pending status before someone types
+    # bors r+.
+    no_error_status = repo_conn
+    |> GitHub.get_commit_status!(patch.commit)
+    |> Enum.filter(fn {_, status} -> status == :error end)
+    |> Enum.map(fn {context, _} -> context end)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+    no_waiting_status = repo_conn
+    |> GitHub.get_commit_status!(patch.commit)
+    |> Enum.filter(fn {_, status} -> status == :running end)
+    |> Enum.map(fn {context, _} -> context end)
+    |> MapSet.new()
+    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+
+    code_owners_approved = check_code_owner(repo_conn, patch, toml)
+
+#    {:error, {:missing_code_owner_approval, "My team"}}
+
+    passed_review = repo_conn
+    |> GitHub.get_reviews!(patch.pr_xref)
+    |> reviews_status(toml)
+    Logger.info("Code review status: Label Check #{passed_label} Passed Status: #{no_error_status and no_waiting_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}")
+
+    case {passed_label, no_error_status, no_waiting_status, passed_review, code_owners_approved} do
+      {true, true, true, :sufficient, true} -> :ok
+      {false, _, _, _, _}             -> {:error, :blocked_labels}
+      {_, _, _, :insufficient, _}     -> {:error, :insufficient_approvals}
+      {_, _, _, :failed, _}           -> {:error, :blocked_review}
+      {_, _, _, _, false}             -> {:error, :missing_code_owner_approval}
+      {_, false, _, _, _}             -> {:error, :pr_status}
+      {true, true, false, :sufficient, true} -> :waiting
+    end
+  end
+
   defp check_code_owner(repo_conn, patch, toml) do
 
     if !toml.use_codeowners do
@@ -800,47 +841,6 @@ defmodule BorsNG.Worker.Batcher do
 
   end
 
-
-  defp patch_preflight(repo_conn, patch, {:ok, toml}) do
-    passed_label = repo_conn
-    |> GitHub.get_labels!(patch.pr_xref)
-    |> MapSet.new()
-    |> MapSet.disjoint?(MapSet.new(toml.block_labels))
-    # This seems to treat unset statuses as :ok. Dangerous is CI
-    # is slower to set an at least pending status before someone types
-    # bors r+.
-    no_error_status = repo_conn
-    |> GitHub.get_commit_status!(patch.commit)
-    |> Enum.filter(fn {_, status} -> status == :error end)
-    |> Enum.map(fn {context, _} -> context end)
-    |> MapSet.new()
-    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
-    no_waiting_status = repo_conn
-    |> GitHub.get_commit_status!(patch.commit)
-    |> Enum.filter(fn {_, status} -> status == :running end)
-    |> Enum.map(fn {context, _} -> context end)
-    |> MapSet.new()
-    |> MapSet.disjoint?(MapSet.new(toml.pr_status))
-
-    code_owners_approved = check_code_owner(repo_conn, patch, toml)
-
-#    {:error, {:missing_code_owner_approval, "My team"}}
-
-    passed_review = repo_conn
-    |> GitHub.get_reviews!(patch.pr_xref)
-    |> reviews_status(toml)
-    Logger.info("Code review status: Label Check #{passed_label} Passed Status: #{no_error_status and no_waiting_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}")
-
-    case {passed_label, no_error_status, no_waiting_status, passed_review, code_owners_approved} do
-      {true, true, true, :sufficient, true} -> :ok
-      {false, _, _, _, _}             -> {:error, :blocked_labels}
-      {_, _, _, :insufficient, _}     -> {:error, :insufficient_approvals}
-      {_, _, _, :failed, _}           -> {:error, :blocked_review}
-      {_, _, _, _, false}             -> {:error, :missing_code_owner_approval}
-      {_, false, _, _, _}             -> {:error, :pr_status}
-      {true, true, false, :sufficient, true} -> :waiting
-    end
-  end
 
   @spec reviews_status(map, Batcher.BorsToml.t) :: :sufficient | :failed | :insufficient
   defp reviews_status(reviews, toml) do
