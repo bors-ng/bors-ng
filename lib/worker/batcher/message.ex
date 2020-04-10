@@ -103,6 +103,16 @@ defmodule BorsNG.Worker.Batcher.Message do
     "#{acc}\n  * #{status_link}"
   end
 
+  def generate_squash_commit_message(pr, commits, user_email, cut_body_after) do
+    message_body = cut_body(pr.body, cut_body_after)
+    co_authors = commits
+    |> Enum.filter(&(&1.author_email != user_email))
+    |> Enum.map(&("Co-authored-by: #{&1.author_name} <#{&1.author_email}>"))
+    |> Enum.uniq
+    |> Enum.join("\n")
+    "#{pr.title} (##{pr.number})\n\n#{message_body}\n\n#{co_authors}\n"
+  end
+
   def generate_commit_message(patch_links, cut_body_after, co_authors) do
     commit_title = Enum.reduce(patch_links,
       "Merge", &"#{&2} \##{&1.patch.pr_xref}")
