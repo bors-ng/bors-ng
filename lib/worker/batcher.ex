@@ -435,7 +435,7 @@ defmodule BorsNG.Worker.Batcher do
                 tree: merge_commit.tree,
                 parents: [prev_head],
                 commit_message: "#{pr.title} (##{pr.number})\n\n#{message_body}",
-                committer: %{name: user.login, email: user_email}})
+                committer: %{name: user.name || user.login, email: user_email}})
 
             Logger.info("Commit Sha #{inspect(cpt)}")
               cpt

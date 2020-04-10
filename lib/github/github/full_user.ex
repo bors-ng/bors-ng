@@ -5,7 +5,7 @@ defmodule BorsNG.GitHub.FullUser do
   See https://developer.github.com/v3/users/#get-a-single-user
   """
 
-  defstruct id: 0, login: "", avatar_url: "", email: ""
+  defstruct id: 0, login: "", avatar_url: "", email: "", name: nil
 
   @type tjson :: map
 
@@ -14,6 +14,7 @@ defmodule BorsNG.GitHub.FullUser do
                login: bitstring,
                avatar_url: bitstring,
                email: bitstring,
+               name: bitstring,
              }
 
 
@@ -35,12 +36,14 @@ defmodule BorsNG.GitHub.FullUser do
     "login" => login,
     "avatar_url" => avatar_url,
     "email" => email,
+    "name" => name,
   }) when is_integer(id) do
     {:ok, %BorsNG.GitHub.FullUser{
       id: id,
       login: login,
       avatar_url: avatar_url,
       email: email,
+      name: name,
     }}
   end
 
