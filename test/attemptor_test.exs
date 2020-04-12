@@ -288,7 +288,7 @@ defmodule BorsNG.Worker.AttemptorTest do
         commits: %{
           "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
           "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
-        comments: %{1 => ["## try\n\n# Build succeeded\n  * ci"]},
+        comments: %{1 => ["## try\n\nBuild succeeded:\n  * ci"]},
         statuses: %{"iniN" => [{"ci", :ok}]},
         files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}}
       }}
@@ -457,7 +457,7 @@ defmodule BorsNG.Worker.AttemptorTest do
                commits: %{
                  "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]},
                  "iniN" => %{commit_message: "Try #1:test", parents: ["ini", "N"]}},
-               comments: %{1 => ["## try\n\n# Build succeeded\n  * ci"]},
+               comments: %{1 => ["## try\n\nBuild succeeded:\n  * ci"]},
                statuses: %{"iniN" => [{"ci", :ok}]},
                files: %{"trying.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}}
              }}

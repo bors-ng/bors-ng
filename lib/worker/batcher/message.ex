@@ -59,22 +59,22 @@ defmodule BorsNG.Worker.Batcher.Message do
     "Already running a review"
   end
   def generate_message({:config, message}) do
-    "# Configuration problem\n#{message}"
+    "Configuration problem:\n#{message}"
   end
   def generate_message({:conflict, :failed}) do
-    "# Merge conflict"
+    "Merge conflict."
   end
   def generate_message({:conflict, :retrying}) do
     nil
   end
   def generate_message({:timeout, :failed}) do
-    "# Timed out"
+    "Timed out."
   end
   def generate_message({:timeout, :retrying}) do
     "This PR was included in a batch that timed out, it will be automatically retried"
   end
   def generate_message({:canceled, :failed}) do
-    "# Canceled"
+    "Canceled."
   end
   def generate_message({:canceled, :retrying}) do
     "This PR was included in a batch that was canceled, it will be automatically retried"
@@ -85,22 +85,23 @@ defmodule BorsNG.Worker.Batcher.Message do
   def generate_message({state, statuses}) do
     is_new_year = get_is_new_year()
     msg = case state do
-      :succeeded when is_new_year -> "Build succeeded\n\n*And happy new year from bors! 🎉*\n\n"
-      :succeeded -> "Build succeeded"
-      :failed -> "Build failed"
-      :retrying -> "Build failed (retrying...)"
+      :succeeded when is_new_year -> "Build succeeded!\n\n*And happy new year from bors! 🎉*\n\n"
+      :succeeded -> "Build succeeded:"
+      :failed -> "Build failed:"
+      :retrying -> "Build failed (retrying...):"
     end
-    Enum.reduce(statuses, "# #{msg}", &gen_status_link/2)
+    [msg] ++ Enum.map(statuses, &"  * #{gen_status_link(&1)}")
+    |> Enum.join("\n")
   end
-  def generate_message({:merged, :squashed, target_branch}) do
-    "# Pull request successfully merged into #{target_branch}."
+  def generate_message({:merged, :squashed, target_branch, statuses}) do
+    status_msg = generate_message({:succeeded, statuses})
+    "Pull request successfully merged into #{target_branch}.\n\n#{status_msg}"
   end
-  defp gen_status_link(status, acc) do
-    status_link = case status.url do
+  def gen_status_link(status) do
+    case status.url do
       nil -> status.identifier
       url -> "[#{status.identifier}](#{url})"
     end
-    "#{acc}\n  * #{status_link}"
   end
 
   def generate_commit_message(patch_links, cut_body_after, co_authors) do
