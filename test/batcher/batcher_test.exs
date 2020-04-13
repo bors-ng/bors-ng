@@ -89,7 +89,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => ["# Canceled"],
+          1 => ["Canceled."],
           2 => []
           },
         statuses: %{"N" => %{"bors" => :error}},
@@ -127,7 +127,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => ["# Canceled"]
+          1 => ["Canceled."]
           },
         statuses: %{"N" => %{"bors" => :error}},
         files: %{}
@@ -178,7 +178,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{},
         commits: %{},
         comments: %{
-          1 => ["# Canceled"],
+          1 => ["Canceled."],
           2 => ["This PR was included in a batch that was canceled, it will be automatically retried"]},
         statuses: %{
           "N" => %{"bors" => :error},
@@ -1041,7 +1041,7 @@ defmodule BorsNG.Worker.BatcherTest do
           "ini" => %{
             commit_message: "[ci skip][skip ci][skip netlify]",
             parents: ["ini"]}},
-        comments: %{1 => ["# Configuration problem\nbors.toml: not found"]},
+        comments: %{1 => ["Configuration problem:\nbors.toml: not found"]},
         statuses: %{"N" => %{"bors" => :error}},
         files: %{}
       }}
@@ -1243,7 +1243,7 @@ defmodule BorsNG.Worker.BatcherTest do
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
-        comments: %{1 => ["# Build succeeded\n  * ci"]},
+        comments: %{1 => ["Build succeeded:\n  * ci"]},
         statuses: %{
           "iniN" => %{"bors" => :ok, "ci" => :ok},
           "N" => %{"bors" => :ok}},
@@ -1409,7 +1409,7 @@ defmodule BorsNG.Worker.BatcherTest do
                    commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
                                    "\nCo-authored-by: a <e>\n",
                    parents: ["ini", "N"]}},
-               comments: %{1 => ["# Build succeeded\n  * ci"]},
+               comments: %{1 => ["Build succeeded:\n  * ci"]},
                statuses: %{
                  "iniN" => %{"bors" => :ok, "ci" => :ok},
                  "N" => %{"bors" => :ok}},
@@ -1476,7 +1476,7 @@ defmodule BorsNG.Worker.BatcherTest do
         branches: %{"master" => "ini", "staging" => ""},
         commits: %{
           "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]}},
-        comments: %{1 => ["# Merge conflict"]},
+        comments: %{1 => ["Merge conflict."]},
         statuses: %{"N" => %{"bors" => :error}, "iniN" => %{}},
         pulls: %{
           1 => %Pr{
@@ -1774,7 +1774,7 @@ defmodule BorsNG.Worker.BatcherTest do
             commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: b <f>\n",
             parents: ["iniN", "O"]}},
-        comments: %{1 => ["# Build succeeded\n  * ci"], 2 => []},
+        comments: %{1 => ["Build succeeded:\n  * ci"], 2 => []},
         statuses: %{
           "iniN" => %{"bors" => :ok},
           "N" => %{"bors" => :ok},
@@ -1923,7 +1923,7 @@ defmodule BorsNG.Worker.BatcherTest do
             commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
-        comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
+        comments: %{2 => ["Build succeeded:\n  * ci"], 1 => []},
         statuses: %{
           "iniN" => %{"bors" => :running},
           "iniO" => %{"bors" => :ok},
@@ -1960,7 +1960,7 @@ defmodule BorsNG.Worker.BatcherTest do
             commit_message: "Merge #1\n\n1:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: a <e>\n",
             parents: ["iniO", "N"]}},
-        comments: %{2 => ["# Build succeeded\n  * ci"], 1 => []},
+        comments: %{2 => ["Build succeeded:\n  * ci"], 1 => []},
         statuses: %{
           "iniN" => %{"bors" => :running},
           "iniO" => %{"bors" => :ok},
@@ -1994,8 +1994,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: a <e>\n",
             parents: ["iniO", "N"]}},
         comments: %{
-          2 => ["# Build succeeded\n  * ci"],
-          1 => ["# Build succeeded\n  * ci"]},
+          2 => ["Build succeeded:\n  * ci"],
+          1 => ["Build succeeded:\n  * ci"]},
         statuses: %{
           "iniN" => %{"bors" => :running},
           "iniON" => %{"bors" => :ok},
@@ -2102,8 +2102,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: a <e>\nCo-authored-by: b <f>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{
-          1 => ["# Build failed (retrying...)\n  * ci"],
-          2 => ["# Build failed (retrying...)\n  * ci"]},
+          1 => ["Build failed (retrying...):\n  * ci"],
+          2 => ["Build failed (retrying...):\n  * ci"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "N" => %{"bors" => :error},
@@ -2141,8 +2141,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{
-          1 => ["# Build failed (retrying...)\n  * ci"],
-          2 => ["# Build failed (retrying...)\n  * ci"]},
+          1 => ["Build failed (retrying...):\n  * ci"],
+          2 => ["Build failed (retrying...):\n  * ci"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "N" => %{"bors" => :running},
@@ -2178,9 +2178,9 @@ defmodule BorsNG.Worker.BatcherTest do
             parents: ["ini", "N"]}},
         comments: %{
           1 => [
-            "# Build failed\n  * ci",
-            "# Build failed (retrying...)\n  * ci"],
-          2 => ["# Build failed (retrying...)\n  * ci"]},
+            "Build failed:\n  * ci",
+            "Build failed (retrying...):\n  * ci"],
+          2 => ["Build failed (retrying...):\n  * ci"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "iniN" => %{"bors" => :error},
@@ -2222,9 +2222,9 @@ defmodule BorsNG.Worker.BatcherTest do
             parents: ["ini", "O"]}},
         comments: %{
           1 => [
-            "# Build failed\n  * ci",
-            "# Build failed (retrying...)\n  * ci"],
-          2 => ["# Build failed (retrying...)\n  * ci"]},
+            "Build failed:\n  * ci",
+            "Build failed (retrying...):\n  * ci"],
+          2 => ["Build failed (retrying...):\n  * ci"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "iniN" => %{"bors" => :error},
@@ -2265,11 +2265,11 @@ defmodule BorsNG.Worker.BatcherTest do
             parents: ["ini", "O"]}},
         comments: %{
           1 => [
-            "# Build failed\n  * ci",
-            "# Build failed (retrying...)\n  * ci"],
+            "Build failed:\n  * ci",
+            "Build failed (retrying...):\n  * ci"],
           2 => [
-            "# Build failed\n  * ci",
-            "# Build failed (retrying...)\n  * ci"]},
+            "Build failed:\n  * ci",
+            "Build failed (retrying...):\n  * ci"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "iniN" => %{"bors" => :error},
@@ -2399,7 +2399,7 @@ defmodule BorsNG.Worker.BatcherTest do
             commit_message: "Merge #2\n\n2:  r=rvr a=[unknown]\n\n\n" <>
               "\nCo-authored-by: b <f>\n",
             parents: ["release", "O"]}},
-        comments: %{1 => ["# Build succeeded\n  * ci"], 2 => []},
+        comments: %{1 => ["Build succeeded:\n  * ci"], 2 => []},
         statuses: %{
           "iniN" => %{"bors" => :ok},
           "N" => %{"bors" => :ok},
@@ -2521,8 +2521,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: c <g>\nCo-authored-by: d <h>\n",
             parents: ["ini", "N", "O"]}},
         comments: %{
-          1 => ["# Build succeeded\n  * ci"],
-          2 => ["# Build succeeded\n  * ci"]
+          1 => ["Build succeeded:\n  * ci"],
+          2 => ["Build succeeded:\n  * ci"]
         },
         statuses: %{
           "iniNO" => %{"bors" => :ok},
@@ -2713,7 +2713,7 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: a <e>\n",
             parents: ["ini", "N"]}},
         comments: %{
-          1 => ["# Timed out", "This PR was included in a batch that timed out, it will be automatically retried"],
+          1 => ["Timed out.", "This PR was included in a batch that timed out, it will be automatically retried"],
           2 => ["This PR was included in a batch that timed out, it will be automatically retried"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
@@ -2755,7 +2755,7 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{
-          1 => ["# Timed out", "This PR was included in a batch that timed out, it will be automatically retried"],
+          1 => ["Timed out.", "This PR was included in a batch that timed out, it will be automatically retried"],
           2 => ["This PR was included in a batch that timed out, it will be automatically retried"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
@@ -2799,8 +2799,8 @@ defmodule BorsNG.Worker.BatcherTest do
               "\nCo-authored-by: b <f>\n",
             parents: ["ini", "O"]}},
         comments: %{
-          1 => ["# Timed out", "This PR was included in a batch that timed out, it will be automatically retried"],
-          2 => ["# Timed out", "This PR was included in a batch that timed out, it will be automatically retried"]},
+          1 => ["Timed out.", "This PR was included in a batch that timed out, it will be automatically retried"],
+          2 => ["Timed out.", "This PR was included in a batch that timed out, it will be automatically retried"]},
         statuses: %{
           "iniNO" => %{"bors" => :error},
           "iniN" => %{"bors" => :error},

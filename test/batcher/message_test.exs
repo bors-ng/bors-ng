@@ -4,47 +4,47 @@ defmodule BorsNG.Worker.BatcherMessageTest do
   alias BorsNG.Worker.Batcher.Message
 
   test "generate configuration problem message" do
-    expected_message = "# Configuration problem\nExample problem"
+    expected_message = "Configuration problem:\nExample problem"
     actual_message = Message.generate_message({:config, "Example problem"})
     assert expected_message == actual_message
   end
 
   test "generate retry message" do
-    expected_message = "# Build failed (retrying...)\n  * stat"
+    expected_message = "Build failed (retrying...):\n  * stat"
     example_statuses = [%{url: nil, identifier: "stat"}]
     actual_message = Message.generate_message({:retrying, example_statuses})
     assert expected_message == actual_message
   end
 
   test "generate retry message w/ url" do
-    expected_message = "# Build failed (retrying...)\n  * [stat](x)"
+    expected_message = "Build failed (retrying...):\n  * [stat](x)"
     example_statuses = [%{url: "x", identifier: "stat"}]
     actual_message = Message.generate_message({:retrying, example_statuses})
     assert expected_message == actual_message
   end
 
   test "generate failure message" do
-    expected_message = "# Build failed\n  * stat"
+    expected_message = "Build failed:\n  * stat"
     example_statuses = [%{url: nil, identifier: "stat"}]
     actual_message = Message.generate_message({:failed, example_statuses})
     assert expected_message == actual_message
   end
 
   test "generate success message" do
-    expected_message = "# Build succeeded\n  * stat"
+    expected_message = "Build succeeded:\n  * stat"
     example_statuses = [%{url: nil, identifier: "stat"}]
     actual_message = Message.generate_message({:succeeded, example_statuses})
     assert expected_message == actual_message
   end
 
   test "generate conflict message" do
-    expected_message = "# Merge conflict"
+    expected_message = "Merge conflict."
     actual_message = Message.generate_message({:conflict, :failed})
     assert expected_message == actual_message
   end
 
   test "generate canceled message" do
-    expected_message = "# Canceled"
+    expected_message = "Canceled."
     actual_message = Message.generate_message({:canceled, :failed})
     assert expected_message == actual_message
   end
@@ -56,7 +56,7 @@ defmodule BorsNG.Worker.BatcherMessageTest do
   end
 
   test "generate timeout message" do
-    expected_message = "# Timed out"
+    expected_message = "Timed out."
     actual_message = Message.generate_message({:timeout, :failed})
     assert expected_message == actual_message
   end
@@ -68,8 +68,8 @@ defmodule BorsNG.Worker.BatcherMessageTest do
   end
 
   test "generate merged into master message" do
-    expected_message = "# Pull request successfully merged into master."
-    actual_message = Message.generate_message({:merged, :squashed, "master"})
+    expected_message = "Pull request successfully merged into master.\n\nBuild succeeded:"
+    actual_message = Message.generate_message({:merged, :squashed, "master", []})
     assert expected_message == actual_message
   end
 
