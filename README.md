@@ -343,7 +343,7 @@ to generate a slim image without the Erlang, Elixir and NodeJS development tools
 Most of the important configuration options should be set at runtime using environment variables, not unlike the Heroku instructions.
 All the same recommendations apply, with some extra notes:
 
-- `ELIXIR_VERSION` can be set as a build-time argument, and defaults to `1.4.5`
+- `ELIXIR_VERSION` can be set as a build-time argument. Its default value is defined in the [Dockerfile](Dockerfile).
 - `ALLOW_PRIVATE_REPOS` must be set at both build and run times to take effect. It is set to ` true` by default.
 - `DATABASE_URL` *must* contain the database port, as it will be used at container startup to wait until the database is reachable. [The format is documented here](https://hexdocs.pm/ecto/Ecto.Repo.html#module-urls).
 - The database schema will be automatically created and migrated at container startup, unless the ` DATABASE_AUTO_MIGRATE`  env. var.
