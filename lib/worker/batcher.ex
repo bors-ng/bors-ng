@@ -428,13 +428,16 @@ defmodule BorsNG.Worker.Batcher do
             # Then compress the merge commit into tree into a single commit
             # appent it to the previous commit
             # Because the merges are iterative the contain *only* the changes from the PR vs the previous PR(or head)
-            message_body = Batcher.Message.cut_body(pr.body, toml.cut_body_after)
+
+            commit_message = Batcher.Message.generate_squash_commit_message(
+              pr, commits, user_email, toml.cut_body_after)
+
             cpt = GitHub.create_commit!(
               repo_conn,
               %{
                 tree: merge_commit.tree,
                 parents: [prev_head],
-                commit_message: "#{pr.title} (##{pr.number})\n\n#{message_body}",
+                commit_message: commit_message,
                 committer: %{name: user.name || user.login, email: user_email}})
 
             Logger.info("Commit Sha #{inspect(cpt)}")
@@ -586,15 +589,15 @@ defmodule BorsNG.Worker.Batcher do
 
     case push_success do
       true ->
-        send_message(repo_conn, patches, {:succeeded, statuses})
-
         if toml.use_squash_merge do
           Enum.each(patches, fn patch ->
-            send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch})
+            send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch, statuses})
             pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
             pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
             GitHub.update_pr!(repo_conn, pr)
           end)
+        else
+          send_message(repo_conn, patches, {:succeeded, statuses})
         end
 
         :ok
