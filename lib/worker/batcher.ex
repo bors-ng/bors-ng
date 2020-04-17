@@ -383,7 +383,7 @@ defmodule BorsNG.Worker.Batcher do
     |> case do
       {:ok, toml} ->
         parents = if toml.use_squash_merge do
-          stmp = "#{batch.project.staging_branch}.tmp2"
+          stmp = "#{batch.project.staging_branch}-squash-merge.tmp"
           GitHub.force_push!(repo_conn, base.commit, stmp)
 
           new_head = Enum.reduce(patch_links, base.commit, fn patch_link, prev_head ->
