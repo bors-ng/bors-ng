@@ -4,8 +4,8 @@ defmodule BorsNG.GitHub.File do
   """
 
   @type t :: %BorsNG.GitHub.File{
-          filename: String.t
-  }
+          filename: String.t()
+        }
   defstruct(filename: "")
 
   @doc """
@@ -22,7 +22,7 @@ defmodule BorsNG.GitHub.File do
   """
   @spec from_json(map) :: {:ok, t} | {:error, map}
   def from_json(%{"filename" => filename}) do
-    {:ok, %BorsNG.GitHub.File{ filename: filename }}
+    {:ok, %BorsNG.GitHub.File{filename: filename}}
   end
 
   def from_json(x) do

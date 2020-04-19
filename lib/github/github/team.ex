@@ -7,7 +7,7 @@ defmodule BorsNG.GitHub.Team do
 
   @type t :: %BorsNG.GitHub.Team{
           id: integer,
-          name: String.t
+          name: String.t()
         }
 
   defstruct(

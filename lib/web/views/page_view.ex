@@ -4,10 +4,12 @@ defmodule BorsNG.PageView do
   """
 
   use BorsNG.Web, :view
+
   @doc """
   Checks to see if there is an empty list then returns true
   """
   def empty?([]), do: true
+
   @doc """
   Checks to see if the variable is a list with elements then returns false. 
   """

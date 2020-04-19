@@ -10,8 +10,9 @@ defmodule BorsNG.ErrorHelpers do
   """
   def error_tag(form, field) do
     error = form.errors[field]
+
     if error do
-      content_tag :span, translate_error(error), class: "help-block"
+      content_tag(:span, translate_error(error), class: "help-block")
     end
   end
 

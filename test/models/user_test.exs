@@ -4,10 +4,12 @@ defmodule BorsNG.Database.UserTest do
   alias BorsNG.Database.User
 
   setup do
-    user = Repo.insert!(%User{
-      user_xref: 1,
-      login: "fooBAR"
+    user =
+      Repo.insert!(%User{
+        user_xref: 1,
+        login: "fooBAR"
       })
+
     {:ok, user: user}
   end
 

@@ -9,8 +9,8 @@ defmodule BorsNG.Database.LinkUserProject do
   use BorsNG.Database.Model
 
   schema "link_user_project" do
-    belongs_to :user, User
-    belongs_to :project, Project
+    belongs_to(:user, User)
+    belongs_to(:project, Project)
   end
 
   @doc """
@@ -22,6 +22,7 @@ defmodule BorsNG.Database.LinkUserProject do
     |> validate_required([:user_id, :project_id])
     |> unique_constraint(
       :user_id,
-      name: :link_user_project_user_id_project_id_index)
+      name: :link_user_project_user_id_project_id_index
+    )
   end
 end

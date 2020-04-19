@@ -5,13 +5,13 @@ defmodule BorsNG.Worker.Batcher.State do
   and emits a batch state.
   """
 
-  @typep status :: BorsNG.Database.Status.t
-  @typep state :: BorsNG.Database.Status.state
+  @typep status :: BorsNG.Database.Status.t()
+  @typep state :: BorsNG.Database.Status.state()
 
   @spec summary_database_statuses([status]) :: state
   def summary_database_statuses(statuses) do
     statuses
-    |> Enum.map(&(&1.state))
+    |> Enum.map(& &1.state)
     |> summary_states()
   end
 

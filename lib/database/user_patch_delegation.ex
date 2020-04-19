@@ -7,8 +7,8 @@ defmodule BorsNG.Database.UserPatchDelegation do
   use BorsNG.Database.Model
 
   schema "user_patch_delegations" do
-    belongs_to :user, User
-    belongs_to :patch, Patch
+    belongs_to(:user, User)
+    belongs_to(:patch, Patch)
     timestamps()
   end
 
@@ -21,6 +21,7 @@ defmodule BorsNG.Database.UserPatchDelegation do
     |> validate_required([:user_id, :patch_id])
     |> unique_constraint(
       :user_id,
-      name: :user_patch_delegation_user_id_patch_id_index)
+      name: :user_patch_delegation_user_id_patch_id_index
+    )
   end
 end

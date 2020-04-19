@@ -24,7 +24,7 @@ defmodule BorsNG.AuthController do
   based on the chosen strategy.
   """
   def index(conn, %{"provider" => provider}) do
-    redirect conn, external: authorize_url! provider
+    redirect(conn, external: authorize_url!(provider))
   end
 
   @doc """
@@ -34,19 +34,27 @@ defmodule BorsNG.AuthController do
   def socket_token(conn, _params) do
     with(
       %{assigns: %{user: %{id: user_id}}} <- conn,
-      do: (
-        token = Phoenix.Token.sign(
-          conn,
-          "channel:current_user",
-          user_id)
-        render conn,
-          "socket_token.json",
-          token: %{token: token, current_user: user_id}
-      ))
+      do:
+        (
+          token =
+            Phoenix.Token.sign(
+              conn,
+              "channel:current_user",
+              user_id
+            )
+
+          render(
+            conn,
+            "socket_token.json",
+            token: %{token: token, current_user: user_id}
+          )
+        )
+    )
   end
 
   def logout(conn, _params) do
     home_url = Confex.fetch_env!(:bors, BorsNG)[:home_url]
+
     conn
     |> configure_session(drop: true)
     |> redirect(external: home_url)
@@ -70,29 +78,33 @@ defmodule BorsNG.AuthController do
     avatar = user.avatar_url
 
     # Create (or reuse) the database record for this user
-    current_user_model = case Repo.get_by(User, user_xref: user.id) do
-      nil ->
-        Repo.insert! %User{
-          user_xref: user.id,
-          login: user.login}
-      current_user_model ->
-        current_user_model
-    end
+    current_user_model =
+      case Repo.get_by(User, user_xref: user.id) do
+        nil ->
+          Repo.insert!(%User{
+            user_xref: user.id,
+            login: user.login
+          })
+
+        current_user_model ->
+          current_user_model
+      end
 
     # Make sure the login is up-to-date (GitHub users are allowed to change it)
     user_model =
       if current_user_model.login != user.login do
         cs = Ecto.Changeset.change(current_user_model, login: user.login)
         true = cs.valid?
-        Repo.update! cs
+        Repo.update!(cs)
       else
         current_user_model
       end
 
-    redirect_to = case get_session(conn, :auth_redirect_to) do
-      nil -> page_path(conn, :index)
-      redirect_to -> redirect_to
-    end
+    redirect_to =
+      case get_session(conn, :auth_redirect_to) do
+        nil -> page_path(conn, :index)
+        redirect_to -> redirect_to
+      end
 
     conn
     |> put_session(:current_user, user_model.id)
@@ -102,11 +114,11 @@ defmodule BorsNG.AuthController do
   end
 
   defp authorize_url!("github"), do: @github_api.authorize_url!
-  defp authorize_url!(_), do: raise "No matching provider available"
+  defp authorize_url!(_), do: raise("No matching provider available")
 
-  defp get_token!("github", code), do: @github_api.get_token! code: code
-  defp get_token!(_, _), do: raise "No matching provider available"
+  defp get_token!("github", code), do: @github_api.get_token!(code: code)
+  defp get_token!(_, _), do: raise("No matching provider available")
 
   defp get_user!("github", client), do: @github_api.get_user!(client)
-  defp get_user!(_, _), do: raise "No matching provider available"
+  defp get_user!(_, _), do: raise("No matching provider available")
 end

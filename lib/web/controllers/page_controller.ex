@@ -12,6 +12,6 @@ defmodule BorsNG.PageController do
 
   def index(conn, _params) do
     user = conn.assigns[:user]
-    render conn, "dashboard.html", patches: Dashboard.my_patches(user.id)
+    render(conn, "dashboard.html", patches: Dashboard.my_patches(user.id))
   end
 end

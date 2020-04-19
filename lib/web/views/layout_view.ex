@@ -12,6 +12,7 @@ defmodule BorsNG.LayoutView do
 
   def get_commit do
     hash = get_heroku_commit() || get_git_commit()
+
     if hash do
       {String.slice(hash, 0..6), hash}
     else
@@ -34,12 +35,17 @@ defmodule BorsNG.LayoutView do
     |> case do
       {:ok, "ref: " <> branch} ->
         branch = String.trim(branch)
+
         case File.read(".git/" <> branch) do
           {:ok, commit} -> String.trim(commit)
           _ -> nil
         end
-      {:ok, commit} -> String.trim(commit)
-      _ -> nil
+
+      {:ok, commit} ->
+        String.trim(commit)
+
+      _ ->
+        nil
     end
   end
 

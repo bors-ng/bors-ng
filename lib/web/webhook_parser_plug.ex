@@ -24,16 +24,23 @@ defmodule BorsNG.WebhookParserPlug do
 
   def run(conn, _options, key) do
     {:ok, body, _} = read_body(conn)
-    signature = case get_req_header(conn, "x-hub-signature") do
-      ["sha1=" <> signature  | []] ->
-        {:ok, signature} = Base.decode16(signature, case: :lower)
-        signature
-      x -> x
-    end
+
+    signature =
+      case get_req_header(conn, "x-hub-signature") do
+        ["sha1=" <> signature | []] ->
+          {:ok, signature} = Base.decode16(signature, case: :lower)
+          signature
+
+        x ->
+          x
+      end
+
     hmac = :crypto.hmac(:sha, key, body)
+
     case hmac do
       ^signature ->
         %Plug.Conn{conn | body_params: Poison.decode!(body)}
+
       _ ->
         conn
         |> put_resp_content_type("text/plain")

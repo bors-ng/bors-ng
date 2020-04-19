@@ -24,6 +24,7 @@ install:
   - mix do local.rebar --force, local.hex --force, deps.get
 
 script:
+  - if [[ "$ELIXIR_VERSION" = "1.8.1" ]]; then mix format --check-formatted; fi
   - mix test
 
 env:

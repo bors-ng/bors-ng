@@ -9,18 +9,20 @@ defmodule BorsNG.GitHub.OAuth2Mock do
   @avatar "https://cdn.rawgit.com/notriddle/bors-ng/b9e756/icon/bors-eye.svg"
 
   @type t :: map
-  @type tuser :: BorsNG.GitHub.User.t
+  @type tuser :: BorsNG.GitHub.User.t()
 
   @spec authorize_url!() :: binary
   def authorize_url! do
     "/auth/github/callback?code=#{@code}\##{@url}"
   end
+
   @spec get_token!(keyword) :: t
   def get_token!(args) do
     code = args[:code]
     if code != @code, do: raise("Incorrect GitHub auth code: #{code}")
     %{token: %{access_token: @token}}
   end
+
   @spec get_user!(t) :: tuser
   def get_user!(client) do
     token = client.token.access_token

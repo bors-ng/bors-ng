@@ -9,10 +9,10 @@ defmodule BorsNG.Database.User do
   @type t :: %User{}
 
   schema "users" do
-    field :user_xref, :integer
-    field :login, :string
-    field :is_admin, :boolean, default: false
-    many_to_many :projects, Project, join_through: LinkUserProject
+    field(:user_xref, :integer)
+    field(:login, :string)
+    field(:is_admin, :boolean, default: false)
+    many_to_many(:projects, Project, join_through: LinkUserProject)
 
     timestamps()
   end
