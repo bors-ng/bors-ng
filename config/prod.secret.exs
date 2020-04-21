@@ -9,7 +9,11 @@ config :bors, BorsNG.Database.Repo,
 
 config :bors, BorsNG.Endpoint,
   http: [port: {:system, "PORT"}],
-  url: [host: {:system, "PUBLIC_HOST"}, scheme: "https", port: 443],
+  url: [
+    host: {:system, "PUBLIC_HOST"},
+    scheme: "https",
+    port: {:system, :integer, "PUBLIC_PORT", 443}
+  ],
   check_origin: false,
   cache_static_manifest: "priv/static/cache_manifest.json",
   server: true,
