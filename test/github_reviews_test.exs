@@ -65,7 +65,7 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
         }
       ])
 
-    assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1, "approvers" => ["bert"]}
+    assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1, "approvers" => []}
   end
 
   test "counts the last item (change request)", _ do
@@ -81,7 +81,7 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
         }
       ])
 
-    assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1, "approvers" => ["bert"]}
+    assert result == %{"APPROVED" => 0, "CHANGES_REQUESTED" => 1, "approvers" => []}
   end
 
   test "counts the last item (approval)", _ do
@@ -116,7 +116,7 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
     assert result == %{
              "APPROVED" => 1,
              "CHANGES_REQUESTED" => 1,
-             "approvers" => ["bert", "ernie"]
+             "approvers" => ["ernie"]
            }
   end
 end

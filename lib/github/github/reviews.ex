@@ -23,7 +23,7 @@ defmodule BorsNG.GitHub.Reviews do
     # Get the list of users who have approved this PR
     approved_by =
       reviews
-      |> Enum.reject(fn {_, state} -> state == "DISMISSED" end)
+      |> Enum.filter(fn {_, state} -> state == "APPROVED" end)
       |> Enum.map(fn {username, _} -> username end)
 
     # Remove reviews that don't count
