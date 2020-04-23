@@ -73,16 +73,21 @@ defmodule BorsNG.CodeOwnerParser do
 
         # Remove any nil entries (indicating review not required)
         # Pick the last matching entry (entries further down in the file have higher priority
-        Enum.reduce(pats, nil, fn x, acc ->
+        pats
+        |> Enum.reduce([], fn x, acc ->
           if x != nil do
             x
           else
             acc
           end
         end)
+        # If the last matching entry is @ghost, ignore it (it's a null owner on GH)
+        |> Enum.filter(fn x ->
+          !String.equivalent?("@ghost", x)
+        end)
       end)
 
-    required_reviewers = Enum.filter(required_reviewers, fn x -> x != nil end)
+    required_reviewers = Enum.filter(required_reviewers, fn x -> Enum.count(x) > 0 end)
 
     Logger.debug("Required reviewers: #{inspect(required_reviewers)}")
 
