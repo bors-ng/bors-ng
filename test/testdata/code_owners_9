@@ -1,0 +1,3 @@
+/docs/ @owners/cat
+# This means that this particular path has no concrete codeowner
+/docs/cat @ghost

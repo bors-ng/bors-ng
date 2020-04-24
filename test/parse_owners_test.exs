@@ -378,4 +378,31 @@ defmodule BorsNG.ParseTest do
     assert Enum.count(Enum.at(reviewers, 0)) == 1
     assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/catch-all"
   end
+
+  test "Test @ghost user means no ownership" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_9")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{filename: "docs/dog"}
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@owners/cat"
+
+    files = [
+      %BorsNG.GitHub.File{
+        filename: "docs/cat"
+      }
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 0
+  end
 end
