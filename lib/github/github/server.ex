@@ -320,8 +320,8 @@ defmodule BorsNG.GitHub.Server do
         sha = Poison.decode!(raw)["sha"]
         do_handle_call(:force_push, repo_conn, {sha, branch})
 
-      _ ->
-        {:error, :synthesize_commit}
+      err ->
+        {:error, :synthesize_commit, err}
     end
   end
 
@@ -359,8 +359,8 @@ defmodule BorsNG.GitHub.Server do
           {:ok, sha}
         end
 
-      _ ->
-        {:error, :force_push}
+      err ->
+        {:error, :force_push, err}
     end
   end
 
@@ -402,8 +402,8 @@ defmodule BorsNG.GitHub.Server do
 
                    {:ok, res}
 
-                 _ ->
-                   {:error, :get_commit_status, :check}
+                 err ->
+                   {:error, :get_commit_status, :check, err}
                end),
          do: {:ok, Map.merge(status, check)}
   end
@@ -419,8 +419,8 @@ defmodule BorsNG.GitHub.Server do
 
         {:ok, res}
 
-      _ ->
-        {:error, :get_labels}
+      err ->
+        {:error, :get_labels, err}
     end
   end
 
