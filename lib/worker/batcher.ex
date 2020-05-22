@@ -1067,6 +1067,7 @@ defmodule BorsNG.Worker.Batcher do
         Repo.get!(Patch, l.patch_id).is_single
       end)
     end)
+    |> Enum.take(1)
     |> case do
       [batch] -> {batch, false}
       _ -> get_new_batch(project_id, into_branch, priority, true)
