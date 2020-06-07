@@ -114,7 +114,7 @@ defmodule BorsNG.Worker.Batcher.Message do
 
     msg =
       case state do
-        :succeeded when is_new_year -> "Build succeeded!\n\n*And happy new year from bors! 🎉*\n\n"
+        :succeeded when is_new_year -> "Build succeeded!\n\n*And happy new year! 🎉*\n\n"
         :succeeded -> "Build succeeded:"
         :failed -> "Build failed:"
         :retrying -> "Build failed (retrying...):"
