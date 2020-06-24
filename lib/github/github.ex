@@ -302,7 +302,7 @@ defmodule BorsNG.GitHub do
         :ok
 
       _ ->
-        Process.sleep(1_000)
+        Process.sleep(11)
 
         :ok =
           GenServer.call(
