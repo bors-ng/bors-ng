@@ -939,10 +939,20 @@ defmodule BorsNG.Worker.Batcher do
 
     #    {:error, {:missing_code_owner_approval, "My team"}}
 
+    # fetching all reviews even when up_to_date_approvals is on to catch cases of rejected reviews.
     passed_review =
       repo_conn
       |> GitHub.get_reviews!(patch.pr_xref)
       |> reviews_status(toml)
+
+    passed_up_to_date_review =
+      if toml.required_approvals && toml.up_to_date_approvals do
+        repo_conn
+        |> GitHub.get_commit_reviews!(patch.pr_xref, patch.commit)
+        |> reviews_status(toml)
+      else
+        :sufficient
+      end
 
     Logger.info(
       "Code review status: Label Check #{passed_label} Passed Status: #{
@@ -950,14 +960,16 @@ defmodule BorsNG.Worker.Batcher do
       } Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}"
     )
 
-    case {passed_label, no_error_status, no_waiting_status, passed_review, code_owners_approved} do
-      {true, true, true, :sufficient, true} -> :ok
-      {false, _, _, _, _} -> {:error, :blocked_labels}
-      {_, _, _, :insufficient, _} -> {:error, :insufficient_approvals}
-      {_, _, _, :failed, _} -> {:error, :blocked_review}
-      {_, _, _, _, false} -> {:error, :missing_code_owner_approval}
-      {_, false, _, _, _} -> {:error, :pr_status}
-      {true, true, false, :sufficient, true} -> :waiting
+    case {passed_label, no_error_status, no_waiting_status, passed_review, code_owners_approved,
+          passed_up_to_date_review} do
+      {true, true, true, :sufficient, true, :sufficient} -> :ok
+      {false, _, _, _, _, _} -> {:error, :blocked_labels}
+      {_, _, _, :insufficient, _, _} -> {:error, :insufficient_approvals}
+      {_, _, _, :failed, _, _} -> {:error, :blocked_review}
+      {_, _, _, _, false, _} -> {:error, :missing_code_owner_approval}
+      {_, false, _, _, _, _} -> {:error, :pr_status}
+      {true, true, false, :sufficient, true, _} -> :waiting
+      {_, _, _, :sufficient, _, :insufficient} -> {:error, :insufficient_up_to_date_approvals}
     end
   end
 

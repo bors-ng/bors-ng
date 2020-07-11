@@ -46,4 +46,15 @@ defmodule BorsNG.GitHub.Reviews do
     )
     |> Map.put("approvers", approved_by)
   end
+
+  @spec filter_sha!([map], nil) :: [map]
+  def filter_sha!(json, nil) do
+    json
+  end
+
+  @spec filter_sha!([map], binary) :: [map]
+  def filter_sha!(json, sha) do
+    json
+    |> Enum.filter(fn %{"commit_id" => commit_id} -> commit_id == sha end)
+  end
 end

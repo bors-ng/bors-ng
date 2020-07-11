@@ -403,16 +403,27 @@ defmodule BorsNG.GitHub.ServerMock do
     end
   end
 
-  def do_handle_call(:get_reviews, repo_conn, {issue_xref}, state) do
+  def do_handle_call(:get_reviews, repo_conn, {issue_xref, sha}, state) do
+    review_type =
+      if is_nil(sha) do
+        :reviews
+      else
+        :up_to_date_reviews
+      end
+
     with(
       {:ok, repo} <- Map.fetch(state, repo_conn),
-      {:ok, reviews} <- Map.fetch(repo, :reviews),
+      {:ok, reviews} <- Map.fetch(repo, review_type),
       do: {:ok, reviews[issue_xref]}
     )
     |> case do
       {:ok, _} = res -> {res, state}
       _ -> {{:ok, %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}}, state}
     end
+  end
+
+  def do_handle_call(:get_reviews, repo_conn, {issue_xref}, state) do
+    do_handle_call(:get_reviews, repo_conn, {issue_xref, nil}, state)
   end
 
   def do_handle_call(:get_file, repo_conn, {branch, path}, state) do

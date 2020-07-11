@@ -119,4 +119,73 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
              "approvers" => ["ernie"]
            }
   end
+
+  test "dont filter anything on nil", _ do
+    result =
+      BorsNG.GitHub.Reviews.filter_sha!(
+        [
+          %{
+            "user" => %{"login" => "bert"},
+            "state" => "CHANGES_REQUESTED",
+            "commit_id" => "123"
+          },
+          %{
+            "user" => %{"login" => "ernie"},
+            "state" => "APPROVED",
+            "commit_id" => "456"
+          }
+        ],
+        nil
+      )
+
+    assert result == [
+             %{
+               "user" => %{"login" => "bert"},
+               "state" => "CHANGES_REQUESTED",
+               "commit_id" => "123"
+             },
+             %{
+               "user" => %{"login" => "ernie"},
+               "state" => "APPROVED",
+               "commit_id" => "456"
+             }
+           ]
+  end
+
+  test "filter by commit id", _ do
+    result =
+      BorsNG.GitHub.Reviews.filter_sha!(
+        [
+          %{
+            "user" => %{"login" => "bert"},
+            "state" => "CHANGES_REQUESTED",
+            "commit_id" => "123"
+          },
+          %{
+            "user" => %{"login" => "ernie"},
+            "state" => "APPROVED",
+            "commit_id" => "456"
+          },
+          %{
+            "user" => %{"login" => "eric"},
+            "state" => "CHANGES_REQUESTED",
+            "commit_id" => "456"
+          }
+        ],
+        "456"
+      )
+
+    assert result == [
+             %{
+               "user" => %{"login" => "ernie"},
+               "state" => "APPROVED",
+               "commit_id" => "456"
+             },
+             %{
+               "user" => %{"login" => "eric"},
+               "state" => "CHANGES_REQUESTED",
+               "commit_id" => "456"
+             }
+           ]
+  end
 end

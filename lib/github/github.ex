@@ -263,6 +263,18 @@ defmodule BorsNG.GitHub do
     labels
   end
 
+  @spec get_commit_reviews!(tconn, integer | bitstring, binary) :: map
+  def get_commit_reviews!(repo_conn, issue_xref, sha) do
+    {:ok, labels} =
+      GenServer.call(
+        BorsNG.GitHub,
+        {:get_reviews, repo_conn, {issue_xref, sha}},
+        Confex.fetch_env!(:bors, :api_github_timeout)
+      )
+
+    labels
+  end
+
   @spec get_file!(tconn, binary, binary) :: binary | nil
   def get_file!(repo_conn, branch, path) do
     {:ok, file} =
