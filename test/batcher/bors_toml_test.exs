@@ -91,4 +91,9 @@ defmodule BatcherBorsTomlTest do
     r = BorsToml.new(~s/status = ["exl"]\n[committer]\nemail = "bors@ex.com"/)
     assert r == {:error, :committer_details}
   end
+
+  test "up_to_date_approvals can be set to true " do
+    {:ok, toml} = BorsToml.new(~s/status = ["exl"]\nup_to_date_approvals = true/)
+    assert toml.up_to_date_approvals == true
+  end
 end
