@@ -434,8 +434,8 @@ defmodule BorsNG.GitHub.Server do
     {:ok, reviews}
   end
 
-  def do_handle_call(:get_reviews, repo_conn, {issue_xref}, state) do
-    do_handle_call(:get_reviews, repo_conn, {issue_xref, nil}, state)
+  def do_handle_call(:get_reviews, repo_conn, {issue_xref}) do
+    do_handle_call(:get_reviews, repo_conn, {issue_xref, nil})
   end
 
   def do_handle_call(:get_file, repo_conn, {branch, path}) do

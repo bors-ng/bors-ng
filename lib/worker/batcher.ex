@@ -957,7 +957,9 @@ defmodule BorsNG.Worker.Batcher do
     Logger.info(
       "Code review status: Label Check #{passed_label} Passed Status: #{
         no_error_status and no_waiting_status
-      } Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved}"
+      } Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved} Passed Up-To-Date Review: #{
+        passed_up_to_date_review
+      }"
     )
 
     case {passed_label, no_error_status, no_waiting_status, passed_review, code_owners_approved,
