@@ -424,13 +424,18 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:get_reviews, {{:raw, token}, repo_xref}, {issue_xref}) do
+  def do_handle_call(:get_reviews, {{:raw, token}, repo_xref}, {issue_xref, sha}) do
     reviews =
       token
       |> get_reviews_json_!("#{site()}/repositories/#{repo_xref}/pulls/#{issue_xref}/reviews", [])
+      |> GitHub.Reviews.filter_sha!(sha)
       |> GitHub.Reviews.from_json!()
 
     {:ok, reviews}
+  end
+
+  def do_handle_call(:get_reviews, repo_conn, {issue_xref}) do
+    do_handle_call(:get_reviews, repo_conn, {issue_xref, nil})
   end
 
   def do_handle_call(:get_file, repo_conn, {branch, path}) do

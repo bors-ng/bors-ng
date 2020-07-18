@@ -59,6 +59,10 @@ defmodule BorsNG.Worker.Batcher.Message do
     ":-1: Rejected by too few approved reviews"
   end
 
+  def generate_message({:preflight, :insufficient_up_to_date_approvals}) do
+    ":-1: Rejected by too few up-to-date approved reviews (some of the PR reviews are stale)"
+  end
+
   def generate_message({:preflight, :missing_code_owner_approval}) do
     ":-1: Rejected because of missing code owner approval"
   end

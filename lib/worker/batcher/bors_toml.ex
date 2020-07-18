@@ -24,6 +24,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             prerun_timeout_sec: 30 * 60,
             use_squash_merge: false,
             required_approvals: nil,
+            up_to_date_approvals: false,
             cut_body_after: nil,
             delete_merged_branches: false,
             use_codeowners: false,
@@ -42,6 +43,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           timeout_sec: integer,
           prerun_timeout_sec: integer,
           required_approvals: integer | nil,
+          up_to_date_approvals: boolean,
           cut_body_after: binary | nil,
           delete_merged_branches: boolean,
           use_codeowners: boolean,
@@ -101,6 +103,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           timeout_sec: Map.get(toml, "timeout_sec", 60 * 60),
           prerun_timeout_sec: Map.get(toml, "prerun_timeout_sec", 30 * 60),
           required_approvals: Map.get(toml, "required_approvals", nil),
+          up_to_date_approvals: Map.get(toml, "up_to_date_approvals", false),
           cut_body_after: Map.get(toml, "cut_body_after", nil),
           delete_merged_branches:
             Map.get(

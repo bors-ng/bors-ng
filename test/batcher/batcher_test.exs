@@ -1193,6 +1193,69 @@ defmodule BorsNG.Worker.BatcherTest do
     assert [] == Repo.all(Batch)
   end
 
+  test "rejects a patch with too few up-to-date approved reviews", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        reviews: %{1 => %{"APPROVED" => 2, "CHANGES_REQUESTED" => 0}},
+        up_to_date_reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}},
+        files: %{
+          "Z" => %{
+            "bors.toml" => ~s"""
+            status = [ "ci" ]
+            pr_status = [ "cn" ]
+            required_approvals = 1
+            up_to_date_approvals = true
+            """
+          }
+        }
+      }
+    })
+
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "Z",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               comments: %{
+                 1 => [
+                   ":-1: Rejected by too few up-to-date approved reviews (some of the PR reviews are stale)"
+                 ]
+               },
+               statuses: %{"Z" => %{"cn" => :ok}},
+               files: %{
+                 "Z" => %{
+                   "bors.toml" => ~s"""
+                   status = [ "ci" ]
+                   pr_status = [ "cn" ]
+                   required_approvals = 1
+                   up_to_date_approvals = true
+                   """
+                 }
+               },
+               reviews: %{1 => %{"APPROVED" => 2, "CHANGES_REQUESTED" => 0}},
+               up_to_date_reviews: %{1 => %{"APPROVED" => 0, "CHANGES_REQUESTED" => 0}}
+             }
+           }
+
+    # When preflight checks reject a patch, no batch should be created!
+    assert [] == Repo.all(Batch)
+  end
+
   test "accepts a patch with approvals", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
@@ -1243,6 +1306,64 @@ defmodule BorsNG.Worker.BatcherTest do
                  }
                },
                reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}}
+             }
+           }
+  end
+
+  test "accepts a patch with up-to-date approvals", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        reviews: %{1 => %{"APPROVED" => 2, "CHANGES_REQUESTED" => 0}},
+        up_to_date_reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}},
+        files: %{
+          "Z" => %{
+            "bors.toml" => ~s"""
+            status = [ "ci" ]
+            pr_status = [ "cn" ]
+            required_approvals = 1
+            up_to_date_approvals = true
+            """
+          }
+        }
+      }
+    })
+
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "Z",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               comments: %{
+                 1 => []
+               },
+               statuses: %{"Z" => %{"bors" => :running, "cn" => :ok}},
+               files: %{
+                 "Z" => %{
+                   "bors.toml" => ~s"""
+                   status = [ "ci" ]
+                   pr_status = [ "cn" ]
+                   required_approvals = 1
+                   up_to_date_approvals = true
+                   """
+                 }
+               },
+               reviews: %{1 => %{"APPROVED" => 2, "CHANGES_REQUESTED" => 0}},
+               up_to_date_reviews: %{1 => %{"APPROVED" => 1, "CHANGES_REQUESTED" => 0}}
              }
            }
   end
