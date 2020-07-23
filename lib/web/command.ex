@@ -157,6 +157,8 @@ defmodule BorsNG.Command do
   def parse_cmd("d=" <> arguments), do: parse_delegation_args(arguments)
   def parse_cmd("+r" <> _), do: [{:autocorrect, "r+"}]
   def parse_cmd("-r" <> _), do: [{:autocorrect, "r-"}]
+  def parse_cmd("+"), do: [{:autocorrect, "r+"}]
+  def parse_cmd("-"), do: [{:autocorrect, "r-"}]
   def parse_cmd("ping" <> _), do: [:ping]
   def parse_cmd("p=" <> rest), do: parse_priority(rest)
   def parse_cmd("retry" <> _), do: [:retry]
