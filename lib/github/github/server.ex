@@ -463,8 +463,8 @@ defmodule BorsNG.GitHub.Server do
       %{status: 201} ->
         :ok
 
-      _ ->
-        {:error, :post_comment}
+      %{status: status, body: raw} ->
+        {:error, :post_comment, status, raw}
     end
   end
 
