@@ -339,22 +339,12 @@ defmodule BorsNG.GitHub do
     user
   end
 
-  @spec get_team_by_name(tconn, String.t(), String.t()) ::
-          {:ok, BorsNG.GitHub.Team.t()} | {:error, String.t()}
-  def get_team_by_name(repo_conn, org_name, team_name) do
-    GenServer.call(
-      BorsNG.GitHub,
-      {:get_team_by_name, repo_conn, {org_name, team_name}},
-      Confex.fetch_env!(:bors, :api_github_timeout)
-    )
-  end
-
-  @spec belongs_to_team?(tconn, String.t(), integer) ::
+  @spec belongs_to_team?(tconn, String.t(), String.t(), String.t()) ::
           boolean
-  def belongs_to_team?(repo_conn, username, team_id) do
+  def belongs_to_team?(repo_conn, org, team_slug, username) do
     GenServer.call(
       BorsNG.GitHub,
-      {:belongs_to_team, repo_conn, {username, team_id}},
+      {:belongs_to_team, repo_conn, {org, team_slug, username}},
       Confex.fetch_env!(:bors, :api_github_timeout)
     )
   end
