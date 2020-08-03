@@ -1004,20 +1004,14 @@ defmodule BorsNG.Worker.Batcher do
             if String.contains?(required, "/") do
               # Remove leading @ for team name
               # Split into org name and team name
-              team_split =
+              [org_name, team_name | _] =
                 String.slice(required, 1, String.length(required) - 1)
                 |> String.split("/")
 
-              # Lookup team ID -> needed later
-              {:ok, team} =
-                GitHub.get_team_by_name(repo_conn, Enum.at(team_split, 0), Enum.at(team_split, 1))
-
-              Logger.info("Team: #{inspect(team)}")
-
               # Loop through reviewers, if they on the team accept their approval
               team_approved =
-                Enum.any?(passed_review["approvers"], fn x ->
-                  GitHub.belongs_to_team?(repo_conn, x, team.id)
+                Enum.any?(passed_review["approvers"], fn username ->
+                  GitHub.belongs_to_team?(repo_conn, org_name, team_name, username)
                 end)
 
               Logger.info("Approved: #{inspect(team_approved)}")
