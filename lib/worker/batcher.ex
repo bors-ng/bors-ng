@@ -916,24 +916,28 @@ defmodule BorsNG.Worker.Batcher do
       |> MapSet.new()
       |> MapSet.disjoint?(MapSet.new(toml.block_labels))
 
-    # This seems to treat unset statuses as :ok. Dangerous is CI
-    # is slower to set an at least pending status before someone types
-    # bors r+.
+    github_commit_statuses = GitHub.get_commit_status!(repo_conn, patch.commit)
+    pr_status_mapset = MapSet.new(toml.pr_status)
+
     no_error_status =
-      repo_conn
-      |> GitHub.get_commit_status!(patch.commit)
+      github_commit_statuses
       |> Enum.filter(fn {_, status} -> status == :error end)
       |> Enum.map(fn {context, _} -> context end)
       |> MapSet.new()
-      |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+      |> MapSet.disjoint?(pr_status_mapset)
 
     no_waiting_status =
-      repo_conn
-      |> GitHub.get_commit_status!(patch.commit)
+      github_commit_statuses
       |> Enum.filter(fn {_, status} -> status == :running end)
       |> Enum.map(fn {context, _} -> context end)
       |> MapSet.new()
-      |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+      |> MapSet.disjoint?(pr_status_mapset)
+
+    # We wait to have all required pr statuses set.
+    no_unset_status =
+      github_commit_statuses
+      |> Enum.filter(fn {context, _} -> MapSet.member?(pr_status_mapset, context) end)
+      |> Enum.count() == Enum.count(pr_status_mapset)
 
     code_owners_approved = check_code_owner(repo_conn, patch, toml)
 
@@ -956,22 +960,23 @@ defmodule BorsNG.Worker.Batcher do
 
     Logger.info(
       "Code review status: Label Check #{passed_label} Passed Status: #{
-        no_error_status and no_waiting_status
+        no_error_status and no_waiting_status and no_unset_status
       } Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved} Passed Up-To-Date Review: #{
         passed_up_to_date_review
       }"
     )
 
-    case {passed_label, no_error_status, no_waiting_status, passed_review, code_owners_approved,
-          passed_up_to_date_review} do
-      {true, true, true, :sufficient, true, :sufficient} -> :ok
-      {false, _, _, _, _, _} -> {:error, :blocked_labels}
-      {_, _, _, :insufficient, _, _} -> {:error, :insufficient_approvals}
-      {_, _, _, :failed, _, _} -> {:error, :blocked_review}
-      {_, _, _, _, false, _} -> {:error, :missing_code_owner_approval}
-      {_, false, _, _, _, _} -> {:error, :pr_status}
-      {true, true, false, :sufficient, true, _} -> :waiting
-      {_, _, _, :sufficient, _, :insufficient} -> {:error, :insufficient_up_to_date_approvals}
+    case {passed_label, no_error_status, no_waiting_status, no_unset_status, passed_review,
+          code_owners_approved, passed_up_to_date_review} do
+      {true, true, true, true, :sufficient, true, :sufficient} -> :ok
+      {false, _, _, _, _, _, _} -> {:error, :blocked_labels}
+      {_, _, _, _, :insufficient, _, _} -> {:error, :insufficient_approvals}
+      {_, _, _, _, :failed, _, _} -> {:error, :blocked_review}
+      {_, _, _, _, _, false, _} -> {:error, :missing_code_owner_approval}
+      {_, false, _, _, _, _, _} -> {:error, :pr_status}
+      {true, true, false, _, :sufficient, true, _} -> :waiting
+      {true, true, _, false, :sufficient, true, _} -> :waiting
+      {_, _, _, _, :sufficient, _, :insufficient} -> {:error, :insufficient_up_to_date_approvals}
     end
   end
 
