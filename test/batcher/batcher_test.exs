@@ -956,6 +956,145 @@ defmodule BorsNG.Worker.BatcherTest do
            }
   end
 
+  test "Poll on an unset PR status. Then reject after that CI fails.", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        files: %{"Z" => %{"bors.toml" => ~s/status = [ "ci" ]\npr_status = [ "cn", "cm" ]/}}
+      }
+    })
+
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "Z",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               comments: %{
+                 1 => [
+                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                 ]
+               },
+               statuses: %{"Z" => %{"cn" => :ok}},
+               files: %{
+                 "Z" => %{"bors.toml" => ~s/status = [ "ci" ]\npr_status = [ "cn", "cm" ]/}
+               }
+             }
+           }
+
+    path = [{{:installation, 91}, 14}, :statuses, "Z"]
+
+    GitHub.ServerMock.put_state(
+      update_in(
+        GitHub.ServerMock.get_state(),
+        path,
+        &Map.put(&1, "cm", :error)
+      )
+    )
+
+    Batcher.handle_info({:prerun_poll, 1000, {"rvr", patch}}, proj.id)
+    state = GitHub.ServerMock.get_state()
+
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               comments: %{
+                 1 => [
+                   ":-1: Rejected by PR status",
+                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                 ]
+               },
+               statuses: %{"Z" => %{"cn" => :ok, "cm" => :error}},
+               files: %{
+                 "Z" => %{"bors.toml" => ~s/status = [ "ci" ]\npr_status = [ "cn", "cm" ]/}
+               }
+             }
+           }
+  end
+
+  test "Poll on an unset PR status. Then accept after that CI succeeds.", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{"Z" => %{"cn" => :ok}},
+        files: %{"Z" => %{"bors.toml" => ~s/status = [ "ci" ]\npr_status = [ "cn", "cm" ]/}}
+      }
+    })
+
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "Z",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+    state = GitHub.ServerMock.get_state()
+
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               comments: %{
+                 1 => [
+                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                 ]
+               },
+               statuses: %{"Z" => %{"cn" => :ok}},
+               files: %{
+                 "Z" => %{"bors.toml" => ~s/status = [ "ci" ]\npr_status = [ "cn", "cm" ]/}
+               }
+             }
+           }
+
+    path = [{{:installation, 91}, 14}, :statuses, "Z"]
+
+    GitHub.ServerMock.put_state(
+      update_in(
+        GitHub.ServerMock.get_state(),
+        path,
+        &Map.put(&1, "cm", :ok)
+      )
+    )
+
+    Batcher.handle_info({:prerun_poll, 1000, {"rvr", patch}}, proj.id)
+    state = GitHub.ServerMock.get_state()
+
+    assert state == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{},
+               commits: %{},
+               comments: %{
+                 1 => [
+                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                 ]
+               },
+               statuses: %{"Z" => %{"cn" => :ok, "cm" => :ok, "bors" => :running}},
+               files: %{
+                 "Z" => %{"bors.toml" => ~s/status = [ "ci" ]\npr_status = [ "cn", "cm" ]/}
+               }
+             }
+           }
+  end
+
   test "Multiple polls on a same pending (waiting) PR status. Then accept after that CI succeeds.",
        %{proj: proj} do
     GitHub.ServerMock.put_state(%{
