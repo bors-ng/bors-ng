@@ -916,29 +916,28 @@ defmodule BorsNG.Worker.Batcher do
       |> MapSet.new()
       |> MapSet.disjoint?(MapSet.new(toml.block_labels))
 
+    github_commit_statuses = GitHub.get_commit_status!(repo_conn, patch.commit)
+    pr_status_mapset = MapSet.new(toml.pr_status)
+
     no_error_status =
-      repo_conn
-      |> GitHub.get_commit_status!(patch.commit)
+      github_commit_statuses
       |> Enum.filter(fn {_, status} -> status == :error end)
       |> Enum.map(fn {context, _} -> context end)
       |> MapSet.new()
-      |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+      |> MapSet.disjoint?(pr_status_mapset)
 
     no_waiting_status =
-      repo_conn
-      |> GitHub.get_commit_status!(patch.commit)
+      github_commit_statuses
       |> Enum.filter(fn {_, status} -> status == :running end)
       |> Enum.map(fn {context, _} -> context end)
       |> MapSet.new()
-      |> MapSet.disjoint?(MapSet.new(toml.pr_status))
+      |> MapSet.disjoint?(pr_status_mapset)
 
     # We wait to have all required pr statuses set.
     no_unset_status =
-      repo_conn
-      |> GitHub.get_commit_status!(patch.commit)
-      |> Enum.map(fn {context, _} -> context end)
-      |> MapSet.new()
-      |> MapSet.equal?(MapSet.new(toml.pr_status))
+      (github_commit_statuses
+      |> Enum.filter(fn {context, _} -> MapSet.member?(pr_status_mapset, context) end)
+      |> Enum.count()) == Enum.count(pr_status_mapset)
 
     code_owners_approved = check_code_owner(repo_conn, patch, toml)
 
