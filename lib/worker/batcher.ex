@@ -935,9 +935,9 @@ defmodule BorsNG.Worker.Batcher do
 
     # We wait to have all required pr statuses set.
     no_unset_status =
-      (github_commit_statuses
+      github_commit_statuses
       |> Enum.filter(fn {context, _} -> MapSet.member?(pr_status_mapset, context) end)
-      |> Enum.count()) == Enum.count(pr_status_mapset)
+      |> Enum.count() == Enum.count(pr_status_mapset)
 
     code_owners_approved = check_code_owner(repo_conn, patch, toml)
 

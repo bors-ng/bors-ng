@@ -1018,7 +1018,13 @@ defmodule BorsNG.Worker.BatcherTest do
                    ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
-               statuses: %{"Z" => %{"cn" => :ok, "cm" => :error, "arbitrary_uninterested_status" => :running}},
+               statuses: %{
+                 "Z" => %{
+                   "cn" => :ok,
+                   "cm" => :error,
+                   "arbitrary_uninterested_status" => :running
+                 }
+               },
                files: %{
                  "Z" => %{"bors.toml" => ~s/status = [ "ci" ]\npr_status = [ "cn", "cm" ]/}
                }
