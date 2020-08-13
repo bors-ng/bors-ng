@@ -10,4 +10,4 @@ fi
 export MIX_ENV=test
 mix do deps.get, test
 export MIX_ENV=dev
-mix dialyzer --halt-exit-status
+mix dialyzer

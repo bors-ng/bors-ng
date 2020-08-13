@@ -184,7 +184,7 @@ To run tests, run:
 
     $ mix test
     $ mix dogma
-    $ mix dialyzer --halt-exit-status
+    $ mix dialyzer
 
 # How to set up your own real instance
 
@@ -204,7 +204,7 @@ Leave the *setup URL* blank.
 
 The *webhook URL* should be at `<DASHBOARD URL>/webhook/github`.
 
-The *webhook secret* should be a randomly generated string. The `mix phoenix.gen.secret` command will work awesomely for this. Keep this handy to specify the same value in the bors configuration (you can also edit this value later if you need to).
+The *webhook secret* should be a randomly generated string. The `mix phx.gen.secret` command will work awesomely for this. Keep this handy to specify the same value in the bors configuration (you can also edit this value later if you need to).
 
 ### Required GitHub App permissions
 

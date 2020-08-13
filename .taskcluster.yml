@@ -12,7 +12,7 @@ tasks:
       expires: {$fromNow: 1 year}
       payload:
         maxRunTime: 3600
-        image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
+        image: "notriddle/docker-phoenix-elixir-test@sha256:b89a7faa6ac082cde241752c8ed1e1608c439678959c849fd0871dee8944222e"
         command:
           - /bin/bash
           - '--login'
@@ -40,7 +40,7 @@ tasks:
       expires: {$fromNow: 1 year}
       payload:
         maxRunTime: 3600
-        image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
+        image: "notriddle/docker-phoenix-elixir-test@sha256:b89a7faa6ac082cde241752c8ed1e1608c439678959c849fd0871dee8944222e"
         command:
           - /bin/bash
           - '--login'
@@ -67,7 +67,7 @@ tasks:
       expires: {$fromNow: 1 year}
       payload:
         maxRunTime: 3600
-        image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
+        image: "notriddle/docker-phoenix-elixir-test@sha256:b89a7faa6ac082cde241752c8ed1e1608c439678959c849fd0871dee8944222e"
         command:
           - /bin/bash
           - '--login'
@@ -93,7 +93,7 @@ tasks:
       expires: {$fromNow: 1 year}
       payload:
         maxRunTime: 3600
-        image: "notriddle/docker-phoenix-elixir-test@sha256:27e8bc0c2cc464028b7b19acc6a7db2c6e1ae4bd9db1a809cd77e284eb1eef2f"
+        image: "notriddle/docker-phoenix-elixir-test@sha256:b89a7faa6ac082cde241752c8ed1e1608c439678959c849fd0871dee8944222e"
         command:
           - /bin/bash
           - '--login'
