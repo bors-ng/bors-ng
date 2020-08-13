@@ -11,7 +11,7 @@ defmodule BorsNG.Database.Project do
   @type t :: %__MODULE__{}
   @type id :: pos_integer
 
-  @spec ping!(id) :: :ok | no_return
+  @spec ping!(id | binary) :: :ok | no_return
   @doc """
   After modifying the underlying model,
   call this to notify the UI.
