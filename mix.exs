@@ -76,7 +76,7 @@ defmodule BorsNg.Mixfile do
       {:joken, "~> 2.0"},
       {:dialyxir,
        git: "https://github.com/jeremyjh/dialyxir.git",
-       commit: "78ecd45",
+       commit: "4fb7a58",
        only: [:dev],
        runtime: false},
       {:distillery, "~> 2.0", runtime: false},
