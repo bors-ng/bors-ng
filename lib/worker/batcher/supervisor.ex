@@ -10,9 +10,13 @@ defmodule BorsNG.Worker.Batcher.Supervisor do
     DynamicSupervisor.start_link(__MODULE__, :ok, name: @name)
   end
 
-  @spec start(BorsNG.Database.Project.id) :: {:ok, pid}
+  @spec start(BorsNG.Database.Project.id()) :: {:ok, pid}
   def start(project_id) do
-    spec = %{id: {BorsNG.Worker.Batcher, project_id}, start: {BorsNG.Worker.Batcher, :start_link, [project_id]}}
+    spec = %{
+      id: {BorsNG.Worker.Batcher, project_id},
+      start: {BorsNG.Worker.Batcher, :start_link, [project_id]}
+    }
+
     DynamicSupervisor.start_child(@name, spec)
   end
 
