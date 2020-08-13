@@ -184,7 +184,7 @@ To run tests, run:
 
     $ mix test
     $ mix dogma
-    $ mix dialyzer --halt-exit-status
+    $ mix dialyzer
 
 # How to set up your own real instance
 
