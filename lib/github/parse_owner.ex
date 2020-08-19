@@ -87,7 +87,10 @@ defmodule BorsNG.CodeOwnerParser do
         end)
       end)
 
-    required_reviewers = Enum.filter(required_reviewers, fn x -> Enum.count(x) > 0 end)
+    required_reviewers =
+      required_reviewers
+      |> Enum.filter(fn x -> Enum.count(x) > 0 end)
+      |> Enum.uniq()
 
     Logger.debug("Required reviewers: #{inspect(required_reviewers)}")
 

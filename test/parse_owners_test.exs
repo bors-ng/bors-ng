@@ -155,6 +155,31 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 0), 1) == "@my_org/my_other_team"
   end
 
+  test "Extracts unique reviewers for multiple changes" do
+    IO.inspect(File.cwd())
+    {:ok, codeowner} = File.read("test/testdata/code_owners_7")
+
+    {:ok, owner_file} = BorsNG.CodeOwnerParser.parse_file(codeowner)
+
+    files = [
+      %BorsNG.GitHub.File{
+        filename: "src/dir1/test"
+      },
+      %BorsNG.GitHub.File{
+        filename: "src/dir2/test"
+      },
+      %BorsNG.GitHub.File{
+        filename: "src/dir3/test"
+      }
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/test_team_2"
+  end
+
   test "Test Double Asterisk in the middle" do
     IO.inspect(File.cwd())
     {:ok, codeowner} = File.read("test/testdata/code_owners_7")
