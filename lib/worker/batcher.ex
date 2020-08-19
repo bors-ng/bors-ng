@@ -39,6 +39,8 @@ defmodule BorsNG.Worker.Batcher do
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
+
+  # Every five minutes
   @prerun_poll_period 5 * 60 * 1000
 
   # Public API
@@ -256,6 +258,7 @@ defmodule BorsNG.Worker.Batcher do
         {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
 
         prerun_timeout_ms = toml.prerun_timeout_sec * 1000
+        # x * (5 * 60 * 1000)
         elapsed = try_num * @prerun_poll_period
 
         case patch_preflight(repo_conn, patch) do
@@ -266,6 +269,8 @@ defmodule BorsNG.Worker.Batcher do
             send_message(repo_conn, [patch], {:preflight, :timeout})
 
           :waiting ->
+            # Debug message.
+            send_message(repo_conn, [patch], {:preflight, :waiting})
             Process.send_after(self(), {:prerun_poll, try_num + 1, args}, @prerun_poll_period)
 
           {:error, message} ->

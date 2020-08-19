@@ -864,6 +864,8 @@ defmodule BorsNG.Worker.BatcherTest do
 
     path = [{{:installation, 91}, 14}, :statuses, "Z"]
 
+    Batcher.handle_info({:prerun_poll, 2, {"rvr", patch}}, proj.id)
+
     GitHub.ServerMock.put_state(
       update_in(
         GitHub.ServerMock.get_state(),
@@ -929,6 +931,8 @@ defmodule BorsNG.Worker.BatcherTest do
            }
 
     path = [{{:installation, 91}, 14}, :statuses, "Z"]
+
+    Batcher.handle_info({:prerun_poll, 2, {"rvr", patch}}, proj.id)
 
     GitHub.ServerMock.put_state(
       update_in(
@@ -996,6 +1000,7 @@ defmodule BorsNG.Worker.BatcherTest do
            }
 
     path = [{{:installation, 91}, 14}, :statuses, "Z"]
+    Batcher.handle_info({:prerun_poll, 2, {"rvr", patch}}, proj.id)
 
     GitHub.ServerMock.put_state(
       update_in(
@@ -1071,8 +1076,26 @@ defmodule BorsNG.Worker.BatcherTest do
              }
            }
 
-    path = [{{:installation, 91}, 14}, :statuses, "Z"]
+    Batcher.handle_info({:prerun_poll, 0, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 1, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 2, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 3, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 4, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 5, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 6, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 7, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 8, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 9, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 10, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 11, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 12, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 13, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 14, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 15, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 16, {"rvr", patch}}, proj.id)
+    Batcher.handle_info({:prerun_poll, 17, {"rvr", patch}}, proj.id)
 
+    path = [{{:installation, 91}, 14}, :statuses, "Z"]
     GitHub.ServerMock.put_state(
       update_in(
         GitHub.ServerMock.get_state(),
