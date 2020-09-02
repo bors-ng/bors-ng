@@ -24,6 +24,7 @@
 <%= for batch <- @batches do %>
   <thead>
     <tr role=heading><td aria-role=presentation colspan=4>
+      <a href="../batches/<%= batch.id %>">Batch <%= batch.id %></a>
       <h2 class=header>
         <%= stringify_state batch.state %>
         <span class=header-count><%= Enum.count(batch.patches) %></span>
@@ -44,6 +45,7 @@
       </td>
       <td>
         <%= patch.priority %>
+        <%= if patch.is_single do %>S<% end %>
       </td>
       <td>
         <%= truncate_commit(patch.commit) %>
@@ -75,6 +77,7 @@
       </td>
       <td>
         <%= patch.priority %>
+        <%= if patch.is_single do %>S<% end %>
       </td>
       <td>
         <%= truncate_commit(patch.commit) %>
