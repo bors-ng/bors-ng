@@ -39,7 +39,7 @@ defmodule BorsNG.Worker.Batcher do
 
   # Every half-hour
   @poll_period 30 * 60 * 1000
-  @prerun_poll_period 5 * 60 * 1000
+  @prerun_poll_period 1 * 60 * 1000
 
   # Public API
 
@@ -166,6 +166,7 @@ defmodule BorsNG.Worker.Batcher do
 
               _ ->
                 send_message(repo_conn, [patch], {:preflight, :waiting})
+                Logger.info("Start Poll Patch #{patch.id} prerun")
                 Process.send_after(self(), {:prerun_poll, 0, {reviewer, patch}}, 0)
             end
 
@@ -245,6 +246,8 @@ defmodule BorsNG.Worker.Batcher do
   def handle_info({:prerun_poll, try_num, args}, proj_id) do
     check_self(proj_id)
     {reviewer, patch} = args
+
+    Logger.info("Continue Poll Patch #{patch.id} prerun")
 
     case Repo.get(Patch.all(:awaiting_review), patch.id) do
       nil ->

@@ -86,6 +86,7 @@ defmodule BorsNG.ProjectController do
 
   defp batch_info(batch) do
     %{
+      id: batch.id,
       commit: batch.commit,
       patches: Repo.all(Patch.all_for_batch(batch.id)),
       state: batch.state
