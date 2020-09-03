@@ -30,7 +30,7 @@
         <span class=header-count><%= Enum.count(batch.patches) %></span>
       </h2>
     </td></tr>
-    <tr role=row><th>#</th><th>Title</th><th>Priority</th><th>Commit</th></tr>
+    <tr role=row><th>#</th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- batch.patches do %>
@@ -43,11 +43,11 @@
           <%= patch.title %>
         </a>
       </td>
-      <td>
+      <td class=priority-cell>
         <%= patch.priority %>
         <%= if patch.is_single do %>S<% end %>
       </td>
-      <td>
+      <td class=hide-on-super-narrow>
         <%= truncate_commit(patch.commit) %>
       </td>
     </tr>
@@ -62,7 +62,7 @@
         <span class=header-count><%= Enum.count(@unbatched_patches) %></span>
       </h2>
     </td></tr>
-    <tr role=row><th>#</th><th>Title</th><th>Priority</th><th>Commit</th></tr>
+    <tr role=row><th>#</th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- @unbatched_patches do %>
@@ -75,11 +75,11 @@
           <%= patch.title %>
         </a>
       </td>
-      <td>
+      <td class=priority-cell>
         <%= patch.priority %>
         <%= if patch.is_single do %>S<% end %>
       </td>
-      <td>
+      <td class=hide-on-super-narrow>
         <%= truncate_commit(patch.commit) %>
       </td>
     </tr>

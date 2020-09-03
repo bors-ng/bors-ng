@@ -399,3 +399,16 @@ time[title] {
     display: block !important;
   }
 }
+@media (max-width: 700px) {
+  .hide-on-super-narrow {
+    display: none !important;
+  }
+  .priority-column {
+    position: absolute;
+    right: 20px;
+  }
+  .priority-cell {
+    text-align: right;
+  }
+}
+
