@@ -19,7 +19,7 @@
     "mini-css-extract-plugin": "^0.10.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "terser-webpack-plugin": "^4.1.0",
-    "webpack": "^4.42.0",
+    "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
   }
 }
