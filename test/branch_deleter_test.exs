@@ -320,4 +320,167 @@ defmodule BorsNG.Worker.BranchDeleterTest do
 
     assert branches == ["master", "update"]
   end
+
+  test "deletes by patch updating dependant PR base branch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "update" => "foo", "update2" => "bar"},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: true
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Depends on Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "update",
+            head_sha: "00000002",
+            head_ref: "update2",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
+        files: %{
+          "master" => %{
+            ".github/bors.toml" => ~s"""
+              status = [ "ci" ]
+              delete_merged_branches = true
+            """
+          },
+          "update" => %{
+            ".github/bors.toml" => ~s"""
+              status = [ "ci" ]
+              delete_merged_branches = true
+              update_base_for_deletes = true
+            """
+          }
+        }
+      }
+    })
+
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "foo",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
+
+    installation =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 91}, 14})
+
+    branches =
+      installation
+      |> Map.get(:branches)
+      |> Map.keys()
+
+    assert branches == ["master", "update2"]
+
+    dependant_pr_base_ref =
+      installation
+      |> Map.get(:pulls)
+      |> Map.get(2)
+      |> Map.get(:base_ref)
+
+    assert dependant_pr_base_ref == "master"
+  end
+
+  test "deletes by patch without updating dependant PR base branch", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "update" => "foo", "update2" => "bar"},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "00000001",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: true
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Depends on Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "update",
+            head_sha: "00000002",
+            head_ref: "update2",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
+        files: %{
+          "master" => %{
+            ".github/bors.toml" => ~s"""
+              status = [ "ci" ]
+              delete_merged_branches = true
+            """
+          },
+          "update" => %{
+            ".github/bors.toml" => ~s"""
+              status = [ "ci" ]
+              delete_merged_branches = true
+            """
+          }
+        }
+      }
+    })
+
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "foo",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    BranchDeleter.handle_cast({:delete, patch, 0}, :ok)
+
+    installation =
+      GitHub.ServerMock.get_state()
+      |> Map.get({{:installation, 91}, 14})
+
+    branches =
+      installation
+      |> Map.get(:branches)
+      |> Map.keys()
+
+    assert branches == ["master", "update2"]
+
+    dependant_pr_base_ref =
+      installation
+      |> Map.get(:pulls)
+      |> Map.get(2)
+      |> Map.get(:base_ref)
+
+    assert dependant_pr_base_ref == "update"
+  end
 end
