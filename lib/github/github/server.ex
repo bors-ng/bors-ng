@@ -172,6 +172,15 @@ defmodule BorsNG.GitHub.Server do
      )}
   end
 
+  def do_handle_call(:get_open_prs_with_base, {{:raw, token}, repo_xref}, {base}) do
+    {:ok,
+     get_open_prs_!(
+       token,
+       "#{site()}/repositories/#{repo_xref}/pulls?state=open&base=#{base}",
+       []
+     )}
+  end
+
   def do_handle_call(:push, repo_conn, {sha, to}) do
     repo_conn
     |> patch!("git/refs/heads/#{to}", Poison.encode!(%{sha: sha}))

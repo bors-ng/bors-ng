@@ -103,6 +103,18 @@ defmodule BorsNG.GitHub do
     prs
   end
 
+  @spec get_open_prs_with_base!(tconn, binary) :: [tpr]
+  def get_open_prs_with_base!(repo_conn, base) do
+    {:ok, prs} =
+      GenServer.call(
+        BorsNG.GitHub,
+        {:get_open_prs_with_base, repo_conn, {base}},
+        100_000
+      )
+
+    prs
+  end
+
   @spec push!(tconn, binary, binary) :: binary
   def push!(repo_conn, sha, to) do
     {:ok, sha} =
