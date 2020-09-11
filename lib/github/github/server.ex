@@ -129,7 +129,8 @@ defmodule BorsNG.GitHub.Server do
       Poison.encode!(%{
         title: pr.title,
         body: pr.body,
-        state: pr.state
+        state: pr.state,
+        base: pr.base_ref
       })
     )
     |> case do
