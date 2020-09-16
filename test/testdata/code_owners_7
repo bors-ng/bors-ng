@@ -19,3 +19,5 @@ other/** @my_org/other_team
 # "a/x/y/b" and so on.
 src/**/core @my_org/core_team
 src/**/test @my_org/test_team_2
+
+/docs/**/core @my_org/core_team

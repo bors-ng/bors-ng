@@ -197,6 +197,18 @@ defmodule BorsNG.ParseTest do
     assert Enum.count(reviewers) == 1
     assert Enum.count(Enum.at(reviewers, 0)) == 1
     assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/test_team_2"
+
+    files = [
+      %BorsNG.GitHub.File{
+        filename: "docs/path/core"
+      }
+    ]
+
+    reviewers = BorsNG.CodeOwnerParser.list_required_reviews(owner_file, files)
+
+    assert Enum.count(reviewers) == 1
+    assert Enum.count(Enum.at(reviewers, 0)) == 1
+    assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/core_team"
   end
 
   test "Test Double Asterisk in the beggining" do
