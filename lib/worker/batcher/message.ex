@@ -153,8 +153,14 @@ defmodule BorsNG.Worker.Batcher.Message do
     "#{pr.title} (##{pr.number})\n\n#{message_body}\n\n#{co_authors}\n"
   end
 
-  def generate_commit_message(patch_links, cut_body_after, co_authors) do
-    commit_title = Enum.reduce(patch_links, "Merge", &"#{&2} \##{&1.patch.pr_xref}")
+  def generate_commit_message(
+    patch_links,
+    cut_body_after,
+    co_authors,
+    template \\ "Merge ${PR_REFS}"
+  ) do
+    pr_refs = Enum.reduce(patch_links, "", &"#{&2} \##{&1.patch.pr_xref}")
+    commit_title = String.replace(template, "${PR_REFS}", pr_refs)
 
     commit_body =
       Enum.reduce(patch_links, "", fn link, acc ->
