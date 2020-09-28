@@ -144,7 +144,10 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     ]
 
     co_authors = ["foo", "bar"]
-    actual_message = Message.generate_commit_message(patches, nil, co_authors, "merge: ${PR_REFS} PR")
+
+    actual_message =
+      Message.generate_commit_message(patches, nil, co_authors, "merge: ${PR_REFS} PR")
+
     assert expected_message == actual_message
   end
 

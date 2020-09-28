@@ -154,11 +154,11 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_commit_message(
-    patch_links,
-    cut_body_after,
-    co_authors,
-    template \\ "Merge ${PR_REFS}"
-  ) do
+        patch_links,
+        cut_body_after,
+        co_authors,
+        template \\ "Merge ${PR_REFS}"
+      ) do
     pr_refs =
       patch_links
       |> Enum.map(&"\##{&1.patch.pr_xref}")
