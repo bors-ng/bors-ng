@@ -118,7 +118,7 @@ defmodule BorsNG.CodeOwnerParser do
           if String.starts_with?(parent, "/") do
             String.starts_with?("/" <> file_name, parent)
           else
-            String.starts_with?(file_name, List.first(patterns))
+            String.starts_with?(file_name, parent)
           end
 
         first_part &&
