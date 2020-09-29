@@ -112,8 +112,16 @@ defmodule BorsNG.CodeOwnerParser do
 
       String.contains?(file_pattern, double_asterisk) ->
         patterns = String.split(file_pattern, double_asterisk, parts: 2)
+        parent = List.first(patterns)
 
-        String.starts_with?(file_name, List.first(patterns)) &&
+        first_part =
+          if String.starts_with?(parent, "/") do
+            String.starts_with?("/" <> file_name, parent)
+          else
+            String.starts_with?(file_name, parent)
+          end
+
+        first_part &&
           String.contains?(file_name, List.last(patterns))
     end
   end
