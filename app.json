@@ -24,8 +24,12 @@
       "description": "Where this website will be running (probably <app name>.herokuapp.com)"
     },
     "PUBLIC_PORT": {
-      "description": "HTTPS port number on PUBLIC_HOST",
+      "description": "Port number on PUBLIC_HOST",
       "value": "443"
+    },
+    "PUBLIC_PROTOCOL": {
+      "description": "Protocol to use when connecting to PUBLIC_HOST:PUBLIC_PORT",
+      "value": "https"
     },
     "SECRET_KEY_BASE": {
       "description": "A secret key for verifying the integrity of cookies",
