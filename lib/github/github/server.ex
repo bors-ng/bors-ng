@@ -122,7 +122,7 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:update_pr, repo_conn, pr) do
+  def do_handle_call(:update_pr_base, repo_conn, pr) do
     repo_conn
     |> patch!(
       "pulls/#{pr.number}",
@@ -131,6 +131,30 @@ defmodule BorsNG.GitHub.Server do
         body: pr.body,
         state: pr.state,
         base: pr.base_ref
+      })
+    )
+    |> case do
+      %{body: raw, status: 200} ->
+        pr =
+          raw
+          |> Poison.decode!()
+          |> GitHub.Pr.from_json!()
+
+        {:ok, pr}
+
+      %{body: body, status: status} ->
+        {:error, :push, status, body}
+    end
+  end
+
+  def do_handle_call(:update_pr, repo_conn, pr) do
+    repo_conn
+    |> patch!(
+      "pulls/#{pr.number}",
+      Poison.encode!(%{
+        title: pr.title,
+        body: pr.body,
+        state: pr.state
       })
     )
     |> case do

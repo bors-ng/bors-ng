@@ -100,7 +100,7 @@ defmodule BorsNG.Worker.BranchDeleter do
         if update_base_for_deletes do
           GitHub.get_open_prs_with_base!(conn, pr.head_ref)
           |> Enum.map(&%{&1 | base_ref: pr.base_ref})
-          |> Enum.map(&GitHub.update_pr!(conn, &1))
+          |> Enum.map(&GitHub.update_pr_base!(conn, &1))
         end
 
         GitHub.delete_branch!(conn, pr.head_ref)
