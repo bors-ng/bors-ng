@@ -129,7 +129,8 @@ defmodule BorsNG.GitHub.Server do
       Poison.encode!(%{
         title: pr.title,
         body: pr.body,
-        state: pr.state
+        state: pr.state,
+        base: pr.base_ref
       })
     )
     |> case do
@@ -168,6 +169,15 @@ defmodule BorsNG.GitHub.Server do
      get_open_prs_!(
        token,
        "#{site()}/repositories/#{repo_xref}/pulls?state=open",
+       []
+     )}
+  end
+
+  def do_handle_call(:get_open_prs_with_base, {{:raw, token}, repo_xref}, {base}) do
+    {:ok,
+     get_open_prs_!(
+       token,
+       "#{site()}/repositories/#{repo_xref}/pulls?state=open&base=#{base}",
        []
      )}
   end

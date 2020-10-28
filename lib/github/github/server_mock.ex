@@ -160,6 +160,20 @@ defmodule BorsNG.GitHub.ServerMock do
     end
   end
 
+  def do_handle_call(:update_pr, repo_conn, pr, state) do
+    with {:ok, repo} <- Map.fetch(state, repo_conn),
+         {:ok, pulls} <- Map.fetch(repo, :pulls) do
+      pulls = %{pulls | pr.number => pr}
+      repo = %{repo | pulls: pulls}
+      state = %{state | repo_conn => repo}
+      {{:ok, pr}, state}
+    end
+    |> case do
+      {{:ok, _}, _} = res -> res
+      _ -> {{:error, :update_pr}, state}
+    end
+  end
+
   def do_handle_call(:get_pr_files, repo_conn, {_pr_xref}, state) do
     files =
       with {:ok, repo} <- Map.fetch(state, repo_conn),
@@ -207,6 +221,23 @@ defmodule BorsNG.GitHub.ServerMock do
     |> case do
       {:ok, _} = res -> {res, state}
       _ -> {{:error, :get_open_prs}, state}
+    end
+  end
+
+  def do_handle_call(:get_open_prs_with_base, repo_conn, {base}, state) do
+    with(
+      {:ok, repo} <- Map.fetch(state, repo_conn),
+      {:ok, pulls} <- Map.fetch(repo, :pulls),
+      do: {
+        :ok,
+        Map.values(pulls)
+        |> Enum.filter(&(&1.state == :open))
+        |> Enum.filter(&(&1.base_ref == base))
+      }
+    )
+    |> case do
+      {:ok, _} = res -> {res, state}
+      _ -> {{:error, :get_open_prs_with_base}, state}
     end
   end
 

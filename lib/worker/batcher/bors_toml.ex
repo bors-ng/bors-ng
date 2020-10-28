@@ -28,7 +28,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             cut_body_after: nil,
             delete_merged_branches: false,
             use_codeowners: false,
-            committer: nil
+            committer: nil,
+            update_base_for_deletes: false
 
   @type tcommitter :: %{
           name: binary,
@@ -47,7 +48,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           cut_body_after: binary | nil,
           delete_merged_branches: boolean,
           use_codeowners: boolean,
-          committer: tcommitter
+          committer: tcommitter,
+          update_base_for_deletes: boolean
         }
 
   @type err ::
@@ -117,7 +119,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
               "use_codeowners",
               false
             ),
-          committer: committer
+          committer: committer,
+          update_base_for_deletes: Map.get(toml, "update_base_for_deletes", false)
         }
 
         case toml do
