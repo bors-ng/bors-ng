@@ -83,7 +83,7 @@ defmodule BorsNg.Mixfile do
       {:edeliver, "~> 1.5", runtime: false},
       {:ex_doc, "~> 0.18", only: :dev},
       {:credo, "~> 1.0", only: [:dev, :test]},
-      {:confex, "~> 3.4.0"},
+      {:confex, "~> 3.5.0"},
       {:postgrex, "~> 0.13.5"},
       {:mariaex, "~> 0.8"},
       {:ecto, "~> 2.2"},
