@@ -11,7 +11,7 @@ config :bors, BorsNG.Endpoint,
   http: [port: {:system, "PORT"}],
   url: [
     host: {:system, "PUBLIC_HOST"},
-    scheme: "https",
+    scheme: {:system, "PUBLIC_PROTOCOL", "https"},
     port: {:system, :integer, "PUBLIC_PORT", 443}
   ],
   check_origin: false,
