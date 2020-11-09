@@ -882,18 +882,27 @@ defmodule BorsNG.GitHub.Server do
       cacertfile: :certifi.cacertfile()
     ]
 
+    middleware = [
+      {Tesla.Middleware.BaseUrl, site()},
+      {Tesla.Middleware.Headers,
+       [
+         {"authorization", authorization},
+         {"accept", content_type},
+         {"user-agent", "bors-ng https://bors.tech"}
+       ]},
+      {Tesla.Middleware.Retry, delay: 100, max_retries: 5},
+      {Tesla.Middleware.Logger, filter_headers: ["authorization"]}
+    ]
+
+    middleware =
+      if Confex.get_env(:bors, :log_outgoing, false) do
+        middleware ++ [{Tesla.Middleware.Logger, filter_headers: ["authorization"]}]
+      else
+        middleware
+      end
+
     Tesla.client(
-      [
-        {Tesla.Middleware.BaseUrl, site()},
-        {Tesla.Middleware.Headers,
-         [
-           {"authorization", authorization},
-           {"accept", content_type},
-           {"user-agent", "bors-ng https://bors.tech"}
-         ]},
-        {Tesla.Middleware.Retry, delay: 100, max_retries: 5},
-        {Tesla.Middleware.Logger, filter_headers: ["authorization"]}
-      ],
+      middleware,
       {Tesla.Adapter.Httpc, [ssl: ssl_opts]}
     )
   end
