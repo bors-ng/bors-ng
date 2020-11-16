@@ -91,7 +91,7 @@ defmodule BorsNG.WebhookController do
   end
 
   # Deprecated event, but still being sent since 2020.
-  def do_webhook(conn, "github", "integration_installation") do
+  def do_webhook(_conn, "github", "integration_installation") do
     :ok
   end
 
