@@ -76,7 +76,7 @@ defmodule BorsNG.Worker.BranchDeleter do
     {delete_merged_branches, update_base_for_deletes} =
       case toml_result do
         {:ok, toml} -> {toml.delete_merged_branches, toml.update_base_for_deletes}
-        _ -> false
+        _ -> {false, false}
       end
 
     pr_closed = pr.state == :closed
