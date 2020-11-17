@@ -43,6 +43,10 @@ defmodule BorsNG.Worker.Batcher.Message do
     "All preflight checks passed. Batching this PR into the staging branch."
   end
 
+  def generate_message({:preflight, :duplicate}) do
+    "Stopped waiting for PR status (Github check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests."
+  end
+
   def generate_message({:preflight, :timeout}) do
     "GitHub status checks took too long to complete, so bors is giving up. You can adjust bors configuration to have it wait longer if you like."
   end
