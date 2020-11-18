@@ -249,13 +249,15 @@ defmodule BorsNG.Worker.Batcher do
 
     Logger.info("Continue Poll Patch #{patch.id} prerun")
 
+    project = Repo.get(Project, patch.project_id)
+    repo_conn = get_repo_conn(project)
+
     case Repo.get(Patch.all(:awaiting_review), patch.id) do
       nil ->
+        send_message(repo_conn, [patch], {:preflight, :duplicate})
         Logger.info("Patch #{patch.id} already left prerun, exiting prerun poll loop")
 
       _ ->
-        project = Repo.get(Project, patch.project_id)
-        repo_conn = get_repo_conn(project)
         {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
 
         prerun_timeout_ms = toml.prerun_timeout_sec * 1000
