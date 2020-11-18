@@ -80,9 +80,10 @@ defmodule BorsNG.WebhookController do
   """
   def webhook(conn, %{"provider" => "github"}) do
     event = hd(get_req_header(conn, "x-github-event"))
+
     case do_webhook(conn, "github", event) do
       :unknown -> conn |> send_resp(404, "")
-      _        -> conn |> send_resp(200, "")
+      _ -> conn |> send_resp(200, "")
     end
   end
 
