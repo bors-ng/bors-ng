@@ -13,6 +13,7 @@ defmodule BorsNG.Worker.Batcher.Registry do
   use GenServer
 
   alias BorsNG.Worker.Batcher
+  alias BorsNG.Database.Batch
   alias BorsNG.Database.Crash
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
@@ -72,16 +73,39 @@ defmodule BorsNG.Worker.Batcher.Registry do
     {:reply, pid, state}
   end
 
-  def handle_info({:DOWN, ref, :process, _pid, :normal}, {names, refs}) do
+  def handle_info({:DOWN, ref, :process, pid, :normal}, {names, refs}) do
     {project_id, refs} = Map.pop(refs, ref)
-    names = Map.delete(names, project_id)
+
+    names =
+      if names[project_id] == pid do
+        Map.delete(names, project_id)
+      else
+        names
+      end
+
     {:noreply, {names, refs}}
   end
 
-  def handle_info({:DOWN, ref, :process, _, reason}, {_, refs} = state) do
-    project_id = refs[ref]
-    {pid, state} = start_and_insert(project_id, state)
-    Batcher.cancel_all(pid)
+  def handle_info({:DOWN, ref, :process, pid, reason}, {names, refs}) do
+    {project_id, refs} = Map.pop(refs, ref)
+
+    names =
+      if names[project_id] == pid do
+        Map.delete(names, project_id)
+      else
+        names
+      end
+
+    project_id
+    |> Batch.all_for_project(:waiting)
+    |> Repo.all()
+    |> Enum.each(&Repo.delete!/1)
+
+    project_id
+    |> Batch.all_for_project(:running)
+    |> Repo.all()
+    |> Enum.map(&Batch.changeset(&1, %{state: :canceled}))
+    |> Enum.each(&Repo.update!/1)
 
     Repo.insert(%Crash{
       project_id: project_id,
@@ -89,7 +113,7 @@ defmodule BorsNG.Worker.Batcher.Registry do
       crash: inspect(reason, pretty: true, width: 60)
     })
 
-    {:noreply, state}
+    {:noreply, {names, refs}}
   end
 
   def handle_info(_msg, state) do
