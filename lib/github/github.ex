@@ -424,6 +424,7 @@ defmodule BorsNG.GitHub do
     case state do
       "pending" -> :running
       "success" -> :ok
+      "neutral" -> :ok
       "failure" -> :error
       "error" -> :error
     end
