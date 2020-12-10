@@ -36,7 +36,9 @@ defmodule BorsNG.Worker.Batcher.Registry do
     names =
       Project.active()
       |> Repo.all()
-      |> Enum.map(&{&1.id, do_start(&1.id)})
+      |> Enum.map(fn %{id: id} -> id end)
+      |> Enum.uniq()
+      |> Enum.map(&{&1, do_start(&1)})
       |> Map.new()
 
     refs =
