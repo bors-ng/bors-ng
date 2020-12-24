@@ -425,6 +425,7 @@ defmodule BorsNG.GitHub do
       "pending" -> :running
       "success" -> :ok
       "neutral" -> :ok
+      "skipped" -> :ok
       "failure" -> :error
       "error" -> :error
     end
