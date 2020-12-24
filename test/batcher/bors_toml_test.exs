@@ -77,6 +77,16 @@ defmodule BatcherBorsTomlTest do
     assert r == {:error, :status}
   end
 
+  test "recognizes a duplicate status" do
+    r = BorsToml.new(~s/status = ["exl", "exl"]/)
+    assert r == {:error, :status}
+  end
+
+  test "recognizes a duplicate PR status" do
+    r = BorsToml.new(~s/status = ["exl"]\npr_status = ["exl", "exl"]/)
+    assert r == {:error, :pr_status}
+  end
+
   test "recognizes an invalid cut_body_after" do
     r = BorsToml.new(~s/cut_body_after = 13/)
     assert r == {:error, :cut_body_after}

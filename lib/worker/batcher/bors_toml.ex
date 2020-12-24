@@ -153,16 +153,26 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             {:error, :committer_details}
 
           toml ->
-            {:ok,
-             %{
-               toml
-               | status:
-                   toml.status
-                   |> Enum.map(&GitHub.map_changed_status/1),
-                 pr_status:
-                   toml.pr_status
-                   |> Enum.map(&GitHub.map_changed_status/1)
-             }}
+            status =
+              toml.status
+              |> Enum.map(&GitHub.map_changed_status/1)
+              |> Enum.uniq()
+
+            pr_status =
+              toml.pr_status
+              |> Enum.map(&GitHub.map_changed_status/1)
+              |> Enum.uniq()
+
+            cond do
+              Enum.count(status) != Enum.count(toml.status) ->
+                {:error, :status}
+
+              Enum.count(pr_status) != Enum.count(toml.pr_status) ->
+                {:error, :pr_status}
+
+              true ->
+                {:ok, %{toml | status: status, pr_status: pr_status}}
+            end
         end
 
       {:error, _error} ->
