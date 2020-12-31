@@ -78,6 +78,7 @@ defmodule BorsNG.Worker.Batcher do
   # Server callbacks
 
   def init(project_id) do
+    BorsNG.Worker.Batcher.Registry.monitor(self(), project_id)
     Process.send_after(
       self(),
       {:poll, :repeat},
