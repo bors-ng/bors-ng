@@ -95,7 +95,7 @@ defmodule BorsNG.Worker.Batcher.Registry do
           {names, refs}
 
         pid ->
-          Logger.warning(
+          Logger.warn(
             "Project #{inspect(project_id)} already monitored #{inspect(pid)} by #{
               inspect(names[project_id])
             }"
