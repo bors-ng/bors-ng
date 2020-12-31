@@ -57,10 +57,10 @@ defmodule BorsNG.Worker.Batcher.Registry do
 
   def init(:ok) do
     Project.active()
-      |> Repo.all()
-      |> Enum.map(fn %{id: id} -> id end)
-      |> Enum.uniq()
-      |> Enum.map(&{&1, do_start(&1)})
+    |> Repo.all()
+    |> Enum.map(fn %{id: id} -> id end)
+    |> Enum.uniq()
+    |> Enum.map(&{&1, do_start(&1)})
 
     # When the worker actually started, they'll register them self to the
     # registry using monitor.
