@@ -287,7 +287,7 @@ Whatever machine you plan to run it on needs to have both of those installed.
 
 [Elixir]: https://elixir-lang.org/
 [PostgreSQL]: https://postgresql.org/
-[docs on how to deploy phoenix apps]: http://www.phoenixframework.org/docs/deployment
+[docs on how to deploy phoenix apps]: https://hexdocs.pm/phoenix/deployment.html
 
 bors-ng is built on the Phoenix web framework, and they have [docs on how to deploy phoenix apps] already. Where you deploy will determine what the dashboard URL will be, which is needed in the previous steps, so this decision needs to be made before you can set up the Github App.
 
