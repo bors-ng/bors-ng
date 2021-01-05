@@ -72,8 +72,8 @@ defmodule BorsNG.GitHub.Server do
 
           {:ok, app_link}
 
-        err ->
-          {:error, :get_app, err}
+        %{body: body, status: status} ->
+          {:error, :get_app, status, body}
       end
 
     {:reply, result, state}
@@ -225,8 +225,8 @@ defmodule BorsNG.GitHub.Server do
         r = Poison.decode!(raw)["commit"]
         {:ok, %{commit: r["sha"], tree: r["commit"]["tree"]["sha"]}}
 
-      err ->
-        {:error, :get_branch, err}
+      %{body: body, status: status} ->
+        {:error, :get_branch, status, body}
     end
   end
 
@@ -270,8 +270,8 @@ defmodule BorsNG.GitHub.Server do
       %{status: 204} ->
         {:ok, :conflict}
 
-      err ->
-        {:error, :merge_branch, err}
+      %{body: body, status: status} ->
+        {:error, :merge_branch, status, body}
     end
   end
 
@@ -317,8 +317,8 @@ defmodule BorsNG.GitHub.Server do
         %{status: 204} ->
           {:ok, :conflict}
 
-        err ->
-          {:error, :create_commit, err}
+        %{body: body, status: status} ->
+          {:error, :create_commit, status, body}
       end
 
     resp
@@ -354,8 +354,8 @@ defmodule BorsNG.GitHub.Server do
         sha = Poison.decode!(raw)["sha"]
         do_handle_call(:force_push, repo_conn, {sha, branch})
 
-      err ->
-        {:error, :synthesize_commit, err}
+      %{body: body, status: status} ->
+        {:error, :synthesize_commit, status, body}
     end
   end
 
@@ -393,8 +393,8 @@ defmodule BorsNG.GitHub.Server do
           {:ok, sha}
         end
 
-      err ->
-        {:error, :force_push, err}
+      %{body: body, status: status} ->
+        {:error, :force_push, status, body}
     end
   end
 
@@ -436,8 +436,8 @@ defmodule BorsNG.GitHub.Server do
 
                    {:ok, res}
 
-                 err ->
-                   {:error, :get_commit_status, :check, err}
+                 %{body: body, status: status} ->
+                   {:error, :get_commit_status, status, body}
                end),
          do: {:ok, Map.merge(status, check)}
   end
@@ -453,8 +453,8 @@ defmodule BorsNG.GitHub.Server do
 
         {:ok, res}
 
-      err ->
-        {:error, :get_labels, err}
+      %{body: body, status: status} ->
+        {:error, :get_labels, status, body}
     end
   end
 
