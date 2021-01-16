@@ -992,7 +992,7 @@ defmodule BorsNG.Worker.Batcher do
       true
     else
       Logger.info("Checking code owners")
-      {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, patch.commit)
+      {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, patch.into_branch)
       Logger.info("CODEOWNERS file #{inspect(code_owner)}")
 
       {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)
