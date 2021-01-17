@@ -29,6 +29,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             delete_merged_branches: false,
             use_codeowners: false,
             committer: nil,
+            commit_title: "Merge ${PR_REFS}",
             update_base_for_deletes: false
 
   @type tcommitter :: %{
@@ -49,6 +50,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           delete_merged_branches: boolean,
           use_codeowners: boolean,
           committer: tcommitter,
+          commit_title: binary,
           update_base_for_deletes: boolean
         }
 
@@ -61,6 +63,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           | :required_approvals
           | :cut_body_after
           | :committer_details
+          | :commit_title
           | :empty_config
           | :parse_failed
 
@@ -120,6 +123,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
               false
             ),
           committer: committer,
+          commit_title: Map.get(toml, "commit_title", "Merge ${PR_REFS}"),
           update_base_for_deletes: Map.get(toml, "update_base_for_deletes", false)
         }
 
@@ -151,6 +155,9 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
           %{committer: %{name: n, email: e}} when is_nil(n) or is_nil(e) ->
             {:error, :committer_details}
+
+          %{commit_title: msg} when not is_binary(msg) and not is_nil(msg) ->
+            {:error, :commit_title}
 
           toml ->
             status =

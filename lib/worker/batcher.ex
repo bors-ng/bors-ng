@@ -564,7 +564,8 @@ defmodule BorsNG.Worker.Batcher do
               Batcher.Message.generate_commit_message(
                 patch_links,
                 toml.cut_body_after,
-                gather_co_authors(batch, patch_links)
+                gather_co_authors(batch, patch_links),
+                toml.commit_title
               )
 
             GitHub.synthesize_commit!(

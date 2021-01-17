@@ -119,6 +119,38 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     assert expected_message == actual_message
   end
 
+  test "generate custom commit message" do
+    expected_message = """
+    merge: #1 PR
+
+    1: Alpha r=r a=lag
+
+    a
+
+    Co-authored-by: foo
+    Co-authored-by: bar
+    """
+
+    patches = [
+      %{
+        patch: %{
+          pr_xref: 1,
+          title: "Alpha",
+          body: "a",
+          author: %{login: "lag"}
+        },
+        reviewer: "r"
+      }
+    ]
+
+    co_authors = ["foo", "bar"]
+
+    actual_message =
+      Message.generate_commit_message(patches, nil, co_authors, "merge: ${PR_REFS} PR")
+
+    assert expected_message == actual_message
+  end
+
   test "cut body" do
     assert "a" == Message.cut_body("abc", "b")
   end
