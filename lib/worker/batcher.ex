@@ -1028,6 +1028,10 @@ defmodule BorsNG.Worker.Batcher do
 
               Logger.info("Approved: #{inspect(team_approved)}")
               team_approved
+            else
+              Enum.any?(passed_review["approvers"], fn username ->
+                required == username
+              end)
             end
           end)
         end)
