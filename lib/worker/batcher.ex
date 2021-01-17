@@ -78,6 +78,8 @@ defmodule BorsNG.Worker.Batcher do
   # Server callbacks
 
   def init(project_id) do
+    BorsNG.Worker.Batcher.Registry.monitor(self(), project_id)
+
     Process.send_after(
       self(),
       {:poll, :repeat},
@@ -249,13 +251,15 @@ defmodule BorsNG.Worker.Batcher do
 
     Logger.info("Continue Poll Patch #{patch.id} prerun")
 
+    project = Repo.get(Project, patch.project_id)
+    repo_conn = get_repo_conn(project)
+
     case Repo.get(Patch.all(:awaiting_review), patch.id) do
       nil ->
+        send_message(repo_conn, [patch], {:preflight, :duplicate})
         Logger.info("Patch #{patch.id} already left prerun, exiting prerun poll loop")
 
       _ ->
-        project = Repo.get(Project, patch.project_id)
-        repo_conn = get_repo_conn(project)
         {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
 
         prerun_timeout_ms = toml.prerun_timeout_sec * 1000
@@ -989,7 +993,7 @@ defmodule BorsNG.Worker.Batcher do
       true
     else
       Logger.info("Checking code owners")
-      {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, "master")
+      {:ok, code_owner} = Batcher.GetCodeOwners.get(repo_conn, patch.into_branch)
       Logger.info("CODEOWNERS file #{inspect(code_owner)}")
 
       {:ok, files} = GitHub.get_pr_files(repo_conn, patch.pr_xref)

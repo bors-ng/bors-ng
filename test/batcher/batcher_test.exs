@@ -1160,6 +1160,8 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
+                   "Stopped waiting for PR status (Github check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests.",
+                   "Stopped waiting for PR status (Github check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests.",
                    ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },

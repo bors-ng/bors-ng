@@ -72,8 +72,8 @@ defmodule BorsNG.GitHub.Server do
 
           {:ok, app_link}
 
-        err ->
-          {:error, :get_app, err}
+        %{body: body, status: status} ->
+          {:error, :get_app, status, body}
       end
 
     {:reply, result, state}
@@ -119,6 +119,31 @@ defmodule BorsNG.GitHub.Server do
 
       e ->
         {:error, :get_pr, e.status, pr_xref}
+    end
+  end
+
+  def do_handle_call(:update_pr_base, repo_conn, pr) do
+    repo_conn
+    |> patch!(
+      "pulls/#{pr.number}",
+      Poison.encode!(%{
+        title: pr.title,
+        body: pr.body,
+        state: pr.state,
+        base: pr.base_ref
+      })
+    )
+    |> case do
+      %{body: raw, status: 200} ->
+        pr =
+          raw
+          |> Poison.decode!()
+          |> GitHub.Pr.from_json!()
+
+        {:ok, pr}
+
+      %{body: body, status: status} ->
+        {:error, :push, status, body}
     end
   end
 
@@ -172,6 +197,15 @@ defmodule BorsNG.GitHub.Server do
      )}
   end
 
+  def do_handle_call(:get_open_prs_with_base, {{:raw, token}, repo_xref}, {base}) do
+    {:ok,
+     get_open_prs_!(
+       token,
+       "#{site()}/repositories/#{repo_xref}/pulls?state=open&base=#{base}",
+       []
+     )}
+  end
+
   def do_handle_call(:push, repo_conn, {sha, to}) do
     repo_conn
     |> patch!("git/refs/heads/#{to}", Poison.encode!(%{sha: sha}))
@@ -191,8 +225,8 @@ defmodule BorsNG.GitHub.Server do
         r = Poison.decode!(raw)["commit"]
         {:ok, %{commit: r["sha"], tree: r["commit"]["tree"]["sha"]}}
 
-      err ->
-        {:error, :get_branch, err}
+      %{body: body, status: status} ->
+        {:error, :get_branch, status, body}
     end
   end
 
@@ -236,8 +270,8 @@ defmodule BorsNG.GitHub.Server do
       %{status: 204} ->
         {:ok, :conflict}
 
-      err ->
-        {:error, :merge_branch, err}
+      %{body: body, status: status} ->
+        {:error, :merge_branch, status, body}
     end
   end
 
@@ -283,8 +317,8 @@ defmodule BorsNG.GitHub.Server do
         %{status: 204} ->
           {:ok, :conflict}
 
-        err ->
-          {:error, :create_commit, err}
+        %{body: body, status: status} ->
+          {:error, :create_commit, status, body}
       end
 
     resp
@@ -320,8 +354,8 @@ defmodule BorsNG.GitHub.Server do
         sha = Poison.decode!(raw)["sha"]
         do_handle_call(:force_push, repo_conn, {sha, branch})
 
-      err ->
-        {:error, :synthesize_commit, err}
+      %{body: body, status: status} ->
+        {:error, :synthesize_commit, status, body}
     end
   end
 
@@ -359,8 +393,8 @@ defmodule BorsNG.GitHub.Server do
           {:ok, sha}
         end
 
-      err ->
-        {:error, :force_push, err}
+      %{body: body, status: status} ->
+        {:error, :force_push, status, body}
     end
   end
 
@@ -402,8 +436,8 @@ defmodule BorsNG.GitHub.Server do
 
                    {:ok, res}
 
-                 err ->
-                   {:error, :get_commit_status, :check, err}
+                 %{body: body, status: status} ->
+                   {:error, :get_commit_status, status, body}
                end),
          do: {:ok, Map.merge(status, check)}
   end
@@ -419,8 +453,8 @@ defmodule BorsNG.GitHub.Server do
 
         {:ok, res}
 
-      err ->
-        {:error, :get_labels, err}
+      %{body: body, status: status} ->
+        {:error, :get_labels, status, body}
     end
   end
 
@@ -859,17 +893,27 @@ defmodule BorsNG.GitHub.Server do
       cacertfile: :certifi.cacertfile()
     ]
 
+    middleware = [
+      {Tesla.Middleware.BaseUrl, site()},
+      {Tesla.Middleware.Headers,
+       [
+         {"authorization", authorization},
+         {"accept", content_type},
+         {"user-agent", "bors-ng https://bors.tech"}
+       ]},
+      {Tesla.Middleware.Retry, delay: 100, max_retries: 5},
+      {Tesla.Middleware.Logger, filter_headers: ["authorization"]}
+    ]
+
+    middleware =
+      if Confex.get_env(:bors, :log_outgoing, false) do
+        middleware ++ [{Tesla.Middleware.Logger, filter_headers: ["authorization"]}]
+      else
+        middleware
+      end
+
     Tesla.client(
-      [
-        {Tesla.Middleware.BaseUrl, site()},
-        {Tesla.Middleware.Headers,
-         [
-           {"authorization", authorization},
-           {"accept", content_type},
-           {"user-agent", "bors-ng https://bors.tech"}
-         ]},
-        {Tesla.Middleware.Retry, delay: 100, max_retries: 5}
-      ],
+      middleware,
       {Tesla.Adapter.Httpc, [ssl: ssl_opts]}
     )
   end

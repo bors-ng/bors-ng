@@ -80,10 +80,11 @@ defmodule BorsNG.WebhookController do
   """
   def webhook(conn, %{"provider" => "github"}) do
     event = hd(get_req_header(conn, "x-github-event"))
-    do_webhook(conn, "github", event)
 
-    conn
-    |> send_resp(200, "")
+    case do_webhook(conn, "github", event) do
+      :unknown -> conn |> send_resp(404, "")
+      _ -> conn |> send_resp(200, "")
+    end
   end
 
   def do_webhook(_conn, "github", "ping") do
@@ -91,7 +92,7 @@ defmodule BorsNG.WebhookController do
   end
 
   # Deprecated event, but still being sent since 2020.
-  def do_webhook(conn, "github", "integration_installation") do
+  def do_webhook(_conn, "github", "integration_installation") do
     :ok
   end
 
@@ -306,6 +307,11 @@ defmodule BorsNG.WebhookController do
     Batcher.status(batcher, {commit, identifier, state, url})
     attemptor = Attemptor.Registry.get(project.id)
     Attemptor.status(attemptor, {commit, identifier, state, url})
+  end
+
+  def do_webhook(_conn, "github", event) do
+    Logger.info(["WebhookController: Got unknown Github event: ", event])
+    :unknown
   end
 
   def do_webhook_installation_sync(conn) do

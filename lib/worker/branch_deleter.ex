@@ -73,10 +73,10 @@ defmodule BorsNG.Worker.BranchDeleter do
 
     toml_result = Batcher.GetBorsToml.get(conn, pr.head_ref)
 
-    delete_merged_branches =
+    {delete_merged_branches, update_base_for_deletes} =
       case toml_result do
-        {:ok, toml} -> toml.delete_merged_branches
-        _ -> false
+        {:ok, toml} -> {toml.delete_merged_branches, toml.update_base_for_deletes}
+        _ -> {false, false}
       end
 
     pr_closed = pr.state == :closed
@@ -84,15 +84,26 @@ defmodule BorsNG.Worker.BranchDeleter do
     pr_squash_merged = String.starts_with?(pr.title, "[Merged by Bors] - ")
 
     if pr_in_same_repo && delete_merged_branches do
-      cond do
-        pr.merged ->
-          GitHub.delete_branch!(conn, pr.head_ref)
+      delete =
+        cond do
+          pr.merged ->
+            true
 
-        pr_closed && pr_squash_merged ->
-          GitHub.delete_branch!(conn, pr.head_ref)
+          pr_closed && pr_squash_merged ->
+            true
 
-        true ->
-          nil
+          true ->
+            nil
+        end
+
+      if delete do
+        if update_base_for_deletes do
+          GitHub.get_open_prs_with_base!(conn, pr.head_ref)
+          |> Enum.map(&%{&1 | base_ref: pr.base_ref})
+          |> Enum.map(&GitHub.update_pr_base!(conn, &1))
+        end
+
+        GitHub.delete_branch!(conn, pr.head_ref)
       end
     end
   end

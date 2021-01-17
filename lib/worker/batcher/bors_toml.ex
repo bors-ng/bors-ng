@@ -29,7 +29,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             delete_merged_branches: false,
             use_codeowners: false,
             committer: nil,
-            commit_title: "Merge ${PR_REFS}"
+            commit_title: "Merge ${PR_REFS}",
+            update_base_for_deletes: false
 
   @type tcommitter :: %{
           name: binary,
@@ -49,7 +50,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           delete_merged_branches: boolean,
           use_codeowners: boolean,
           committer: tcommitter,
-          commit_title: binary
+          commit_title: binary,
+          update_base_for_deletes: boolean
         }
 
   @type err ::
@@ -121,7 +123,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
               false
             ),
           committer: committer,
-          commit_title: Map.get(toml, "commit_title", "Merge ${PR_REFS}")
+          commit_title: Map.get(toml, "commit_title", "Merge ${PR_REFS}"),
+          update_base_for_deletes: Map.get(toml, "update_base_for_deletes", false)
         }
 
         case toml do
@@ -157,16 +160,26 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             {:error, :commit_title}
 
           toml ->
-            {:ok,
-             %{
-               toml
-               | status:
-                   toml.status
-                   |> Enum.map(&GitHub.map_changed_status/1),
-                 pr_status:
-                   toml.pr_status
-                   |> Enum.map(&GitHub.map_changed_status/1)
-             }}
+            status =
+              toml.status
+              |> Enum.map(&GitHub.map_changed_status/1)
+              |> Enum.uniq()
+
+            pr_status =
+              toml.pr_status
+              |> Enum.map(&GitHub.map_changed_status/1)
+              |> Enum.uniq()
+
+            cond do
+              Enum.count(status) != Enum.count(toml.status) ->
+                {:error, :status}
+
+              Enum.count(pr_status) != Enum.count(toml.pr_status) ->
+                {:error, :pr_status}
+
+              true ->
+                {:ok, %{toml | status: status, pr_status: pr_status}}
+            end
         end
 
       {:error, _error} ->
