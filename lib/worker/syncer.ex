@@ -57,17 +57,15 @@ defmodule BorsNG.Worker.Syncer do
       |> Enum.filter(fn %{perms: perms} -> perms[github_perm] end)
       |> Enum.map(fn %{user: user} -> user end)
 
-    Repo.transaction(fn ->
-      saved_users =
-        authorized_users
-        |> Enum.map(&Syncer.sync_user/1)
+    saved_users =
+      authorized_users
+      |> Enum.map(&Syncer.sync_user/1)
 
-      project
-      |> Repo.preload(association)
-      |> Ecto.Changeset.change()
-      |> Ecto.Changeset.put_assoc(association, saved_users)
-      |> Repo.update!()
-    end)
+    project
+    |> Repo.preload(association)
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.put_assoc(association, saved_users)
+    |> Repo.update()
   end
 
   def synchronize_project_collaborators_by_role(project, _, _, nil) do
