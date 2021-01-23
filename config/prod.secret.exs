@@ -3,6 +3,7 @@ use Mix.Config
 config :bors, BorsNG.Database.Repo,
   adapter: Ecto.Adapters.Postgres,
   url: {:system, "DATABASE_URL"},
+  timeout: {:system, :integer, "DATABASE_TIMEOUT", 15_000},
   pool_size: {:system, :integer, "POOL_SIZE", 10},
   loggers: [{Ecto.LogEntry, :log, []}],
   ssl: {:system, :boolean, "DATABASE_USE_SSL", true}
