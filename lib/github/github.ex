@@ -427,6 +427,7 @@ defmodule BorsNG.GitHub do
       "neutral" -> :ok
       "skipped" -> :error
       "failure" -> :error
+      "cancelled" -> :error
       "error" -> :error
     end
   end
