@@ -1031,7 +1031,7 @@ defmodule BorsNG.Worker.Batcher do
               team_approved
             else
               Enum.any?(passed_review["approvers"], fn username ->
-                required == username
+                String.slice(required, 1, String.length(required) - 1) == username
               end)
             end
           end)
