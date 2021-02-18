@@ -3,7 +3,7 @@
   "license": "APACHE-2.0",
   "scripts": {
     "deploy": "webpack",
-    "watch": "webpack --mode development --watch-stdin",
+    "watch": "webpack watch --mode development",
     "webpack": "webpack"
   },
   "dependencies": {

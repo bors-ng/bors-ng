@@ -14,9 +14,9 @@ config :bors, BorsNG.Endpoint,
   watchers: [
     node: [
       "node_modules/webpack/bin/webpack.js",
+      "watch",
       "--mode",
       "development",
-      "--watch-stdin",
       cd: Path.expand("../assets", __DIR__)
     ]
   ]
