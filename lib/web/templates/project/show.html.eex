@@ -30,7 +30,7 @@
         <span class=header-count><%= Enum.count(batch.patches) %></span>
       </h2>
     </td></tr>
-    <tr role=row><th>#</th><th>M<span class=hide-on-narrow>ergeable</span></th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
+    <tr role=row><th>#</th><th aria-label=Mergeable title=Mergeable>M<span class=hide-on-narrow>ergeable</span></th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- batch.patches do %>
@@ -38,7 +38,7 @@
       <td>
         <%= patch.pr_xref %>
       </td>
-      <td class=span--<%= if patch.is_mergeable do %>ok<% else %>error<% end %>>
+      <td class=span--<%= if patch.is_mergeable do %>ok<% else %>error<% end %> aria-label="<%= if patch.is_mergeable do %><%= if patch.is_draft do %>Draft<% else %>Yes<% end %><% else %>No<% end %>" title="<%= if patch.is_mergeable do %><%= if patch.is_draft do %>Draft<% else %>Yes<% end %><% else %>No<% end %>">
         <%= if patch.is_mergeable do %>
             <%= if patch.is_draft do %>
             ✎<span class=hide-on-narrow> Draft</span>
@@ -73,7 +73,7 @@
         <span class=header-count><%= Enum.count(@unbatched_patches) %></span>
       </h2>
     </td></tr>
-    <tr role=row><th>#</th><th>M<span class=hide-on-narrow>ergeable</span></th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
+    <tr role=row><th>#</th><th aria-label=Mergeable title=Mergeable>M<span class=hide-on-narrow>ergeable</span></th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- @unbatched_patches do %>
@@ -81,7 +81,7 @@
       <td>
         <%= patch.pr_xref %>
       </td>
-      <td class=span--<%= if patch.is_mergeable do %>ok<% else %>error<% end %>>
+      <td class=span--<%= if patch.is_mergeable do %>ok<% else %>error<% end %> aria-label="<%= if patch.is_mergeable do %><%= if patch.is_draft do %>Draft<% else %>Yes<% end %><% else %>No<% end %>" title="<%= if patch.is_mergeable do %><%= if patch.is_draft do %>Draft<% else %>Yes<% end %><% else %>No<% end %>">
         <%= if patch.is_mergeable do %>
             <%= if patch.is_draft do %>
             ✎<span class=hide-on-narrow> Draft</span>
