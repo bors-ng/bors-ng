@@ -180,6 +180,49 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
       assert Enum.count(batches) == 1
     end
 
+    test "single mergeable draft PR fails", %{proj: proj, batch: batch, patch1: patch} do
+      # Projects are created with a "waiting" state
+      GitHub.ServerMock.put_state(%{
+        {{:installation, 91}, 14} => %{
+          branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+          commits: %{},
+          comments: %{1 => []},
+          statuses: %{"iniN" => %{}},
+          pulls: %{
+            1 => %Pr{
+              number: 1,
+              title: "Test",
+              body: "Mess",
+              state: :open,
+              base_ref: "master",
+              head_sha: "00000001",
+              head_ref: "update",
+              base_repo_id: 14,
+              head_repo_id: 14,
+              merged: false,
+              mergeable: true,
+              draft: true
+            }
+          },
+          files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+          pr_commits: %{
+            1 => [
+              %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
+            ]
+          }
+        },
+        :merge_conflict => 0
+      })
+
+      link = create_link(patch, batch)
+
+      result = Divider.split_batch_with_conflicts([link], batch)
+
+      assert result == :failed
+      batches = Repo.all(Batch, project_id: proj.id)
+      assert Enum.count(batches) == 1
+    end
+
     test "multiple PRs that conflicts with master are retried individually", %{
       proj: proj,
       batch: batch,
@@ -395,7 +438,8 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
               base_repo_id: 14,
               head_repo_id: 14,
               merged: false,
-              mergeable: false
+              mergeable: false,
+              draft: false
             },
             2 => %Pr{
               number: 1,
@@ -408,7 +452,8 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
               base_repo_id: 14,
               head_repo_id: 14,
               merged: false,
-              mergeable: false
+              mergeable: false,
+              draft: false
             },
             3 => %Pr{
               number: 1,
@@ -421,7 +466,8 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
               base_repo_id: 14,
               head_repo_id: 14,
               merged: false,
-              mergeable: true
+              mergeable: true,
+              draft: false
             },
             4 => %Pr{
               number: 1,
@@ -434,7 +480,8 @@ defmodule BorsNG.Worker.Batcher.DividerTest do
               base_repo_id: 14,
               head_repo_id: 14,
               merged: false,
-              mergeable: true
+              mergeable: true,
+              draft: false
             }
           },
           files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},

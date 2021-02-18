@@ -104,7 +104,7 @@ defmodule BorsNG.Worker.Batcher.Divider do
 
   defp is_patch_mergeable(patch, repo_conn) do
     pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
-    pr.mergeable == true || pr.mergeable == nil
+    (pr.mergeable == true || pr.mergeable == nil) && pr.draft != true
   end
 
   @spec get_repo_conn(%Project{}) :: {{:installation, number}, number}

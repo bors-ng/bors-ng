@@ -23,20 +23,31 @@
 <table class="table">
 <%= for batch <- @batches do %>
   <thead>
-    <tr role=heading><td aria-role=presentation colspan=4>
+    <tr role=heading><td aria-role=presentation colspan=5>
       <a href="../batches/<%= batch.id %>">Batch <%= batch.id %></a>
       <h2 class=header>
         <%= stringify_state batch.state %>
         <span class=header-count><%= Enum.count(batch.patches) %></span>
       </h2>
     </td></tr>
-    <tr role=row><th>#</th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
+    <tr role=row><th>#</th><th>M<span class=hide-on-narrow>ergeable</span></th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- batch.patches do %>
     <tr role="row">
       <td>
         <%= patch.pr_xref %>
+      </td>
+      <td class=span--<%= if patch.is_mergeable do %>ok<% else %>error<% end %>>
+        <%= if patch.is_mergeable do %>
+            <%= if patch.is_draft do %>
+            ✎<span class=hide-on-narrow> Draft</span>
+            <% else %>
+            ✓<span class=hide-on-narrow> Yes</span>
+            <% end %>
+        <% else %>
+            ⚠<span class=hide-on-narrow> No</span>
+        <% end %>
       </td>
       <td class="fill-link">
         <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">
@@ -56,19 +67,30 @@
 <% end %>
 <%= if @unbatched_patches != [] do %>
   <thead>
-    <tr role=heading><td aria-role=presentation colspan=4>
+    <tr role=heading><td aria-role=presentation colspan=5>
       <h2 class=header>
         Awaiting review
         <span class=header-count><%= Enum.count(@unbatched_patches) %></span>
       </h2>
     </td></tr>
-    <tr role=row><th>#</th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
+    <tr role=row><th>#</th><th>M<span class=hide-on-narrow>ergeable</span></th><th>Title</th><th class=priority-column>Priority</th><th class=hide-on-super-narrow>Commit</th></tr>
   </thead>
   <tbody>
   <%= for patch <- @unbatched_patches do %>
     <tr role="row">
       <td>
         <%= patch.pr_xref %>
+      </td>
+      <td class=span--<%= if patch.is_mergeable do %>ok<% else %>error<% end %>>
+        <%= if patch.is_mergeable do %>
+            <%= if patch.is_draft do %>
+            ✎<span class=hide-on-narrow> Draft</span>
+            <% else %>
+            ✓<span class=hide-on-narrow> Yes</span>
+            <% end %>
+        <% else %>
+            ⚠<span class=hide-on-narrow> No</span>
+        <% end %>
       </td>
       <td class="fill-link">
         <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">
