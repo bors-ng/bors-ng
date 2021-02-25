@@ -22,7 +22,8 @@ defmodule BorsNG.Database.LinkUserProject do
     |> validate_required([:user_id, :project_id])
     |> unique_constraint(
       :user_id,
-      name: :link_user_project_user_id_project_id_index
+      name: :link_user_project_user_id_project_id_index,
+      match: :suffix
     )
   end
 end

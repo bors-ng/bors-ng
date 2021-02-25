@@ -44,7 +44,7 @@ defmodule BorsNG.Database.Patch do
       :priority,
       :is_single
     ])
-    |> unique_constraint(:pr_xref, name: :patches_pr_xref_index)
+    |> unique_constraint(:pr_xref, name: :patches_pr_xref_index, match: :suffix)
   end
 
   @spec all_for_batch(Batch.id()) :: Ecto.Queryable.t()
