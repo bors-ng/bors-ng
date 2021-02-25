@@ -1,0 +1,74 @@
+name: CI
+on:
+  # Only run when merging to master, or open/synchronize/reopen a PR.
+  push:
+    branches:
+      - master
+      - staging
+      - trying
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        elixir: ["1.8.1", "1.10.0"]
+        otp_release: ["21.0.9", "22.0"]
+        os: [ubuntu-latest]
+        database: [postgresql, mysql]
+        exclude:
+          - elixir: "1.8.1"
+            otp_release: "22.0"
+    steps:
+    - uses: actions/checkout@master
+    - uses: erlef/setup-elixir@v1
+      with:
+        otp-version: ${{ matrix.otp_release }}
+        elixir-version: ${{ matrix.elixir }}
+    - run: mix deps.get
+      env:
+        BORS_TEST_DATABASE: ${{ matrix.database }}
+    - run: mix test
+      env:
+        BORS_TEST_DATABASE: ${{ matrix.database }}
+    services:
+      postgresql:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: "Postgres1234"
+          POSTGRES_USER: postgres
+          POSTGRES_DB: bors_test
+        ports:
+          - 5432:5432
+      mysql:
+        image: mysql:5
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_ROOT_PASSWORD: ""
+          MYSQL_DATABASE: bors_test
+        ports:
+          - 3306:3306
+
+  exfmt:
+    name: exfmt
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: erlef/setup-elixir@v1
+      with:
+        otp-version: "22.0"
+        elixir-version: "1.8.1"
+    - run: mix format --check-formatted
+
+  ci-success:
+    name: ci
+    if: ${{ success() }}
+    needs:
+      - exfmt
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: CI succeeded
+        run: exit 0
