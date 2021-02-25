@@ -43,7 +43,7 @@ jobs:
         ports:
           - 5432:5432
       mysql:
-        image: mysql:5
+        image: borsng/mysqlnd
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: true
           MYSQL_ROOT_PASSWORD: ""
