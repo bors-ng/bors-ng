@@ -398,47 +398,19 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:get_commit_status, repo_conn, {sha}) do
+  def do_handle_call(:get_commit_status, {{:raw, token}, repo_xref}, {sha}) do
     with {:ok, status} <-
-           repo_conn
-           |> get!("commits/#{sha}/status")
-           |> (case do
-                 %{body: raw, status: 200} ->
-                   res =
-                     Poison.decode!(raw)["statuses"]
-                     |> Enum.map(
-                       &{
-                         &1["context"] |> GitHub.map_changed_status(),
-                         GitHub.map_state_to_status(&1["state"])
-                       }
-                     )
-                     |> Map.new()
-
-                   {:ok, res}
-
-                 _ ->
-                   {:error, :get_commit_status, :status}
-               end),
+           get_statuses_!(
+             token,
+             "#{site()}/repositories/#{repo_xref}/commits/#{sha}/status",
+             %{}
+           ),
          {:ok, check} <-
-           repo_conn
-           |> get!("commits/#{sha}/check-runs", @check_content_type)
-           |> (case do
-                 %{body: raw, status: 200} ->
-                   res =
-                     Poison.decode!(raw)["check_runs"]
-                     |> Enum.map(
-                       &{
-                         &1["name"] |> GitHub.map_changed_status(),
-                         GitHub.map_check_to_status(&1["conclusion"])
-                       }
-                     )
-                     |> Map.new()
-
-                   {:ok, res}
-
-                 %{body: body, status: status} ->
-                   {:error, :get_commit_status, status, body}
-               end),
+           get_checks_!(
+             token,
+             "#{site()}/repositories/#{repo_xref}/commits/#{sha}/check-runs",
+             %{}
+           ),
          do: {:ok, Map.merge(status, check)}
   end
 
@@ -576,6 +548,80 @@ defmodule BorsNG.GitHub.Server do
        "#{site()}/installation/repositories",
        []
      )}
+  end
+
+  @spec get_statuses_!(binary, binary | nil, %{bitstring => GitHub.tstatus()}) ::
+          {:ok, %{bitstring => GitHub.tstatus()}}
+  defp get_statuses_!(_, nil, statuses) do
+    statuses
+  end
+
+  defp get_statuses_!(token, url, statuses) do
+    params = get_url_params(url)
+
+    {raw, headers} =
+      "token #{token}"
+      |> tesla_client(@content_type)
+      |> Tesla.get!(url, query: params)
+      |> case do
+        %{body: raw, status: 200, headers: headers} -> {raw, headers}
+        _ -> {"[]", %{}}
+      end
+
+    statuses =
+      Poison.decode!(raw)["statuses"]
+      |> Enum.map(
+        &{
+          &1["context"] |> GitHub.map_changed_status(),
+          GitHub.map_state_to_status(&1["state"])
+        }
+      )
+      |> Map.new()
+      |> Map.merge(statuses)
+
+    next_headers = get_next_headers(headers)
+
+    case next_headers do
+      [] -> {:ok, statuses}
+      [next] -> get_statuses_!(token, next.url, statuses)
+    end
+  end
+
+  @spec get_checks_!(binary, binary | nil, %{bitstring => GitHub.tstatus()}) ::
+          {:ok, %{bitstring => GitHub.tstatus()}}
+  defp get_checks_!(_, nil, checks) do
+    checks
+  end
+
+  defp get_checks_!(token, url, checks) do
+    params = get_url_params(url)
+
+    {raw, headers} =
+      "token #{token}"
+      |> tesla_client(@content_type)
+      |> Tesla.get!(url, query: params)
+      |> case do
+        %{body: raw, status: 200, headers: headers} -> {raw, headers}
+        _ -> {"[]", %{}}
+      end
+
+    checks =
+      Poison.decode!(raw)["check_runs"]
+      |> Enum.map(
+        &{
+          &1["name"] |> GitHub.map_changed_status(),
+          GitHub.map_check_to_status(&1["conclusion"])
+        }
+      )
+      |> Map.new()
+      |> Map.merge(checks)
+
+    next_headers = get_next_headers(headers)
+
+    case next_headers do
+      [] -> {:ok, checks}
+      [next] -> get_checks_!(token, next.url, checks)
+    end
   end
 
   defp get_reviews_json_!(_, nil, append) do
