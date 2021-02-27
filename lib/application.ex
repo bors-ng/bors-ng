@@ -3,7 +3,7 @@ defmodule BorsNG.Application do
   The top-level OPT application for Bors-NG.
   """
 
-  use Application
+  use BrokenCommitTestApplication
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
