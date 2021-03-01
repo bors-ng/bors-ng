@@ -933,12 +933,6 @@ defmodule BorsNG.GitHub.Server do
   defp tesla_client(authorization, content_type \\ @content_type) do
     host = String.to_charlist(URI.parse(site()).host)
 
-    ssl_opts = [
-      verify: :verify_peer,
-      verify_fun: {&:ssl_verify_hostname.verify_fun/3, check_hostname: host},
-      cacertfile: :certifi.cacertfile()
-    ]
-
     middleware = [
       {Tesla.Middleware.BaseUrl, site()},
       {Tesla.Middleware.Headers,
@@ -960,7 +954,7 @@ defmodule BorsNG.GitHub.Server do
 
     Tesla.client(
       middleware,
-      {Tesla.Adapter.Httpc, [ssl: ssl_opts]}
+      Tesla.Adapter.Hackney
     )
   end
 end
