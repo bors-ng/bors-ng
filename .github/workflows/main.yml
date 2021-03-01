@@ -14,12 +14,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        elixir: ["1.8.1", "1.10.0"]
-        otp_release: ["21.0.9", "22.0"]
+        elixir: ["1.8.1", "1.10.0", "1.11.0"]
+        otp_release: ["21.0.9", "22.0", "23.2"]
         os: [ubuntu-latest]
         database: [postgresql, mysql]
         exclude:
           - elixir: "1.8.1"
+            otp_release: "22.0"
+          - elixir: "1.8.1"
+            otp_release: "23.2"
+          - elixir: "1.10.0"
             otp_release: "22.0"
     steps:
     - uses: actions/checkout@master
@@ -58,8 +62,8 @@ jobs:
     - uses: actions/checkout@master
     - uses: erlef/setup-elixir@v1
       with:
-        otp-version: "22.0"
-        elixir-version: "1.8.1"
+        otp-version: "23.2"
+        elixir-version: "1.11.0"
     - run: mix format --check-formatted
 
   ci-success:
