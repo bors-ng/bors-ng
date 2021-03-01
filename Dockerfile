@@ -44,7 +44,7 @@ FROM debian:stretch-slim
 RUN apt-get update -q && apt-get --no-install-recommends install -y git-core libssl1.1 curl apt-utils ca-certificates
 
 ENV DOCKERIZE_VERSION=v0.6.0
-RUN curl -Ls https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz | \
+RUN curl -Ls https://github.com/bors-ng/dockerize/releases/download/v0.7.9/dockerize-linux-amd64-v0.7.9.tar.gz | \
     tar xzv -C /usr/local/bin
 
 ADD ./script/docker-entrypoint /usr/local/bin/bors-ng-entrypoint
