@@ -1,5 +1,6 @@
 defmodule BorsNG.Database.BatchState do
-  @behaviour Ecto.Type
+  use Ecto.Type
+
   @moduledoc """
   A type to represent the batch state.
   """

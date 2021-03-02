@@ -3,7 +3,7 @@ use Mix.Config
 case System.get_env("BORS_TEST_DATABASE") do
   "mysql" ->
     config :bors, BorsNG.Database.Repo,
-      adapter: Ecto.Adapters.MySQL,
+      adapter: Ecto.Adapters.MyXQL,
       username: "root",
       password: "",
       database: "bors_test",
