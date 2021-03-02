@@ -15,12 +15,9 @@ jobs:
     strategy:
       matrix:
         elixir: ["1.10.0", "1.11.0"]
-        otp_release: ["22.0", "23.2"]
+        otp_release: ["23.2", "24.0"]
         os: [ubuntu-latest]
         database: [postgresql, mysql]
-        exclude:
-          - elixir: "1.10.0"
-            otp_release: "22.0"
     steps:
     - uses: actions/checkout@master
     - uses: erlef/setup-elixir@v1
