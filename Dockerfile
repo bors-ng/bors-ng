@@ -40,7 +40,7 @@ RUN if [ -d .git ]; then \
 
 ####
 
-FROM debian:stretch-slim
+FROM debian:buster-slim
 RUN apt-get update -q && apt-get --no-install-recommends install -y git-core libssl1.1 curl apt-utils ca-certificates
 
 ENV DOCKERIZE_VERSION=v0.6.0
