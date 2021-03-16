@@ -47,6 +47,7 @@ defmodule BorsNG.CommandTest do
     assert [:activate] == Command.parse("bors merge")
     assert [:deactivate] == Command.parse("bors r-")
     assert [:deactivate] == Command.parse("bors merge-")
+    assert [:deactivate] == Command.parse("bors cancel")
   end
 
   test "accept the case insensity bare command" do
@@ -55,6 +56,7 @@ defmodule BorsNG.CommandTest do
     assert [:activate] == Command.parse("Bors merge")
     assert [:deactivate] == Command.parse("Bors r-")
     assert [:deactivate] == Command.parse("Bors merge-")
+    assert [:deactivate] == Command.parse("Bors cancel")
   end
 
   test "accept single patch" do
@@ -119,6 +121,7 @@ defmodule BorsNG.CommandTest do
     assert [:activate] == Command.parse("bors: merge")
     assert [:deactivate] == Command.parse("bors: r-")
     assert [:deactivate] == Command.parse("bors: merge-")
+    assert [:deactivate] == Command.parse("bors: cancel")
   end
 
   test "accept the try command with an argument" do
@@ -507,12 +510,14 @@ defmodule BorsNG.CommandTest do
     assert [] == Command.parse("bors merge")
     assert [] == Command.parse("bors r-")
     assert [] == Command.parse("bors merge-")
+    assert [] == Command.parse("bors cancel")
 
     assert [{:try, ""}] == Command.parse("popo try")
     assert [:activate] == Command.parse("popo r+")
     assert [:activate] == Command.parse("popo merge")
     assert [:deactivate] == Command.parse("popo r-")
     assert [:deactivate] == Command.parse("popo merge-")
+    assert [:deactivate] == Command.parse("popo cancel")
 
     if old_env do
       System.put_env("COMMAND_TRIGGER", old_env)

@@ -162,6 +162,7 @@ defmodule BorsNG.Command do
   def parse_cmd("ping" <> _), do: [:ping]
   def parse_cmd("p=" <> rest), do: parse_priority(rest)
   def parse_cmd("retry" <> _), do: [:retry]
+  def parse_cmd("cancel" <> _), do: [:deactivate]
   def parse_cmd(_), do: []
 
   @doc ~S"""
