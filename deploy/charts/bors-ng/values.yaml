@@ -35,13 +35,13 @@ env:
   # From here these are sensitive values... consider using secrets
   # like... or `envFrom` below
   # - name: "DATABASE_URL"
+  #   value: "ecto://username:password@db_hostname:db_port/bors_ng"
+  # - name: "DATABASE_URL"
   #   valueFrom:
   #     secretKeyRef:
   #       name: <My secret provisioned outside of this chart>
   #       key: <key on the secret to map into this env var>
   #       optional: false
-  # - name: "DATABASE_URL"
-  #   value: "ecto://username:password@db_hotsname:db_port/bors_ng"
   # - name: "SECRET_KEY_BASE"
   #   value: "" # (unique) Salt for cookies yummy!
   # - name: "GITHUB_CLIENT_ID"
@@ -62,8 +62,10 @@ envFrom:
   #     optional: false
 
 livenessProbe:
+  initialDelaySeconds: 30
   tcpSocket:
     port: http
+
 readinessProbe: {}
 
 imagePullSecrets: []
@@ -136,4 +138,4 @@ tolerations: []
 affinity: {}
 
 postgresql:
-  enabled: true
+  enabled: false

@@ -33,10 +33,14 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             {{- .Values.ports | toYaml | nindent 12 }}
+          {{- if .Values.livenessProbe }}
           livenessProbe:
             {{- .Values.livenessProbe | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe }}
           readinessProbe:
             {{- .Values.readinessProbe | toYaml | nindent 12 }}
+          {{- end }}
           {{- if .Values.env }}
           env:
             {{- .Values.env | toYaml | nindent 12 }}
