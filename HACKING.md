@@ -63,3 +63,8 @@ All requests made to GitHub's REST API
 This server keeps a cache of installation tokens
 (so we don't constantly re-request them) and is responsible for rate limiting.
 It can be replaced with `GitHub.ServerMock`, for local testing.
+
+As a further development convenience, you can initialize some test data using [`GitHub.FriendlyMock`],
+from the IEx REPL.
+
+[GitHub.FriendlyMock]: https://bors.tech/devdocs/bors-ng/BorsNG.GitHub.FriendlyMock.html
