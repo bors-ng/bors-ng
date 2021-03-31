@@ -1,0 +1,139 @@
+# Default values for bors-ng.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: borsng/bors-ng
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+  # Change to "@" if `tag` format is SHA256
+  tagDelimiter: ":"
+
+ports:
+  - name: http # Same as on probes and Service
+    containerPort: 4000 # Same as PORT env variable
+    protocol: TCP
+
+env:
+  - name: "PORT"
+    value: "4000"
+  - name: "PUBLIC_PORT"
+    value: "443" # Should be aligned with the ingress and probes
+  - name: "PUBLIC_PROTOCOL"
+    value: "https" # Should be aligned with the ingress and probes
+  - name: "PUBLIC_HOST"
+    value: "bors.local" # Should be aligned with the ingress and probes
+  - name: "DATABASE_USE_SSL"
+    value: "false"
+  - name: "DATABASE_AUTO_MIGRATE"
+    value: "true"
+  - name: "COMMAND_TRIGGER"
+    value: "bors"
+  # From here these are sensitive values... consider using secrets
+  # like... or `envFrom` below
+  # - name: "DATABASE_URL"
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: <My secret provisioned outside of this chart>
+  #       key: <key on the secret to map into this env var>
+  #       optional: false
+  # - name: "DATABASE_URL"
+  #   value: "ecto://username:password@db_hotsname:db_port/bors_ng"
+  # - name: "SECRET_KEY_BASE"
+  #   value: "" # (unique) Salt for cookies yummy!
+  # - name: "GITHUB_CLIENT_ID"
+  #   value: ""
+  # - name: "GITHUB_CLIENT_SECRET"
+  #   value: ""
+  # - name: "GITHUB_INTEGRATION_ID"
+  #   value: ""
+  # - name: "GITHUB_INTEGRATION_PEM"
+  #   value: ""
+  # - name: "GITHUB_WEBHOOK_SECRET"
+  #   value: ""
+
+envFrom:
+  []
+  # - secretRef:
+  #     name: <My secret provisioned outside of this chart>
+  #     optional: false
+
+livenessProbe:
+  tcpSocket:
+    port: http
+readinessProbe: {}
+    
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: http
+
+
+# Bors relies on getting these 3 headers for redirections
+# X-Forwarded-Host
+# X-Forwarded-Proto
+# X-Forwarded-Port
+ingress:
+  enabled: false
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  host: bors.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+postgresql:
+  enabled: true

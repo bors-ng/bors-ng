@@ -26,17 +26,17 @@ jobs:
           - elixir: "1.10.0"
             otp_release: "22.0"
     steps:
-    - uses: actions/checkout@master
-    - uses: erlef/setup-elixir@v1
-      with:
-        otp-version: ${{ matrix.otp_release }}
-        elixir-version: ${{ matrix.elixir }}
-    - run: mix deps.get
-      env:
-        BORS_TEST_DATABASE: ${{ matrix.database }}
-    - run: mix test
-      env:
-        BORS_TEST_DATABASE: ${{ matrix.database }}
+      - uses: actions/checkout@master
+      - uses: erlef/setup-elixir@v1
+        with:
+          otp-version: ${{ matrix.otp_release }}
+          elixir-version: ${{ matrix.elixir }}
+      - run: mix deps.get
+        env:
+          BORS_TEST_DATABASE: ${{ matrix.database }}
+      - run: mix test
+        env:
+          BORS_TEST_DATABASE: ${{ matrix.database }}
     services:
       postgresql:
         image: postgres:13
@@ -59,12 +59,12 @@ jobs:
     name: exfmt
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - uses: erlef/setup-elixir@v1
-      with:
-        otp-version: "23.2"
-        elixir-version: "1.11.0"
-    - run: mix format --check-formatted
+      - uses: actions/checkout@master
+      - uses: erlef/setup-elixir@v1
+        with:
+          otp-version: "23.2"
+          elixir-version: "1.11.0"
+      - run: mix format --check-formatted
 
   ci-success:
     name: ci
@@ -76,3 +76,41 @@ jobs:
     steps:
       - name: CI succeeded
         run: exit 0
+
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.5.3
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.0.1
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed)
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+
+      - name: Run chart-testing (lint)
+        run: ct lint --chart-dirs deploy/charts
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.0.0
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Run chart-testing (install)
+        run: ct install --chart-dirs deploy/charts
