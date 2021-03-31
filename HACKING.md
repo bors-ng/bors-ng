@@ -67,4 +67,4 @@ It can be replaced with `GitHub.ServerMock`, for local testing.
 As a further development convenience, you can initialize some test data using [`GitHub.FriendlyMock`],
 from the IEx REPL.
 
-[GitHub.FriendlyMock]: https://bors.tech/devdocs/bors-ng/BorsNG.GitHub.FriendlyMock.html
+[`GitHub.FriendlyMock`]: https://bors.tech/devdocs/bors-ng/BorsNG.GitHub.FriendlyMock.html
