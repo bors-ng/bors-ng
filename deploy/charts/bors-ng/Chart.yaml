@@ -5,10 +5,9 @@ type: application
 version: 0.1.0
 appVersion: "latest"
 
-maintainers: # (optional)
-  - name: The maintainers name (required for each maintainer)
-    email: The maintainers email (optional for each maintainer)
-    url: A URL for the maintainer (optional for each maintainer)
+# Github users or organisations
+maintainers:
+  - name: "bors-ng"
 
 dependencies:
 - name: postgresql

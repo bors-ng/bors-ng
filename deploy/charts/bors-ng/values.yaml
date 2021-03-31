@@ -13,19 +13,19 @@ image:
   tagDelimiter: ":"
 
 ports:
-  - name: http # Same as on probes and Service
-    containerPort: 4000 # Same as PORT env variable
+  - name: http  # Same as on probes and Service
+    containerPort: 4000  # Same as PORT env variable
     protocol: TCP
 
 env:
   - name: "PORT"
     value: "4000"
   - name: "PUBLIC_PORT"
-    value: "443" # Should be aligned with the ingress and probes
+    value: "443"  # Should be aligned with the ingress and probes
   - name: "PUBLIC_PROTOCOL"
-    value: "https" # Should be aligned with the ingress and probes
+    value: "https"  # Should be aligned with the ingress and probes
   - name: "PUBLIC_HOST"
-    value: "bors.local" # Should be aligned with the ingress and probes
+    value: "bors.local"  # Should be aligned with the ingress and probes
   - name: "DATABASE_USE_SSL"
     value: "false"
   - name: "DATABASE_AUTO_MIGRATE"
@@ -65,7 +65,7 @@ livenessProbe:
   tcpSocket:
     port: http
 readinessProbe: {}
-    
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
