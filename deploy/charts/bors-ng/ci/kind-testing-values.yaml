@@ -1,13 +1,12 @@
-
 env:
   - name: "PORT"
     value: "4000"
   - name: "PUBLIC_PORT"
-    value: "443"  # Should be aligned with the ingress and probes
+    value: "443"
   - name: "PUBLIC_PROTOCOL"
-    value: "https"  # Should be aligned with the ingress and probes
+    value: "https"
   - name: "PUBLIC_HOST"
-    value: "bors.local"  # Should be aligned with the ingress and probes
+    value: "bors.local"
   - name: "DATABASE_USE_SSL"
     value: "false"
   - name: "DATABASE_AUTO_MIGRATE"
@@ -17,7 +16,7 @@ env:
   - name: "DATABASE_URL"
     value: "ecto://postgres:borspwd@bors-postgresql:5432/bors_ng"
   - name: "SECRET_KEY_BASE"
-    value: "aaaaaa" # (unique) Salt for cookies yummy!
+    value: "aaaaaa"
 
   # We need values that exists here or the pod crashes.
   # Unit then... `ct install` action is disabled
