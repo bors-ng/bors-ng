@@ -5,7 +5,11 @@ metadata:
   labels:
     {{- include "bors-ng.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  # bors does only support 1 replica running at the same time
+  replicas: 1             #
+  strategy:               #
+    type: Recreate        #
+  #########################
   selector:
     matchLabels:
       {{- include "bors-ng.selectorLabels" . | nindent 6 }}
