@@ -45,6 +45,10 @@ defmodule BorsNG.Router do
     get("/", PageController, :index)
   end
 
+  scope "/health", BorsNG do
+    get("/", ServerController, :health)
+  end
+
   scope "/batches", BorsNG do
     pipe_through(:browser_page)
     pipe_through(:browser_session)
