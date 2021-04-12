@@ -270,8 +270,8 @@ defmodule BorsNG.GitHub.Server do
       %{status: 204} ->
         {:ok, :conflict}
 
-      %{body: body, status: status} ->
-        {:error, :merge_branch, status, body}
+      %{body: body, status: status, headers: headers} ->
+        {:error, :merge_branch, status, body, headers["x-github-request-id"]}
     end
   end
 
@@ -317,8 +317,8 @@ defmodule BorsNG.GitHub.Server do
         %{status: 204} ->
           {:ok, :conflict}
 
-        %{body: body, status: status} ->
-          {:error, :create_commit, status, body}
+        %{body: body, status: status, headers: headers} ->
+          {:error, :create_commit, status, body, headers["x-github-request-id"]}
       end
 
     resp
@@ -354,8 +354,8 @@ defmodule BorsNG.GitHub.Server do
         sha = Poison.decode!(raw)["sha"]
         do_handle_call(:force_push, repo_conn, {sha, branch})
 
-      %{body: body, status: status} ->
-        {:error, :synthesize_commit, status, body}
+      %{body: body, status: status, headers: headers} ->
+        {:error, :synthesize_commit, status, body, headers["x-github-request-id"]}
     end
   end
 
@@ -393,8 +393,8 @@ defmodule BorsNG.GitHub.Server do
           {:ok, sha}
         end
 
-      %{body: body, status: status} ->
-        {:error, :force_push, status, body}
+      %{body: body, status: status, headers: headers} ->
+        {:error, :force_push, status, body, headers["x-github-request-id"]}
     end
   end
 
