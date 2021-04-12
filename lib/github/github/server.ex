@@ -271,7 +271,7 @@ defmodule BorsNG.GitHub.Server do
         {:ok, :conflict}
 
       %{body: body, status: status, headers: headers} ->
-        {:error, :merge_branch, status, body, headers["x-github-request-id"]}
+        {:error, :merge_branch, status, body, Map.new(headers)["x-github-request-id"]}
     end
   end
 
@@ -318,7 +318,7 @@ defmodule BorsNG.GitHub.Server do
           {:ok, :conflict}
 
         %{body: body, status: status, headers: headers} ->
-          {:error, :create_commit, status, body, headers["x-github-request-id"]}
+          {:error, :create_commit, status, body, Map.new(headers)["x-github-request-id"]}
       end
 
     resp
@@ -355,7 +355,7 @@ defmodule BorsNG.GitHub.Server do
         do_handle_call(:force_push, repo_conn, {sha, branch})
 
       %{body: body, status: status, headers: headers} ->
-        {:error, :synthesize_commit, status, body, headers["x-github-request-id"]}
+        {:error, :synthesize_commit, status, body, Map.new(headers)["x-github-request-id"]}
     end
   end
 
@@ -394,7 +394,7 @@ defmodule BorsNG.GitHub.Server do
         end
 
       %{body: body, status: status, headers: headers} ->
-        {:error, :force_push, status, body, headers["x-github-request-id"]}
+        {:error, :force_push, status, body, Map.new(headers)["x-github-request-id"]}
     end
   end
 
