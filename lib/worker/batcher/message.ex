@@ -172,7 +172,10 @@ defmodule BorsNG.Worker.Batcher.Message do
 
     commit_body =
       Enum.reduce(patch_links, "", fn link, acc ->
-        body = cut_body(link.patch.body, cut_body_after)
+        body =
+          link.patch.body
+          |> cut_body(cut_body_after)
+          |> suppress_pings()
 
         author =
           case link.patch.author do
@@ -207,6 +210,12 @@ defmodule BorsNG.Worker.Batcher.Message do
     body
     |> String.splitter(cut)
     |> Enum.at(0)
+  end
+
+  def suppress_pings(nil), do: nil
+
+  def suppress_pings(body) do
+    Regex.replace(~R/\B(@\S+)/, body, ~S/`\g{1}`/, global: true)
   end
 
   def generate_bors_toml_error(:parse_failed) do
