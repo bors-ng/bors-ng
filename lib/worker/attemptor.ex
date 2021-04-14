@@ -23,9 +23,6 @@ defmodule BorsNG.Worker.Attemptor do
   alias BorsNG.Database.Project
   alias BorsNG.GitHub
 
-  # Every half-hour
-  @poll_period 30 * 60 * 1000
-
   # Public API
 
   def start_link(project_id) do
@@ -54,7 +51,7 @@ defmodule BorsNG.Worker.Attemptor do
     Process.send_after(
       self(),
       :poll,
-      trunc(@poll_period * :rand.uniform(2) * 0.5)
+      trunc(Confex.fetch_env!(:bors, :poll_period) * :rand.uniform(2) * 0.5)
     )
 
     {:ok, project_id}
@@ -142,7 +139,7 @@ defmodule BorsNG.Worker.Attemptor do
         {:stop, :normal, project_id}
 
       {:ok, :again} ->
-        Process.send_after(self(), :poll, @poll_period)
+        Process.send_after(self(), :poll, Confex.fetch_env!(:bors, :poll_period))
         {:noreply, project_id}
     end
   end

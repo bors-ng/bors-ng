@@ -37,8 +37,6 @@ defmodule BorsNG.Worker.Batcher do
   import BorsNG.Router.Helpers
   import Ecto.Query
 
-  # Every half-hour
-  @poll_period 30 * 60 * 1000
   @prerun_poll_period 1 * 60 * 1000
 
   # Public API
@@ -83,7 +81,7 @@ defmodule BorsNG.Worker.Batcher do
     Process.send_after(
       self(),
       {:poll, :repeat},
-      trunc(@poll_period * :rand.uniform(2) * 0.5)
+      trunc(Confex.fetch_env!(:bors, :poll_period) * :rand.uniform(2) * 0.5)
     )
 
     {:ok, project_id}
@@ -233,7 +231,7 @@ defmodule BorsNG.Worker.Batcher do
     check_self(project_id)
 
     if repetition != :once do
-      Process.send_after(self(), {:poll, repetition}, @poll_period)
+      Process.send_after(self(), {:poll, repetition}, Confex.fetch_env!(:bors, :poll_period))
     end
 
     case poll_(project_id) do
