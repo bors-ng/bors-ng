@@ -58,6 +58,9 @@ config :bors, BorsNG.Endpoint,
 # Overridden by the test config to avoid date-specific behavior
 config :bors, :celebrate_new_year, true
 
+# Tesla logger is only enabled if we really need debug info
+config :tesla, Tesla.Middleware.Logger, debug: true
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
