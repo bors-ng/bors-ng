@@ -941,13 +941,12 @@ defmodule BorsNG.GitHub.Server do
          {"accept", content_type},
          {"user-agent", "bors-ng https://bors.tech"}
        ]},
-      {Tesla.Middleware.Retry, delay: 100, max_retries: 5},
-      {Tesla.Middleware.Logger, filter_headers: ["authorization"]}
+      {Tesla.Middleware.Retry, delay: 100, max_retries: 5}
     ]
 
     middleware =
       if Confex.get_env(:bors, :log_outgoing, false) do
-        middleware ++ [{Tesla.Middleware.Logger, filter_headers: ["authorization"]}]
+        middleware ++ [{Tesla.Middleware.Logger, filter_headers: ["authorization"], debug: true}]
       else
         middleware
       end
