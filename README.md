@@ -5,7 +5,7 @@ A merge bot for GitHub pull requests
 
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/3)
 
-[Bors-NG] implements a continuous-testing workflow where the master branch never breaks.
+[Bors-NG] implements a continuous-testing workflow where the main branch never breaks.
 It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
 
 Other resources:
@@ -18,17 +18,17 @@ Other resources:
 
 # But don't GitHub's Protected Branches already do this?
 
-Travis and Jenkins both run the test suite on every branch after it's pushed to
-and every pull request when it's opened, and GitHub can block the pull requests
-if the tests fail on them. To understand why this is insufficient to get an
-evergreen master, imagine this:
+Most CI systems, like Travis, Jenkins, and GitHub Actions both run the test suite
+on every branch after it's pushed to and every pull request when it's opened, and
+GitHub can block the pull requests if the tests fail on them. To understand why
+this is insufficient to get an evergreen main branch, imagine this:
 
   * #### Pull Request \#1: Rename `bifurcate()` to `bifurcateCrab()`
 
     Change the name of this function, as well as every call site that currently
-    exists in master. I've thought of making it a method on Crab instead of on
-    Sword, but then it would be `bifurcateWithSword()`, which hardly seems like
-    an improvement.
+    exists in the main branch. I've thought of making it a method on Crab instead
+    of on Sword, but then it would be `bifurcateWithSword()`, which hardly seems
+    like an improvement.
 
   * #### Pull Request \#2: `bifurcate()` after landing, in addition to before
 
@@ -36,18 +36,18 @@ evergreen master, imagine this:
     skip the pre-landing procedure.
 
 When both of these pull requests are sitting open in the backlog, they will
-both be tested against master. Assuming they both pass, GitHub will happily
-present the Big Green Merge Button. Once they both get merged master will
-go red (Method `bifurcate()` not found).
+both be tested with the main branch. Assuming they both pass, GitHub will happily
+present the Big Green Merge Button. Once they both get merged, the main branch
+will go red (Method `bifurcate()` not found).
 
 In addition to the testing requirements, GitHub can also be set to block pull
-requests that are not "up to date" with master, meaning that problems like this
-can show up. This fixes the problem, by requiring that master only contain a
-snapshot of the code that has passed the tests, but it requires maintainers to
-manually:
+requests that are not "up to date" with the main branch, meaning that problems
+like this can show up. This fixes the problem, by requiring that the main branch
+only contain a snapshot of the code that has passed the tests, but it requires
+maintainers to manually:
 
- 1. "Update the pull requests," merging them onto master without changing
-    master itself
+ 1. "Update the pull requests," merging them onto main without changing
+    main itself
  2. Wait for the test suite to finish
  3. Merge the pull request when it's done, which is a trivial operation that
     can't break the test suite thanks to step 1
@@ -56,25 +56,38 @@ And it has to be done for every pull request one at a time.
 
 This is similar to, but less efficient than, the process that bors automates.
 Instead of merging, you add reviewed pull requests to a "merge queue" of pull
-requests that are tested against master by copying master to a staging branch
+requests that are tested against the main branch by copying it to a staging branch
 and merging into that. When the status of staging is determined (either pass or fail),
-bors reports the result back as a comment and merges staging into master if it was a pass.
+bors reports the result back as a comment and merges staging into main if it was a pass.
 Then it goes on to the next one.
 Based on the assumption that the tests usually pass once they're r+-ed,
 bors actually tests them in batches (and bisects if a batch fails).
 
-Note that bors is not a replacement for Jenkins or Travis. It just implements
+Note that bors is not a replacement for your CI system. It just implements
 this workflow.
 
 
 # How it works
 
-Bors is a [GitHub Application], so (assuming you already have Travis CI set up), getting bors set up requires two steps:
+Bors is a [GitHub Application], so (assuming you already have GitHub Actions set up), getting bors set up requires three steps:
 
  1. Add the app to your repo in GitHub. [Click here to use the publicly hosted instance.](https://github.com/apps/bors/installations/new)
  2. Commit a bors.toml with these contents:
 
-        status = ["continuous-integration/travis-ci/push"]
+        status = ["ci"]
+ 
+ 3. Set up a workflow step with the same name. For example:
+
+        ci-success:
+          name: ci
+          if: ${{ success() }}
+          needs:
+            - exfmt
+            - test
+          runs-on: ubuntu-latest
+          steps:
+            - name: CI succeeded
+              run: exit 0
 
 To use it, you need to stop clicking the big green merge button, and instead leave a comment with this in it on any pull request that looks good to you:
 
@@ -82,7 +95,7 @@ To use it, you need to stop clicking the big green merge button, and instead lea
 
 As commits are reviewed, bors lumps them into a queue of batches. If everything passes, there will just be two batches; the one that's running, and the one that's waiting to be run (and is accumulating more and more pull requests until it gets a chance to run).
 
-To run a batch, bors creates a merge commit, merging master with all the pull requests that make up the batch. Instead of pushing the merge commit to `master` immediately, however, it will instead push it to the `staging` branch. They'll look like this:
+To run a batch, bors creates a merge commit, merging the main branch with all the pull requests that make up the batch. Instead of pushing the merge commit immediately, however, it will instead push it to the `staging` branch. They'll look like this:
 
     Merge #5 #7 #8
 
@@ -90,7 +103,7 @@ To run a batch, bors creates a merge commit, merging master with all the pull re
     7: Call `bifurcate()` in the `onland` event handler
     8: Fix crash in `drive()`
 
-If the build passes, the master branch gets fast-forwarded to meet the staging branch. Since the master branch contains the exact contents that were just tested, bit-for-bit, it's not broken. (at least, not in any way that the automated tests are able to detect)
+If the build passes, the main branch gets fast-forwarded to meet the staging branch. Since the main branch contains the exact contents that were just tested, bit-for-bit, it's not broken. (at least, not in any way that the automated tests are able to detect)
 
 If the build fails, bors will follow a strategy called "bisecting". Namely, it splits the batch into two batches, and pushes those to the queue. In this example, the first batch will look like this:
 
@@ -107,7 +120,7 @@ The second will still pass, though.
 
     8: Fix crash in `drive()`
 
-This one will work, causing it to land in master, leaving the first two still in the backlog.
+This one will work, causing it to land in the main branch, leaving the first two still in the backlog.
 
     Merge #5
 
@@ -123,7 +136,7 @@ When a batch cannot be bisected (because it only contains one PR), it gets kicke
 
 Note that you can watch this process running on the [dashboard page] if you want.
 
-As a convenience, you can also run `bors try`, which will kick off a build the same way `r+` would, but without actually pushing it to master even if it does succeed. To help keep them separate, `r+` merge commits go in `staging` and `try` builds go in `trying`.
+As a convenience, you can also run `bors try`, which will kick off a build the same way `r+` would, but without actually pushing it to the main branch even if it does succeed. To help keep them separate, `r+` merge commits go in `staging` and `try` builds go in `trying`.
 
 [Bors-NG]: https://bors.tech/
 [GitHub Application]: https://github.com/settings/installations
