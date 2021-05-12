@@ -86,7 +86,7 @@ defmodule BorsNg.Mixfile do
       {:ecto, "~> 3.5"},
       {:ecto_sql, "~> 3.0"},
       {:ex_parameterized, "~> 1.3.6", only: [:dev, :test]},
-      {:glob, git: "https://github.com/lindenbaum/glob.git", commit: "a0de0d0"}
+      {:glob, git: "https://github.com/bors-ng/glob.git", commit: "7befe06"}
     ]
   end
 end
