@@ -10,7 +10,7 @@ defmodule BorsNG.Database.Repo.Migrations.ChangeUsersLoginTypeToCitext do
         alter table(:users) do
           modify :login, :citext
         end
-      Ecto.Adapters.MySQL ->
+      Ecto.Adapters.MyXQL ->
         :ok
     end
   end
@@ -22,7 +22,7 @@ defmodule BorsNG.Database.Repo.Migrations.ChangeUsersLoginTypeToCitext do
           modify :login, :string
         end
         execute "DROP EXTENSION citext"
-      Ecto.Adapters.MySQL ->
+      Ecto.Adapters.MyXQL ->
         :ok
     end
   end

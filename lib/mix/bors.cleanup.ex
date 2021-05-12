@@ -34,8 +34,7 @@ defmodule Mix.Tasks.Bors.Cleanup do
 
         Enum.each(repos(), fn repo ->
           ensure_repo(repo, args)
-          ensure_migrations_path(repo)
-          {:ok, pid, _} = ensure_started(repo, [])
+          {:ok, _} = repo.start_link()
 
           # Delete all batches older than N months which are done processing
           BorsNG.Database.Repo.delete_all(
@@ -63,7 +62,7 @@ defmodule Mix.Tasks.Bors.Cleanup do
             )
           )
 
-          repo.stop(pid)
+          repo.stop()
         end)
     end
   end
