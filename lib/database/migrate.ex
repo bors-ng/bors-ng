@@ -34,7 +34,7 @@ defmodule BorsNG.Database.Migrate do
     # we start the Ecto Repo directly.
     Application.load(:bors)
     Enum.each(@start_apps, &Application.ensure_all_started/1)
-    Enum.each(repos(), & &1.start_link(pool_size: 1))
+    Enum.each(repos(), & &1.start_link(pool_size: 3))
 
     Enum.each(repos(), fn repo ->
       case create_storage_for(repo) do
