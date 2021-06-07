@@ -602,7 +602,7 @@ defmodule BorsNG.GitHub.Server do
       |> Tesla.get!(url, query: params)
       |> case do
         %{body: raw, status: 200, headers: headers} -> {raw, headers}
-        _ -> {"[]", %{}}
+        _ -> {~s("check_runs":[]), %{}}
       end
 
     checks =
