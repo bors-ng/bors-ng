@@ -64,7 +64,7 @@ defmodule BorsNg.Mixfile do
       {:phoenix_live_reload, "~> 1.3", only: :dev},
       {:phoenix, "~> 1.5.8"},
       {:phoenix_pubsub, "~> 2.0"},
-      {:poison, "~> 3.1"},
+      {:poison, "~> 4.0"},
       {:jason, "~> 1.0"},
       {:gettext, "~> 0.15"},
       {:cowboy, "~> 1.0"},
