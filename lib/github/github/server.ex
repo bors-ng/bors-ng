@@ -931,10 +931,8 @@ defmodule BorsNG.GitHub.Server do
   end
 
   defp tesla_client(authorization, content_type \\ @content_type) do
-    host = String.to_charlist(URI.parse(site()).host)
-
     middleware = [
-      {Tesla.Middleware.BaseUrl, host},
+      {Tesla.Middleware.BaseUrl, site()},
       {Tesla.Middleware.Headers,
        [
          {"authorization", authorization},
