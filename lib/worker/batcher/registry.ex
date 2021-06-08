@@ -28,6 +28,8 @@ defmodule BorsNG.Worker.Batcher.Registry do
     GenServer.start_link(__MODULE__, :ok, name: @name)
   end
 
+  def get(project_id, count \\ 0)
+
   def get(project_id, 5) when is_integer(project_id) do
     pid = GenServer.call(@name, {:get, project_id})
     # process haven't been started at all
@@ -36,7 +38,7 @@ defmodule BorsNG.Worker.Batcher.Registry do
     end
   end
 
-  def get(project_id, count \\ 0) when is_integer(project_id) do
+  def get(project_id, count) when is_integer(project_id) do
     pid = GenServer.call(@name, {:get, project_id})
 
     if pid == nil do

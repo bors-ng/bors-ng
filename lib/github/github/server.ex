@@ -934,7 +934,7 @@ defmodule BorsNG.GitHub.Server do
     host = String.to_charlist(URI.parse(site()).host)
 
     middleware = [
-      {Tesla.Middleware.BaseUrl, site()},
+      {Tesla.Middleware.BaseUrl, host},
       {Tesla.Middleware.Headers,
        [
          {"authorization", authorization},
