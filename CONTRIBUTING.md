@@ -101,7 +101,7 @@ You can install Erlang and Elixir as you prefer, one way to do it without
 affecting other development environments is with [asdf](https://asdf-vm.com/#/). The following shows you how to use asdf. If you already have Erlang and Elixir installed
 or prefer to install them in another way just skip to the next section.
 
-**NOTE**: please check the Erlang and Elixir versions against `.travis.yml` to make sure you are using a supported version.
+**NOTE**: please check the Erlang and Elixir versions against `.github/workflows/main.yml` to make sure you are using a supported version.
 
 ### Installing Erlang and Elixir with asdf
 
@@ -111,13 +111,13 @@ YMMV on other OSs):
 
 ```sh
 asdf plugin-add erlang
-asdf install erlang 21.0.9
+asdf install erlang 23.2
 asdf plugin-add elixir
-asdf install elixir 1.8.1
+asdf install elixir 1.11.4
 # in the parent directory
 cat<<EOF > ../.tool-versions
-elixir 1.8.1
-erlang 21.0.9
+elixir 1.11.4
+erlang 23.2
 EOF
 ```
 
@@ -128,7 +128,7 @@ EOF
 You are now set for developing locally. For example to run the tests you will just have to start a postgres instance on localhost, using docker is the simplest way:
 
 ```sh
-docker run -it --rm --net=host -e POSTGRES_PASSWORD=Postgres1234 postgres:11.2
+docker run -it --rm --net=host -e POSTGRES_PASSWORD=Postgres1234 postgres:13
 ```
 
 then in another shell you can run the tests as simply as:
