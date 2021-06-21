@@ -71,6 +71,34 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     assert expected_message == actual_message
   end
 
+  test "generate push failed (non fast-forward) message" do
+    expected_message =
+      "This PR was included in a batch that successfully built, but then failed to merge into main (it was a non-fast-forward update). It will be automatically retried."
+
+    actual_message = Message.generate_message({:push_failed_non_ff, "main"})
+    assert expected_message == actual_message
+  end
+
+  test "generate push failed (unknown) message" do
+    expected_message = """
+    This PR was included in a batch that successfully built, but then failed to merge into main. It will not be retried.
+
+    Additional information:
+
+    ```json
+    {"status": 500, "message": "Internal server error."}
+    ```
+    """
+
+    actual_message =
+      Message.generate_message(
+        {:push_failed_unknown_failure, "main",
+         '{"status": 500, "message": "Internal server error."}'}
+      )
+
+    assert expected_message == actual_message
+  end
+
   test "generate merged into master message" do
     expected_message = "Pull request successfully merged into master.\n\nBuild succeeded:"
     actual_message = Message.generate_message({:merged, :squashed, "master", []})
