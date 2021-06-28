@@ -3,6 +3,18 @@ defmodule BorsNG.Worker.BatcherMessageTest do
 
   alias BorsNG.Worker.Batcher.Message
 
+  test "suppress pings" do
+    alias Message.suppress_pings
+    assert suppress_pings(nil) == nil
+    assert suppress_pings("") == ""
+    assert suppress_pings("basic") == "basic"
+    assert suppress_pings("basic\n") == "basic\n"
+    assert suppress_pings("basic\nbasic") == "basic\nbasic"
+    assert suppress_pings("@someone\nbasic") == "`@someone`\nbasic"
+    assert suppress_pings("@someone\n@else") == "`@someone`\n`@else`"
+    assert suppress_pings("me@example.com") == "me@example.com"
+  end
+
   test "generate configuration problem message" do
     expected_message = "Configuration problem:\nExample problem"
     actual_message = Message.generate_message({:config, "Example problem"})
