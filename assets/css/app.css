@@ -185,6 +185,12 @@ footer {
   border-color: #ebccd1;
   background-color: #f2dede;
 }
+.span--ok {
+  color: #3c763d;
+}
+.span--error {
+  color: #a94442;
+}
 .close-button {
   color: #666;
   border: none;

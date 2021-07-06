@@ -13,7 +13,8 @@ defmodule BorsNG.GitHub.Pr do
           head_sha: bitstring,
           user: BorsNG.GitHub.User.t(),
           # not all PRs have this field populated
-          mergeable: boolean | nil
+          mergeable: boolean | nil,
+          draft: boolean
         }
   defstruct(
     number: 0,
@@ -27,7 +28,8 @@ defmodule BorsNG.GitHub.Pr do
     head_repo_id: 0,
     base_repo_id: 0,
     merged: false,
-    mergeable: nil
+    mergeable: nil,
+    draft: false
   )
 
   @doc """
@@ -43,32 +45,34 @@ defmodule BorsNG.GitHub.Pr do
   Convert from Poison-decoded JSON to a Pr struct.
   """
   @spec from_json(tjson) :: {:ok, t} | {:error, term}
-  def from_json(%{
-        "number" => number,
-        "title" => title,
-        "body" => body,
-        "state" => state,
-        "base" => %{
-          "ref" => base_ref,
-          "repo" => %{
-            "id" => base_repo_id
-          }
-        },
-        "head" => %{
-          "sha" => head_sha,
-          "ref" => head_ref,
-          "repo" => %{
-            "id" => head_repo_id
-          }
-        },
-        "user" => %{
-          "id" => user_id,
-          "login" => user_login,
-          "avatar_url" => user_avatar_url
-        },
-        "merged_at" => merged_at,
-        "mergeable" => mergeable
-      })
+  def from_json(
+        pr = %{
+          "number" => number,
+          "title" => title,
+          "body" => body,
+          "state" => state,
+          "base" => %{
+            "ref" => base_ref,
+            "repo" => %{
+              "id" => base_repo_id
+            }
+          },
+          "head" => %{
+            "sha" => head_sha,
+            "ref" => head_ref,
+            "repo" => %{
+              "id" => head_repo_id
+            }
+          },
+          "user" => %{
+            "id" => user_id,
+            "login" => user_login,
+            "avatar_url" => user_avatar_url
+          },
+          "merged_at" => merged_at,
+          "mergeable" => mergeable
+        }
+      )
       when is_integer(number) do
     {:ok,
      %BorsNG.GitHub.Pr{
@@ -99,35 +103,38 @@ defmodule BorsNG.GitHub.Pr do
          avatar_url: user_avatar_url
        },
        merged: not is_nil(merged_at),
-       mergeable: mergeable
+       mergeable: mergeable,
+       draft: if(is_nil(pr[:draft]), do: false, else: pr.draft)
      }}
   end
 
-  def from_json(%{
-        "number" => number,
-        "title" => title,
-        "body" => body,
-        "state" => state,
-        "base" => %{
-          "ref" => base_ref,
-          "repo" => %{
-            "id" => base_repo_id
-          }
-        },
-        "head" => %{
-          "sha" => head_sha,
-          "ref" => head_ref,
-          "repo" => %{
-            "id" => head_repo_id
-          }
-        },
-        "user" => %{
-          "id" => user_id,
-          "login" => user_login,
-          "avatar_url" => user_avatar_url
-        },
-        "merged_at" => merged_at
-      })
+  def from_json(
+        pr = %{
+          "number" => number,
+          "title" => title,
+          "body" => body,
+          "state" => state,
+          "base" => %{
+            "ref" => base_ref,
+            "repo" => %{
+              "id" => base_repo_id
+            }
+          },
+          "head" => %{
+            "sha" => head_sha,
+            "ref" => head_ref,
+            "repo" => %{
+              "id" => head_repo_id
+            }
+          },
+          "user" => %{
+            "id" => user_id,
+            "login" => user_login,
+            "avatar_url" => user_avatar_url
+          },
+          "merged_at" => merged_at
+        }
+      )
       when is_integer(number) do
     from_json(%{
       "number" => number,
@@ -153,7 +160,8 @@ defmodule BorsNG.GitHub.Pr do
         "avatar_url" => user_avatar_url
       },
       "merged_at" => merged_at,
-      "mergeable" => nil
+      "mergeable" => nil,
+      "draft" => if(is_nil(pr[:draft]), do: false, else: pr.draft)
     })
   end
 
