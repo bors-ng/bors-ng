@@ -1,4 +1,4 @@
-FROM notriddle/docker-phoenix-elixir-test@sha256:7d246544ba92515f5e691ad30bee6abfd05392b1b9c6c90de45111d6891cd48a
+FROM notriddle/docker-phoenix-elixir-test@sha256:a64bf8795682c5dc2d5914331f2d492a8380adb8b16179ba84fffbdb3fc7549b
 MAINTAINER "Michael Howell <michael@notriddle.com>"
 EXPOSE 8000
 ENV BORS_WITHIN_DOCKER 1
