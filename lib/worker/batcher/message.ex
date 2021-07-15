@@ -117,6 +117,20 @@ defmodule BorsNG.Worker.Batcher.Message do
     } (it was a non-fast-forward update). It will be automatically retried."
   end
 
+  def generate_message({:push_failed_unknown_failure, target_branch, raw_error_content}) do
+    """
+    This PR was included in a batch that successfully built, but then failed to merge into #{
+      target_branch
+    }. It will not be retried.
+
+    Additional information:
+
+    ```json
+    #{raw_error_content}
+    ```
+    """
+  end
+
   def generate_message({state, statuses}) do
     is_new_year = get_is_new_year()
 

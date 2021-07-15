@@ -25,3 +25,6 @@ erl_crash.dump
 /*.iml
 /projectFilesBackup
 /projectFilesBackup1
+
+# Deploy examples
+/deploy/**/*.tgz
