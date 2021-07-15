@@ -112,16 +112,12 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:push_failed_non_ff, target_branch}) do
-    "This PR was included in a batch that successfully built, but then failed to merge into #{
-      target_branch
-    } (it was a non-fast-forward update). It will be automatically retried."
+    "This PR was included in a batch that successfully built, but then failed to merge into #{target_branch} (it was a non-fast-forward update). It will be automatically retried."
   end
 
   def generate_message({:push_failed_unknown_failure, target_branch, raw_error_content}) do
     """
-    This PR was included in a batch that successfully built, but then failed to merge into #{
-      target_branch
-    }. It will not be retried.
+    This PR was included in a batch that successfully built, but then failed to merge into #{target_branch}. It will not be retried.
 
     Additional information:
 

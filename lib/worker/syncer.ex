@@ -182,9 +182,7 @@ defmodule BorsNG.Worker.Syncer do
           user ->
             if user.user_xref != gh_user.id do
               Logger.debug(
-                "Syncer: sync_user: github user #{inspect(gh_user.login)} changed id from #{
-                  inspect(user.user_xref)
-                } to #{inspect(gh_user.id)}"
+                "Syncer: sync_user: github user #{inspect(gh_user.login)} changed id from #{inspect(user.user_xref)} to #{inspect(gh_user.id)}"
               )
 
               # Rename the user we had in the database to a login that's not a valid github login
@@ -205,9 +203,7 @@ defmodule BorsNG.Worker.Syncer do
       user ->
         if user.login != gh_user.login do
           Logger.debug(
-            "Syncer: sync_user: github user id #{inspect(gh_user.user_xref)} changed username from #{
-              inspect(user.login)
-            } to #{inspect(gh_user.login)}"
+            "Syncer: sync_user: github user id #{inspect(gh_user.user_xref)} changed username from #{inspect(user.login)} to #{inspect(gh_user.login)}"
           )
 
           user
