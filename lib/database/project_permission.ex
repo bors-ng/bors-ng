@@ -1,5 +1,6 @@
 defmodule BorsNG.Database.ProjectPermission do
-  @behaviour Ecto.Type
+  use Ecto.Type
+
   @moduledoc """
   A type to represent the permissions of a project member.
   """

@@ -35,7 +35,7 @@ defmodule BorsNG.WebhookParserPlug do
           x
       end
 
-    hmac = :crypto.hmac(:sha, key, body)
+    hmac = :crypto.mac(:hmac, :sha, key, body)
 
     case hmac do
       ^signature ->

@@ -270,8 +270,8 @@ defmodule BorsNG.GitHub.Server do
       %{status: 204} ->
         {:ok, :conflict}
 
-      %{body: body, status: status} ->
-        {:error, :merge_branch, status, body}
+      %{body: body, status: status, headers: headers} ->
+        {:error, :merge_branch, status, body, Map.new(headers)["x-github-request-id"]}
     end
   end
 
@@ -317,8 +317,8 @@ defmodule BorsNG.GitHub.Server do
         %{status: 204} ->
           {:ok, :conflict}
 
-        %{body: body, status: status} ->
-          {:error, :create_commit, status, body}
+        %{body: body, status: status, headers: headers} ->
+          {:error, :create_commit, status, body, Map.new(headers)["x-github-request-id"]}
       end
 
     resp
@@ -354,8 +354,8 @@ defmodule BorsNG.GitHub.Server do
         sha = Poison.decode!(raw)["sha"]
         do_handle_call(:force_push, repo_conn, {sha, branch})
 
-      %{body: body, status: status} ->
-        {:error, :synthesize_commit, status, body}
+      %{body: body, status: status, headers: headers} ->
+        {:error, :synthesize_commit, status, body, Map.new(headers)["x-github-request-id"]}
     end
   end
 
@@ -393,8 +393,8 @@ defmodule BorsNG.GitHub.Server do
           {:ok, sha}
         end
 
-      %{body: body, status: status} ->
-        {:error, :force_push, status, body}
+      %{body: body, status: status, headers: headers} ->
+        {:error, :force_push, status, body, Map.new(headers)["x-github-request-id"]}
     end
   end
 
@@ -602,7 +602,7 @@ defmodule BorsNG.GitHub.Server do
       |> Tesla.get!(url, query: params)
       |> case do
         %{body: raw, status: 200, headers: headers} -> {raw, headers}
-        _ -> {"[]", %{}}
+        _ -> {~s("check_runs":[]), %{}}
       end
 
     checks =
@@ -931,8 +931,6 @@ defmodule BorsNG.GitHub.Server do
   end
 
   defp tesla_client(authorization, content_type \\ @content_type) do
-    host = String.to_charlist(URI.parse(site()).host)
-
     middleware = [
       {Tesla.Middleware.BaseUrl, site()},
       {Tesla.Middleware.Headers,
@@ -941,13 +939,12 @@ defmodule BorsNG.GitHub.Server do
          {"accept", content_type},
          {"user-agent", "bors-ng https://bors.tech"}
        ]},
-      {Tesla.Middleware.Retry, delay: 100, max_retries: 5},
-      {Tesla.Middleware.Logger, filter_headers: ["authorization"]}
+      {Tesla.Middleware.Retry, delay: 100, max_retries: 5}
     ]
 
     middleware =
       if Confex.get_env(:bors, :log_outgoing, false) do
-        middleware ++ [{Tesla.Middleware.Logger, filter_headers: ["authorization"]}]
+        middleware ++ [{Tesla.Middleware.Logger, filter_headers: ["authorization"], debug: true}]
       else
         middleware
       end

@@ -7,7 +7,9 @@ defmodule BorsNG.Database.Repo do
   We call those `Project`s internally.
   """
 
-  use Ecto.Repo, otp_app: :bors
+  use Ecto.Repo,
+    otp_app: :bors,
+    adapter: Application.get_env(:bors, BorsNG.Database.Repo)[:adapter]
 
   def init(_, config) do
     # Backwards compatibility hack: if POSTGRES_HOST is set, and the database URL is left at default,

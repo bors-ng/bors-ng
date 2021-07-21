@@ -37,8 +37,6 @@ defmodule BorsNG.Worker.Batcher do
   import BorsNG.Router.Helpers
   import Ecto.Query
 
-  # Every half-hour
-  @poll_period 30 * 60 * 1000
   @prerun_poll_period 1 * 60 * 1000
 
   # Public API
@@ -83,7 +81,7 @@ defmodule BorsNG.Worker.Batcher do
     Process.send_after(
       self(),
       {:poll, :repeat},
-      trunc(@poll_period * :rand.uniform(2) * 0.5)
+      trunc(Confex.fetch_env!(:bors, :poll_period) * :rand.uniform(2) * 0.5)
     )
 
     {:ok, project_id}
@@ -233,7 +231,7 @@ defmodule BorsNG.Worker.Batcher do
     check_self(project_id)
 
     if repetition != :once do
-      Process.send_after(self(), {:poll, repetition}, @poll_period)
+      Process.send_after(self(), {:poll, repetition}, Confex.fetch_env!(:bors, :poll_period))
     end
 
     case poll_(project_id) do
@@ -694,23 +692,22 @@ defmodule BorsNG.Worker.Batcher do
         batch.into_branch
       )
 
-    known_push_failure =
+    push_status =
       case push_result do
         {:error, :push, 422, raw_error_content} ->
-          String.contains?(raw_error_content, "Update is not a fast forward")
+          cond do
+            String.contains?(raw_error_content, "Update is not a fast forward") ->
+              {:non_ff}
 
-        _ ->
-          false
-      end
+            true ->
+              {:unknown_failure, raw_error_content}
+          end
 
-    # Check for "unknown" push failures
-    push_success =
-      if known_push_failure do
-        false
-      else
-        # Force "unknown" failure (that didn't match the above `case push_result`) to crash here
-        {:ok, _} = push_result
-        true
+        {:error, _, _, raw_error_content} ->
+          {:unknown_failure, raw_error_content}
+
+        {:ok, _} ->
+          {:success}
       end
 
     patches =
@@ -718,8 +715,8 @@ defmodule BorsNG.Worker.Batcher do
       |> Patch.all_for_batch()
       |> Repo.all()
 
-    case push_success do
-      true ->
+    case push_status do
+      {:success} ->
         if toml.use_squash_merge do
           Enum.each(patches, fn patch ->
             send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch, statuses})
@@ -733,7 +730,7 @@ defmodule BorsNG.Worker.Batcher do
 
         :ok
 
-      false ->
+      {:non_ff} ->
         # retry the complete batch (no bisect required as build passed all statuses)
         patch_links =
           batch.id
@@ -745,6 +742,19 @@ defmodule BorsNG.Worker.Batcher do
 
         # send appropriate message to failed patches
         send_message(repo_conn, patches, {:push_failed_non_ff, batch.into_branch})
+
+        :error
+
+      {:unknown_failure, raw_error_content} ->
+        # Don't retry the batch. Something is preventing this batch from merging
+        # and it's unlikely us retrying would change that.
+
+        # send appropriate message to failed patches
+        send_message(
+          repo_conn,
+          patches,
+          {:push_failed_unknown_failure, batch.into_branch, raw_error_content}
+        )
 
         :error
     end
@@ -967,11 +977,7 @@ defmodule BorsNG.Worker.Batcher do
       end
 
     Logger.info(
-      "Code review status: Label Check #{passed_label} Passed Status: #{
-        no_error_status and no_waiting_status and no_unset_status
-      } Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved} Passed Up-To-Date Review: #{
-        passed_up_to_date_review
-      }"
+      "Code review status: Label Check #{passed_label} Passed Status: #{no_error_status and no_waiting_status and no_unset_status} Passed Review: #{passed_review} CODEOWNERS: #{code_owners_approved} Passed Up-To-Date Review: #{passed_up_to_date_review}"
     )
 
     case {passed_label, no_error_status, no_waiting_status, no_unset_status, passed_review,

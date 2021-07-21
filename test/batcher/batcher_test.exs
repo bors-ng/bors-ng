@@ -2468,7 +2468,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert Enum.count(retried.patches) == 2
   end
 
-  test "push to master branch, other 442 errors result in a crash", %{proj: proj} do
+  test "push to master branch, other 422 errors result in a crash", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
@@ -2513,9 +2513,22 @@ defmodule BorsNG.Worker.BatcherTest do
     assert batch.state == :running
 
     # and then trigger the push
-    assert_raise MatchError, fn ->
-      Batcher.do_handle_cast({:status, {"iniN", "ci", :ok, nil}}, proj.id)
-    end
+    Batcher.do_handle_cast({:status, {"iniN", "ci", :ok, nil}}, proj.id)
+
+    # Verify our batch is marked as an error, and no other batches started
+    batches =
+      Repo.all(
+        from(b in Batch,
+          where: b.project_id == ^proj.id,
+          order_by: [asc: b.id],
+          preload: [:patches]
+        )
+      )
+
+    assert Enum.count(batches) == 1
+    [original] = batches
+
+    assert original.state == :error
   end
 
   test "push to master branch, other error codes result in a crash", %{proj: proj} do
@@ -2563,9 +2576,22 @@ defmodule BorsNG.Worker.BatcherTest do
     assert batch.state == :running
 
     # and then trigger the push
-    assert_raise MatchError, fn ->
-      Batcher.do_handle_cast({:status, {"iniN", "ci", :ok, nil}}, proj.id)
-    end
+    Batcher.do_handle_cast({:status, {"iniN", "ci", :ok, nil}}, proj.id)
+
+    # Verify our batch is marked as an error, and no other batches started
+    batches =
+      Repo.all(
+        from(b in Batch,
+          where: b.project_id == ^proj.id,
+          order_by: [asc: b.id],
+          preload: [:patches]
+        )
+      )
+
+    assert Enum.count(batches) == 1
+    [original] = batches
+
+    assert original.state == :error
   end
 
   test "full runthrough and continue", %{proj: proj} do

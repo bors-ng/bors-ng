@@ -27,7 +27,8 @@ config :bors,
   api_github_root: {:system, :string, "GITHUB_URL_ROOT_API", "https://api.github.com"},
   html_github_root: {:system, :string, "GITHUB_URL_ROOT_HTML", "https://github.com"},
   api_github_timeout: {:system, :integer, "GITHUB_API_TIMEOUT", 10_000},
-  log_outgoing: {:system, "BORS_LOG_OUTGOING", false}
+  log_outgoing: {:system, "BORS_LOG_OUTGOING", false},
+  poll_period: {:system, :integer, "BORS_POLL_PERIOD", 1_800_000}
 
 # General application configuration
 config :bors, BorsNG,
@@ -57,6 +58,11 @@ config :bors, BorsNG.Endpoint,
 
 # Overridden by the test config to avoid date-specific behavior
 config :bors, :celebrate_new_year, true
+
+# Tesla logger is only enabled if we really need debug info
+config :tesla, Tesla.Middleware.Logger, debug: true
+
+config :phoenix, :json_library, Jason
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
