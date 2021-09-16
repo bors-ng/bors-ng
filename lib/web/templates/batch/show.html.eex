@@ -21,16 +21,18 @@
 <p>Date: <%= htmlify_naive_datetime(@batch.updated_at) %></p>
 <p>Priority: <%= @batch.priority %></p>
 <p>State: <%= stringify_state(@batch.state) %></p>
-<p>
-  Status:
+<p>Status:</p>
+<ul>
   <%= for status <- @statuses do %>
+  <li>
     <%= if status.url do %>
     <a href="<%= status.url %>"><%= status.identifier %> (<%= stringify_state(status.state) %>)</a>
     <% else %>
     <span><%= status.identifier %> (<%= stringify_state(status.state) %>)</span>
     <% end %>
+  </li>
   <% end %>
-</p>
+</ul>
 <p>
   Pull Requests:
   <%= for patch <- @patches do %>
