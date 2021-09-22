@@ -6,7 +6,8 @@ config :bors, BorsNG.Database.Repo,
   timeout: {:system, :integer, "DATABASE_TIMEOUT", 15_000},
   pool_size: {:system, :integer, "POOL_SIZE", 10},
   loggers: [{Ecto.LogEntry, :log, []}],
-  ssl: {:system, :boolean, "DATABASE_USE_SSL", true}
+  ssl: {:system, :boolean, "DATABASE_USE_SSL", true},
+  prepare: {:system, :atom, "DATABASE_PREPARE_MODE", :named}
 
 config :bors, BorsNG.Endpoint,
   http: [port: {:system, "PORT"}],

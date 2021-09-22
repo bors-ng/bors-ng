@@ -360,6 +360,7 @@ All the same recommendations apply, with some extra notes:
 - `ALLOW_PRIVATE_REPOS` must be set at both build and run times to take effect. It is set to ` true` by default.
 - `DATABASE_URL` *must* contain the database port, as it will be used at container startup to wait until the database is reachable. [The format is documented here](https://hexdocs.pm/ecto/Ecto.Repo.html#module-urls).
 - `DATABASE_TIMEOUT` may be set higher than the default of `15_000`(ms). This may be necessary with repositories with a very large amount of members.
+- `DATABASE_PREPARE_MODE` can be set to to `unnamed` to disable prepared statements, [which is necessary when using a transaction/statement pooler, like pgbouncer](https://github.com/elixir-ecto/postgrex#pgbouncer). It is set to `named` by default.
 - The database schema will be automatically created and migrated at container startup, unless the ` DATABASE_AUTO_MIGRATE`  env. var.
   is set to `false`. Make that change if the database state is managed externally, or if you are using a database that cannot safely handle
   concurrent schema changes (such as older MariaDB/MySQL versions).
