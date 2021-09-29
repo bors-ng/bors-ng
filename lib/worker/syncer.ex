@@ -91,7 +91,7 @@ defmodule BorsNG.Worker.Syncer do
              :members,
              project.auto_member_required_perm
            ) do
-      Logger.debug(["Syncer: refreshed project collaborators", project])
+      Logger.debug(["Syncer: refreshed project collaborators", inspect(project)])
       :ok
     else
       {:error, error} ->
@@ -154,7 +154,9 @@ defmodule BorsNG.Worker.Syncer do
       commit: pr.head_sha,
       author_id: author.id,
       open: pr.state == :open,
-      author: author
+      author: author,
+      is_mergeable: pr.mergeable,
+      is_draft: pr.draft
     }
 
     case Repo.get_by(Patch, project_id: project_id, pr_xref: number) do

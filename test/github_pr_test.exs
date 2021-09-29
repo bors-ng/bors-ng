@@ -49,7 +49,8 @@ defmodule BorsNG.GitHub.GitHubPrTest do
                   avatar_url: "U"
                 },
                 merged: false,
-                mergeable: nil
+                mergeable: nil,
+                draft: false
               }}
   end
 
@@ -76,7 +77,8 @@ defmodule BorsNG.GitHub.GitHubPrTest do
                   avatar_url: "U"
                 },
                 merged: false,
-                mergeable: true
+                mergeable: true,
+                draft: false
               }}
   end
 end
