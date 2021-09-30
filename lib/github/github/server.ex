@@ -720,6 +720,10 @@ defmodule BorsNG.GitHub.Server do
         "token #{token}"
         |> tesla_client(@content_type)
         |> Tesla.get!(url)
+        |> case do
+          %{body: raw, status: 200} -> Poison.decode!(raw)
+          _ -> %{}
+        end
         |> GitHub.Pr.from_json()
         |> case do
           {:ok, pr} -> [pr]
