@@ -716,8 +716,10 @@ defmodule BorsNG.GitHub.Server do
 
     prs =
       Poison.decode!(raw)
-      |> Enum.flat_map(fn element ->
-        element
+      |> Enum.flat_map(fn %{"url" => url} ->
+        "token #{token}"
+        |> tesla_client(@content_type)
+        |> Tesla.get!(url)
         |> GitHub.Pr.from_json()
         |> case do
           {:ok, pr} -> [pr]
