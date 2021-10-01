@@ -155,9 +155,14 @@ defmodule BorsNG.Worker.Syncer do
       author_id: author.id,
       open: pr.state == :open,
       author: author,
-      is_mergeable: pr.mergeable,
       is_draft: pr.draft
     }
+
+    data =
+      case pr.mergeable do
+        nil -> data
+        x -> Map.put(data, :is_mergeable, pr.mergeable)
+      end
 
     case Repo.get_by(Patch, project_id: project_id, pr_xref: number) do
       nil ->
