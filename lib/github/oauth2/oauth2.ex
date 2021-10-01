@@ -27,7 +27,7 @@ defmodule BorsNG.GitHub.OAuth2 do
 
   def client do
     OAuth2.Client.new(config())
-    |> OAuth2.Client.put_serializer("application/json", Poison)
+    |> OAuth2.Client.put_serializer("application/json", Jason)
   end
 
   @spec authorize_url!() :: binary

@@ -54,7 +54,7 @@ config :bors, BorsNG.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "RflEtl3q2wkPracTsiqJXfJwu+PtZ6P65kd5rcA7da8KR5Abc/YjB8aZHE4DBxMG",
   render_errors: [view: BorsNG.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: BorsNG.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub_server: BorsNG.PubSub
 
 # Overridden by the test config to avoid date-specific behavior
 config :bors, :celebrate_new_year, true

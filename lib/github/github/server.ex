@@ -67,7 +67,7 @@ defmodule BorsNG.GitHub.Server do
         %{body: raw, status: 200} ->
           app_link =
             raw
-            |> Poison.decode!()
+            |> Jason.decode!()
             |> Map.get("html_url")
 
           {:ok, app_link}
@@ -97,7 +97,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status: 200} ->
         pr =
           raw
-          |> Poison.decode!()
+          |> Jason.decode!()
           |> Enum.map(&GitHub.File.from_json!/1)
 
         {:ok, pr}
@@ -112,7 +112,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status: 200} ->
         pr =
           raw
-          |> Poison.decode!()
+          |> Jason.decode!()
           |> GitHub.Pr.from_json!()
 
         {:ok, pr}
@@ -126,7 +126,7 @@ defmodule BorsNG.GitHub.Server do
     repo_conn
     |> patch!(
       "pulls/#{pr.number}",
-      Poison.encode!(%{
+      Jason.encode!(%{
         title: pr.title,
         body: pr.body,
         state: pr.state,
@@ -137,7 +137,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status: 200} ->
         pr =
           raw
-          |> Poison.decode!()
+          |> Jason.decode!()
           |> GitHub.Pr.from_json!()
 
         {:ok, pr}
@@ -151,7 +151,7 @@ defmodule BorsNG.GitHub.Server do
     repo_conn
     |> patch!(
       "pulls/#{pr.number}",
-      Poison.encode!(%{
+      Jason.encode!(%{
         title: pr.title,
         body: pr.body,
         state: pr.state
@@ -161,7 +161,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status: 200} ->
         pr =
           raw
-          |> Poison.decode!()
+          |> Jason.decode!()
           |> GitHub.Pr.from_json!()
 
         {:ok, pr}
@@ -178,7 +178,7 @@ defmodule BorsNG.GitHub.Server do
 
         commits =
           raw
-          |> Poison.decode!()
+          |> Jason.decode!()
           |> Enum.map(&GitHub.Commit.from_json!/1)
 
         {:ok, commits}
@@ -208,7 +208,7 @@ defmodule BorsNG.GitHub.Server do
 
   def do_handle_call(:push, repo_conn, {sha, to}) do
     repo_conn
-    |> patch!("git/refs/heads/#{to}", Poison.encode!(%{sha: sha}))
+    |> patch!("git/refs/heads/#{to}", Jason.encode!(%{sha: sha}))
     |> case do
       %{body: _, status: 200} ->
         {:ok, sha}
@@ -222,7 +222,7 @@ defmodule BorsNG.GitHub.Server do
   def do_handle_call(:get_branch, repo_conn, {branch}) do
     case get!(repo_conn, "branches/#{branch}") do
       %{body: raw, status: 200} ->
-        r = Poison.decode!(raw)["commit"]
+        r = Jason.decode!(raw)["commit"]
         {:ok, %{commit: r["sha"], tree: r["commit"]["tree"]["sha"]}}
 
       %{body: body, status: status} ->
@@ -252,10 +252,10 @@ defmodule BorsNG.GitHub.Server do
     msg = %{base: to, head: from, commit_message: commit_message}
 
     repo_conn
-    |> post!("merges", Poison.encode!(msg))
+    |> post!("merges", Jason.encode!(msg))
     |> case do
       %{body: raw, status: 201} ->
-        data = Poison.decode!(raw)
+        data = Jason.decode!(raw)
 
         res = %{
           commit: data["sha"],
@@ -299,11 +299,11 @@ defmodule BorsNG.GitHub.Server do
 
     resp =
       repo_conn
-      |> post!("git/commits", Poison.encode!(msg))
+      |> post!("git/commits", Jason.encode!(msg))
       |> case do
         %{body: raw, status: 201} ->
           Logger.info("Raw response from GH #{inspect(raw)}")
-          data = Poison.decode!(raw)
+          data = Jason.decode!(raw)
 
           res = %{
             commit: data["sha"]
@@ -348,10 +348,10 @@ defmodule BorsNG.GitHub.Server do
       end
 
     repo_conn
-    |> post!("git/commits", Poison.encode!(msg))
+    |> post!("git/commits", Jason.encode!(msg))
     |> case do
       %{body: raw, status: 201} ->
-        sha = Poison.decode!(raw)["sha"]
+        sha = Jason.decode!(raw)["sha"]
         do_handle_call(:force_push, repo_conn, {sha, branch})
 
       %{body: body, status: status, headers: headers} ->
@@ -367,7 +367,7 @@ defmodule BorsNG.GitHub.Server do
         msg = %{ref: "refs/heads/#{to}", sha: sha}
 
         repo_conn
-        |> post!("git/refs", Poison.encode!(msg))
+        |> post!("git/refs", Jason.encode!(msg))
         |> case do
           %{status: 201} ->
             {:ok, sha}
@@ -377,11 +377,11 @@ defmodule BorsNG.GitHub.Server do
         end
 
       %{body: raw, status: 200} ->
-        if sha != Poison.decode!(raw)["commit"]["sha"] do
+        if sha != Jason.decode!(raw)["commit"]["sha"] do
           msg = %{force: true, sha: sha}
 
           repo_conn
-          |> patch!("git/refs/heads/#{to}", Poison.encode!(msg))
+          |> patch!("git/refs/heads/#{to}", Jason.encode!(msg))
           |> case do
             %{status: 200} ->
               {:ok, sha}
@@ -420,7 +420,7 @@ defmodule BorsNG.GitHub.Server do
     |> case do
       %{body: raw, status: 200} ->
         res =
-          Poison.decode!(raw)
+          Jason.decode!(raw)
           |> Enum.map(fn %{"name" => name} -> name end)
 
         {:ok, res}
@@ -464,7 +464,7 @@ defmodule BorsNG.GitHub.Server do
 
   def do_handle_call(:post_comment, repo_conn, {number, body}) do
     repo_conn
-    |> post!("issues/#{number}/comments", Poison.encode!(%{body: body}))
+    |> post!("issues/#{number}/comments", Jason.encode!(%{body: body}))
     |> case do
       %{status: 201} ->
         :ok
@@ -479,7 +479,7 @@ defmodule BorsNG.GitHub.Server do
     body = %{state: state, context: "bors", description: msg, target_url: url}
 
     repo_conn
-    |> post!("statuses/#{sha}", Poison.encode!(body))
+    |> post!("statuses/#{sha}", Jason.encode!(body))
     |> case do
       %{status: 201} ->
         :ok
@@ -528,7 +528,7 @@ defmodule BorsNG.GitHub.Server do
       %{body: raw, status: 200} ->
         user =
           raw
-          |> Poison.decode!()
+          |> Jason.decode!()
           |> GitHub.FullUser.from_json!()
 
         {:ok, user}
@@ -569,7 +569,7 @@ defmodule BorsNG.GitHub.Server do
       end
 
     statuses =
-      Poison.decode!(raw)["statuses"]
+      Jason.decode!(raw)["statuses"]
       |> Enum.map(
         &{
           &1["context"] |> GitHub.map_changed_status(),
@@ -606,7 +606,7 @@ defmodule BorsNG.GitHub.Server do
       end
 
     checks =
-      Poison.decode!(raw)["check_runs"]
+      Jason.decode!(raw)["check_runs"]
       |> Enum.map(
         &{
           &1["name"] |> GitHub.map_changed_status(),
@@ -636,7 +636,7 @@ defmodule BorsNG.GitHub.Server do
       |> tesla_client(@installation_content_type)
       |> Tesla.get!(url, query: params)
 
-    json = Enum.concat(append, Poison.decode!(raw))
+    json = Enum.concat(append, Jason.decode!(raw))
     next_headers = get_next_headers(headers)
 
     case next_headers do
@@ -659,7 +659,7 @@ defmodule BorsNG.GitHub.Server do
       |> Tesla.get!(url, query: params)
 
     repositories =
-      Poison.decode!(raw)["repositories"]
+      Jason.decode!(raw)["repositories"]
       |> Enum.map(&GitHub.Repo.from_json!/1)
       |> Enum.concat(append)
 
@@ -685,7 +685,7 @@ defmodule BorsNG.GitHub.Server do
       |> Tesla.get!(url, query: params)
 
     list =
-      Poison.decode!(raw)
+      Jason.decode!(raw)
       |> Enum.map(fn %{"id" => id} -> id end)
       |> Enum.concat(append)
 
@@ -715,13 +715,13 @@ defmodule BorsNG.GitHub.Server do
       end
 
     prs =
-      Poison.decode!(raw)
+      Jason.decode!(raw)
       |> Enum.flat_map(fn %{"url" => url} ->
         "token #{token}"
         |> tesla_client(@content_type)
         |> Tesla.get!(url)
         |> case do
-          %{body: raw, status: 200} -> Poison.decode!(raw)
+          %{body: raw, status: 200} -> Jason.decode!(raw)
           _ -> %{}
         end
         |> GitHub.Pr.from_json()
@@ -759,7 +759,7 @@ defmodule BorsNG.GitHub.Server do
       {:ok, %{body: raw, status: 200, headers: headers}} ->
         users =
           raw
-          |> Poison.decode!()
+          |> Jason.decode!()
           |> Enum.map(fn user ->
             %{user: GitHub.User.from_json!(user), perms: extract_user_repo_perms(user)}
           end)
@@ -862,7 +862,7 @@ defmodule BorsNG.GitHub.Server do
       |> tesla_client(@installation_content_type)
       |> Tesla.post!("app/installations/#{installation_xref}/access_tokens", "")
 
-    Poison.decode!(raw)["token"]
+    Jason.decode!(raw)["token"]
   end
 
   def get_jwt_token do
