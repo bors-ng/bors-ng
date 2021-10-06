@@ -33,7 +33,7 @@ defmodule BorsNG.GitHub.Repo do
   end
 
   @doc """
-  Convert from Poison-decoded JSON to a Repository struct.
+  Convert from Jason-decoded JSON to a Repository struct.
   """
   def from_json(%{
         "id" => id,

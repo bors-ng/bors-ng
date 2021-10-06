@@ -34,7 +34,7 @@ defmodule BorsNG.Router do
   end
 
   pipeline :webhook do
-    plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)
+    plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
   end
 
   scope "/", BorsNG do

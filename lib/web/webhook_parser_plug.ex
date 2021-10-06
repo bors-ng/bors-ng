@@ -39,7 +39,7 @@ defmodule BorsNG.WebhookParserPlug do
 
     case hmac do
       ^signature ->
-        %Plug.Conn{conn | body_params: Poison.decode!(body)}
+        %Plug.Conn{conn | body_params: Jason.decode!(body)}
 
       _ ->
         conn

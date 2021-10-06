@@ -16,7 +16,7 @@ defmodule BorsNG.GitHub.Team do
   )
 
   @doc """
-  Convert from Poison-decoded JSON to a User struct.
+  Convert from Jason-decoded JSON to a User struct.
   """
   @spec from_json!(tjson) :: t
   def from_json!(json) do
@@ -25,7 +25,7 @@ defmodule BorsNG.GitHub.Team do
   end
 
   @doc """
-  Convert from Poison-decoded JSON to a User struct.
+  Convert from Jason-decoded JSON to a User struct.
   """
   @spec from_json(tjson) :: {:ok, t} | :err
   def from_json(%{

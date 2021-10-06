@@ -27,7 +27,8 @@ defmodule BorsNG.Application do
         id: Installation
       ),
       worker(BorsNG.Worker.BranchDeleter, []),
-      supervisor(BorsNG.Endpoint, [])
+      supervisor(BorsNG.Endpoint, []),
+      {Phoenix.PubSub, [name: BorsNG.PubSub, adapter: Phoenix.PubSub.PG2]}
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

@@ -16,7 +16,7 @@ defmodule BorsNG.GitHub.Commit do
         }
 
   @doc """
-  Convert from Poison-decoded JSON to a Commit struct.
+  Convert from Jason-decoded JSON to a Commit struct.
   """
   @spec from_json!(tjson) :: t
   def from_json!(json) do
@@ -25,7 +25,7 @@ defmodule BorsNG.GitHub.Commit do
   end
 
   @doc """
-  Convert from Poison-decoded JSON to a Commit struct.
+  Convert from Jason-decoded JSON to a Commit struct.
   """
   @spec from_json(tjson) :: {:ok, t} | :err
   def from_json(%{
