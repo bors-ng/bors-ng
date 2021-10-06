@@ -529,15 +529,21 @@ defmodule BorsNG.Worker.Batcher do
                   )
 
                 cpt =
-                  GitHub.create_commit!(
-                    repo_conn,
-                    %{
-                      tree: merge_commit.tree,
-                      parents: [prev_head],
-                      commit_message: commit_message,
-                      committer: %{name: user.name || user.login, email: user_email}
-                    }
-                  )
+                  case merge_commit do
+                    :conflict ->
+                      :conflict
+
+                    _ ->
+                      GitHub.create_commit!(
+                        repo_conn,
+                        %{
+                          tree: merge_commit.tree,
+                          parents: [prev_head],
+                          commit_message: commit_message,
+                          committer: %{name: user.name || user.login, email: user_email}
+                        }
+                      )
+                  end
 
                 Logger.info("Commit Sha #{inspect(cpt)}")
                 cpt
@@ -550,22 +556,28 @@ defmodule BorsNG.Worker.Batcher do
             parents
           end
 
-        head =
-          if toml.use_squash_merge do
-            # This will avoid creating a merge commit, which is important since it will prevent
-            # bors from polluting th git blame history with it's own name
-            head = Enum.at(parents, 0)
-            GitHub.force_push!(repo_conn, head, batch.project.staging_branch)
-            head
-          else
-            commit_message =
-              Batcher.Message.generate_commit_message(
-                patch_links,
-                toml.cut_body_after,
-                gather_co_authors(batch, patch_links),
-                toml.commit_title
-              )
+        if toml.use_squash_merge do
+          # This will avoid creating a merge commit, which is important since it will prevent
+          # bors from polluting th git blame history with it's own name
+          head = Enum.at(parents, 0)
 
+          if head == :conflict do
+            {:conflict, nil}
+          else
+            GitHub.force_push!(repo_conn, head, batch.project.staging_branch)
+            setup_statuses(batch, toml)
+            {:running, head}
+          end
+        else
+          commit_message =
+            Batcher.Message.generate_commit_message(
+              patch_links,
+              toml.cut_body_after,
+              gather_co_authors(batch, patch_links),
+              toml.commit_title
+            )
+
+          head =
             GitHub.synthesize_commit!(
               repo_conn,
               %{
@@ -576,10 +588,10 @@ defmodule BorsNG.Worker.Batcher do
                 committer: toml.committer
               }
             )
-          end
 
-        setup_statuses(batch, toml)
-        {:running, head}
+          setup_statuses(batch, toml)
+          {:running, head}
+        end
 
       {:error, message} ->
         message = Batcher.Message.generate_bors_toml_error(message)
