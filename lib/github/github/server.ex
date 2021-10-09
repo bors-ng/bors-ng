@@ -957,7 +957,9 @@ defmodule BorsNG.GitHub.Server do
 
     Tesla.client(
       middleware,
-      Tesla.Adapter.Hackney
+      {Tesla.Adapter.Hackney,
+       connect_timeout: Confex.get_env(:bors, :api_github_timeout, 8_000) - 1,
+       recv_timeout: Confex.get_env(:bors, :api_github_timeout, 8_000) - 1}
     )
   end
 end
