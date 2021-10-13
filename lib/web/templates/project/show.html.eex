@@ -59,7 +59,7 @@
         <%= if patch.is_single do %>S<% end %>
       </td>
       <td class=hide-on-super-narrow>
-        <%= truncate_commit(patch.commit) %>
+        <code><%= truncate_commit(patch.commit) %></code>
       </td>
     </tr>
   <% end %>
@@ -102,7 +102,7 @@
         <%= if patch.is_single do %>S<% end %>
       </td>
       <td class=hide-on-super-narrow>
-        <%= truncate_commit(patch.commit) %>
+        <code><%= truncate_commit(patch.commit) %></code>
       </td>
     </tr>
   <% end %>
