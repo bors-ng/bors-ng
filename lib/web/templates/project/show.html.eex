@@ -34,8 +34,8 @@
   </thead>
   <tbody>
   <%= for patch <- batch.patches do %>
-    <tr role="row">
-      <td>
+    <tr role="row" id="prrow-<%= patch.pr_xref %>">
+      <td class=expand-row>
         <%= patch.pr_xref %>
       </td>
       <td class=span--<%= if patch.is_mergeable do %>ok<% else %>error<% end %> aria-label="<%= if patch.is_mergeable do %><%= if patch.is_draft do %>Draft<% else %>Yes<% end %><% else %>No<% end %>" title="<%= if patch.is_mergeable do %><%= if patch.is_draft do %>Draft<% else %>Yes<% end %><% else %>No<% end %>">
@@ -77,8 +77,8 @@
   </thead>
   <tbody>
   <%= for patch <- @unbatched_patches do %>
-    <tr role="row">
-      <td>
+    <tr role="row" id="prrow-<%= patch.pr_xref %>">
+      <td class=expand-row>
         <%= patch.pr_xref %>
       </td>
       <td class=span--<%= if patch.is_mergeable do %>ok<% else %>error<% end %> aria-label="<%= if patch.is_mergeable do %><%= if patch.is_draft do %>Draft<% else %>Yes<% end %><% else %>No<% end %>" title="<%= if patch.is_mergeable do %><%= if patch.is_draft do %>Draft<% else %>Yes<% end %><% else %>No<% end %>">

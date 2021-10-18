@@ -2,7 +2,7 @@ import { convertTime } from './time-convert.js';
 
 var pathParts = window.location.pathname.match(/\/\d+\//);
 
-if (pathParts.length > 0) {
+if (pathParts && pathParts.length > 0) {
   activateRepo(pathParts[0]);
 }
 
