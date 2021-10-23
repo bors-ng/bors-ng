@@ -32,10 +32,6 @@ defmodule BorsNG.BatchController do
         _ -> raise BorsNG.PermissionDeniedError
       end
 
-    if mode == :ro do
-      raise BorsNG.PermissionDeniedError
-    end
-
     patches = Repo.all(Patch.all_for_batch(batch.id))
     statuses = Repo.all(Status.all_for_batch(batch.id))
 
