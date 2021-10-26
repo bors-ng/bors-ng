@@ -88,12 +88,23 @@ defmodule BorsNG.BatchControllerTest do
     conn
   end
 
-  test "hides batch details from unlinked user", %{conn: conn, batch: batch} do
+  test "shows batch details to unlinked user", %{
+    conn: conn,
+    batch: batch,
+    user: user,
+    project: project
+  } do
     conn = login(conn)
+    conn = get(conn, "/batches/#{batch.id}")
 
-    assert_raise BorsNG.PermissionDeniedError, fn ->
-      get(conn, "/batches/#{batch.id}")
-    end
+    assert html_response(conn, 200) =~ "Batch Details"
+    assert html_response(conn, 200) =~ "Priority: 33"
+    assert html_response(conn, 200) =~ "State: Invalid"
+    assert html_response(conn, 200) =~ "#43"
+    assert html_response(conn, 200) =~ "<span>some-identifier (Running)</span>"
+
+    assert html_response(conn, 200) =~
+             ~s(<a href="http://example.com">with-url-identifier (Waiting to run\)</a>)
   end
 
   test "shows the batch details as a reviewer", %{
@@ -120,7 +131,7 @@ defmodule BorsNG.BatchControllerTest do
              ~s(<a href="http://example.com">with-url-identifier (Waiting to run\)</a>)
   end
 
-  test "hides batch details from a member", %{
+  test "shows batch details to a member", %{
     conn: conn,
     batch: batch,
     user: user,
@@ -132,10 +143,16 @@ defmodule BorsNG.BatchControllerTest do
     })
 
     conn = login(conn)
+    conn = get(conn, "/batches/#{batch.id}")
 
-    assert_raise BorsNG.PermissionDeniedError, fn ->
-      get(conn, "/batches/#{batch.id}")
-    end
+    assert html_response(conn, 200) =~ "Batch Details"
+    assert html_response(conn, 200) =~ "Priority: 33"
+    assert html_response(conn, 200) =~ "State: Invalid"
+    assert html_response(conn, 200) =~ "#43"
+    assert html_response(conn, 200) =~ "<span>some-identifier (Running)</span>"
+
+    assert html_response(conn, 200) =~
+             ~s(<a href="http://example.com">with-url-identifier (Waiting to run\)</a>)
   end
 
   test "shows the batch details for an admin", %{conn: conn, batch: batch, user: user} do
