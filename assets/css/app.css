@@ -260,6 +260,21 @@ footer {
 .table tr:target {
   background: #EEE;
 }
+table tr.exp {
+  display: none;
+}
+table tr.exp td {
+  padding: 0 1em;
+}
+.exp-indicator-close::before {
+  content: '▸';
+}
+.exp-indicator-open::before {
+  content: '▾';
+}
+table tr.exp:target {
+  display: table-row;
+}
 .table tbody tr[role="row"]:hover {
   background: #EEE;
 }
