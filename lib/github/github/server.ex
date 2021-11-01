@@ -372,8 +372,8 @@ defmodule BorsNG.GitHub.Server do
           %{status: 201} ->
             {:ok, sha}
 
-          _ ->
-            {:error, :force_push}
+          %{status: status, body: body} ->
+            {:error, :force_push, status, body}
         end
 
       %{body: raw, status: 200} ->
@@ -386,8 +386,8 @@ defmodule BorsNG.GitHub.Server do
             %{status: 200} ->
               {:ok, sha}
 
-            _ ->
-              {:error, :force_push}
+            %{status: status, body: body} ->
+              {:error, :force_push, status, body}
           end
         else
           {:ok, sha}
