@@ -42,7 +42,7 @@ will go red (Method `bifurcate()` not found).
 
 In addition to the testing requirements, GitHub can also be set to block pull
 requests that are not "up to date" with the main branch, meaning that problems
-like this can show up. This fixes the problem, by requiring that the main branch
+like this can't show up. This fixes the problem, by requiring that the main branch
 only contain a snapshot of the code that has passed the tests, but it requires
 maintainers to manually:
 
