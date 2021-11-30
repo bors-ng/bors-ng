@@ -188,4 +188,45 @@ defmodule BorsNG.GitHub.GitHubReviewsTest do
              }
            ]
   end
+
+  test "filter by commit id when review was dismissed or commented only or just don't have commit_id",
+       _ do
+    result =
+      BorsNG.GitHub.Reviews.filter_sha!(
+        [
+          %{
+            "user" => %{"login" => "bert"},
+            "state" => "CHANGES_REQUESTED",
+            "commit_id" => "123"
+          },
+          %{
+            "user" => %{"login" => "ernie"},
+            "state" => "APPROVED",
+            "commit_id" => "456"
+          },
+          %{
+            "user" => %{"login" => "eric"},
+            # force push can dismiss the review and also there is no commit_id
+            "state" => "DISMISSED"
+          },
+          %{
+            "user" => %{"login" => "eric"},
+            "state" => "COMMENTED"
+          },
+          %{
+            "user" => %{"login" => "eric"},
+            "state" => "APPROVED"
+          }
+        ],
+        "456"
+      )
+
+    assert result == [
+             %{
+               "user" => %{"login" => "ernie"},
+               "state" => "APPROVED",
+               "commit_id" => "456"
+             }
+           ]
+  end
 end
