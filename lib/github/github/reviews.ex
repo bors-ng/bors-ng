@@ -56,7 +56,7 @@ defmodule BorsNG.GitHub.Reviews do
   def filter_sha!(json, sha) do
     json
     # Ignore reviews without commit_id node
-    |> Enum.filter(fn(review) -> !is_nil(review["commit_id"]) end)
+    |> Enum.filter(fn review -> !is_nil(review["commit_id"]) end)
     |> Enum.filter(fn %{"commit_id" => commit_id} -> commit_id == sha end)
   end
 end
