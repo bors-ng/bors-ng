@@ -29,7 +29,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             delete_merged_branches: false,
             use_codeowners: false,
             committer: nil,
-            commit_title: "Merge ${PR_REFS}",
+            commit_title: "Merge ${PR_REFS}: ${PR_TITL}",
             update_base_for_deletes: false
 
   @type tcommitter :: %{
@@ -123,7 +123,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
               false
             ),
           committer: committer,
-          commit_title: Map.get(toml, "commit_title", "Merge ${PR_REFS}"),
+          commit_title: Map.get(toml, "commit_title", "Merge ${PR_REFS}: ${PR_TITL}"),
           update_base_for_deletes: Map.get(toml, "update_base_for_deletes", false)
         }
 

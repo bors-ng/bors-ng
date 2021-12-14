@@ -171,14 +171,20 @@ defmodule BorsNG.Worker.Batcher.Message do
         patch_links,
         cut_body_after,
         co_authors,
-        template \\ "Merge ${PR_REFS}"
+        template \\ "Merge ${PR_REFS}: ${PR_TITL}"
       ) do
     pr_refs =
       patch_links
       |> Enum.map(&"\##{&1.patch.pr_xref}")
       |> Enum.join(" ")
 
+    pr_titl =
+      patch_links
+      |> Enum.map(&"\##{&1.patch.title}")
+      |> Enum.join(" ")
+
     commit_title = String.replace(template, "${PR_REFS}", pr_refs)
+    commit_title = String.replace(commit_title, "${PR_TITL}", pr_titl)
 
     commit_body =
       Enum.reduce(patch_links, "", fn link, acc ->
