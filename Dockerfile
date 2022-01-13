@@ -1,4 +1,4 @@
-ARG ELIXIR_VERSION=1.12.0
+ARG ELIXIR_VERSION=1.13.0
 ARG SOURCE_COMMIT
 
 FROM elixir:${ELIXIR_VERSION} as builder
@@ -43,7 +43,6 @@ RUN if [ -d .git ]; then \
 FROM debian:buster-slim
 RUN apt-get update -q && apt-get --no-install-recommends install -y git-core libssl1.1 curl apt-utils ca-certificates
 
-ENV DOCKERIZE_VERSION=v0.6.0
 RUN curl -Ls https://github.com/bors-ng/dockerize/releases/download/v0.7.9/dockerize-linux-amd64-v0.7.9.tar.gz | \
     tar xzv -C /usr/local/bin
 
