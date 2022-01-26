@@ -113,7 +113,7 @@ defmodule BorsNG.GitHub do
       GenServer.call(
         BorsNG.GitHub,
         {:get_open_prs, repo_conn, {}},
-        100_000
+        Confex.fetch_env!(:bors, :api_github_timeout)
       )
 
     prs
@@ -125,7 +125,7 @@ defmodule BorsNG.GitHub do
       GenServer.call(
         BorsNG.GitHub,
         {:get_open_prs_with_base, repo_conn, {base}},
-        100_000
+        Confex.fetch_env!(:bors, :api_github_timeout)
       )
 
     prs
@@ -401,7 +401,7 @@ defmodule BorsNG.GitHub do
       GenServer.call(
         BorsNG.GitHub,
         {:get_installation_repos, token, {}},
-        100_000
+        Confex.fetch_env!(:bors, :api_github_timeout)
       )
 
     repos
@@ -413,7 +413,7 @@ defmodule BorsNG.GitHub do
       GenServer.call(
         BorsNG.GitHub,
         :get_installation_list,
-        100_000
+        Confex.fetch_env!(:bors, :api_github_timeout)
       )
 
     installations
