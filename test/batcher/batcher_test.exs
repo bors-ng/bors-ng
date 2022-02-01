@@ -1817,7 +1817,7 @@ defmodule BorsNG.Worker.BatcherTest do
       project_id: proj.id,
       commit: "ini",
       state: :waiting,
-      last_polled: DateTime.to_unix(DateTime.utc_now(), :seconds),
+      last_polled: DateTime.to_unix(DateTime.utc_now(), :second),
       priority: 1,
       into_branch: "master"
     }
