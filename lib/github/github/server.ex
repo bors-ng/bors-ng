@@ -14,7 +14,6 @@ defmodule BorsNG.GitHub.Server do
   end
 
   @installation_content_type "application/vnd.github.machine-man-preview+json"
-  @check_content_type "application/vnd.github.antiope-preview+json"
   @team_content_type "application/vnd.github.hellcat-preview+json"
   @content_type_raw "application/vnd.github.v3.raw"
   @content_type "application/vnd.github.v3+json"

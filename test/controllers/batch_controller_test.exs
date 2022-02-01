@@ -91,8 +91,8 @@ defmodule BorsNG.BatchControllerTest do
   test "shows batch details to unlinked user", %{
     conn: conn,
     batch: batch,
-    user: user,
-    project: project
+    user: _user,
+    project: _project
   } do
     conn = login(conn)
     conn = get(conn, "/batches/#{batch.id}")
