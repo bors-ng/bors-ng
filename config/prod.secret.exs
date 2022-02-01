@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :bors, BorsNG.Database.Repo,
   adapter: Ecto.Adapters.Postgres,

@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :bors, :server, BorsNG.GitHub.Server
 config :bors, :oauth2, BorsNG.GitHub.OAuth2
