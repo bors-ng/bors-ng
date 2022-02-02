@@ -38,10 +38,16 @@ config :bors, BorsNG.Endpoint,
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
 
-config :bors, BorsNG.Database.Repo,
+config :bors, BorsNG.Database.RepoPostgres,
   adapter: Ecto.Adapters.Postgres,
   url: {:system, "DATABASE_URL", "postgresql://postgres:Postgres1234@localhost/bors_dev"},
-  pool_size: 10
+  pool_size: 10,
+  priv: "priv/repo"
+
+config :bors, BorsNG.Database.RepoMysql,
+  adapter: Ecto.Adapters.MyXQL,
+  url: {:system, "DATABASE_URL", "mysql://root@localhost:3306/bors_dev"},
+  priv: "priv/repo"
 
 # On developer boxes, we do not actually talk to GitHub.
 # Use the mock instance.

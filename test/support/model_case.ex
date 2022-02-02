@@ -25,10 +25,10 @@ defmodule BorsNG.Database.ModelCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(BorsNG.Database.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(:persistent_term.get(:db_repo))
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(BorsNG.Database.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(:persistent_term.get(:db_repo), {:shared, self()})
     end
 
     :ok

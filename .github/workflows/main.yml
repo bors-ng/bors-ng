@@ -29,10 +29,45 @@ jobs:
           elixir-version: ${{ matrix.elixir }}
       - run: mix deps.get
         env:
-          BORS_TEST_DATABASE: ${{ matrix.database }}
+          BORS_DATABASE: ${{ matrix.database }}
+
+      - name: Create Mysql Repo
+        if: matrix.database == 'mysql'
+        run: |
+          echo "running mysql database creation"
+          mix ecto.create -r BorsNG.Database.RepoMysql
+        env:
+          BORS_DATABASE: ${{ matrix.database }}
+          MIX_ENV: test
+      - name: Migrate Mysql Repo
+        if: matrix.database == 'mysql'
+        run: |
+          echo "running mysql migration"
+          mix ecto.migrate -r BorsNG.Database.RepoMysql
+        env:
+          BORS_DATABASE: ${{ matrix.database }}
+          MIX_ENV: test
+
+      - name: Create Postgres Repo
+        if: matrix.database == 'postgresql'
+        run: |
+          echo "running postgres database creation"
+          mix ecto.create -r BorsNG.Database.RepoPostgres
+        env:
+          BORS_DATABASE: ${{ matrix.database }}
+          MIX_ENV: test
+      - name: Migrate Postgres Repo
+        if: matrix.database == 'postgresql'
+        run: |
+          echo "running postgres migration"
+          mix ecto.migrate -r BorsNG.Database.RepoPostgres
+        env:
+          BORS_DATABASE: ${{ matrix.database }}
+          MIX_ENV: test
+
       - run: mix test
         env:
-          BORS_TEST_DATABASE: ${{ matrix.database }}
+          BORS_DATABASE: ${{ matrix.database }}
     services:
       postgresql:
         image: postgres:13

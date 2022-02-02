@@ -5,15 +5,33 @@ defmodule BorsNG.Application do
 
   use Application
 
+  def set_repo do
+    repo_module =
+      case System.get_env("BORS_DATABASE", "postgresql") do
+        "mysql" -> BorsNG.Database.RepoMysql
+        _ -> BorsNG.Database.RepoPostgres
+      end
+
+    :persistent_term.put(:db_repo, repo_module)
+  end
+
+  def fetch_repo do
+    :persistent_term.get(:db_repo)
+  end
+
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
     # Define workers and child supervisors to be supervised
+    set_repo()
+
+    repo = fetch_repo()
+
     children = [
       %{
         type: :supervisor,
-        id: BorsNG.Database.Repo,
-        start: {BorsNG.Database.Repo, :start_link, []}
+        id: repo,
+        start: {repo, :start_link, []}
       },
       %{
         type: :worker,

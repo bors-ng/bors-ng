@@ -21,7 +21,7 @@ case config_env() do
 end
 
 config :bors,
-  ecto_repos: [BorsNG.Database.Repo],
+  ecto_repos: [BorsNG.Database.RepoPostgres],
   api_github_root: {:system, :string, "GITHUB_URL_ROOT_API", "https://api.github.com"},
   html_github_root: {:system, :string, "GITHUB_URL_ROOT_HTML", "https://github.com"},
   api_github_timeout: {:system, :integer, "GITHUB_API_TIMEOUT", 100_000},
