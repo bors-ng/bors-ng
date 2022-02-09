@@ -161,7 +161,7 @@ defmodule BorsNG.Worker.Syncer do
     data =
       case pr.mergeable do
         nil -> data
-        x -> Map.put(data, :is_mergeable, pr.mergeable)
+        _ -> Map.put(data, :is_mergeable, pr.mergeable)
       end
 
     case Repo.get_by(Patch, project_id: project_id, pr_xref: number) do

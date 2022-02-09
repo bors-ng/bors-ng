@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 case System.get_env("BORS_TEST_DATABASE") do
   "mysql" ->

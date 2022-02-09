@@ -1,10 +1,8 @@
-# This file is responsible for configuring your application
-# and its dependencies with the aid of the Mix.Config module.
-use Mix.Config
+import Config
 
 # Configures Elixir's Logger
 # Do not include metadata nor timestamps in development logs
-case Mix.env() do
+case config_env() do
   :prod ->
     config :logger, level: :info
 
@@ -66,4 +64,4 @@ config :phoenix, :json_library, Jason
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
-import_config "#{Mix.env()}.exs"
+import_config "#{config_env()}.exs"

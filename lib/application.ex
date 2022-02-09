@@ -8,26 +8,76 @@ defmodule BorsNG.Application do
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
-    import Supervisor.Spec
-
     # Define workers and child supervisors to be supervised
     children = [
-      supervisor(BorsNG.Database.Repo, []),
-      worker(Confex.fetch_env!(:bors, :server), []),
-      worker(BorsNG.Attrs, []),
-      supervisor(BorsNG.Worker.Batcher.Supervisor, []),
-      worker(BorsNG.Worker.Batcher.Registry, []),
-      supervisor(BorsNG.Worker.Attemptor.Supervisor, []),
-      worker(BorsNG.Worker.Attemptor.Registry, []),
-      supervisor(Task.Supervisor, [[name: BorsNG.Worker.Syncer.Supervisor]]),
-      supervisor(Registry, [:unique, BorsNG.Worker.Syncer.Registry]),
-      supervisor(
-        Registry,
-        [:unique, BorsNG.Worker.SyncerInstallation.Registry],
+      %{
+        type: :supervisor,
+        id: BorsNG.Database.Repo,
+        start: {BorsNG.Database.Repo, :start_link, []}
+      },
+      %{
+        type: :worker,
+        id: Confex.fetch_env!(:bors, :server),
+        start: {Confex.fetch_env!(:bors, :server), :start_link, []}
+      },
+      %{type: :worker, id: BorsNG.Attrs, start: {BorsNG.Attrs, :start_link, []}},
+      %{
+        type: :supervisor,
+        id: BorsNG.Worker.Batcher.Supervisor,
+        start: {BorsNG.Worker.Batcher.Supervisor, :start_link, []}
+      },
+      %{
+        type: :worker,
+        id: BorsNG.Worker.Batcher.Registry,
+        start: {BorsNG.Worker.Batcher.Registry, :start_link, []}
+      },
+      %{
+        type: :supervisor,
+        id: BorsNG.Worker.Attemptor.Supervisor,
+        start: {BorsNG.Worker.Attemptor.Supervisor, :start_link, []}
+      },
+      %{
+        type: :worker,
+        id: BorsNG.Worker.Attemptor.Registry,
+        start: {BorsNG.Worker.Attemptor.Registry, :start_link, []}
+      },
+      %{
+        type: :supervisor,
+        id: BorsNG.Worker.Syncer.Supervisor,
+        start: {Task.Supervisor, :start_link, [[name: BorsNG.Worker.Syncer.Supervisor]]}
+      },
+      %{
+        type: :supervisor,
+        id: BorsNG.Worker.Syncer.Registry,
+        start: {Registry, :start_link, [:unique, BorsNG.Worker.Syncer.Registry]}
+      },
+      %{
+        type: :supervisor,
+        start: {
+          Registry,
+          :start_link,
+          [:unique, BorsNG.Worker.SyncerInstallation.Registry]
+        },
         id: Installation
-      ),
-      worker(BorsNG.Worker.BranchDeleter, []),
-      supervisor(BorsNG.Endpoint, []),
+      },
+      %{
+        type: :worker,
+        start: {
+          BorsNG.Worker.BranchDeleter,
+          :start_link,
+          []
+        },
+        id: BorsNG.Worker.BranchDeleter
+      },
+      %{
+        type: :supervisor,
+        start: {
+          BorsNG.Endpoint,
+          :start_link,
+          []
+        },
+        id: BorsNG.Endpoint
+      },
       {Phoenix.PubSub, [name: BorsNG.PubSub, adapter: Phoenix.PubSub.PG2]}
     ]
 
