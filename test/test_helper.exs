@@ -1,3 +1,3 @@
 ExUnit.start()
 
-Ecto.Adapters.SQL.Sandbox.mode(BorsNG.Database.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(:persistent_term.get(:db_repo), :manual)

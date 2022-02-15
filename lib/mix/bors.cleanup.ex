@@ -67,5 +67,5 @@ defmodule Mix.Tasks.Bors.Cleanup do
     end
   end
 
-  def repos, do: Application.get_env(:bors, :ecto_repos, [])
+  def repos, do: [BorsNG.Application.fetch_repo()]
 end

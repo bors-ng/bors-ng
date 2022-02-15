@@ -1,48 +1,55 @@
+defmodule DynamicEctoRepoWrapper do
+  @moduledoc """
+  Exposes a macro to define Ecto.Repo functions dynamically.
+  """
+  defmacro create_ecto_repo_callback(args, name) do
+    quote bind_quoted: [args: args, name: name] do
+      def unquote(name)(unquote_splicing(args)) do
+        repo = :persistent_term.get(:db_repo)
+        apply(repo, unquote(name), unquote(args))
+      end
+    end
+  end
+
+  def create_ecto_repo_callback_args(_, 0) do
+    []
+  end
+
+  def create_ecto_repo_callback_args(module, arity) do
+    Enum.map(1..arity, &Macro.var(:"arg#{&1}", module))
+  end
+end
+
 defmodule BorsNG.Database.Repo do
   @moduledoc """
-  An ecto data repository;
-  this process interacts with your persistent database.
-
-  Do not confuse this with a GitHub repo.
-  We call those `Project`s internally.
+  This is an Ecto.Repo wrapper that defines all callback functions.
   """
+  import DynamicEctoRepoWrapper
 
-  use Ecto.Repo,
-    otp_app: :bors,
-    adapter: Application.get_env(:bors, BorsNG.Database.Repo)[:adapter]
+  @ecto_repo_callbacks Path.join([__DIR__, "repo_callbacks.txt"])
+                       |> File.read!()
+                       |> String.trim()
+                       |> String.split("\n")
+                       |> Enum.map(fn line ->
+                         [line, arity] = line |> String.split("/") |> Enum.map(&String.trim(&1))
+                         {String.to_atom(line), String.to_integer(arity)}
+                       end)
 
-  def init(_, config) do
-    # Backwards compatibility hack: if POSTGRES_HOST is set, and the database URL is left at default,
-    # use the older configuration.
-    config = Confex.Resolver.resolve!(config)
-    no_host = is_nil(System.get_env("POSTGRES_HOST"))
+  @ecto_repo_callbacks
+  |> Enum.flat_map(fn
+    {callback, arity} when arity >= 1 ->
+      is_defined = Enum.any?(@ecto_repo_callbacks, fn fun -> fun == {callback, arity - 1} end)
 
-    config =
-      case config[:url] do
-        _ when no_host ->
-          config
+      if is_defined,
+        do: [{callback, arity}],
+        else: [{callback, arity}, {callback, arity - 1}]
 
-        "postgresql://postgres:Postgres1234@localhost/bors_dev" ->
-          [
-            adapter: Ecto.Adapters.Postgres,
-            username: "postgres",
-            password: "Postgres1234",
-            database: "bors_dev",
-            hostname: {:system, "POSTGRES_HOST", "localhost"},
-            pool_size: 10
-          ]
-
-        "postgresql://postgres:Postgres1234@localhost/bors_test" ->
-          [
-            adapter: Ecto.Adapters.Postgres,
-            username: "postgres",
-            password: "Postgres1234",
-            database: "bors_test",
-            hostname: {:system, "POSTGRES_HOST", "localhost"},
-            pool_size: 10
-          ]
-      end
-
-    {:ok, config}
-  end
+    {callback, arity} ->
+      [{callback, arity}]
+  end)
+  |> Enum.map(fn {callback, arity} ->
+    __MODULE__
+    |> create_ecto_repo_callback_args(arity)
+    |> create_ecto_repo_callback(callback)
+  end)
 end
