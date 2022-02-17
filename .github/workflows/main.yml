@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        elixir: ["1.11.4", "1.12.0", "1.13.2"]
+        elixir: ["1.12.0", "1.13.2"]
         otp_release: ["23.2", "24.0"]
         os: [ubuntu-latest]
         database: [postgresql, mysql]
@@ -93,8 +93,8 @@ jobs:
     - uses: actions/checkout@master
     - uses: erlef/setup-elixir@v1
       with:
-        otp-version: "23.2"
-        elixir-version: "1.12.0"
+        otp-version: "24.0"
+        elixir-version: "1.13.2"
     - run: mix format --check-formatted
 
   ci-success:
