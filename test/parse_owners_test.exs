@@ -249,7 +249,7 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/other_team"
   end
 
-  test "Test double asterix matches rule with leading slash (specific rule matches)" do
+  test "Test double asterisk matches rule with leading slash (specific rule matches)" do
     IO.inspect(File.cwd())
     {:ok, codeowner} = File.read("test/testdata/code_owners_8")
 
@@ -269,7 +269,7 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 0), 1) == "@my_org/team-c"
   end
 
-  test "Test double asterix matches rule with leading slash (catch all rule matches)" do
+  test "Test double asterisk matches rule with leading slash (catch all rule matches)" do
     IO.inspect(File.cwd())
     {:ok, codeowner} = File.read("test/testdata/code_owners_8")
 
@@ -288,7 +288,7 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/catch-all"
   end
 
-  test "Test double asterix matches rule with leading slash (require catch all and specific)" do
+  test "Test double asterisk matches rule with leading slash (require catch all and specific)" do
     IO.inspect(File.cwd())
     {:ok, codeowner} = File.read("test/testdata/code_owners_8")
 
@@ -309,7 +309,7 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 1), 0) == "@my_org/catch-all"
   end
 
-  test "Test double asterix matches rule without leading slash (catch all rule matches)" do
+  test "Test double asterisk matches rule without leading slash (catch all rule matches)" do
     IO.inspect(File.cwd())
     {:ok, codeowner} = File.read("test/testdata/code_owners_8")
 
@@ -330,7 +330,7 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 1), 0) == "@my_org/catch-all"
   end
 
-  test "Test double asterix matches rule without leading slash anywhere in tree" do
+  test "Test double asterisk matches rule without leading slash anywhere in tree" do
     IO.inspect(File.cwd())
     {:ok, codeowner} = File.read("test/testdata/code_owners_8")
 
