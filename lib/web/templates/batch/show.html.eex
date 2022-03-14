@@ -35,9 +35,13 @@
 </ul>
 <p>
   Pull Requests:
-  <%= for patch <- @patches do %>
-  <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">#<%= patch.pr_xref %></a>
-  <% end %>
+  <ul>
+    <%= for patch <- @patches do %>
+    <li>
+      <a href="<%= Confex.fetch_env!(:bors, :html_github_root) %>/<%= @project.name %>/pull/<%= patch.pr_xref %>">#<%= patch.pr_xref %></a>
+    </li>
+    <% end %>
+  </ul>
 </p>
 
 <% else %>
