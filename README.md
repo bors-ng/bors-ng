@@ -6,7 +6,8 @@ A merge bot for GitHub pull requests
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/3)
 
 [Bors-NG] implements a continuous-testing workflow where the main branch never breaks.
-It integrates GitHub pull requests with a tool like [Travis CI] that runs your tests.
+It integrates GitHub pull requests with a tool like [GitHub Actions] that runs
+your tests.
 
 Other resources:
 
@@ -18,8 +19,8 @@ Other resources:
 
 # But don't GitHub's Protected Branches already do this?
 
-Most CI systems, like Travis, Jenkins, and GitHub Actions both run the test suite
-on every branch after it's pushed to and every pull request when it's opened, and
+Most CI systems, like Jenkins and [GitHub Actions] both run the test suite on
+every branch after it's pushed to and every pull request when it's opened, and
 GitHub can block the pull requests if the tests fail on them. To understand why
 this is insufficient to get an evergreen main branch, imagine this:
 
@@ -75,7 +76,7 @@ Bors is a [GitHub Application], so (assuming you already have GitHub Actions set
  2. Commit a bors.toml with these contents:
 
         status = ["ci"]
- 
+
  3. Set up a workflow step with the same name. For example:
 
         ci-success:
@@ -139,8 +140,8 @@ Note that you can watch this process running on the [dashboard page] if you want
 As a convenience, you can also run `bors try`, which will kick off a build the same way `r+` would, but without actually pushing it to the main branch even if it does succeed. To help keep them separate, `r+` merge commits go in `staging` and `try` builds go in `trying`.
 
 [Bors-NG]: https://bors.tech/
+[GitHub Actions]: https://github.com/features/actions
 [GitHub Application]: https://github.com/settings/installations
-[Travis CI]: https://travis-ci.org/
 [dashboard page]: https://app.bors.tech/
 
 The [original bors] used a more simple system (it just tested one PR at a time all the time).
