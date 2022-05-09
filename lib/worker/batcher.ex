@@ -157,7 +157,7 @@ defmodule BorsNG.Worker.Batcher do
           :ok ->
             run(reviewer, patch)
 
-          :waiting ->
+          {:waiting, message} ->
             {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
 
             case toml.prerun_timeout_sec do
@@ -165,7 +165,7 @@ defmodule BorsNG.Worker.Batcher do
                 send_message(repo_conn, [patch], {:preflight, :timeout})
 
               _ ->
-                send_message(repo_conn, [patch], {:preflight, :waiting})
+                send_message(repo_conn, [patch], {:preflight, message})
                 Logger.info("Start Poll Patch #{patch.id} prerun")
                 Process.send_after(self(), {:prerun_poll, 0, {reviewer, patch}}, 0)
             end
@@ -267,10 +267,10 @@ defmodule BorsNG.Worker.Batcher do
           :ok ->
             run(reviewer, patch)
 
-          :waiting when elapsed > prerun_timeout_ms ->
-            send_message(repo_conn, [patch], {:preflight, :timeout})
+          { :waiting, message } when elapsed > prerun_timeout_ms ->
+            send_message(repo_conn, [patch], {:preflight, :message})
 
-          :waiting ->
+          {:waiting, message } ->
             Process.send_after(self(), {:prerun_poll, try_num + 1, args}, @prerun_poll_period)
 
           {:error, message} ->
@@ -997,11 +997,11 @@ defmodule BorsNG.Worker.Batcher do
       {true, true, true, true, :sufficient, true, :sufficient} -> :ok
       {false, _, _, _, _, _, _} -> {:error, :blocked_labels}
       {_, _, _, _, :insufficient, _, _} -> {:error, :insufficient_approvals}
-      {_, _, _, _, :failed, _, _} -> {:error, :blocked_review}
-      {_, _, _, _, _, false, _} -> {:error, :missing_code_owner_approval}
+      {_, _, _, _, :failed, _, _} -> {:waiting, :blocked_review}
+      {_, _, _, _, _, false, _} -> {:waiting, :missing_code_owner_approval}
       {_, false, _, _, _, _, _} -> {:error, :pr_status}
-      {true, true, false, _, :sufficient, true, _} -> :waiting
-      {true, true, _, false, :sufficient, true, _} -> :waiting
+      {true, true, false, _, :sufficient, true, _} -> { :waiting, :waiting_pr_status  }
+      {true, true, _, false, :sufficient, true, _} -> { :waiting, :waiting_pr_status  }
       {_, _, _, _, :sufficient, _, :insufficient} -> {:error, :insufficient_up_to_date_approvals}
     end
   end

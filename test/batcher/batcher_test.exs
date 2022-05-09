@@ -580,7 +580,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  }
                },
                comments: %{
-                 1 => [":-1: Rejected because of missing code owner approval"]
+                 1 => [":-1: Waiting because of missing code owner approval"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{
@@ -685,7 +685,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  }
                },
                comments: %{
-                 1 => [":-1: Rejected because of missing code owner approval"]
+                 1 => [":-1: Waiting because of missing code owner approval"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{
@@ -790,7 +790,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  }
                },
                comments: %{
-                 1 => [":-1: Rejected because of missing code owner approval"]
+                 1 => [":-1: Waiting because of missing code owner approval"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{
@@ -900,7 +900,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  }
                },
                comments: %{
-                 1 => [":-1: Rejected because of missing code owner approval"]
+                 1 => [":-1: Waiting because of missing code owner approval"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{
@@ -1010,7 +1010,7 @@ defmodule BorsNG.Worker.BatcherTest do
                  }
                },
                comments: %{
-                 1 => [":-1: Rejected because of missing code owner approval"]
+                 1 => [":-1: Waiting because of missing code owner approval"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{
@@ -1410,7 +1410,7 @@ defmodule BorsNG.Worker.BatcherTest do
                branches: %{},
                commits: %{},
                comments: %{
-                 1 => [":-1: Rejected by code reviews"]
+                 1 => [":-1: Waiting for code reviews"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{"Z" => %{"bors.toml" => ~s/status = [ "ci" ]\nrequired_approvals = 0/}},
@@ -1448,7 +1448,7 @@ defmodule BorsNG.Worker.BatcherTest do
                branches: %{},
                commits: %{},
                comments: %{
-                 1 => [":-1: Rejected by code reviews"]
+                 1 => [":-1: Waiting for code reviews"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{"Z" => %{"bors.toml" => ~s/status = [ "ci" ]\nrequired_approvals = 1/}},

@@ -35,7 +35,7 @@ defmodule BorsNG.Worker.Batcher.Message do
     {"Delayed for higher-priority pull requests", :running}
   end
 
-  def generate_message({:preflight, :waiting}) do
+  def generate_message({:preflight, :waiting_pr_status}) do
     ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
   end
 
@@ -68,11 +68,11 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :missing_code_owner_approval}) do
-    ":-1: Rejected because of missing code owner approval"
+    ":-1: Waiting because of missing code owner approval"
   end
 
   def generate_message({:preflight, :blocked_review}) do
-    ":-1: Rejected by code reviews"
+    ":-1: Waiting for code reviews"
   end
 
   def generate_message({:preflight, :ci_skip}) do
