@@ -60,7 +60,7 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :insufficient_approvals}) do
-    ":-1: Rejected by too few approved reviews"
+    ":clock1: waiting for approved reviews"
   end
 
   def generate_message({:preflight, :insufficient_up_to_date_approvals}) do
@@ -72,7 +72,7 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :blocked_review}) do
-    ":-1: Waiting for code reviews"
+    ":-1: Rejected by code reviews"
   end
 
   def generate_message({:preflight, :ci_skip}) do

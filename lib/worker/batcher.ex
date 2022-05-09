@@ -996,8 +996,8 @@ defmodule BorsNG.Worker.Batcher do
           code_owners_approved, passed_up_to_date_review} do
       {true, true, true, true, :sufficient, true, :sufficient} -> :ok
       {false, _, _, _, _, _, _} -> {:error, :blocked_labels}
-      {_, _, _, _, :insufficient, _, _} -> {:error, :insufficient_approvals}
-      {_, _, _, _, :failed, _, _} -> {:waiting, :blocked_review}
+      {_, _, _, _, :insufficient, _, _} -> {:waiting, :insufficient_approvals}
+      {_, _, _, _, :failed, _, _} -> {:error, :blocked_review}
       {_, _, _, _, _, false, _} -> {:waiting, :missing_code_owner_approval}
       {_, false, _, _, _, _, _} -> {:error, :pr_status}
       {true, true, false, _, :sufficient, true, _} -> { :waiting, :waiting_pr_status  }

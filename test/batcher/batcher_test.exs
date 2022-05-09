@@ -1410,7 +1410,7 @@ defmodule BorsNG.Worker.BatcherTest do
                branches: %{},
                commits: %{},
                comments: %{
-                 1 => [":-1: Waiting for code reviews"]
+                 1 => [":-1: Rejected by code reviews"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{"Z" => %{"bors.toml" => ~s/status = [ "ci" ]\nrequired_approvals = 0/}},
@@ -1448,7 +1448,7 @@ defmodule BorsNG.Worker.BatcherTest do
                branches: %{},
                commits: %{},
                comments: %{
-                 1 => [":-1: Waiting for code reviews"]
+                 1 => [":-1: Rejected by code reviews"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{"Z" => %{"bors.toml" => ~s/status = [ "ci" ]\nrequired_approvals = 1/}},
@@ -1530,7 +1530,7 @@ defmodule BorsNG.Worker.BatcherTest do
                branches: %{},
                commits: %{},
                comments: %{
-                 1 => [":-1: Rejected by too few approved reviews"]
+                 1 => [":clock1: waiting for approved reviews"]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
                files: %{
