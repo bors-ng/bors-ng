@@ -544,17 +544,18 @@ defmodule BorsNG.Command do
       ~s"""
       Hi!<br>
       Here are some common instructions you can give me!<br>
-      - `${command_trigger()} merge` <- I'll take over the process of merging your PR, unless you push any more commits. Then it's yours again!<br>
-      - `${command_trigger()} cancel` <- I didn't really mean to do that...<br>
-      - `${command_trigger()} single on` <- absolutely do not batch this PR with any others<br>
-      - `${command_trigger()} p=[priority]` <- give a numerical priority different from the default of '0'<br>
-      - `${command_trigger()} yeet` <- same as `${command_trigger()} merge`, but I'll throw a crab at you<br><br>
+      - `${:command_trigger()} merge` <- I'll take over the process of merging your PR, unless you push any more commits. Then it's yours again!<br>
+      - `${:command_trigger()} cancel` <- I didn't really mean to do that...<br>
+      - `${:command_trigger()} single on` <- absolutely do not batch this PR with any others<br>
+      - `${:command_trigger()} p=[priority]` <- give a numerical priority different from the default of '0'<br>
+      - `${:command_trigger()} yeet` <- same as `${:command_trigger()} merge`, but I'll throw a crab at you<br>
       You can give more than one command in the same comment, so if you have an urgent hot fix:<br>
       ```<br>
-      ${command_trigger()} single on<br>
-      ${command_trigger()} p=100<br>
-      ${command_trigger()} merge<br>
-      ```<br>
+      ${:command_trigger()} single on
+      ${:command_trigger()} p=100
+      ${:command_trigger()} merge
+      ```
+
       Will skip you to the front of the queue you merge your PR on its own.
       """
     )
