@@ -164,6 +164,7 @@ defmodule BorsNG.Command do
   def parse_cmd("p=" <> rest), do: parse_priority(rest)
   def parse_cmd("retry" <> _), do: [:retry]
   def parse_cmd("cancel" <> _), do: [:deactivate]
+  def parse_cmd("help" <> _), do: [:help]
   def parse_cmd(_), do: []
 
   @doc ~S"""
@@ -532,6 +533,29 @@ defmodule BorsNG.Command do
     |> GitHub.post_comment!(
       c.pr_xref,
       ~s/👊/
+    )
+  end
+
+  def run(c, :help) do
+    c.project.repo_xref
+    |> Project.installation_connection(Repo)
+    |> GitHub.post_comment!(
+      c.pr_xref,
+      "Hi!\
+      \Here are some common instructions you can give me!\
+      \- `${command_trigger()} merge` <- I'll take over the process of merging your PR, unless you push any more commits. Then it's yours again!\
+      \- `${command_trigger()} cancel` <- I didn't really mean to do that...\
+      \- `${command_trigger()} single on` <- absolutely do not batch this PR with any others\
+      \- `${command_trigger()} p=[priority]` <- give a numerical priority different from the default of '0'\
+      \- `${command_trigger()} yeet` <- same as `${command_trigger()} merge`, but I'll throw a crab at you\
+      \You can give more than one command in the same comment, so if you have an urgent hot fix:\
+      \```\
+      \${command_trigger()} single on\
+      \${command_trigger()} p=100\
+      \${command_trigger()} merge\
+      \```\
+      \Will skip you to the front of the queue you merge your PR on its own.\
+      "
     )
   end
 
