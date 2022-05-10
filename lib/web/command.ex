@@ -151,7 +151,7 @@ defmodule BorsNG.Command do
   def parse_cmd("merge p=" <> rest), do: parse_priority(rest) ++ [:activate]
   def parse_cmd("merge=" <> arguments), do: parse_activation_args(arguments)
   def parse_cmd("merge" <> _), do: [:activate]
-  def parse_cmd("yeet" <> _), do: [:activate]
+  def parse_cmd("yeet" <> _), do: [:yeet]
   def parse_cmd("delegate+" <> _), do: [:delegate]
   def parse_cmd("delegate=" <> arguments), do: parse_delegation_args(arguments)
   def parse_cmd("d+" <> _), do: [:delegate]
@@ -428,6 +428,16 @@ defmodule BorsNG.Command do
 
   @spec run(t, cmd) :: :ok
   def run(c, :activate) do
+    run(c, {:activate_by, c.commenter.login})
+  end
+
+  def run(c, :yeet) do
+    c.project.repo_xref
+    |> Project.installation_connection(Repo)
+    |> GitHub.post_comment!(
+      c.pr_xref,
+      ~s/Yeet! 🦀/
+    )
     run(c, {:activate_by, c.commenter.login})
   end
 
