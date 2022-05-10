@@ -542,8 +542,8 @@ defmodule BorsNG.Command do
     |> GitHub.post_comment!(
       c.pr_xref,
       ~s"""
-      Hi!
-      Here are some common instructions you can give me!
+      Hi!<br>
+      Here are some common instructions you can give me!<br>
       - `${command_trigger()} merge` <- I'll take over the process of merging your PR, unless you push any more commits. Then it's yours again!<br>
       - `${command_trigger()} cancel` <- I didn't really mean to do that...<br>
       - `${command_trigger()} single on` <- absolutely do not batch this PR with any others<br>
