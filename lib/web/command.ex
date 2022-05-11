@@ -549,7 +549,6 @@ defmodule BorsNG.Command do
       - `#{command_trigger()} cancel` <- I didn't really mean to do that...
       - `#{command_trigger()} single on` <- absolutely do not batch this PR with any others
       - `#{command_trigger()} p=[priority]` <- give a numerical priority different from the default of '0'
-      - `#{command_trigger()} yeet` <- same as `#{command_trigger()} merge`, but I'll throw a crab at you
 
       You can give more than one command in the same comment, so if you have an urgent hot fix:
       ```
@@ -558,7 +557,7 @@ defmodule BorsNG.Command do
       #{command_trigger()} merge
       ```
 
-      Will skip you to the front of the queue you merge your PR on its own.
+      Will skip you to the front of the queue and merge your PR on its own.
       """
     )
   end
