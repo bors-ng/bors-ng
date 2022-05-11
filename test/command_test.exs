@@ -518,11 +518,41 @@ defmodule BorsNG.CommandTest do
     assert [:deactivate] == Command.parse("popo r-")
     assert [:deactivate] == Command.parse("popo merge-")
     assert [:deactivate] == Command.parse("popo cancel")
+    assert [:help] == Command.parse("popo help")
 
     if old_env do
       System.put_env("COMMAND_TRIGGER", old_env)
     else
       System.delete_env("COMMAND_TRIGGER")
     end
+  end
+
+  test "command trigger is dynamically set in help text", %{proj: proj} do
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        comments: %{1 => []},
+        statuses: %{}
+      }
+    })
+
+    c = %Command{
+      project: proj,
+      commenter: nil,
+      comment: "bors help",
+      pr_xref: 1
+    }
+
+    Command.run(c, :help)
+
+    mockState = GitHub.ServerMock.get_state()
+
+    [comment] = mockState[{{:installation, 91}, 14}][:comments][1]
+
+    commentContainsBors = String.contains? comment, ["bors"]
+    commentContainsCommandTrigger = String.contains? comment, ["command_trigger"]
+
+    assert commentContainsBors == true
+    assert commentContainsCommandTrigger == false
   end
 end
