@@ -9,12 +9,22 @@ defmodule BorsNG.GitHub.OAuth2 do
   defp config do
     github = Confex.fetch_env!(:bors, :html_github_root)
 
-    cfg = [
-      site: Confex.fetch_env!(:bors, :api_github_root),
-      strategy: BorsNG.GitHub.OAuth2,
-      authorize_url: "#{github}/login/oauth/authorize",
-      token_url: "#{github}/login/oauth/access_token"
-    ]
+    cfg =
+      [
+        site: Confex.fetch_env!(:bors, :api_github_root),
+        strategy: BorsNG.GitHub.OAuth2,
+        authorize_url: "#{github}/login/oauth/authorize",
+        token_url: "#{github}/login/oauth/access_token"
+      ] ++
+        case System.get_env("HTTPS_PROXY") do
+          nil ->
+            []
+
+          proxy ->
+            [
+              request_opts: [proxy: proxy]
+            ]
+        end
 
     :bors
     |> Confex.fetch_env!(BorsNG.GitHub.OAuth2)

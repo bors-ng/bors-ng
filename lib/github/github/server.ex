@@ -954,11 +954,22 @@ defmodule BorsNG.GitHub.Server do
         middleware
       end
 
+    params =
+      [
+        connect_timeout: Confex.get_env(:bors, :api_github_timeout, 8_000) - 1,
+        recv_timeout: Confex.get_env(:bors, :api_github_timeout, 8_000) - 1
+      ] ++
+        case System.get_env("HTTPS_PROXY") do
+          nil ->
+            []
+
+          proxy ->
+            [proxy: proxy]
+        end
+
     Tesla.client(
       middleware,
-      {Tesla.Adapter.Hackney,
-       connect_timeout: Confex.get_env(:bors, :api_github_timeout, 8_000) - 1,
-       recv_timeout: Confex.get_env(:bors, :api_github_timeout, 8_000) - 1}
+      {Tesla.Adapter.Hackney, params}
     )
   end
 end
