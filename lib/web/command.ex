@@ -437,7 +437,7 @@ defmodule BorsNG.Command do
     |> Project.installation_connection(Repo)
     |> GitHub.post_comment!(
       c.pr_xref,
-      ~s/Yeet! 🦀/
+      ~s/Yeet! 🦞/
     )
     run(c, {:activate_by, c.commenter.login})
   end
