@@ -6072,6 +6072,128 @@ defmodule BorsNG.Worker.BatcherTest do
     assert comments == ["Has [ci skip][skip ci][skip netlify], bors build will time out"]
   end
 
+  test "full desync detection", %{proj: proj} do
+    # Projects are created with a "waiting" state
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "X",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
+        pr_commits: %{
+          1 => [
+            %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
+          ]
+        }
+      }
+    })
+
+    patch =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "N",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch.id, "rvr"}, proj.id)
+
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
+               commits: %{},
+               comments: %{1 => []},
+               statuses: %{"N" => %{"bors" => :running}},
+               files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "X",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
+               pr_commits: %{
+                 1 => [
+                   %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
+                 ]
+               }
+             }
+           }
+
+    batch = Repo.get_by!(Batch, project_id: proj.id)
+    assert batch.state == :waiting
+    # Polling at a later time (yeah, I'm setting the clock back to do it)
+    # kicks it off.
+    batch
+    |> Batch.changeset(%{last_polled: 0})
+    |> Repo.update!()
+
+    Batcher.handle_info({:poll, :once}, proj.id)
+    batch = Repo.get_by!(Batch, project_id: proj.id)
+    assert batch.state == :error
+
+    assert GitHub.ServerMock.get_state() == %{
+             {{:installation, 91}, 14} => %{
+               branches: %{"master" => "ini", "staging" => ""},
+               commits: %{
+                 "ini" => %{commit_message: "[ci skip][skip ci][skip netlify]", parents: ["ini"]}
+               },
+               comments: %{
+                 1 => ["Synchronization error!"]
+               },
+               statuses: %{
+                 "N" => %{"bors" => :error}
+               },
+               files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "X",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
+               pr_commits: %{
+                 1 => [
+                   %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
+                 ]
+               }
+             }
+           }
+
+    # There should be no more items in the queue now
+    [] = Repo.all(Batch.all_for_project(proj.id, :waiting))
+  end
+
   defp ordered_batches(proj) do
     Batch.all_for_project(proj.id, :waiting)
     |> join(:inner, [b], l in assoc(b, :patches))
