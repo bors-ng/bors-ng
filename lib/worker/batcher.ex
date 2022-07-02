@@ -411,12 +411,20 @@ defmodule BorsNG.Worker.Batcher do
     }
 
     do_merge_patch = fn %{patch: patch}, branch ->
+      pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
+
       case branch do
         :conflict ->
           :conflict
 
         :canceled ->
           :canceled
+
+        :race ->
+          :race
+
+        _ when pr.head_sha != patch.commit ->
+          :race
 
         _ ->
           GitHub.merge_branch!(
@@ -610,6 +618,18 @@ defmodule BorsNG.Worker.Batcher do
     send_message(repo_conn, patches, {:conflict, state})
 
     {:conflict, nil}
+  end
+
+  defp start_waiting_merged_batch(batch, patch_links, _base, :race) do
+    project = batch.project
+    repo_conn = get_repo_conn(project)
+    patches = Enum.map(patch_links, & &1.patch)
+    poll_after_delay(project)
+
+    send_message(repo_conn, patches, :race)
+    send_status(repo_conn, batch, :race)
+
+    {:error, nil}
   end
 
   def gather_co_authors(batch, patch_links) do

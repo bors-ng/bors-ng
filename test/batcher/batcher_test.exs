@@ -1733,6 +1733,20 @@ defmodule BorsNG.Worker.BatcherTest do
         commits: %{},
         comments: %{1 => []},
         statuses: %{},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         files: %{}
       }
     })
@@ -1754,6 +1768,20 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{1 => []},
                statuses: %{"N" => %{"bors" => :running}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                files: %{}
              }
            }
@@ -1785,6 +1813,20 @@ defmodule BorsNG.Worker.BatcherTest do
                },
                comments: %{1 => ["Configuration problem:\nbors.toml: not found"]},
                statuses: %{"N" => %{"bors" => :error}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                files: %{}
              }
            }
@@ -1847,6 +1889,20 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => []},
         statuses: %{"iniN" => %{}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -1873,6 +1929,20 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => []},
                statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -1915,6 +1985,20 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => []},
                statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -1954,6 +2038,20 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => []},
                statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -1985,6 +2083,20 @@ defmodule BorsNG.Worker.BatcherTest do
           "N" => %{"bors" => :running}
         },
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2018,6 +2130,20 @@ defmodule BorsNG.Worker.BatcherTest do
                  "N" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2056,6 +2182,20 @@ defmodule BorsNG.Worker.BatcherTest do
                  "N" => %{"bors" => :ok}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2074,6 +2214,20 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => []},
         statuses: %{"iniN" => %{}},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2100,6 +2254,20 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => []},
                statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2142,6 +2310,20 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => []},
                statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2181,6 +2363,20 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => []},
                statuses: %{"iniN" => %{}, "N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2212,6 +2408,20 @@ defmodule BorsNG.Worker.BatcherTest do
           "N" => %{"bors" => :running}
         },
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2245,6 +2455,20 @@ defmodule BorsNG.Worker.BatcherTest do
                  "N" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2283,6 +2507,20 @@ defmodule BorsNG.Worker.BatcherTest do
                  "N" => %{"bors" => :ok}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "c%" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2307,7 +2545,7 @@ defmodule BorsNG.Worker.BatcherTest do
             body: "Mess",
             state: :open,
             base_ref: "master",
-            head_sha: "00000001",
+            head_sha: "N",
             head_ref: "update",
             base_repo_id: 14,
             head_repo_id: 14,
@@ -2366,7 +2604,7 @@ defmodule BorsNG.Worker.BatcherTest do
                    body: "Mess",
                    state: :open,
                    base_ref: "master",
-                   head_sha: "00000001",
+                   head_sha: "N",
                    head_ref: "update",
                    base_repo_id: 14,
                    head_repo_id: 14,
@@ -2400,6 +2638,32 @@ defmodule BorsNG.Worker.BatcherTest do
           2 => [
             %GitHub.Commit{sha: "5678", author_name: "b", author_email: "f"}
           ]
+        },
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "O",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
         },
         # Force any push to master to fail
         push_errors: %{
@@ -2481,6 +2745,20 @@ defmodule BorsNG.Worker.BatcherTest do
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
           ]
         },
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         # Force any push to master to fail
         push_errors: %{
           "master" => %{error_code: 422, response: "{\"message\":\"Some other error\"}"}
@@ -2544,6 +2822,20 @@ defmodule BorsNG.Worker.BatcherTest do
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
           ]
         },
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         # Force any push to master to fail
         push_errors: %{
           "master" => %{error_code: 500, response: "{\"message\":\"Some other error\"}"}
@@ -2603,6 +2895,32 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "O",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2641,6 +2959,32 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => [], 2 => []},
                statuses: %{"N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2682,6 +3026,32 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => [], 2 => []},
                statuses: %{"N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2717,6 +3087,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2774,6 +3170,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2795,6 +3217,32 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "O",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2833,6 +3281,32 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => [], 2 => []},
                statuses: %{"N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2874,6 +3348,32 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => [], 2 => []},
                statuses: %{"N" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2934,6 +3434,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -2979,6 +3505,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "N" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3034,6 +3586,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "N" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3087,6 +3665,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "N" => %{"bors" => :ok}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3108,6 +3712,32 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "O",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3147,6 +3777,32 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => [], 2 => []},
                statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3189,6 +3845,32 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => [], 2 => []},
                statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3232,6 +3914,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :error}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3286,6 +3994,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :error}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3340,6 +4074,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :error}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3402,6 +4162,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3466,6 +4252,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :error}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3490,6 +4302,32 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "O",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3532,6 +4370,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3577,6 +4441,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3644,6 +4534,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3665,6 +4581,32 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "O",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
@@ -3711,6 +4653,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
@@ -3761,6 +4729,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
@@ -3808,6 +4802,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :ok}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"},
@@ -3833,6 +4853,32 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => [], 2 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "O",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3872,6 +4918,32 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => [], 2 => []},
                statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3914,6 +4986,32 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{1 => [], 2 => []},
                statuses: %{"N" => %{"bors" => :running}, "O" => %{"bors" => :running}},
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -3965,6 +5063,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :error}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -4023,6 +5147,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :error}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -4083,6 +5233,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :error}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -4147,6 +5323,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :running}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -4215,6 +5417,32 @@ defmodule BorsNG.Worker.BatcherTest do
                  "O" => %{"bors" => :error}
                },
                files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+               pulls: %{
+                 1 => %Pr{
+                   number: 1,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "N",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 },
+                 2 => %Pr{
+                   number: 2,
+                   title: "Test",
+                   body: "Mess",
+                   state: :open,
+                   base_ref: "master",
+                   head_sha: "O",
+                   head_ref: "update",
+                   base_repo_id: 14,
+                   head_repo_id: 14,
+                   merged: false
+                 }
+               },
                pr_commits: %{
                  1 => [
                    %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
@@ -4238,6 +5466,20 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"staging.tmp" => %{".travis.yml" => ""}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{1 => []}
       }
     })
@@ -4273,6 +5515,20 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => []},
         statuses: %{"iniN" => []},
         files: %{"staging.tmp" => %{".github/bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{1 => [], 2 => []}
       }
     })
@@ -4435,6 +5691,56 @@ defmodule BorsNG.Worker.BatcherTest do
         comments: %{1 => [], 2 => [], 3 => [], 4 => []},
         statuses: %{},
         files: %{"staging.tmp" => %{"bors.toml" => ~s/status = [ "ci" ]/}},
+        pulls: %{
+          1 => %Pr{
+            number: 1,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "N",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          2 => %Pr{
+            number: 2,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "O",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          3 => %Pr{
+            number: 3,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "P",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          },
+          4 => %Pr{
+            number: 4,
+            title: "Test",
+            body: "Mess",
+            state: :open,
+            base_ref: "master",
+            head_sha: "Q",
+            head_ref: "update",
+            base_repo_id: 14,
+            head_repo_id: 14,
+            merged: false
+          }
+        },
         pr_commits: %{
           1 => [
             %GitHub.Commit{sha: "1234", author_name: "a", author_email: "e"}
