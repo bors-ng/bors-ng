@@ -31,8 +31,16 @@ defmodule BorsNG.Worker.Batcher.Message do
     {"Merge conflict", :error}
   end
 
+  def generate_status(:race) do
+    {"Synchronization error!", :error}
+  end
+
   def generate_status(:delayed) do
     {"Delayed for higher-priority pull requests", :running}
+  end
+
+  def generate_message(:race) do
+    "Synchronization error!"
   end
 
   def generate_message({:preflight, :waiting}) do
