@@ -74,7 +74,7 @@ defmodule BorsNg.Mixfile do
       {:ex_link_header, "~> 0.0.5"},
       {:oauth2, "~> 2.0.0"},
       {:joken, "~> 2.0"},
-      {:dialyxir, "~> 1.1.0", runtime: false, only: [:dev]},
+      {:dialyxir, "~> 1.2.0", runtime: false, only: [:dev]},
       {:distillery, "~> 2.0", runtime: false},
       {:edeliver, "~> 1.5", runtime: false},
       {:ex_doc, "~> 0.18", only: :dev},
