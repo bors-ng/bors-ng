@@ -211,7 +211,7 @@ defmodule BorsNG.ParseTest do
     assert Enum.at(Enum.at(reviewers, 0), 0) == "@my_org/core_team"
   end
 
-  test "Test Double Asterisk in the beggining" do
+  test "Test Double Asterisk in the beginning" do
     IO.inspect(File.cwd())
     {:ok, codeowner} = File.read("test/testdata/code_owners_7")
 
