@@ -64,7 +64,7 @@ defmodule BorsNG.ProjectController do
   end
 
   # The actual handlers
-  # Two-item ones have a project ID inputed
+  # Two-item ones have a project ID inputted
   # One-item ones don't
 
   def index(conn, %{"mode" => "reviewer"}) do

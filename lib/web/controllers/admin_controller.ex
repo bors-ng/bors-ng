@@ -17,7 +17,7 @@ defmodule BorsNG.AdminController do
   alias BorsNG.Database.Repo
 
   # The actual handlers
-  # Two-item ones have a project ID inputed
+  # Two-item ones have a project ID inputted
   # One-item ones don't
 
   def index(conn, _params) do
