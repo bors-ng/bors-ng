@@ -13,7 +13,7 @@ as a comment in the PR.
 Comments web hook
 -----------------
 Every time there is a comment, bors gets notified through a GitHub webhook.
-See `webhoook_controller.ex` for the code.
+See `webhook_controller.ex` for the code.
 Bors gets all the information it needs and creates a `Command`.
 Since the comment contains `r+`, `Worker.Batcher` needs to be notified.
 
