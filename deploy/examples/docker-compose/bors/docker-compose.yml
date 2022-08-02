@@ -1,0 +1,63 @@
+version: "2"
+services:
+  web:
+    image: borsng/bors-ng
+    restart: always
+    ports:
+      - target: 8000
+        x-aws-protocol: http
+    environment:
+      # You shouldn't have to change these
+      PORT: 8000
+      DATABASE_USE_SSL: "false"
+      DATABASE_AUTO_MIGRATE: "true"
+      ALLOW_PRIVATE_REPOS: "true"
+      # Replace this with the hostname of your bors instance
+      # For example, the public instance is app.bors.tech
+      # and cockroachdb runs bors.crdb.io
+      PUBLIC_HOST: [censored]
+      # Replace this with a random number
+      # If you have a bors source checkout, you can run `mix phx.gen.secret` to get one
+      SECRET_KEY_BASE: [censored]
+      # Get these from the GitHub App setup screen under "OAuth credentials"
+      GITHUB_CLIENT_ID:  Iv1.[censored]
+      GITHUB_CLIENT_SECRET: [censored]
+      # Get this from the GitHub App setup screen under "About"
+      GITHUB_INTEGRATION_ID: [censored integer]
+      # Get this by taking the private key and base64-encoding it
+      # For example, `openssl base64 -A -e < bors-merge-queue.2018-08-10.private-key.pem`
+      # the result will be long, and will end in one or two equal signs
+      GITHUB_INTEGRATION_PEM: [censored base64]
+      # Replace this with a random number
+      # You will also provide this same number to GitHub when you set up the app
+      GITHUB_WEBHOOK_SECRET: [censored]
+      # Make sure the [censored] password here matches the POSTGRES_PASSWORD
+      DATABASE_URL: postgres://postgres:[censored]@postgres:5432/bors
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:10.5
+    restart: always
+    volumes:
+      - datadb:/var/lib/postgresql/data
+    environment:
+      # Make sure the [censored] password here matches the one in the DATABASE_URL
+      POSTGRES_PASSWORD: [censored]
+x-aws-cloudformation:
+  Resources:
+    Web8000TargetGroup:
+      Properties:
+        HealthCheckPath: /health
+        Matcher:
+          HttpCode: 200-499
+    Web8000Listener:
+      Properties:
+        Certificates:
+          - CertificateArn: "arn:aws:acm:[region]:[censored]:certificate/[censored]"
+        Protocol: HTTPS
+        Port: 443
+volumes:
+  datadb:
+networks:
+  default:
+    driver: bridge
