@@ -166,7 +166,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
 
   def add_pr(title, body \\ nil) do
     # branch name == title for now
-    # This function could be expanded later to be more parametrizable.
+    # This function could be expanded later to be more parameterizable.
     number = 1 + Enum.max([0 | Enum.map(prs(), fn x -> x.number end)])
     sha = "SHA-#{number}"
     ref = title
