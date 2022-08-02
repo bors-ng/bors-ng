@@ -23,7 +23,7 @@ end
 defmodule BorsNG.CodeOwnerParser do
   # Returns a list of lists
   # Items in the inner lists are joined by an OR statement
-  # Items in the the outer list are joined by an AND statement
+  # Items in the outer list are joined by an AND statement
   # [[A], [A, B], [A, C]] -> A and (A or B) and (A or C)
   @spec list_required_reviews(%BorsNG.CodeOwners{}, [%BorsNG.GitHub.File{}]) :: [[String.t()]]
   def list_required_reviews(code_owners, files) do
