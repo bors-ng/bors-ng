@@ -43,7 +43,7 @@ defmodule BorsNG.CodeOwnerParser do
                   process_double_asterisk(x.filename, owner.file_pattern) ->
                 owner.approvers
 
-              # If the patterh starts with a slask, only match the root dir
+              # If the pattern starts with a slask, only match the root dir
               String.starts_with?(owner.file_pattern, "/") &&
                 :glob.matches("/" <> x.filename, owner.file_pattern) &&
                   !:glob.matches(x.filename, owner.file_pattern <> "/*") ->
@@ -56,7 +56,7 @@ defmodule BorsNG.CodeOwnerParser do
                   !:glob.matches(x.filename, owner.file_pattern <> "/*") ->
                 owner.approvers
 
-              # For non glob patterns, if the patterh starts with a slash, only match the root dir
+              # For non glob patterns, if the pattern starts with a slash, only match the root dir
               String.starts_with?(owner.file_pattern, "/") &&
                   String.starts_with?("/" <> x.filename, owner.file_pattern) ->
                 owner.approvers
