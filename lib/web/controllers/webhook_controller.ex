@@ -310,7 +310,7 @@ defmodule BorsNG.WebhookController do
   end
 
   def do_webhook(_conn, "github", event) do
-    Logger.info(["WebhookController: Got unknown Github event: ", event])
+    Logger.info(["WebhookController: Got unknown GitHub event: ", event])
     :unknown
   end
 
