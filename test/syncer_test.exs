@@ -191,7 +191,7 @@ defmodule BorsNG.Worker.SyncerTest do
       [old_pusher, removed_pusher]
       |> Enum.map(&Syncer.sync_user/1)
 
-    # Set up the pre-existing associations and settings
+    # Set up the preexisting associations and settings
     proj =
       proj
       |> Repo.preload([:users, :members])
@@ -261,7 +261,7 @@ defmodule BorsNG.Worker.SyncerTest do
       [old_pusher, removed_pusher]
       |> Enum.map(&Syncer.sync_user/1)
 
-    # Set up the pre-existing associations and settings
+    # Set up the preexisting associations and settings
     proj =
       proj
       |> Repo.preload([:users, :members])
