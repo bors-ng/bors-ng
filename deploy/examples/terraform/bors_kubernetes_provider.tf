@@ -12,7 +12,7 @@ locals {
     "app.kubernetes.io/managed-by" = "Terraform"
   }
 
-  # The Deployment, POD, Service... related K8s resources with Bors use this group of labels so they are consisntent
+  # The Deployment, POD, Service... related K8s resources with Bors use this group of labels so they are consistent
   #
   # A requirement between the Deployment.spec.selector.match_labels and POD.metadata.labels
   # is that the POD has to contain the same as the match_labels but it could also be a superset of them
