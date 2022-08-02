@@ -352,7 +352,7 @@ If you need more throughput than one dyno can provide, you should deploy using a
 
 [Docker]: https://docker.com/
 
-Pre-built Docker images are available at [Docker Hub](https://hub.docker.com/r/borsng/bors-ng/) for tags and the current `master` (as `bors-ng:latest`).
+Pre-built Docker images are available at [Docker Hub](https://hub.docker.com/r/borsng/bors-ng/) for the current `master` (as `bors-ng:latest`).
 
 The Dockerfile in the project root can be used to build the image yourself.
 It relies on [multi-stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/) as introduced in Docker 17.05,
