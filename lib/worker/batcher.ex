@@ -525,7 +525,7 @@ defmodule BorsNG.Worker.Batcher do
                 Logger.info("Previous Head #{inspect(prev_head)}")
 
                 # Then compress the merge commit into tree into a single commit
-                # appent it to the previous commit
+                # append it to the previous commit
                 # Because the merges are iterative the contain *only* the changes from the PR vs the previous PR(or head)
 
                 commit_message =
