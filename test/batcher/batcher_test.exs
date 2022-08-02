@@ -5683,7 +5683,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert patchBatch.id != patch2Batch.id
   end
 
-  test "singled patches in solo bataches stay solo batched when bisected", %{proj: proj} do
+  test "singled patches in solo batches stay solo batched when bisected", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},
