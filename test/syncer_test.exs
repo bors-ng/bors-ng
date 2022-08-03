@@ -172,7 +172,7 @@ defmodule BorsNG.Worker.SyncerTest do
 
   test "synchronize collaborators with correct permissions",
        %{proj: proj, proj_conn: proj_conn} do
-    # Set up some Github users with different permissions and previous existence
+    # Set up some GitHub users with different permissions and previous existence
     # state
     old_admin = %GitHub.User{id: 1, login: "existing-admin"}
     new_admin = %GitHub.User{id: 2, login: "new-admin"}
@@ -191,7 +191,7 @@ defmodule BorsNG.Worker.SyncerTest do
       [old_pusher, removed_pusher]
       |> Enum.map(&Syncer.sync_user/1)
 
-    # Set up the pre-existing associations and settings
+    # Set up the preexisting associations and settings
     proj =
       proj
       |> Repo.preload([:users, :members])
@@ -203,7 +203,7 @@ defmodule BorsNG.Worker.SyncerTest do
       |> Ecto.Changeset.put_assoc(:members, saved_pushers)
       |> Repo.update!()
 
-    # Set up the Github response
+    # Set up the GitHub response
     GitHub.ServerMock.put_state(%{
       proj_conn => %{
         collaborators: [
@@ -242,7 +242,7 @@ defmodule BorsNG.Worker.SyncerTest do
 
   test "do not synchronize collaborators when it's turned off",
        %{proj: proj, proj_conn: proj_conn} do
-    # Set up some Github users with different permissions and previous existence
+    # Set up some GitHub users with different permissions and previous existence
     # state
     old_admin = %GitHub.User{id: 1, login: "existing-admin"}
     new_admin = %GitHub.User{id: 2, login: "new-admin"}
@@ -261,7 +261,7 @@ defmodule BorsNG.Worker.SyncerTest do
       [old_pusher, removed_pusher]
       |> Enum.map(&Syncer.sync_user/1)
 
-    # Set up the pre-existing associations and settings
+    # Set up the preexisting associations and settings
     proj =
       proj
       |> Repo.preload([:users, :members])
@@ -270,7 +270,7 @@ defmodule BorsNG.Worker.SyncerTest do
       |> Ecto.Changeset.put_assoc(:members, saved_pushers)
       |> Repo.update!()
 
-    # Set up the Github response
+    # Set up the GitHub response
     GitHub.ServerMock.put_state(%{
       proj_conn => %{
         collaborators: [

@@ -62,7 +62,7 @@ defmodule BorsNG.AuthController do
 
   @doc """
   This action, which is reached at `/auth/:provider/callback`,
-  is the the callback URL that the OAuth2 provider will redirect
+  is the callback URL that the OAuth2 provider will redirect
   the user back to with a `code`.
 
   Once here, we will request a permanent access token,

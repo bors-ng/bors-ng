@@ -48,7 +48,7 @@
       "description": "GitHub Integration private key (download the file, encode it with `openssl base64 -A -e < key.pem`, then paste the result here)"
     },
     "GITHUB_WEBHOOK_SECRET": {
-      "description": "Github Integration webhook secret"
+      "description": "GitHub Integration webhook secret"
     },
     "ALLOW_PRIVATE_REPOS": {
       "description": "Allow non-OSS GitHub repos to be added",

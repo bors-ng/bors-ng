@@ -208,13 +208,13 @@ To run tests, run:
 
 ## Step 1: Register a new GitHub App
 
-The first step is to [register a new Github App] on the GitHub web site.
+The first step is to [register a new GitHub App] on the GitHub web site.
 
 [Register a new GitHub App]: https://github.com/settings/apps
 
 ### App settings
 
-The *Github App name*, *description*, and *homepage URL* are irrelevant, though I suggest pointing the homepage at the dashboard page.
+The *GitHub App name*, *description*, and *homepage URL* are irrelevant, though I suggest pointing the homepage at the dashboard page.
 
 The *user authorization callback URL* should be at `<DASHBOARD URL>/auth/github/callback`.
 
@@ -307,7 +307,7 @@ Whatever machine you plan to run it on needs to have both of those installed.
 [PostgreSQL]: https://postgresql.org/
 [docs on how to deploy phoenix apps]: https://hexdocs.pm/phoenix/deployment.html
 
-bors-ng is built on the Phoenix web framework, and they have [docs on how to deploy phoenix apps] already. Where you deploy will determine what the dashboard URL will be, which is needed in the previous steps, so this decision needs to be made before you can set up the Github App.
+bors-ng is built on the Phoenix web framework, and they have [docs on how to deploy phoenix apps] already. Where you deploy will determine what the dashboard URL will be, which is needed in the previous steps, so this decision needs to be made before you can set up the GitHub App.
 
 You'll need to edit the configuration with a few bors-specific variables.
 

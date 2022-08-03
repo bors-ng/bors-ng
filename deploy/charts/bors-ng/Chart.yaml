@@ -5,7 +5,7 @@ type: application
 version: 0.1.0
 appVersion: "latest"
 
-# Github users or organisations
+# GitHub users or organisations
 maintainers:
   - name: "bors-ng"
 

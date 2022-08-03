@@ -1064,7 +1064,7 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :running}},
@@ -1092,7 +1092,7 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{
                  1 => [
                    ":-1: Rejected by PR status",
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :error}},
@@ -1130,7 +1130,7 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :running}},
@@ -1157,7 +1157,7 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :ok, "bors" => :running}},
@@ -1195,7 +1195,7 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :ok, "arbitrary_uninterested_status" => :running}},
@@ -1225,7 +1225,7 @@ defmodule BorsNG.Worker.BatcherTest do
                comments: %{
                  1 => [
                    ":-1: Rejected by PR status",
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{
@@ -1271,7 +1271,7 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :ok}},
@@ -1300,7 +1300,7 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :ok, "cm" => :ok, "bors" => :running}},
@@ -1341,7 +1341,7 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :running}},
@@ -1370,9 +1370,9 @@ defmodule BorsNG.Worker.BatcherTest do
                commits: %{},
                comments: %{
                  1 => [
-                   "Stopped waiting for PR status (Github check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests.",
-                   "Stopped waiting for PR status (Github check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests.",
-                   ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+                   "Stopped waiting for PR status (GitHub check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests.",
+                   "Stopped waiting for PR status (GitHub check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests.",
+                   ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
                  ]
                },
                statuses: %{"Z" => %{"cn" => :ok, "bors" => :running}},
@@ -5683,7 +5683,7 @@ defmodule BorsNG.Worker.BatcherTest do
     assert patchBatch.id != patch2Batch.id
   end
 
-  test "singled patches in solo bataches stay solo batched when bisected", %{proj: proj} do
+  test "singled patches in solo batches stay solo batched when bisected", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
         branches: %{"master" => "ini", "staging" => "", "staging.tmp" => ""},

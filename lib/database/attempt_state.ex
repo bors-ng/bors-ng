@@ -2,7 +2,7 @@ defmodule BorsNG.Database.AttemptState do
   use Ecto.Type
 
   @moduledoc """
-  A type to represent the attmept state.
+  A type to represent the attempt state.
   """
 
   @type t :: :waiting | :running | :ok | :error | :canceled

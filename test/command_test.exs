@@ -50,7 +50,7 @@ defmodule BorsNG.CommandTest do
     assert [:deactivate] == Command.parse("bors cancel")
   end
 
-  test "accept the case insensity bare command" do
+  test "accept the case insensitive bare command" do
     assert [{:try, ""}] == Command.parse("Bors try")
     assert [:activate] == Command.parse("Bors r+")
     assert [:activate] == Command.parse("Bors merge")
@@ -84,7 +84,7 @@ defmodule BorsNG.CommandTest do
     assert [{:set_priority, 1}] == Command.parse("bors p=1")
   end
 
-  test "accept priority case insensity" do
+  test "accept priority case insensitive" do
     assert [{:set_priority, 1}, :activate] == Command.parse("Bors r+ p=1")
     assert [{:set_priority, 1}, :activate] == Command.parse("Bors merge p=1")
 

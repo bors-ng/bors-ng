@@ -44,7 +44,7 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :waiting}) do
-    ":clock1: Waiting for PR status (Github check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
+    ":clock1: Waiting for PR status (GitHub check) to be set, probably by CI. Bors will automatically try to run when all required PR statuses are set."
   end
 
   def generate_message({:preflight, :ok}) do
@@ -52,7 +52,7 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :duplicate}) do
-    "Stopped waiting for PR status (Github check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests."
+    "Stopped waiting for PR status (GitHub check) without running due to duplicate requests to run. You may check Bors to see that this PR is included in a batch by one of the other requests."
   end
 
   def generate_message({:preflight, :timeout}) do

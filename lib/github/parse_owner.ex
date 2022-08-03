@@ -23,7 +23,7 @@ end
 defmodule BorsNG.CodeOwnerParser do
   # Returns a list of lists
   # Items in the inner lists are joined by an OR statement
-  # Items in the the outer list are joined by an AND statement
+  # Items in the outer list are joined by an AND statement
   # [[A], [A, B], [A, C]] -> A and (A or B) and (A or C)
   @spec list_required_reviews(%BorsNG.CodeOwners{}, [%BorsNG.GitHub.File{}]) :: [[String.t()]]
   def list_required_reviews(code_owners, files) do
@@ -43,7 +43,7 @@ defmodule BorsNG.CodeOwnerParser do
                   process_double_asterisk(x.filename, owner.file_pattern) ->
                 owner.approvers
 
-              # If the patterh starts with a slask, only match the root dir
+              # If the pattern starts with a slask, only match the root dir
               String.starts_with?(owner.file_pattern, "/") &&
                 :glob.matches("/" <> x.filename, owner.file_pattern) &&
                   !:glob.matches(x.filename, owner.file_pattern <> "/*") ->
@@ -56,7 +56,7 @@ defmodule BorsNG.CodeOwnerParser do
                   !:glob.matches(x.filename, owner.file_pattern <> "/*") ->
                 owner.approvers
 
-              # For non glob patterns, if the patterh starts with a slash, only match the root dir
+              # For non glob patterns, if the pattern starts with a slash, only match the root dir
               String.starts_with?(owner.file_pattern, "/") &&
                   String.starts_with?("/" <> x.filename, owner.file_pattern) ->
                 owner.approvers
