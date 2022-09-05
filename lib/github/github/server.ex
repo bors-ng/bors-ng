@@ -41,6 +41,10 @@ defmodule BorsNG.GitHub.Server do
     Confex.fetch_env!(:bors, :api_github_root)
   end
 
+  defp command_trigger do
+    Confex.fetch_env!(:bors, BorsNG)[:command_trigger]
+  end
+
   def init(:ok) do
     {:ok, %{}}
   end
@@ -475,7 +479,7 @@ defmodule BorsNG.GitHub.Server do
 
   def do_handle_call(:post_commit_status, repo_conn, {sha, status, msg, url}) do
     state = GitHub.map_status_to_state(status)
-    body = %{state: state, context: "bors", description: msg, target_url: url}
+    body = %{state: state, context: command_trigger(), description: msg, target_url: url}
 
     repo_conn
     |> post!("statuses/#{sha}", Jason.encode!(body))
