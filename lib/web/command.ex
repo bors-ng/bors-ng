@@ -148,10 +148,13 @@ defmodule BorsNG.Command do
   def parse_cmd("r-" <> _), do: [:deactivate]
   def parse_cmd("r=" <> arguments), do: parse_activation_args(arguments)
   def parse_cmd("merge-" <> _), do: [:deactivate]
-  def parse_cmd("merge p=" <> rest), do: parse_priority(rest) ++ [:activate]
-  def parse_cmd("merge=" <> arguments), do: parse_activation_args(arguments)
-  def parse_cmd("merge" <> _), do: [:activate]
-  def parse_cmd("yeet" <> _), do: [:yeet]
+  def parse_cmd("merge p=" <> rest), do: parse_priority(rest) ++ [:merge_msg, :activate]
+  def parse_cmd("merge=" <> arguments), do: [:merge_msg] ++ parse_activation_args(arguments)
+  def parse_cmd("merge" <> _), do: [:merge_msg, :activate]
+  def parse_cmd("yeet-" <> _), do: [:deactivate]
+  def parse_cmd("yeet p=" <> rest), do: parse_priority(rest) ++ [:yeat, :activate]
+  def parse_cmd("yeet=" <> arguments), do: [:yeet] ++ parse_activation_args(arguments)
+  def parse_cmd("yeet" <> _), do: [:yeet, :activate]
   def parse_cmd("delegate+" <> _), do: [:delegate]
   def parse_cmd("delegate=" <> arguments), do: parse_delegation_args(arguments)
   def parse_cmd("d+" <> _), do: [:delegate]
@@ -439,7 +442,15 @@ defmodule BorsNG.Command do
       c.pr_xref,
       ~s/Yeet! 🦞/
     )
-    run(c, {:activate_by, c.commenter.login})
+  end
+
+  def run(c, :merge_msg) do
+    c.project.repo_xref
+    |> Project.installation_connection(Repo)
+    |> GitHub.post_comment!(
+      c.pr_xref,
+      "Merge command received, #{command_trigger()} is on the case."
+    )
   end
 
   def run(c, {:activate_by, username}) do
@@ -552,9 +563,9 @@ defmodule BorsNG.Command do
 
       You can give more than one command in the same comment, so if you have an urgent hot fix:
       ```
-      #{command_trigger()} single on
-      #{command_trigger()} p=100
-      #{command_trigger()} merge
+        #{command_trigger()} single on
+        #{command_trigger()} p=100
+        #{command_trigger()} merge
       ```
 
       Will skip you to the front of the queue and merge your PR on its own.
