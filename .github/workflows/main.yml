@@ -23,7 +23,7 @@ jobs:
         #    otp_release: "24.0"
     steps:
       - uses: actions/checkout@master
-      - uses: erlef/setup-elixir@v1
+      - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_release }}
           elixir-version: ${{ matrix.elixir }}
@@ -91,7 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - uses: erlef/setup-elixir@v1
+    - uses: erlef/setup-beam@v1
       with:
         otp-version: "24.0"
         elixir-version: "1.13.2"
