@@ -14,13 +14,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        elixir: ["1.12.0", "1.13.2"]
-        otp_release: ["23.2", "24.0"]
+        elixir: ["1.12.0", "1.13.2", "1.14.1"]
+        otp_release: ["23.2", "24.0", "25.1"]
         os: [ubuntu-latest]
         database: [postgresql, mysql]
-        #exclude:
-        #  - elixir: "1.10.0"
-        #    otp_release: "24.0"
+        exclude:
+          - elixir: "1.12.0"
+            otp_release: "25.1"
+          - elixir: "1.14.1"
+            otp_release: "23.2"
     steps:
       - uses: actions/checkout@master
       - uses: erlef/setup-beam@v1
@@ -93,8 +95,8 @@ jobs:
     - uses: actions/checkout@master
     - uses: erlef/setup-beam@v1
       with:
-        otp-version: "24.0"
-        elixir-version: "1.13.2"
+        otp-version: "25.1"
+        elixir-version: "1.14.1"
     - run: mix format --check-formatted
 
   ci-success:
