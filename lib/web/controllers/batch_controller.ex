@@ -21,17 +21,6 @@ defmodule BorsNG.BatchController do
     allow_private_repos = Confex.fetch_env!(:bors, BorsNG)[:allow_private_repos]
     admin? = conn.assigns.user.is_admin
 
-    mode =
-      conn.assigns.user
-      |> Permission.get_permission(project)
-      |> case do
-        _ when admin? -> :rw
-        :reviewer -> :rw
-        :member -> :ro
-        _ when not allow_private_repos -> :ro
-        _ -> raise BorsNG.PermissionDeniedError
-      end
-
     patches = Repo.all(Patch.all_for_batch(batch.id))
     statuses = Repo.all(Status.all_for_batch(batch.id))
 
