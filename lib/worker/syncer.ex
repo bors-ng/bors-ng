@@ -33,12 +33,12 @@ defmodule BorsNG.Worker.Syncer do
     {:ok, _} = Registry.register(Syncer.Registry, project_id, {})
     conn = Project.installation_project_connection(project_id, Repo)
 
+    synchronize_project_collaborators(conn, project_id)
     open_patches = Repo.all(Patch.all_for_project(project_id, :open))
     open_prs = GitHub.get_open_prs!(conn)
     deltas = synchronize_patches(open_patches, open_prs)
     Enum.each(deltas, &do_synchronize!(project_id, &1))
 
-    synchronize_project_collaborators(conn, project_id)
     Project.ping!(project_id)
   end
 
