@@ -78,7 +78,7 @@ defmodule BorsNg.Mixfile do
       {:distillery,
        git: "https://github.com/bors-ng/distillery.git",
        override: true,
-       commit: "6a221e8",
+       commit: "8ba8cb4",
        runtime: false},
       {:edeliver, "~> 1.5", runtime: false},
       {:ex_doc, "~> 0.18", only: :dev},

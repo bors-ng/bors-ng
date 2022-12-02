@@ -40,14 +40,15 @@ RUN if [ -d .git ]; then \
 
 ####
 
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 RUN apt-get update -q && apt-get --no-install-recommends install -y git-core libssl1.1 curl apt-utils ca-certificates
-
-RUN curl -Ls https://github.com/bors-ng/dockerize/releases/download/v0.7.12/dockerize-linux-amd64-v0.7.12.tar.gz | \
-    tar xzv -C /usr/local/bin
 
 ADD ./script/docker-entrypoint /usr/local/bin/bors-ng-entrypoint
 COPY --from=builder /src/_build/prod/rel/ /app/
+
+RUN curl -Ls https://github.com/bors-ng/dockerize/releases/download/v0.7.12/dockerize-linux-amd64-v0.7.12.tar.gz | \
+    tar xzv -C /usr/local/bin && \
+    /app/bors/bin/bors describe
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV PORT=4000
