@@ -1,6 +1,6 @@
 defmodule BorsNG.Application do
   @moduledoc """
-  The top-level OPT application for Bors-NG.
+  The top-level OTP application for Bors-NG.
   """
 
   use Application
