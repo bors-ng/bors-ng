@@ -339,7 +339,8 @@ Or you can do it manually:
         GITHUB_CLIENT_SECRET=<OAUTH_CLIENT_SECRET> \
         GITHUB_INTEGRATION_ID=<ISS> \
         GITHUB_INTEGRATION_PEM=`base64 -w0 priv.pem` \
-        GITHUB_WEBHOOK_SECRET=<SECRET2>
+        GITHUB_WEBHOOK_SECRET=<SECRET2> \
+        [BORS_LOG_LEVEL=<debug|info|warn|...>]
     $ git push heroku master
     $ heroku run POOL_SIZE=1 mix ecto.migrate
 
@@ -376,6 +377,9 @@ All the same recommendations apply, with some extra notes:
 - The `PORT` environment variable is set to `4000` by default.
 - `GITHUB_URL_ROOT_API` and `GITHUB_URL_ROOT_HTML` should allow you to connect bors-ng to an instance of GitHub Enterprise.
   Note: I've never actually used GitHub Enterprise, so I'm kinda guessing about what you'd need here.
+- `BORS_LOG_LEVEL` allows you to set the log level at runtime for bors-ng.
+  The allowed values are the usual Elixir `Logger` levels, e.g. `info`, `debug`, `warn`, etc.
+  Defaults to `info` if not set.
 
       docker create --name bors --restart=unless-stopped \
           -e PUBLIC_HOST=app.bors.tech \
@@ -389,6 +393,7 @@ All the same recommendations apply, with some extra notes:
           -e DATABASE_USE_SSL=false \
           -e DATABASE_AUTO_MIGRATE=true \
           -e COMMAND_TRIGGER=bors \
+          [-e BORS_LOG_LEVEL=<debug|info|warn|...>] \
           borsng/bors-ng
       docker start bors
 
