@@ -732,11 +732,11 @@ defmodule BorsNG.Worker.Batcher do
               {:non_ff}
 
             true ->
-              {:unknown_failure, raw_error_content}
+              {:unknown_failure, 422, raw_error_content}
           end
 
-        {:error, _, _, raw_error_content} ->
-          {:unknown_failure, raw_error_content}
+        {:error, _, status_code, raw_error_content} ->
+          {:unknown_failure, status_code, raw_error_content}
 
         {:ok, _} ->
           {:success}
@@ -777,7 +777,7 @@ defmodule BorsNG.Worker.Batcher do
 
         :error
 
-      {:unknown_failure, raw_error_content} ->
+      {:unknown_failure, status_code, raw_error_content} ->
         # Don't retry the batch. Something is preventing this batch from merging
         # and it's unlikely us retrying would change that.
 
@@ -785,7 +785,7 @@ defmodule BorsNG.Worker.Batcher do
         send_message(
           repo_conn,
           patches,
-          {:push_failed_unknown_failure, batch.into_branch, raw_error_content}
+          {:push_failed_unknown_failure, batch.into_branch, status_code, raw_error_content}
         )
 
         :error

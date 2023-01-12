@@ -97,13 +97,14 @@ defmodule BorsNG.Worker.BatcherMessageTest do
     Additional information:
 
     ```json
+    Response status code: 500
     {"status": 500, "message": "Internal server error."}
     ```
     """
 
     actual_message =
       Message.generate_message(
-        {:push_failed_unknown_failure, "main",
+        {:push_failed_unknown_failure, "main", 500,
          '{"status": 500, "message": "Internal server error."}'}
       )
 
