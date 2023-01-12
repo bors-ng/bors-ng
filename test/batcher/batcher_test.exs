@@ -5821,6 +5821,66 @@ defmodule BorsNG.Worker.BatcherTest do
     assert length(Enum.reject(patch1Batches, &(&1.state == :error))) == 1
   end
 
+  test "max_batch_size is enforced", %{proj: proj} do
+    bors_toml = ~s"""
+    block_labels = ["no"]
+    max_batch_size = 2
+    """
+
+    GitHub.ServerMock.put_state(%{
+      {{:installation, 91}, 14} => %{
+        branches: %{},
+        commits: %{},
+        comments: %{1 => []},
+        statuses: %{},
+        files: %{
+          "N" => %{"bors.toml" => bors_toml},
+          "O" => %{"bors.toml" => bors_toml},
+          "P" => %{"bors.toml" => bors_toml}
+        }
+      }
+    })
+
+    patch1 =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 1,
+        commit: "N",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    patch2 =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 2,
+        commit: "O",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    patch3 =
+      %Patch{
+        project_id: proj.id,
+        pr_xref: 3,
+        commit: "P",
+        into_branch: "master"
+      }
+      |> Repo.insert!()
+
+    Batcher.handle_cast({:reviewed, patch1.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch2.id, "rvr"}, proj.id)
+    Batcher.handle_cast({:reviewed, patch3.id, "rvr"}, proj.id)
+
+    proj_batches = proj.id |> Batch.all_for_project() |> Repo.all() |> Repo.preload(:patches)
+    [patch1_batch] = patch1.id |> Batch.all_for_patch() |> Repo.all()
+    [patch2_batch] = patch2.id |> Batch.all_for_patch() |> Repo.all()
+    [patch3_batch] = patch3.id |> Batch.all_for_patch() |> Repo.all()
+    assert length(proj_batches) == 2
+    assert patch1_batch.id == patch2_batch.id
+    assert patch2_batch.id != patch3_batch.id
+  end
+
   test "sets patch priorities", %{proj: proj} do
     GitHub.ServerMock.put_state(%{
       {{:installation, 91}, 14} => %{
