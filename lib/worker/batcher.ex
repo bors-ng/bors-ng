@@ -154,8 +154,8 @@ defmodule BorsNG.Worker.Batcher do
         repo_conn = get_repo_conn(project)
 
         case patch_preflight(repo_conn, patch) do
-          :ok ->
-            run(reviewer, patch)
+          {:ok, max_batch_size} ->
+            run(reviewer, patch, max_batch_size)
 
           :waiting ->
             {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, patch.commit)
@@ -264,8 +264,8 @@ defmodule BorsNG.Worker.Batcher do
         elapsed = try_num * @prerun_poll_period
 
         case patch_preflight(repo_conn, patch) do
-          :ok ->
-            run(reviewer, patch)
+          {:ok, max_batch_size} ->
+            run(reviewer, patch, max_batch_size)
 
           :waiting when elapsed > prerun_timeout_ms ->
             send_message(repo_conn, [patch], {:preflight, :timeout})
@@ -303,12 +303,13 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  defp run(reviewer, patch) do
+  defp run(reviewer, patch, max_batch_size) do
     project = Repo.get!(Project, patch.project_id)
     repo_conn = get_repo_conn(project)
 
     {batch, is_new_batch} =
       get_new_batch(
+        max_batch_size,
         patch.project_id,
         patch.into_branch,
         patch.priority,
@@ -956,7 +957,7 @@ defmodule BorsNG.Worker.Batcher do
   end
 
   defp patch_preflight(_repo_conn, _patch, {:error, _}) do
-    :ok
+    {:ok, nil}
   end
 
   defp patch_preflight(repo_conn, patch, {:ok, toml}) do
@@ -1014,7 +1015,7 @@ defmodule BorsNG.Worker.Batcher do
 
     case {passed_label, no_error_status, no_waiting_status, no_unset_status, passed_review,
           code_owners_approved, passed_up_to_date_review} do
-      {true, true, true, true, :sufficient, true, :sufficient} -> :ok
+      {true, true, true, true, :sufficient, true, :sufficient} -> {:ok, toml.max_batch_size}
       {false, _, _, _, _, _, _} -> {:error, :blocked_labels}
       {_, _, _, _, :insufficient, _, _} -> {:error, :insufficient_approvals}
       {_, _, _, _, :failed, _, _} -> {:error, :blocked_review}
@@ -1112,16 +1113,17 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  def get_new_batch(project_id, into_branch, priority, true) do
+  def get_new_batch(_max_batch_size, project_id, into_branch, priority, true) do
     {Repo.insert!(Batch.new(project_id, into_branch, priority)), true}
   end
 
-  def get_new_batch(project_id, into_branch, priority, _force) do
+  def get_new_batch(max_batch_size, project_id, into_branch, priority, _force) do
     Batch
     |> where([b], b.project_id == ^project_id)
     |> where([b], b.state == ^:waiting)
     |> where([b], b.into_branch == ^into_branch)
     |> where([b], b.priority == ^priority)
+    |> apply_max_batch_size(max_batch_size)
     |> order_by([b], desc: b.updated_at)
     |> Repo.all()
     |> Enum.reject(fn b ->
@@ -1133,8 +1135,19 @@ defmodule BorsNG.Worker.Batcher do
     |> Enum.take(1)
     |> case do
       [batch] -> {batch, false}
-      _ -> get_new_batch(project_id, into_branch, priority, true)
+      _ -> get_new_batch(max_batch_size, project_id, into_branch, priority, true)
     end
+  end
+
+  defp apply_max_batch_size(query, nil) do
+    query
+  end
+
+  defp apply_max_batch_size(query, n) do
+    query
+    |> join(:inner, [b], p in assoc(b, :patches))
+    |> having([b, p], count(p.id) < ^n)
+    |> group_by([b], b.id)
   end
 
   defp raise_batch_priority(%Batch{priority: old_priority} = batch, priority)

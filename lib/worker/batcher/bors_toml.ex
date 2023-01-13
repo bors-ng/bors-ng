@@ -30,7 +30,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             use_codeowners: false,
             committer: nil,
             commit_title: "Merge ${PR_REFS}",
-            update_base_for_deletes: false
+            update_base_for_deletes: false,
+            max_batch_size: nil
 
   @type tcommitter :: %{
           name: binary,
@@ -51,7 +52,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           use_codeowners: boolean,
           committer: tcommitter,
           commit_title: binary,
-          update_base_for_deletes: boolean
+          update_base_for_deletes: boolean,
+          max_batch_size: integer | nil
         }
 
   @type err ::
@@ -64,6 +66,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           | :cut_body_after
           | :committer_details
           | :commit_title
+          | :max_batch_size
           | :empty_config
           | :parse_failed
 
@@ -124,7 +127,8 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             ),
           committer: committer,
           commit_title: Map.get(toml, "commit_title", "Merge ${PR_REFS}"),
-          update_base_for_deletes: Map.get(toml, "update_base_for_deletes", false)
+          update_base_for_deletes: Map.get(toml, "update_base_for_deletes", false),
+          max_batch_size: Map.get(toml, "max_batch_size", nil)
         }
 
         case toml do
@@ -158,6 +162,10 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
 
           %{commit_title: msg} when not is_binary(msg) and not is_nil(msg) ->
             {:error, :commit_title}
+
+          %{max_batch_size: max_batch_size}
+          when not is_nil(max_batch_size) and not is_integer(max_batch_size) ->
+            {:error, :max_batch_size}
 
           toml ->
             status =
