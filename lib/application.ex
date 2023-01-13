@@ -1,6 +1,6 @@
 defmodule BorsNG.Application do
   @moduledoc """
-  The top-level OPT application for Bors-NG.
+  The top-level OTP application for Bors-NG.
   """
 
   use Application
@@ -19,9 +19,25 @@ defmodule BorsNG.Application do
     :persistent_term.get(:db_repo)
   end
 
+  defp get_log_level_from_env do
+    case System.get_env("BORS_LOG_LEVEL") do
+      nil -> nil
+      level_string -> String.to_existing_atom(level_string)
+    end
+  end
+
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
+    log_level_from_env = get_log_level_from_env()
+
+    # Note: this only works if we do not use `:compile_time_purge_matching` in `config.exs`;
+    # otherwise all log level calls we want to ignore actually get purged entirely from the code.
+    # Ref: https://hexdocs.pm/logger/1.14.2/Logger.html#module-application-configuration
+    if not is_nil(log_level_from_env) do
+      Logger.configure(level: log_level_from_env)
+    end
+
     # Define workers and child supervisors to be supervised
     set_repo()
 
