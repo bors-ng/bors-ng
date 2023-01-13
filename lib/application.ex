@@ -31,6 +31,9 @@ defmodule BorsNG.Application do
   def start(_type, _args) do
     log_level_from_env = get_log_level_from_env()
 
+    # Note: this only works if we do not use `:compile_time_purge_matching` in `config.exs`;
+    # otherwise all log level calls we want to ignore actually get purged entirely from the code.
+    # Ref: https://hexdocs.pm/logger/1.14.2/Logger.html#module-application-configuration
     if not is_nil(log_level_from_env) do
       Logger.configure(level: log_level_from_env)
     end
