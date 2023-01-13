@@ -68,7 +68,7 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :missing_code_owner_approval}) do
-    ":-1: Waiting because of missing code owner approval"
+    ":clock1: Waiting because of missing code owner approval"
   end
 
   def generate_message({:preflight, :blocked_review}) do
