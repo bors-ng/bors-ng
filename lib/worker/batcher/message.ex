@@ -52,11 +52,11 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :blocked_labels}) do
-    ":-1: Rejected by label"
+    ":warning: Rejected by label"
   end
 
   def generate_message({:preflight, :pr_status}) do
-    ":-1: Rejected by PR status"
+    ":warning: Rejected by PR status"
   end
 
   def generate_message({:preflight, :insufficient_approvals}) do
@@ -64,7 +64,7 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :insufficient_up_to_date_approvals}) do
-    ":-1: Rejected by too few up-to-date approved reviews (some of the PR reviews are stale)"
+    ":warning: Rejected by too few up-to-date approved reviews (some of the PR reviews are stale)"
   end
 
   def generate_message({:preflight, :missing_code_owner_approval}) do
@@ -72,7 +72,7 @@ defmodule BorsNG.Worker.Batcher.Message do
   end
 
   def generate_message({:preflight, :blocked_review}) do
-    ":-1: Rejected by code reviews"
+    ":warning: Rejected by code reviews"
   end
 
   def generate_message({:preflight, :ci_skip}) do
