@@ -171,20 +171,7 @@ defmodule BorsNG.GitHub.Server do
   end
 
   def do_handle_call(:get_pr_commits, repo_conn, {pr_xref}) do
-    case get!(repo_conn, "pulls/#{pr_xref}/commits") do
-      %{body: raw, status: 200} ->
-        Logger.info("Raw response from GH #{inspect(raw)}")
-
-        commits =
-          raw
-          |> Jason.decode!()
-          |> Enum.map(&GitHub.Commit.from_json!/1)
-
-        {:ok, commits}
-
-      e ->
-        {:error, :get_pr_commits, e.status, pr_xref}
-    end
+    get_pr_commits_(repo_conn, "pulls/#{pr_xref}/commits", [])
   end
 
   def do_handle_call(:get_open_prs, {{:raw, token}, repo_xref}, {}) do
@@ -736,6 +723,32 @@ defmodule BorsNG.GitHub.Server do
     case next_headers do
       [] -> prs
       [next] -> get_open_prs_!(token, next.url, prs)
+    end
+  end
+
+  defp get_pr_commits_(_, nil, append) do
+    {:ok, append}
+  end
+
+  defp get_pr_commits_(repo_conn, url, append) do
+    case get!(repo_conn, url) do
+      %{body: raw, status: 200, headers: headers} ->
+        Logger.info("Raw response from GH #{inspect(raw)}")
+
+        commits =
+          raw
+          |> Jason.decode!()
+          |> Enum.map(&GitHub.Commit.from_json!/1)
+
+        next_headers = get_next_headers(headers)
+
+        case next_headers do
+          [] -> {:ok, commits ++ append}
+          [next] -> get_pr_commits_(repo_conn, next.url, commits)
+        end
+
+      e ->
+        {:error, :get_pr_commits, e.status, url}
     end
   end
 
