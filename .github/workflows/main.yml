@@ -133,7 +133,7 @@ jobs:
         run: |
           changed=$(ct list-changed --config .github/workflows/config/chart-lint.yaml)
           if [[ -n "$changed" ]]; then
-            echo "::set-output name=changed::true"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run chart-testing (lint)
