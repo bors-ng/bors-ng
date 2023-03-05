@@ -111,6 +111,7 @@ defmodule BorsNG.Router do
   scope "/webhook", BorsNG do
     pipe_through(:webhook)
     post("/:provider", WebhookController, :webhook)
+    post("/callback/:reference", WebhookController, :callback)
   end
 
   # Fetch the current user from the session and add it to `conn.assigns`. This

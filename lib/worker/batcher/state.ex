@@ -6,6 +6,7 @@ defmodule BorsNG.Worker.Batcher.State do
   """
 
   @typep status :: BorsNG.Database.Status.t()
+  @typep hook :: BorsNG.Database.Hook.t()
   @typep state :: BorsNG.Database.Status.state()
 
   @spec summary_database_statuses([status]) :: state
@@ -15,10 +16,22 @@ defmodule BorsNG.Worker.Batcher.State do
     |> summary_states()
   end
 
+  @spec summary_hooks_with_status([hook], state) :: state
+  def summary_hooks_with_status(hooks, status) do
+    hooks
+    |> Enum.map(& &1.state)
+    |> Enum.map(&case &1 do
+      :queued -> :waiting
+      :pending -> :running
+      x -> x
+    end)
+    |> summary_states(status)
+  end
+
   @spec summary_states([state]) :: state
-  def summary_states(states) do
+  def summary_states(states, default \\ :ok) do
     states
-    |> Enum.reduce(:ok, &summarize/2)
+    |> Enum.reduce(default, &summarize/2)
   end
 
   @spec summarize(state, state) :: state

@@ -31,7 +31,11 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
             committer: nil,
             commit_title: "Merge ${PR_REFS}",
             update_base_for_deletes: false,
-            max_batch_size: nil
+            max_batch_size: nil,
+            # https://bors.tech/rfcs/0322-pre-test-and-pre-merge-hooks.html
+            pre_test_hooks: [],
+            pre_try_hooks: [],
+            pre_merge_hooks: []
 
   @type tcommitter :: %{
           name: binary,
@@ -53,7 +57,10 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           committer: tcommitter,
           commit_title: binary,
           update_base_for_deletes: boolean,
-          max_batch_size: integer | nil
+          max_batch_size: integer | nil,
+          pre_test_hooks: [binary],
+          pre_try_hooks: [binary],
+          pre_merge_hooks: [binary]
         }
 
   @type err ::
@@ -128,7 +135,10 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           committer: committer,
           commit_title: Map.get(toml, "commit_title", "Merge ${PR_REFS}"),
           update_base_for_deletes: Map.get(toml, "update_base_for_deletes", false),
-          max_batch_size: Map.get(toml, "max_batch_size", nil)
+          max_batch_size: Map.get(toml, "max_batch_size", nil),
+          pre_test_hooks: Map.get(toml, "pre_test_hooks", []),
+          pre_try_hooks: Map.get(toml, "pre_try_hooks", []),
+          pre_merge_hooks: Map.get(toml, "pre_merge_hooks", []),
         }
 
         case toml do
@@ -166,6 +176,16 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           %{max_batch_size: max_batch_size}
           when not is_nil(max_batch_size) and not is_integer(max_batch_size) ->
             {:error, :max_batch_size}
+
+          %{pre_test_hooks: pre_test_hooks} when not is_list(pre_test_hooks) ->
+            {:error, :pre_test_hooks}
+
+          %{pre_try_hooks: pre_try_hooks} when not is_list(pre_try_hooks) ->
+            {:error, :pre_try_hooks}
+
+          %{pre_merge_hooks: pre_merge_hooks} when not is_list(pre_merge_hooks) ->
+            {:error, :pre_merge_hooks}
+
 
           toml ->
             status =

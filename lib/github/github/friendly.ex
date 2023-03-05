@@ -104,7 +104,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
   """
   def init_state() do
     ServerMock.put_state(%{
-      {:installation, 91} => %{
+      {:installation, @def_inst} => %{
         repos: [
           %BorsNG.GitHub.Repo{
             id: @def_repo,
@@ -245,7 +245,7 @@ defmodule BorsNG.GitHub.FriendlyMock do
   end
 
   def make_admin(username \\ @def_user["login"]) do
-    user = Database.Repo.get_by!(Database.User, login: username)
+    user = Repo.get_by!(Database.User, login: username)
     Database.Repo.update!(Database.User.changeset(user, %{is_admin: true}))
   end
 

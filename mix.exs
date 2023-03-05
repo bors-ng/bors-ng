@@ -22,7 +22,8 @@ defmodule BorsNg.Mixfile do
         flags: [
           "-Wno_unused",
           "-Werror_handling",
-          "-Wrace_conditions"
+          # this does not exist in OTP 25 -- https://github.com/erlang/otp/pull/5502
+          #"-Wrace_conditions"
         ],
         plt_add_apps: [:mix]
       ]

@@ -71,6 +71,7 @@ defmodule BorsNG.WebhookController do
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Repo
+  alias BorsNG.Database.Hook
   alias BorsNG.GitHub
   alias BorsNG.Worker.Syncer
   alias BorsNG.Worker.SyncerInstallation
@@ -84,6 +85,30 @@ defmodule BorsNG.WebhookController do
     case do_webhook(conn, "github", event) do
       :unknown -> conn |> send_resp(404, "")
       _ -> conn |> send_resp(200, "")
+    end
+  end
+
+  def callback(conn, %{"reference" => reference}) do
+    payload = conn.body_params
+    hooks = Repo.all(Hook.get_for_identifier(reference))
+    |> Repo.preload(batch: :project)
+
+    state = case payload["status"] do
+      "success" -> :ok
+      "failure" -> :error
+      "pending" -> :pending
+      _ -> :invalid
+    end
+
+    # TODO: how to handle `comment`
+    case {hooks, state} do
+      {[], _} -> conn |> send_resp(404, "")
+      {_, :invalid} -> conn |> send_resp(400, "")
+      {[hook], new_state} ->
+        # TODO: how to differentiate between the different phases?
+        batcher = Batcher.Registry.get(hook.batch.project_id)
+        Batcher.hook(batcher, hook, new_state)
+        conn |> send_resp(200, "")
     end
   end
 

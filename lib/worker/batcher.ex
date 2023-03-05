@@ -31,6 +31,7 @@ defmodule BorsNG.Worker.Batcher do
   alias BorsNG.Database.Patch
   alias BorsNG.Database.Project
   alias BorsNG.Database.Status
+  alias BorsNG.Database.Hook
   alias BorsNG.Database.LinkPatchBatch
   alias BorsNG.GitHub
   alias BorsNG.Endpoint
@@ -57,6 +58,10 @@ defmodule BorsNG.Worker.Batcher do
     GenServer.call(pid, {:set_priority, patch_id, priority})
   end
 
+  def hook(pid, hook, status) do
+    GenServer.cast(pid, {:hook, {hook, status}})
+  end
+
   def status(pid, stat) do
     GenServer.cast(pid, {:status, stat})
   end
@@ -76,7 +81,7 @@ defmodule BorsNG.Worker.Batcher do
   # Server callbacks
 
   def init(project_id) do
-    BorsNG.Worker.Batcher.Registry.monitor(self(), project_id)
+    Batcher.Registry.monitor(self(), project_id)
 
     Process.send_after(
       self(),
@@ -172,6 +177,64 @@ defmodule BorsNG.Worker.Batcher do
 
           {:error, message} ->
             send_message(repo_conn, [patch], {:preflight, message})
+        end
+    end
+  end
+
+  def do_handle_cast({:hook, {hook, status}}, _project_id) do
+    # they should get more time!
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
+
+    hook.batch
+    |> Batch.changeset(%{timeout_at: now + 60})
+    |> Repo.update!()
+
+    case {hook.state, status} do
+      {_, :pending} ->
+        :ok
+
+      {finished, _} when finished == :ok or finished == :error ->
+        :ok
+
+      {_, :error} ->
+        hook
+        |> Hook.changeset(%{state: :error})
+        |> Repo.update!()
+
+        # TODO: error for either hooks or for statuses (passed in [] for statuses ATM)
+        complete_batch(:error, hook.batch, [])
+        :ok
+
+      {_, :ok} ->
+        hook
+        |> Hook.changeset(%{state: :ok})
+        |> Repo.update!()
+
+        hooks = Repo.all(Hook.get_next(hook.batch.id, hook.index))
+        # :/
+        |> Repo.preload(:batch)
+        |> Repo.preload(batch: :project)
+        repo_conn = get_repo_conn(hook.batch.project)
+
+        if length(hooks) == 1 do
+          [hook] = hooks
+
+          branch = GitHub.get_branch!(repo_conn, hook.batch.project.staging_branch)
+
+          Batcher.Hooks.invoke(
+            hook,
+            "pre-test",
+            "#{Confex.fetch_env!(:bors, :html_github_root)}/#{hook.batch.project.name}",
+            hook.batch.project.staging_branch,
+            hook.batch.into_branch,
+            branch.commit
+          )
+          hook
+          |> Hook.changeset(%{state: :pending})
+          |> Repo.update!()
+        else
+          {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, "#{hook.batch.project.staging_branch}")
+          setup_statuses(hook.batch, toml)
         end
     end
   end
@@ -527,7 +590,7 @@ defmodule BorsNG.Worker.Batcher do
 
                 # Then compress the merge commit into tree into a single commit
                 # append it to the previous commit
-                # Because the merges are iterative the contain *only* the changes from the PR vs the previous PR(or head)
+                # Because the merges are iterative they contain *only* the changes from the PR vs the previous PR (or head)
 
                 commit_message =
                   Batcher.Message.generate_squash_commit_message(
@@ -567,14 +630,14 @@ defmodule BorsNG.Worker.Batcher do
 
         if toml.use_squash_merge do
           # This will avoid creating a merge commit, which is important since it will prevent
-          # bors from polluting th git blame history with it's own name
+          # bors from polluting the git blame history with it's own name
           head = Enum.at(parents, 0)
 
           if head == :conflict do
             {:conflict, nil}
           else
             GitHub.force_push!(repo_conn, head, batch.project.staging_branch)
-            setup_statuses(batch, toml)
+            setup_hooks(batch, toml, head)
             {:running, head}
           end
         else
@@ -598,7 +661,7 @@ defmodule BorsNG.Worker.Batcher do
               }
             )
 
-          setup_statuses(batch, toml)
+          setup_hooks(batch, toml, head)
           {:running, head}
         end
 
@@ -643,6 +706,45 @@ defmodule BorsNG.Worker.Batcher do
     |> Enum.uniq()
   end
 
+  defp setup_hooks(batch, toml, sha) do
+    toml.pre_test_hooks
+    |> Enum.with_index()
+    |> Enum.map(fn {url, index} ->
+      %Hook{
+        batch_id: batch.id,
+        index: index,
+        url: url,
+        state: :queued,
+        identifier: Ecto.UUID.generate()
+      }
+    end)
+    |> Enum.each(&Repo.insert!/1)
+
+    now = DateTime.to_unix(DateTime.utc_now(), :second)
+
+    batch
+    |> Batch.changeset(%{timeout_at: now + 60})
+    |> Repo.update!()
+
+    if length(toml.pre_test_hooks) == 0 do
+      setup_statuses(batch, toml)
+    else
+      # TODO: send out HTTP requests to all the webhooks
+      hook = Repo.get_by!(Hook, batch_id: batch.id, index: 0)
+      Batcher.Hooks.invoke(
+        hook,
+        "pre-test",
+        "#{Confex.fetch_env!(:bors, :html_github_root)}/#{batch.project.name}",
+        batch.project.staging_branch,
+        batch.into_branch,
+        sha
+      )
+      hook
+      |> Hook.changeset(%{state: :pending})
+      |> Repo.update!()
+    end
+  end
+
   defp setup_statuses(batch, toml) do
     toml.status
     |> Enum.map(
@@ -678,6 +780,8 @@ defmodule BorsNG.Worker.Batcher do
   defp maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
     initial_status = Batcher.State.summary_database_statuses(statuses)
+    initial_status = Repo.all(Hook.all_for_batch(batch.id))
+    |> Batcher.State.summary_hooks_with_status(initial_status)
     now = DateTime.to_unix(DateTime.utc_now(), :second)
     repo_conn = get_repo_conn(batch.project)
 
@@ -1241,6 +1345,10 @@ defmodule BorsNG.Worker.Batcher do
 
     ids = Enum.map(batches, & &1.id)
 
+    Hook
+    |> where([s], s.batch_id in ^ids)
+    |> Repo.delete_all()
+
     Status
     |> where([s], s.batch_id in ^ids)
     |> Repo.delete_all()
@@ -1263,7 +1371,7 @@ defmodule BorsNG.Worker.Batcher do
       :ok
     else
       self = self()
-      ^self = BorsNG.Worker.Batcher.Registry.get(project_id)
+      ^self = Batcher.Registry.get(project_id)
     end
   end
 end
