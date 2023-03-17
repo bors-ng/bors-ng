@@ -170,8 +170,8 @@ defmodule BorsNG.GitHub.Server do
     end
   end
 
-  def do_handle_call(:get_pr_commits, repo_conn, {pr_xref}) do
-    get_pr_commits_(repo_conn, "pulls/#{pr_xref}/commits", [])
+  def do_handle_call(:get_pr_commits, {{:raw, token}, repo_xref}, {pr_xref}) do
+    get_pr_commits_(token, "#{site()}/repositories/#{repo_xref}/pulls/#{pr_xref}/commits", [])
   end
 
   def do_handle_call(:get_open_prs, {{:raw, token}, repo_xref}, {}) do
@@ -730,9 +730,14 @@ defmodule BorsNG.GitHub.Server do
     {:ok, append}
   end
 
-  defp get_pr_commits_(repo_conn, url, append) do
-    case get!(repo_conn, url) do
-      %{body: raw, status: 200, headers: headers} ->
+  defp get_pr_commits_(token, url, append) do
+    params = get_url_params(url)
+
+    "token #{token}"
+    |> tesla_client(@team_content_type)
+    |> Tesla.get(url, query: params)
+    |> case do
+      {:ok, %{body: raw, status: 200, headers: headers}} ->
         Logger.info("Raw response from GH #{inspect(raw)}")
 
         commits =
@@ -744,11 +749,15 @@ defmodule BorsNG.GitHub.Server do
 
         case next_headers do
           [] -> {:ok, commits ++ append}
-          [next] -> get_pr_commits_(repo_conn, next.url, commits)
+          [next] -> get_pr_commits_(token, next.url, commits)
         end
 
-      e ->
-        {:error, :get_pr_commits, e.status, url}
+      {:error, %{status: status}} ->
+        {:error, :get_pr_commits, status, url}
+
+      error ->
+        IO.inspect(error)
+        {:error, :get_pr_commits}
     end
   end
 
