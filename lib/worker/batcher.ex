@@ -211,30 +211,32 @@ defmodule BorsNG.Worker.Batcher do
         |> Repo.update!()
 
         hooks = Repo.all(Hook.get_next(hook.batch.id, hook.index))
-        # :/
-        |> Repo.preload(:batch)
-        |> Repo.preload(batch: :project)
         repo_conn = get_repo_conn(hook.batch.project)
 
+        {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, "#{hook.batch.project.staging_branch}")
+        setup_statuses(hook.batch, toml)
+
         if length(hooks) == 1 do
+          old_hook = hook
           [hook] = hooks
 
-          branch = GitHub.get_branch!(repo_conn, hook.batch.project.staging_branch)
+          branch = GitHub.get_branch!(repo_conn, old_hook.batch.project.staging_branch)
 
           Batcher.Hooks.invoke(
             hook,
             "pre-test",
-            "#{Confex.fetch_env!(:bors, :html_github_root)}/#{hook.batch.project.name}",
-            hook.batch.project.staging_branch,
-            hook.batch.into_branch,
+            "#{Confex.fetch_env!(:bors, :html_github_root)}/#{old_hook.batch.project.name}",
+            old_hook.batch.project.staging_branch,
+            old_hook.batch.into_branch,
             branch.commit
           )
           hook
           |> Hook.changeset(%{state: :pending})
           |> Repo.update!()
-        else
-          {:ok, toml} = Batcher.GetBorsToml.get(repo_conn, "#{hook.batch.project.staging_branch}")
-          setup_statuses(hook.batch, toml)
+        end
+
+        if hook.batch.state == :running do
+          maybe_complete_batch(hook.batch)
         end
     end
   end
@@ -726,9 +728,9 @@ defmodule BorsNG.Worker.Batcher do
     |> Batch.changeset(%{timeout_at: now + 60})
     |> Repo.update!()
 
-    if length(toml.pre_test_hooks) == 0 do
-      setup_statuses(batch, toml)
-    else
+    setup_statuses(batch, toml)
+
+    if length(toml.pre_test_hooks) != 0 do
       # TODO: send out HTTP requests to all the webhooks
       hook = Repo.get_by!(Hook, batch_id: batch.id, index: 0)
       Batcher.Hooks.invoke(
@@ -755,7 +757,7 @@ defmodule BorsNG.Worker.Batcher do
         state: :running
       }
     )
-    |> Enum.each(&Repo.insert!/1)
+    |> Enum.each(&Repo.insert!(&1, on_conflict: :nothing))
 
     now = DateTime.to_unix(DateTime.utc_now(), :second)
 
