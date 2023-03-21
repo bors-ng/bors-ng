@@ -17,6 +17,7 @@ defmodule BorsNG.Database.Hook do
     field(:identifier, :string)
     field(:index, :integer)
     field(:url, :string)
+    field(:phase, :integer)  # 1 = pre-test, 2 = pre-try, 3 = pre-merge
     field(:state, HookState)
     timestamps()
   end

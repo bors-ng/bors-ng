@@ -228,7 +228,8 @@ defmodule BorsNG.Worker.Batcher do
             "#{Confex.fetch_env!(:bors, :html_github_root)}/#{old_hook.batch.project.name}",
             old_hook.batch.project.staging_branch,
             old_hook.batch.into_branch,
-            branch.commit
+            branch.commit,
+            old_hook.batch.project
           )
           hook
           |> Hook.changeset(%{state: :pending})
@@ -731,7 +732,6 @@ defmodule BorsNG.Worker.Batcher do
     setup_statuses(batch, toml)
 
     if length(toml.pre_test_hooks) != 0 do
-      # TODO: send out HTTP requests to all the webhooks
       hook = Repo.get_by!(Hook, batch_id: batch.id, index: 0)
       Batcher.Hooks.invoke(
         hook,
@@ -739,7 +739,8 @@ defmodule BorsNG.Worker.Batcher do
         "#{Confex.fetch_env!(:bors, :html_github_root)}/#{batch.project.name}",
         batch.project.staging_branch,
         batch.into_branch,
-        sha
+        sha,
+        batch.project
       )
       hook
       |> Hook.changeset(%{state: :pending})
@@ -788,7 +789,7 @@ defmodule BorsNG.Worker.Batcher do
     repo_conn = get_repo_conn(batch.project)
 
     next_status =
-      if initial_status != :running do
+      if initial_status != :running and initial_status != :waiting do
         # some repositories require an OK status to push
         send_status(repo_conn, batch, :ok)
         # need to change status (could go from :ok to :error if non-ff push)

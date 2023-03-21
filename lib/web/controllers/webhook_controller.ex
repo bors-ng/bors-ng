@@ -105,7 +105,7 @@ defmodule BorsNG.WebhookController do
       {[], _} -> conn |> send_resp(404, "")
       {_, :invalid} -> conn |> send_resp(400, "")
       {[hook], new_state} ->
-        # TODO: how to differentiate between the different phases?
+        # TODO: differentiate between the different phases using hook.phase
         batcher = Batcher.Registry.get(hook.batch.project_id)
         Batcher.hook(batcher, hook, new_state)
         conn |> send_resp(200, "")

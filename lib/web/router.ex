@@ -68,6 +68,7 @@ defmodule BorsNG.Router do
     put("/:id/settings/branches", ProjectController, :update_branches)
     put("/:id/settings/reviewer", ProjectController, :update_reviewer_settings)
     put("/:id/settings/member", ProjectController, :update_member_settings)
+    post("/:id/settings/token", ProjectController, :reset_hook_secret)
     delete("/:id/batches/incomplete", ProjectController, :cancel_all)
     post("/:id/reviewer", ProjectController, :add_reviewer)
     post("/:id/member", ProjectController, :add_member)

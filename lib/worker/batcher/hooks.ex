@@ -1,7 +1,6 @@
 defmodule BorsNG.Worker.Batcher.Hooks do
-  def invoke(hook, phase, repository, work_branch, target_branch, commit_id) do
-    tesla_client()
-     |> Tesla.post!(hook.url, Jason.encode!(%{
+  def invoke(hook, phase, repository, work_branch, target_branch, commit_id, project) do
+    body = Jason.encode!(%{
       "phase" => phase,
       "repository" => repository,
       "work-branch" => work_branch,
@@ -9,16 +8,19 @@ defmodule BorsNG.Worker.Batcher.Hooks do
       "commit-id" => commit_id,
       "timeout" => 60,
       "callback" => "#{BorsNG.Endpoint.url()}/webhook/callback/#{hook.identifier}"
-     }))
+    })
+    signature = :crypto.mac(:hmac, :sha256, :erlang.binary_to_list(project.hook_secret), :erlang.binary_to_list(body))
+                |> Base.encode16(case: :lower)
+    tesla_client()
+    |> Tesla.post!(hook.url, body, headers: [{"x-bors-ng-signature", "sha256-hmac=#{signature}"}])
   end
 
   defp tesla_client() do
     middleware = [
       {Tesla.Middleware.Headers,
-       [
-         {"x-bors-ng-signature", "TODO"},  # TODO: keys!
-         {"user-agent", "bors-ng https://bors.tech"}
-       ]},
+        [
+          {"user-agent", "bors-ng https://bors.tech"}
+        ]},
       {Tesla.Middleware.Retry, delay: 100, max_retries: 5}
     ]
 

@@ -313,6 +313,32 @@ defmodule BorsNG.ProjectController do
     end
   end
 
+  def reset_hook_secret(_, :ro, _, _) do
+    raise BorsNG.PermissionDeniedError
+  end
+
+  def reset_hook_secret(conn, :rw, project, %{}) do
+    result =
+      project
+      |> Ecto.Changeset.cast(%{hook_secret: Project.generate_secret(256)}, [:hook_secret])
+      |> Repo.update()
+
+    case result do
+      {:ok, _} ->
+        Syncer.start_synchronize_project(project.id)
+
+        conn
+        |> put_flash(:ok, "Successfully regenerated the hook secret")
+        |> redirect(to: project_path(conn, :settings, project))
+
+      {:error, _} ->
+        conn
+        |> put_flash(:error, "Cannot regenerate hook secret")
+        # no form state to persist!
+        |> redirect(to: project_path(conn, :settings, project))
+    end
+  end
+
   def update_branches(_, :ro, _, _), do: raise(BorsNG.PermissionDeniedError)
 
   def update_branches(conn, :rw, project, %{"project" => pdef}) do

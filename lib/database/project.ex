@@ -46,6 +46,7 @@ defmodule BorsNG.Database.Project do
     field(:batch_timeout_sec, :integer, default: 60 * 60 * 2)
     field(:auto_reviewer_required_perm, ProjectPermission, default: nil)
     field(:auto_member_required_perm, ProjectPermission, default: nil)
+    field(:hook_secret, :binary, autogenerate: {__MODULE__, :generate_secret, [256]})
 
     timestamps()
   end
@@ -118,6 +119,11 @@ defmodule BorsNG.Database.Project do
   def changeset_member_settings(struct, params \\ %{}) do
     struct
     |> cast(params, [:auto_member_required_perm])
+  end
+
+  @spec generate_secret(integer) :: String.t()
+  def generate_secret(bits) do
+    :crypto.strong_rand_bytes(div(bits, 8))
   end
 
   # Red flag queries
