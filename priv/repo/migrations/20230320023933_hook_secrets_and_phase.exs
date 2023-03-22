@@ -45,7 +45,6 @@ defmodule BorsNG.Database.RepoPostgres.Migrations.HookSecretsAndPhase do
       remove :hook_secret, :binary
     end
     # eh...
-    # TODO: this only works on postgresql, not mysql or whatever
     case fetch_adapter() do
       Ecto.Adapters.Postgres ->
         execute """

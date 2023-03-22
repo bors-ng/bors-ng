@@ -100,7 +100,6 @@ defmodule BorsNG.WebhookController do
       _ -> :invalid
     end
 
-    # TODO: how to handle `comment`
     case {hooks, state} do
       {[], _} -> conn |> send_resp(404, "")
       {_, :invalid} -> conn |> send_resp(400, "")
