@@ -331,7 +331,8 @@ defmodule BorsNG.Worker.Attemptor do
 
   defp maybe_complete_attempt(:ok, project, patch, statuses) do
     repo_conn = get_repo_conn(project)
-    send_message(repo_conn, patch, {:succeeded, statuses})
+    # TODO: hooks
+    send_message(repo_conn, patch, {:succeeded, statuses, []})
   end
 
   defp maybe_complete_attempt(:error, project, patch, statuses) do
@@ -343,7 +344,8 @@ defmodule BorsNG.Worker.Attemptor do
         &(&1.state == :error)
       )
 
-    send_message(repo_conn, patch, {:failed, erred})
+    # TODO: hooks
+    send_message(repo_conn, patch, {:failed, erred, []})
   end
 
   defp maybe_complete_attempt(:running, _project, _patch, _statuses) do

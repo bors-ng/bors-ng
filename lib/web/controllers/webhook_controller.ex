@@ -105,9 +105,21 @@ defmodule BorsNG.WebhookController do
       {[], _} -> conn |> send_resp(404, "")
       {_, :invalid} -> conn |> send_resp(400, "")
       {[hook], new_state} ->
-        # TODO: differentiate between the different phases using hook.phase
-        batcher = Batcher.Registry.get(hook.batch.project_id)
-        Batcher.hook(batcher, hook, new_state)
+        hook = hook
+              |> Hook.changeset(%{comment: Map.get(payload, "comment")})
+              |> Repo.update!()
+        case hook.phase do
+          1 ->
+            # pre-test
+            batcher = Batcher.Registry.get(hook.batch.project_id)
+            Batcher.hook(batcher, hook, new_state)
+          2 ->
+            # pre-try
+            :ok
+          3 ->
+            # pre-merge
+            :ok
+        end
         conn |> send_resp(200, "")
     end
   end

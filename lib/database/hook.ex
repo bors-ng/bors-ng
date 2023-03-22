@@ -18,13 +18,14 @@ defmodule BorsNG.Database.Hook do
     field(:index, :integer)
     field(:url, :string)
     field(:phase, :integer)  # 1 = pre-test, 2 = pre-try, 3 = pre-merge
+    field(:comment, :string)
     field(:state, HookState)
     timestamps()
   end
 
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:batch_id, :identifier, :index, :url, :state])
+    |> cast(params, [:batch_id, :identifier, :index, :url, :state, :comment])
   end
 
   def get_next(batch_id, index) do

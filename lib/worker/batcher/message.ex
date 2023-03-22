@@ -138,7 +138,7 @@ defmodule BorsNG.Worker.Batcher.Message do
     """
   end
 
-  def generate_message({state, statuses}) do
+  def generate_message({state, statuses, hooks}) do
     is_new_year = get_is_new_year()
 
     msg =
@@ -149,12 +149,19 @@ defmodule BorsNG.Worker.Batcher.Message do
         :retrying -> "Build failed (retrying...):"
       end
 
-    ([msg] ++ Enum.map(statuses, &"  * #{gen_status_link(&1)}"))
+    ([msg] ++ Enum.map(statuses, &"  * #{gen_status_link(&1)}") ++ Enum.map(hooks, fn hook ->
+      case hook do
+        %{comment: x} when x == nil or x == "" ->
+          "  * <#{hook.url}>"
+        _ ->
+          "  * <#{hook.url}>\n\n#{hook.comment}"
+      end
+    end))
     |> Enum.join("\n")
   end
 
-  def generate_message({:merged, :squashed, target_branch, statuses}) do
-    status_msg = generate_message({:succeeded, statuses})
+  def generate_message({:merged, :squashed, target_branch, statuses, hooks}) do
+    status_msg = generate_message({:succeeded, statuses, hooks})
     "Pull request successfully merged into #{target_branch}.\n\n#{status_msg}"
   end
 

@@ -200,9 +200,6 @@ defmodule BorsNG.Worker.Batcher do
         hook
         |> Hook.changeset(%{state: :error})
         |> Repo.update!()
-
-        # TODO: error for either hooks or for statuses (passed in [] for statuses ATM)
-        complete_batch(:error, hook.batch, [])
         :ok
 
       {_, :ok} ->
@@ -235,10 +232,10 @@ defmodule BorsNG.Worker.Batcher do
           |> Hook.changeset(%{state: :pending})
           |> Repo.update!()
         end
+    end
 
-        if hook.batch.state == :running do
-          maybe_complete_batch(hook.batch)
-        end
+    if hook.batch.state == :running do
+      maybe_complete_batch(hook.batch)
     end
   end
 
@@ -718,7 +715,8 @@ defmodule BorsNG.Worker.Batcher do
         index: index,
         url: url,
         state: :queued,
-        identifier: Ecto.UUID.generate()
+        identifier: Ecto.UUID.generate(),
+        phase: 1,
       }
     end)
     |> Enum.each(&Repo.insert!/1)
@@ -783,8 +781,8 @@ defmodule BorsNG.Worker.Batcher do
   defp maybe_complete_batch(batch) do
     statuses = Repo.all(Status.all_for_batch(batch.id))
     initial_status = Batcher.State.summary_database_statuses(statuses)
-    initial_status = Repo.all(Hook.all_for_batch(batch.id))
-    |> Batcher.State.summary_hooks_with_status(initial_status)
+    hooks = Repo.all(Hook.all_for_batch(batch.id))
+    initial_status = Batcher.State.summary_hooks_with_status(hooks, initial_status)
     now = DateTime.to_unix(DateTime.utc_now(), :second)
     repo_conn = get_repo_conn(batch.project)
 
@@ -793,7 +791,7 @@ defmodule BorsNG.Worker.Batcher do
         # some repositories require an OK status to push
         send_status(repo_conn, batch, :ok)
         # need to change status (could go from :ok to :error if non-ff push)
-        maybe_completed_status = complete_batch(initial_status, batch, statuses)
+        maybe_completed_status = complete_batch(initial_status, batch, statuses, hooks)
         # status can change so send_status should come after complete_batch
         send_status(repo_conn, batch, maybe_completed_status)
         Project.ping!(batch.project_id)
@@ -811,8 +809,8 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  @spec complete_batch(Status.state(), Batch.t(), [Status.t()]) :: Status.state()
-  defp complete_batch(:ok, batch, statuses) do
+  @spec complete_batch(Status.state(), Batch.t(), [Status.t()], [Hook.t()]) :: Status.state()
+  defp complete_batch(:ok, batch, statuses, hooks) do
     project = batch.project
     repo_conn = get_repo_conn(project)
 
@@ -859,13 +857,13 @@ defmodule BorsNG.Worker.Batcher do
       {:success} ->
         if toml.use_squash_merge do
           Enum.each(patches, fn patch ->
-            send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch, statuses})
+            send_message(repo_conn, [patch], {:merged, :squashed, batch.into_branch, statuses, hooks})
             pr = GitHub.get_pr!(repo_conn, patch.pr_xref)
             pr = %BorsNG.GitHub.Pr{pr | state: :closed, title: "[Merged by Bors] - #{pr.title}"}
             GitHub.update_pr!(repo_conn, pr)
           end)
         else
-          send_message(repo_conn, patches, {:succeeded, statuses})
+          send_message(repo_conn, patches, {:succeeded, statuses, hooks})
         end
 
         :ok
@@ -900,10 +898,11 @@ defmodule BorsNG.Worker.Batcher do
     end
   end
 
-  defp complete_batch(:error, batch, statuses) do
+  defp complete_batch(:error, batch, statuses, hooks) do
     project = batch.project
     repo_conn = get_repo_conn(project)
     erred = Enum.filter(statuses, &(&1.state == :error))
+    erred_hooks = Enum.filter(hooks, &(&1.state == :error))
 
     patch_links =
       batch.id
@@ -917,7 +916,7 @@ defmodule BorsNG.Worker.Batcher do
       poll_after_delay(project)
     end
 
-    send_message(repo_conn, patches, {state, erred})
+    send_message(repo_conn, patches, {state, erred, erred_hooks})
 
     :error
   end

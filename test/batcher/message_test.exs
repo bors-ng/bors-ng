@@ -23,28 +23,28 @@ defmodule BorsNG.Worker.BatcherMessageTest do
   test "generate retry message" do
     expected_message = "Build failed (retrying...):\n  * stat"
     example_statuses = [%{url: nil, identifier: "stat"}]
-    actual_message = Message.generate_message({:retrying, example_statuses})
+    actual_message = Message.generate_message({:retrying, example_statuses, []})
     assert expected_message == actual_message
   end
 
   test "generate retry message w/ url" do
     expected_message = "Build failed (retrying...):\n  * [stat](x)"
     example_statuses = [%{url: "x", identifier: "stat"}]
-    actual_message = Message.generate_message({:retrying, example_statuses})
+    actual_message = Message.generate_message({:retrying, example_statuses, []})
     assert expected_message == actual_message
   end
 
   test "generate failure message" do
     expected_message = "Build failed:\n  * stat"
     example_statuses = [%{url: nil, identifier: "stat"}]
-    actual_message = Message.generate_message({:failed, example_statuses})
+    actual_message = Message.generate_message({:failed, example_statuses, []})
     assert expected_message == actual_message
   end
 
   test "generate success message" do
     expected_message = "Build succeeded:\n  * stat"
     example_statuses = [%{url: nil, identifier: "stat"}]
-    actual_message = Message.generate_message({:succeeded, example_statuses})
+    actual_message = Message.generate_message({:succeeded, example_statuses, []})
     assert expected_message == actual_message
   end
 
@@ -113,7 +113,7 @@ defmodule BorsNG.Worker.BatcherMessageTest do
 
   test "generate merged into master message" do
     expected_message = "Pull request successfully merged into master.\n\nBuild succeeded:"
-    actual_message = Message.generate_message({:merged, :squashed, "master", []})
+    actual_message = Message.generate_message({:merged, :squashed, "master", [], []})
     assert expected_message == actual_message
   end
 
