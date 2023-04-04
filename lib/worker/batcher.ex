@@ -1187,7 +1187,7 @@ defmodule BorsNG.Worker.Batcher do
 
   defp send_status(
          repo_conn,
-         %Batch{id: id, commit: commit, project_id: project_id},
+         %Batch{id: id, commit: commit},
          message
        ) do
     patches =
@@ -1205,7 +1205,7 @@ defmodule BorsNG.Worker.Batcher do
         commit,
         status,
         msg,
-        project_url(Endpoint, :log, project_id) <> "#batch-#{id}"
+        batch_url(Endpoint, :show, id)
       })
     end
   end
@@ -1221,7 +1221,7 @@ defmodule BorsNG.Worker.Batcher do
           &1.commit,
           status,
           msg,
-          project_url(Endpoint, :log, &1.project_id) <> "#batch-#{batch_id}"
+          batch_url(Endpoint, :show, batch_id)
         }
       )
     )
