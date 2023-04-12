@@ -72,7 +72,7 @@ defmodule BorsNg.Mixfile do
       {:toml, "~> 0.5"},
       {:hackney, "~> 1.12"},
       {:ex_link_header, "~> 0.0.5"},
-      {:oauth2, "~> 2.0.0"},
+      {:oauth2, "~> 2.1.0"},
       {:joken, "~> 2.0"},
       {:dialyxir, "~> 1.2.0", runtime: false, only: [:dev]},
       {:distillery,
