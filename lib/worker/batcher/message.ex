@@ -140,13 +140,37 @@ defmodule BorsNG.Worker.Batcher.Message do
 
   def generate_message({state, statuses}) do
     is_new_year = get_is_new_year()
+    is_public = get_is_public()
 
     msg =
       case state do
-        :succeeded when is_new_year -> "Build succeeded!\n\n*And happy new year! 🎉*\n\n"
-        :succeeded -> "Build succeeded:"
-        :failed -> "Build failed:"
-        :retrying -> "Build failed (retrying...):"
+        :succeeded when is_public ->
+          """
+            Build succeeded!
+
+            The publicly hosted instance of bors-ng is deprecated and will go away soon.
+
+            If you want to self-host your own instance, [instructions are here][instructions].
+            For more help, visit [the forum].
+
+            If you want to switch to GitHub's built-in merge queue, visit [their help page][gh].
+
+            [instructions]: https://github.com/bors-ng/bors-ng#how-to-set-up-your-own-real-instance
+            [the forum]: https://forum.bors.tech
+            [gh]: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue\n\n
+          """
+
+        :succeeded when is_new_year ->
+          "Build succeeded!\n\n*And happy new year! 🎉*\n\n"
+
+        :succeeded ->
+          "Build succeeded:"
+
+        :failed ->
+          "Build failed:"
+
+        :retrying ->
+          "Build failed (retrying...):"
       end
 
     ([msg] ++ Enum.map(statuses, &"  * #{gen_status_link(&1)}"))
@@ -277,5 +301,9 @@ defmodule BorsNG.Worker.Batcher.Message do
       {true, 1, 2} -> true
       _ -> false
     end
+  end
+
+  def get_is_public do
+    System.get_env("PUBLIC_HOST") === "app.bors.tech"
   end
 end
