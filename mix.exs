@@ -84,7 +84,7 @@ defmodule BorsNg.Mixfile do
       {:ex_doc, "~> 0.18", only: :dev},
       {:credo, "~> 1.0", only: [:dev, :test]},
       {:confex, "~> 3.5.0"},
-      {:postgrex, "~> 0.16.1"},
+      {:postgrex, "~> 0.17.1"},
       {:myxql, "~> 0.4"},
       {:ecto, "~> 3.5"},
       {:ecto_sql, "~> 3.0"},
