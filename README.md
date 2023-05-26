@@ -423,3 +423,5 @@ You can do it from a PostgreSQL prompt like this:
 bors-ng is licensed under the Apache license, version 2.0.
 It should be included with the source distribution in LICENSE-APACHE.
 If it is missing, it is at <http://www.apache.org/licenses/LICENSE-2.0>.
+
+test
