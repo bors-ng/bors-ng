@@ -210,7 +210,7 @@ defmodule BorsNG.Worker.Syncer do
       user ->
         if user.login != gh_user.login do
           Logger.debug(
-            "Syncer: sync_user: github user id #{inspect(gh_user.user_xref)} changed username from #{inspect(user.login)} to #{inspect(gh_user.login)}"
+            "Syncer: sync_user: github user id #{inspect(gh_user.id)} changed username from #{inspect(user.login)} to #{inspect(gh_user.login)}"
           )
 
           user
