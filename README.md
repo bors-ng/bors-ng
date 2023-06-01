@@ -1,9 +1,11 @@
+**Deprecation notice**: Though I'll still merge bug fixes if they're provided, new features will not be accepted.
+If you want to implement a workflow like this, use [GitHub's built-in merge queue][ghmq]. See [TMIB 76] for more info.
+
+[ghmq]: https://github.blog/changelog/2023-02-08-pull-request-merge-queue-public-beta/
+[TMIB 76]: https://bors.tech/newsletter/2023/05/01/tmib-76/
+
 A merge bot for GitHub pull requests
 ====================================
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/bors-ng/bors-ng)
-
-[![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/3)
 
 [Bors-NG] implements a continuous-testing workflow where the main branch never breaks.
 It integrates GitHub pull requests with a tool like [GitHub Actions] that runs
@@ -14,7 +16,6 @@ Other resources:
 * [Home page](https://bors.tech/)
 * [Documentation](https://bors.tech/documentation/)
 * [Support forum](https://forum.bors.tech/)
-* [Publicly hosted instance (public repositories only)](https://app.bors.tech/)
 
 
 # But don't GitHub's Protected Branches already do this?
