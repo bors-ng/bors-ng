@@ -57,7 +57,7 @@ defmodule BorsNG.GitHub.OAuth2 do
   @spec get_user!(t) :: BorsNG.GitHub.User.t()
   def get_user!(client) do
     client
-    |> OAuth2.Client.get!("/user")
+    |> OAuth2.Client.get!("/user", [{"user-agent", "bors-ng https://bors.tech"}])
     |> Map.fetch!(:body)
     |> BorsNG.GitHub.User.from_json!()
   end
