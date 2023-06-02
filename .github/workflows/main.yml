@@ -102,15 +102,15 @@ jobs:
 
   ci-success:
     name: ci
-    if: ${{ success() }}
+    if: always()
     needs:
       - exfmt
       - test
     runs-on: ubuntu-latest
     steps:
-      - name: CI succeeded
+      - run: jq --exit-status 'all(.result == "success")' <<< '${{ toJson(needs) }}'
+      - name: Done
         run: exit 0
-
   lint-test:
     runs-on: ubuntu-latest
     steps:
