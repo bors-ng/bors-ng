@@ -47,7 +47,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           prerun_timeout_sec: integer,
           required_approvals: integer | nil,
           up_to_date_approvals: boolean,
-          cut_body_after: binary | nil,
+          cut_body_after: binary | [binary] | nil,
           delete_merged_branches: boolean,
           use_codeowners: boolean,
           committer: tcommitter,
@@ -151,7 +151,7 @@ defmodule BorsNG.Worker.Batcher.BorsToml do
           when not is_integer(req_approve) and not is_nil(req_approve) ->
             {:error, :required_approvals}
 
-          %{cut_body_after: c} when not is_binary(c) and not is_nil(c) ->
+          %{cut_body_after: c} when not is_list(c) and not is_binary(c) and not is_nil(c) ->
             {:error, :cut_body_after}
 
           %{status: [], block_labels: [], pr_status: []} ->
