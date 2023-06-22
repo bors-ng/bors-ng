@@ -104,7 +104,7 @@ defmodule BorsNG.GitHub.Pr do
        },
        merged: not is_nil(merged_at),
        mergeable: mergeable,
-       draft: if(is_nil(pr["draft"]), do: false, else: pr.draft)
+       draft: if(is_nil(pr["draft"]), do: false, else: pr["draft"])
      }}
   end
 
@@ -161,7 +161,7 @@ defmodule BorsNG.GitHub.Pr do
       },
       "merged_at" => merged_at,
       "mergeable" => nil,
-      "draft" => if(is_nil(pr["draft"]), do: false, else: pr.draft)
+      "draft" => if(is_nil(pr["draft"]), do: false, else: pr["draft"])
     })
   end
 
