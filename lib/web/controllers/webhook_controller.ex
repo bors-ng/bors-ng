@@ -144,7 +144,8 @@ defmodule BorsNG.WebhookController do
       project: project,
       patch: patch,
       author: patch.author,
-      pr: pr
+      pr: pr,
+      is_draft: pr.draft
     })
   end
 
@@ -153,25 +154,27 @@ defmodule BorsNG.WebhookController do
     is_pr = Map.has_key?(conn.body_params["issue"], "pull_request")
 
     if is_created and is_pr do
-      project =
-        Repo.get_by!(Project,
-          repo_xref: conn.body_params["repository"]["id"]
-        )
+      if !conn.body_params["issue"]["draft"] do
+        project =
+          Repo.get_by!(Project,
+            repo_xref: conn.body_params["repository"]["id"]
+          )
 
-      commenter =
-        conn.body_params["comment"]["user"]
-        |> GitHub.User.from_json!()
-        |> Syncer.sync_user()
+        commenter =
+          conn.body_params["comment"]["user"]
+          |> GitHub.User.from_json!()
+          |> Syncer.sync_user()
 
-      comment = conn.body_params["comment"]["body"]
+        comment = conn.body_params["comment"]["body"]
 
-      %Command{
-        project: project,
-        commenter: commenter,
-        comment: comment,
-        pr_xref: conn.body_params["issue"]["number"]
-      }
-      |> Command.run()
+        %Command{
+          project: project,
+          commenter: commenter,
+          comment: comment,
+          pr_xref: conn.body_params["issue"]["number"]
+        }
+        |> Command.run()
+      end
     end
   end
 
@@ -321,6 +324,10 @@ defmodule BorsNG.WebhookController do
     SyncerInstallation.start_synchronize_installation(%Installation{
       installation_xref: installation_xref
     })
+  end
+
+  def do_webhook_pr(conn, %{is_draft: true}) do
+    Logger.debug(["Ignoring draft PR: ", conn.body_params["pull_request"]["number"]])
   end
 
   def do_webhook_pr(conn, %{
