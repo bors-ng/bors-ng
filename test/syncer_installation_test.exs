@@ -1,6 +1,3 @@
-import Ecto
-import Ecto.Query
-
 defmodule BorsNG.Worker.SyncerInstallationTest do
   use BorsNG.Worker.TestCase
 
