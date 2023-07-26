@@ -111,9 +111,9 @@ YMMV on other OSs):
 
 ```sh
 asdf plugin-add erlang
-asdf install erlang 24.0
+asdf install erlang 25.3.2.4
 asdf plugin-add elixir
-asdf install elixir 1.13.2
+asdf install elixir 1.14.5
 # in the parent directory
 cat<<EOF > ../.tool-versions
 elixir 1.13.2
