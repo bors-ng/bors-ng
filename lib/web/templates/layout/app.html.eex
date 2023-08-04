@@ -25,14 +25,14 @@
       This page is out of date. <a href="">Reload</a>
       </div>
       <% end %>
-      <%= if not is_nil get_flash(@conn, :ok) do %>
+      <%= if not is_nil Phoenix.Flash.get(@flash, :ok) do %>
       <div role="alert" class="alert alert--ok js--closable">
-      <%= get_flash(@conn, :ok) %>
+      <%= Phoenix.Flash.get(@flash, :ok) %>
       </div>
       <% end %>
-      <%= if not is_nil get_flash(@conn, :error) do %>
+      <%= if not is_nil Phoenix.Flash.get(@flash, :error) do %>
       <div role="alert" class="alert alert--error js--closable">
-      <%= get_flash(@conn, :error) %>
+      <%= Phoenix.Flash.get(@flash, :error) %>
       </div>
       <% end %>
     </div>
