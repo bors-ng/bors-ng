@@ -20,8 +20,7 @@ defmodule BorsNg.Mixfile do
       dialyzer: [
         flags: [
           "-Wno_unused",
-          "-Werror_handling",
-          "-Wrace_conditions"
+          "-Werror_handling"
         ],
         plt_add_apps: [:mix]
       ]
