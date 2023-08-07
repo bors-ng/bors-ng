@@ -16,13 +16,11 @@ defmodule BorsNg.Mixfile do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      compilers: [:phoenix] ++ Mix.compilers(),
       elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
         flags: [
           "-Wno_unused",
-          "-Werror_handling",
-          "-Wrace_conditions"
+          "-Werror_handling"
         ],
         plt_add_apps: [:mix]
       ]
@@ -59,15 +57,19 @@ defmodule BorsNg.Mixfile do
   # and cannot be accessed from applications inside the apps folder
   defp deps do
     [
-      {:phoenix_ecto, "~> 4.2"},
-      {:phoenix_html, "~> 3.3.0"},
+      {:phoenix, "~> 1.7"},
+      {:phoenix_ecto, "~> 4.4.2"},
+      {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.3", only: :dev},
-      {:phoenix, "~> 1.5.8"},
-      {:phoenix_pubsub, "~> 2.0"},
-      {:jason, "~> 1.0"},
+      {:phoenix_live_dashboard, "~> 0.8"},
+      {:phoenix_view, "~> 2.0"},
+      {:telemetry_metrics, "~> 0.6"},
+      {:telemetry_poller, "~> 1.0"},
+      {:phoenix_pubsub, "~> 2.1"},
+      {:jason, "~> 1.4"},
       {:gettext, "~> 0.15"},
-      {:cowboy, "~> 1.0"},
-      {:plug_cowboy, "~> 1.0"},
+      {:cowboy, "~> 2.10"},
+      {:plug_cowboy, "~> 2.6"},
       {:tesla, "~> 1.7.0"},
       {:toml, "~> 0.5"},
       {:hackney, "~> 1.12"},
@@ -86,8 +88,8 @@ defmodule BorsNg.Mixfile do
       {:confex, "~> 3.5.0"},
       {:postgrex, "~> 0.17.2"},
       {:myxql, "~> 0.4"},
-      {:ecto, "~> 3.5"},
-      {:ecto_sql, "~> 3.0"},
+      {:ecto, "~> 3.10"},
+      {:ecto_sql, "~> 3.10"},
       {:ex_parameterized, "~> 1.3.6", only: [:dev, :test]},
       {:glob, git: "https://github.com/bors-ng/glob.git", commit: "7befe06"}
     ]

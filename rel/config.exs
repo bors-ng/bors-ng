@@ -29,6 +29,8 @@ end
 environment :prod do
   set(include_erts: true)
   set(include_src: false)
+  # Custom vm.args
+  set(vm_args: "rel/prod.vm.args")
   set(cookie: :"nprGQlz(g].gBN%dbv?Wah!Mvz<;*FmALJ;z}B|RZ=`36uz:|Qc?P!>k?Q/o[hE~")
 end
 
